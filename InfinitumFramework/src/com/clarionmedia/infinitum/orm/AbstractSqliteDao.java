@@ -19,13 +19,15 @@
 
 package com.clarionmedia.infinitum.orm;
 
+import android.content.Context;
 import android.database.SQLException;
 
 /**
  * <p>
  * An abstract implementation of {@link SqliteDao}. This class is designed to
  * provide DAO extensibility while providing implementations for core CRUD
- * operations.
+ * operations. This class needs to be extended, and the super constructor should
+ * be called in the extending class' constructor.
  * </p>
  * 
  * @author Tyler Treat
@@ -33,6 +35,19 @@ import android.database.SQLException;
  * 
  */
 public abstract class AbstractSqliteDao implements SqliteDao {
+
+	protected Context sContext;
+
+	/**
+	 * Constructs a new <code>AbstractSqliteDao</code> using the given
+	 * <code>Context</code>.
+	 * 
+	 * @param context
+	 *            the calling <code>Context</code>
+	 */
+	public AbstractSqliteDao(Context context) {
+		sContext = context;
+	}
 
 	@Override
 	public SqliteDao open() throws SQLException {

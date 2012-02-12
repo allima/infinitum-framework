@@ -25,7 +25,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
-import com.clarionmedia.infinitum.exception.InfinitumConfigurationException;
 
 /**
  * <p>
@@ -99,21 +98,50 @@ public class ApplicationContextFactory {
 			while (event != XmlPullParser.END_DOCUMENT) {
 				event = config.getEventType();
 				if (event == XmlPullParser.START_TAG
-						&& config.getName().contentEquals(ApplicationContextConstants.CONFIG_NODE)) {
+						&& config.getName().contentEquals(ApplicationContextConstants.CONFIG_ELEMENT)) {
 					hasConfigNode = true;
 					config.next();
 					event = config.getEventType();
 					while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
-							&& !config.getName().contentEquals(ApplicationContextConstants.CONFIG_NODE)) {
+							&& !config.getName().contentEquals(ApplicationContextConstants.CONFIG_ELEMENT)) {
 						if (event == XmlPullParser.START_TAG
-								&& config.getName().contentEquals(ApplicationContextConstants.SQLITE_NODE)) {
+								&& config.getName().contentEquals(ApplicationContextConstants.APPLICATION_ELEMENT)) {
 							config.next();
 							event = config.getEventType();
 							while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
-									&& !config.getName().contentEquals(ApplicationContextConstants.SQLITE_NODE)) {
+									&& !config.getName().contentEquals(ApplicationContextConstants.APPLICATION_ELEMENT)) {
+								if (event == XmlPullParser.START_TAG
+										&& config.getName().contentEquals(ApplicationContextConstants.PROPERTY_ELEMENT)) {
+									String name = config.getAttributeValue(null,
+											ApplicationContextConstants.NAME_ATTRIBUTE);
+									config.next();
+									event = config.getEventType();
+									if (event != XmlPullParser.TEXT)
+										throw new InfinitumConfigurationException(String.format(
+												ApplicationContextConstants.CONFIG_PARSE_ERROR_LINE,
+												config.getLineNumber()));
+									if (name.equalsIgnoreCase(ApplicationContextConstants.DEBUG_ATTRIBUTE)) {
+										String debug = config.getText();
+										if (Boolean.valueOf(debug))
+											ret.setDebug(true);
+										else
+											ret.setDebug(false);
+									}
+									config.next();
+									config.next();
+									event = config.getEventType();
+								}
+							}
+						}
+						if (event == XmlPullParser.START_TAG
+								&& config.getName().contentEquals(ApplicationContextConstants.SQLITE_ELEMENT)) {
+							config.next();
+							event = config.getEventType();
+							while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
+									&& !config.getName().contentEquals(ApplicationContextConstants.SQLITE_ELEMENT)) {
 								ret.setHasSqliteDb(true);
 								if (event == XmlPullParser.START_TAG
-										&& config.getName().contentEquals(ApplicationContextConstants.PROPERTY_NODE)) {
+										&& config.getName().contentEquals(ApplicationContextConstants.PROPERTY_ELEMENT)) {
 									String name = config.getAttributeValue(null,
 											ApplicationContextConstants.NAME_ATTRIBUTE);
 									config.next();

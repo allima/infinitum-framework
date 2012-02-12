@@ -22,8 +22,9 @@
  
 -->
 
-<!ELEMENT infinitum-configuration (sqlite?)>
+<!ELEMENT infinitum-configuration (application? , sqlite?)>
 
+<!ELEMENT application (property*)>
 <!ELEMENT sqlite (property+)>
 
 <!ELEMENT property (#PCDATA)>

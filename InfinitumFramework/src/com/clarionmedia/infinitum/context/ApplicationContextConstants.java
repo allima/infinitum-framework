@@ -20,8 +20,10 @@
 package com.clarionmedia.infinitum.context;
 
 /**
+ * <p>
  * Contains constants used in {@link ApplicationContext},
  * {@link ApplicationContextFactory}, and other supporting classes.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/12/12
@@ -29,15 +31,17 @@ package com.clarionmedia.infinitum.context;
  */
 public class ApplicationContextConstants {
 	
-	// XML node names
-	public static final String CONFIG_NODE = "infinitum-configuration";
-	public static final String SQLITE_NODE = "sqlite";
-	public static final String PROPERTY_NODE = "property";
+	// XML element names
+	public static final String CONFIG_ELEMENT = "infinitum-configuration";
+	public static final String APPLICATION_ELEMENT = "application";
+	public static final String SQLITE_ELEMENT = "sqlite";
+	public static final String PROPERTY_ELEMENT = "property";
 	
 	// XML attribute names
 	public static final String NAME_ATTRIBUTE = "name";
 	public static final String DB_NAME_ATTRIBUTE = "dbname";
 	public static final String DB_VERSION_ATTRIBUTE = "dbversion";
+	public static final String DEBUG_ATTRIBUTE = "debug";
 
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the ApplicationContext!";
