@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.exception;
+package com.clarionmedia.infinitum.context;
 
 /**
  * <p>
