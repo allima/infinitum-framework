@@ -20,9 +20,11 @@
 package com.clarionmedia.infinitum.context;
 
 /**
+ * <p>
  * Acts as a container for application-wide context information. This should not
  * be instantiated directly but rather obtained through the
  * {@link ApplicationContextFactory}.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/11/12
