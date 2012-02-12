@@ -33,7 +33,8 @@ import android.database.SQLException;
 public interface SqliteDao {
 
 	/**
-	 * Opens the database to begin a transaction.
+	 * Opens the database to begin a transaction. If the database does not
+	 * exist, it will be created.
 	 * 
 	 * @return an instance of itself to enable chaining
 	 * @throws SQLException

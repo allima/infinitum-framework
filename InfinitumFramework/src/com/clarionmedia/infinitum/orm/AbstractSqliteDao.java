@@ -19,8 +19,11 @@
 
 package com.clarionmedia.infinitum.orm;
 
+import com.clarionmedia.infinitum.context.ApplicationContext;
+
 import android.content.Context;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 
 /**
  * <p>
@@ -36,7 +39,10 @@ import android.database.SQLException;
  */
 public abstract class AbstractSqliteDao implements SqliteDao {
 
-	protected Context sContext;
+	protected Context mContext;
+	protected ApplicationContext mAppContext;
+	protected SqliteDbHelper mDbHelper;
+	protected SQLiteDatabase mSqliteDb;
 
 	/**
 	 * Constructs a new <code>AbstractSqliteDao</code> using the given
@@ -44,21 +50,24 @@ public abstract class AbstractSqliteDao implements SqliteDao {
 	 * 
 	 * @param context
 	 *            the calling <code>Context</code>
+	 * @param appContext
+	 *            the <code>ApplicationContext</code> for this application
 	 */
-	public AbstractSqliteDao(Context context) {
-		sContext = context;
+	public AbstractSqliteDao(Context context, ApplicationContext appContext) {
+		mContext = context;
+		mAppContext = appContext;
 	}
 
 	@Override
 	public SqliteDao open() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		mDbHelper = new SqliteDbHelper(mContext, mAppContext);
+		mSqliteDb = mDbHelper.getWritableDatabase();
+		return this;
 	}
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-
+		mDbHelper.close();
 	}
 
 	@Override
