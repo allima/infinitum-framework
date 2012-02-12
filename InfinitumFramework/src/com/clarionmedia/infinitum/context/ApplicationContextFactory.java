@@ -19,14 +19,12 @@
 
 package com.clarionmedia.infinitum.context;
 
-import java.io.File;
 import java.io.IOException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import android.content.Context;
+import android.content.res.Resources;
+import android.content.res.XmlResourceParser;
 import com.clarionmedia.infinitum.exception.InfinitumConfigurationException;
 
 /**
@@ -44,40 +42,38 @@ import com.clarionmedia.infinitum.exception.InfinitumConfigurationException;
 public class ApplicationContextFactory {
 
 	private static ApplicationContext sApplicationContext;
-	private static boolean sConfigured = false;
+	private static boolean sConfigured;
+	private static Context sContext;
+
+	/**
+	 * Indicates whether or not the <code>ApplicationContext</code> has been
+	 * configured.
+	 * 
+	 * @return true if it has been configured, false if not
+	 */
+	public static boolean isConfigured() {
+		return sConfigured;
+	}
 
 	/**
 	 * Configures Infinitum with the specified configuration file. Configuration
 	 * file must be named infinitum.cfg.xml. This method must be called before
 	 * attempting to retrieve an {@link ApplicationContext}.
 	 * 
-	 * @param configPath
-	 *            the path to infinitum.cfg.xml
+	 * @param context
+	 *            the calling <code>Context</code>
+	 * @param configId
+	 *            the resource ID for the XML config file
 	 * @throws InfinitumConfigurationException
 	 *             thrown if the configuration file could not be found or if the
 	 *             file could not be parsed
 	 */
-	public static void configure(String configPath) throws InfinitumConfigurationException {
-		File config = new File(configPath);
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = null;
-		Document doc = null;
-		try {
-			builder = dbFactory.newDocumentBuilder();
-			doc = builder.parse(config);
-		} catch (IOException e) {
-			throw new InfinitumConfigurationException("The specified configuration file ( " + configPath
-					+ ") could not be found.");
-		} catch (ParserConfigurationException e) {
-			throw new InfinitumConfigurationException("The specified configuration file ( " + configPath
-					+ ") could not be parsed.");
-		} catch (SAXException e) {
-			throw new InfinitumConfigurationException("The specified configuration file ( " + configPath
-					+ ") could not be parsed.");
-		}
-		doc.getDocumentElement().normalize();
-		NodeList nl = doc.getChildNodes();
-		sConfigured = true;
+	public static void configure(Context context, int configId) throws InfinitumConfigurationException {
+		sContext = context;
+		Resources resources = sContext.getResources();
+		XmlResourceParser config = resources.getXml(configId);
+		sApplicationContext = parseXmlConfig(config);
+		sConfigured = sApplicationContext == null ? false : true;
 	}
 
 	/**
@@ -91,9 +87,76 @@ public class ApplicationContextFactory {
 	 */
 	public static ApplicationContext getApplicationContext() throws InfinitumConfigurationException {
 		if (!sConfigured || sApplicationContext == null)
-			throw new InfinitumConfigurationException(
-					"You must call configure before accessing the ApplicationContext!");
+			throw new InfinitumConfigurationException(ApplicationContextConstants.CONFIG_NOT_CALLED);
 		return sApplicationContext;
+	}
+
+	private static ApplicationContext parseXmlConfig(XmlResourceParser config) throws InfinitumConfigurationException {
+		ApplicationContext ret = new ApplicationContext();
+		try {
+			int event = config.getEventType();
+			boolean hasConfigNode = false;
+			while (event != XmlPullParser.END_DOCUMENT) {
+				event = config.getEventType();
+				if (event == XmlPullParser.START_TAG
+						&& config.getName().contentEquals(ApplicationContextConstants.CONFIG_NODE)) {
+					hasConfigNode = true;
+					config.next();
+					event = config.getEventType();
+					while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
+							&& !config.getName().contentEquals(ApplicationContextConstants.CONFIG_NODE)) {
+						if (event == XmlPullParser.START_TAG
+								&& config.getName().contentEquals(ApplicationContextConstants.SQLITE_NODE)) {
+							config.next();
+							event = config.getEventType();
+							while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
+									&& !config.getName().contentEquals(ApplicationContextConstants.SQLITE_NODE)) {
+								ret.setHasSqliteDb(true);
+								if (event == XmlPullParser.START_TAG
+										&& config.getName().contentEquals(ApplicationContextConstants.PROPERTY_NODE)) {
+									String name = config.getAttributeValue(null,
+											ApplicationContextConstants.NAME_ATTRIBUTE);
+									config.next();
+									event = config.getEventType();
+									if (event != XmlPullParser.TEXT)
+										throw new InfinitumConfigurationException(String.format(
+												ApplicationContextConstants.CONFIG_PARSE_ERROR_LINE,
+												config.getLineNumber()));
+									if (name.equalsIgnoreCase(ApplicationContextConstants.DB_NAME_ATTRIBUTE)) {
+										String dbName = config.getText();
+										if (dbName.trim().equals(""))
+											throw new InfinitumConfigurationException(
+													ApplicationContextConstants.CONFIG_PARSE_ERROR + " "
+															+ ApplicationContextConstants.SQLITE_DB_NAME_MISSING);
+										else
+											ret.setSqliteDbName(dbName);
+									} else if (name.equalsIgnoreCase(ApplicationContextConstants.DB_VERSION_ATTRIBUTE))
+										ret.setSqliteDbVersion(Integer.parseInt(config.getText()));
+									config.next();
+									config.next();
+									event = config.getEventType();
+								}
+							}
+						}
+					}
+				}
+				config.next();
+				event = config.getEventType();
+			}
+			config.close();
+			if (!hasConfigNode)
+				throw new InfinitumConfigurationException(ApplicationContextConstants.CONFIG_PARSE_ERROR);
+		} catch (XmlPullParserException e) {
+			throw new InfinitumConfigurationException(ApplicationContextConstants.CONFIG_PARSE_ERROR);
+		} catch (IOException e) {
+			throw new InfinitumConfigurationException(ApplicationContextConstants.CONFIG_PARSE_ERROR);
+		} catch (NumberFormatException e) {
+			throw new InfinitumConfigurationException(String.format(
+					ApplicationContextConstants.CONFIG_PARSE_ERROR_LINE, config.getLineNumber()));
+		} catch (Exception e) {
+			throw new InfinitumConfigurationException(ApplicationContextConstants.CONFIG_PARSE_ERROR);
+		}
+		return ret;
 	}
 
 }

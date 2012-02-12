@@ -31,24 +31,47 @@ package com.clarionmedia.infinitum.context;
  */
 public class ApplicationContext {
 
+	private boolean mHasSqliteDb;
 	private String mSqliteDbName;
 	private int mSqliteDbVersion;
 
 	/**
-	 * Returns the name of the SQLite database for this ApplicationContext or
-	 * null if there is none. The SQLite database name can be specified in
-	 * infinitum.cfg.xml. It's the name used to construct the database and
-	 * subsequently connect to it.
+	 * Returns true if there is a SQLite database configured or false if not. If
+	 * infinitum.cfg.xml is missing the <code>sqlite</code> node, this will be
+	 * false.
 	 * 
-	 * @return the name of the SQLite database for this ApplicationContext
+	 * @return true if SQLite database is configured or false if not
+	 */
+	public boolean hasSqliteDb() {
+		return mHasSqliteDb;
+	}
+
+	/**
+	 * Sets the value indicating if this <code>ApplicationContext</code> has a
+	 * SQLite database configured or not.
+	 * 
+	 * @param hasSqliteDb
+	 */
+	public void setHasSqliteDb(boolean hasSqliteDb) {
+		mHasSqliteDb = hasSqliteDb;
+	}
+
+	/**
+	 * Returns the name of the SQLite database for this
+	 * <code>ApplicationContext</code>. The SQLite database name can be
+	 * specified in infinitum.cfg.xml. It's the name used to construct the
+	 * database and subsequently connect to it.
+	 * 
+	 * @return the name of the SQLite database for this
+	 *         <code>ApplicationContext</code>
 	 */
 	public String getSqliteDbName() {
 		return mSqliteDbName;
 	}
 
 	/**
-	 * Sets the value of the SQLite database name for this ApplicationContext.
-	 * Null can be used to specify there is no database.
+	 * Sets the value of the SQLite database name for this
+	 * <code>ApplicationContext</code>.
 	 * 
 	 * @param dbName
 	 *            the name of the SQLite database
@@ -59,8 +82,8 @@ public class ApplicationContext {
 
 	/**
 	 * Returns the version number of the SQLite database for this
-	 * ApplicationContext. The SQLite database version can be specified in
-	 * infinitum.cfg.xml.
+	 * <code>ApplicationContext</code>. The SQLite database version can be
+	 * specified in infinitum.cfg.xml.
 	 * 
 	 * @return the SQLite database version number
 	 */
@@ -69,7 +92,8 @@ public class ApplicationContext {
 	}
 
 	/**
-	 * Sets the version for the SQLite database for this ApplicationContext.
+	 * Sets the version for the SQLite database for this
+	 * <code>ApplicationContext</code>.
 	 * 
 	 * @param version
 	 *            the version to set for the SQLite database
