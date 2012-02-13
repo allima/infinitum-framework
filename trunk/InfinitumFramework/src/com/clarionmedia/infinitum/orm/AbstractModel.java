@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.orm;
 
+import com.clarionmedia.infinitum.orm.annotation.Entity;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
 
 /**
@@ -31,6 +32,7 @@ import com.clarionmedia.infinitum.orm.annotation.Persistence;
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
+@Entity
 public abstract class AbstractModel {
 
 	@Persistence
