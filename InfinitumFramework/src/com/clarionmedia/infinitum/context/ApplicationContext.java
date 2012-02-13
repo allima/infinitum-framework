@@ -23,7 +23,8 @@ package com.clarionmedia.infinitum.context;
  * <p>
  * Acts as a container for application-wide context information. This should not
  * be instantiated directly but rather obtained through the
- * {@link ApplicationContextFactory}.
+ * {@link ApplicationContextFactory}, which creates an instance of this from
+ * <code>infinitum.cfg.xml</code>.
  * </p>
  * 
  * @author Tyler Treat
@@ -31,10 +32,27 @@ package com.clarionmedia.infinitum.context;
  */
 public class ApplicationContext {
 
+	public static enum ConfigurationMode {
+		XML, Annotation
+	};
+
+	private static final ConfigurationMode DEFAULT_MODE = ConfigurationMode.Annotation;
+
 	private boolean mIsDebug;
+	private ConfigurationMode mConfigMode;
 	private boolean mHasSqliteDb;
 	private String mSqliteDbName;
 	private int mSqliteDbVersion;
+	private String mDomainPackage;
+
+	/**
+	 * Constructs a new <code>ApplicationContext</code>. This constructor should
+	 * not be called outside of {@link ApplicationContextFactory} as it is
+	 * generated from <code>infinitum.cfg.xml</code>.
+	 */
+	public ApplicationContext() {
+		mConfigMode = DEFAULT_MODE;
+	}
 
 	/**
 	 * Indicates if debug is enabled or not. If it is enabled, Infinitum will
@@ -63,6 +81,40 @@ public class ApplicationContext {
 	 */
 	public void setDebug(boolean debug) {
 		mIsDebug = debug;
+	}
+
+	/**
+	 * Returns the <code>ConfigurationMode</code> value of this
+	 * <code>ApplicationContext</code>, indicating which style of configuration
+	 * this application is using, XML- or annotation-based. An XML configuration
+	 * means that domain model mappings are provided through XML mapping files,
+	 * while an annotation configuration means that mappings and other
+	 * properties are provided in source code using Java annotations.
+	 * 
+	 * @return <code>ConfigurationMode</code> for this application
+	 */
+	public ConfigurationMode getConfigurationMode() {
+		return mConfigMode;
+	}
+
+	/**
+	 * Sets the <code>ConfigurationMode</code> value for this
+	 * <code>ApplicationContext</code>. The mode can be set in
+	 * <code>infinitum.cfg.xml</code> with
+	 * <code>&lt;property name="mode"&gt;xml&lt;/property&gt;</code> or
+	 * <code>&lt;property name="mode"&gt;annotations&lt;/property&gt;</code> in
+	 * the <code>application</code> element. An XML configuration means that
+	 * domain model mappings are provided through XML mapping files, while an
+	 * annotation configuration means that mappings and other properties are
+	 * provided in source code using Java annotations. If annotations are used,
+	 * all domain model classes must be stored in the same package. If a mode
+	 * property is not provided in <code>infinitum.cfg.xml</code>, annotations
+	 * will be used by default.
+	 * 
+	 * @param mode
+	 */
+	public void setConfigurationMode(ConfigurationMode mode) {
+		mConfigMode = mode;
 	}
 
 	/**
@@ -139,6 +191,30 @@ public class ApplicationContext {
 	 */
 	public void setSqliteDbVersion(int version) {
 		mSqliteDbVersion = version;
+	}
+
+	/**
+	 * Returns the domain package for this <code>ApplicationContext</code>. The
+	 * domain package is the package containing all domain model classes for the
+	 * project. If using the annotation-based configuration, all domain classes
+	 * must be stored in a single package.
+	 * 
+	 * @return the domain package
+	 */
+	public String getDomainPackage() {
+		return mDomainPackage;
+	}
+
+	/**
+	 * Sets the domain package for this <code>ApplicationContext</code>. The
+	 * domain package can be specified in <code>infinitum.cfg.xml</code> with
+	 * <code>&lt;property name="domainPackage"&gt;com.foo.bar.domain&lt;/property&gt;</code>
+	 * in the <code>application</code> element.
+	 * 
+	 * @param domainPackage
+	 */
+	public void setDomainPackage(String domainPackage) {
+		mDomainPackage = domainPackage;
 	}
 
 }

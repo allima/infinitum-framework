@@ -42,6 +42,8 @@ public class ApplicationContextConstants {
 	public static final String DB_NAME_ATTRIBUTE = "dbname";
 	public static final String DB_VERSION_ATTRIBUTE = "dbversion";
 	public static final String DEBUG_ATTRIBUTE = "debug";
+	public static final String MODE_ATTRIBUTE = "mode";
+	public static final String DOMAIN_PACKAGE_ATTRIBUTE = "domainPackage";
 
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the ApplicationContext!";
