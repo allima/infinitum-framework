@@ -35,7 +35,9 @@ public class ApplicationContextConstants {
 	public static final String CONFIG_ELEMENT = "infinitum-configuration";
 	public static final String APPLICATION_ELEMENT = "application";
 	public static final String SQLITE_ELEMENT = "sqlite";
+	public static final String DOMAIN_ELEMENT = "domain";
 	public static final String PROPERTY_ELEMENT = "property";
+	public static final String MODEL_ELEMENT = "model";
 	
 	// XML attribute names
 	public static final String NAME_ATTRIBUTE = "name";
@@ -44,6 +46,7 @@ public class ApplicationContextConstants {
 	public static final String DEBUG_ATTRIBUTE = "debug";
 	public static final String MODE_ATTRIBUTE = "mode";
 	public static final String DOMAIN_PACKAGE_ATTRIBUTE = "domainPackage";
+	public static final String DOMAIN_RESOURCE_ATTRIBUTE = "resource";
 
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the ApplicationContext!";

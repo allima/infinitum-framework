@@ -20,11 +20,13 @@
 package com.clarionmedia.infinitum.orm;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
-import com.clarionmedia.infinitum.context.ApplicationContext;
-import com.clarionmedia.infinitum.context.ApplicationContextFactory;
+import java.util.Map;
+
 import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
 
@@ -38,12 +40,16 @@ import com.clarionmedia.infinitum.orm.annotation.Persistence;
  * </p>
  * 
  * <p>
- * If using annotation configurations, model/domain classes must be located
+ * If using annotation configurations, domain model classes should be located
  * within a single package which is referenced in <code>infinitum.cfg.xml</code>
  * using the <code>domainPackage</code> element. For example,
  * <code>&lt;property name="domainPackage"&gt;com.foo.bar.domain&lt;/property&gt;</code>
- * . It's also important to note that domain classes must extend
- * {@link AbstractModel} in order to work with the Infinitum ORM framework.
+ * . However, domain classes can be individually registered in
+ * <code>infinitum.cfg.xml</code> using
+ * <code>&lt;model resource="com.foo.domain.MyModel" /&gt;</code> in the
+ * <code>domain</code> element. It's also important to note that domain classes
+ * must extend {@link AbstractModel} in order to work with the Infinitum ORM
+ * framework.
  * </p>
  * 
  * @author Tyler Treat
@@ -51,24 +57,28 @@ import com.clarionmedia.infinitum.orm.annotation.Persistence;
  */
 public class PersistenceResolution {
 
-	public static void annotationTest() {
-		try {
-			ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
-			Class<?>[] classes = getClasses(ctx.getDomainPackage());
-			List<Field> fields = getAllFields(classes[0]);
-			for (Field f : fields) {
-				Persistence persistence = f.getAnnotation(Persistence.class);
-				if (persistence != null) {
-					PersistenceMode mode = persistence.mode();
-					PersistenceMode m = mode;
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	// This Map caches which fields are persistent
+	private static Map<Class<?>, List<Field>> sPersistenceMap;
+
+	static {
+		sPersistenceMap = new Hashtable<Class<?>, List<Field>>();
 	}
 
-	public static List<Field> getAllFields(Class<?> c) {
+	public static List<Field> getPersistentFields(Class<?> c) {
+		if (sPersistenceMap.containsKey(c))
+			return sPersistenceMap.get(c);
+		List<Field> ret = new ArrayList<Field>();
+		List<Field> fields = getAllFields(c);
+		for (Field f : fields) {
+			Persistence persistence = f.getAnnotation(Persistence.class);
+			if (persistence != null && persistence.mode() == PersistenceMode.Persistent)
+				ret.add(f);
+		}
+		sPersistenceMap.put(c, ret);
+		return ret;
+	}
+
+	private static List<Field> getAllFields(Class<?> c) {
 		return getAllFieldsRec(c, new LinkedList<Field>());
 	}
 
@@ -79,10 +89,20 @@ public class PersistenceResolution {
 		fields.addAll(Arrays.asList(c.getDeclaredFields()));
 		return fields;
 	}
-	
+
 	private static Class<?>[] getClasses(String packageName) {
 		// TODO
 		return null;
+	}
+
+	private static Class<?> getClass(String className) {
+		Class<?> c;
+		try {
+			c = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			return null;
+		}
+		return c;
 	}
 
 }

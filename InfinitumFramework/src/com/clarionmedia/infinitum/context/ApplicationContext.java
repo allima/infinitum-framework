@@ -19,6 +19,9 @@
 
 package com.clarionmedia.infinitum.context;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * <p>
  * Acts as a container for application-wide context information. This should not
@@ -44,6 +47,7 @@ public class ApplicationContext {
 	private String mSqliteDbName;
 	private int mSqliteDbVersion;
 	private String mDomainPackage;
+	private List<String> mDomainModels;
 
 	/**
 	 * Constructs a new <code>ApplicationContext</code>. This constructor should
@@ -52,6 +56,7 @@ public class ApplicationContext {
 	 */
 	public ApplicationContext() {
 		mConfigMode = DEFAULT_MODE;
+		mDomainModels = new ArrayList<String>();
 	}
 
 	/**
@@ -196,8 +201,7 @@ public class ApplicationContext {
 	/**
 	 * Returns the domain package for this <code>ApplicationContext</code>. The
 	 * domain package is the package containing all domain model classes for the
-	 * project. If using the annotation-based configuration, all domain classes
-	 * must be stored in a single package.
+	 * project.
 	 * 
 	 * @return the domain package
 	 */
@@ -209,12 +213,39 @@ public class ApplicationContext {
 	 * Sets the domain package for this <code>ApplicationContext</code>. The
 	 * domain package can be specified in <code>infinitum.cfg.xml</code> with
 	 * <code>&lt;property name="domainPackage"&gt;com.foo.bar.domain&lt;/property&gt;</code>
-	 * in the <code>application</code> element.
+	 * in the <code>application</code> element. Domain classes can be
+	 * individually registered in <code>infinitum.cfg.xml</code> using
+	 * <code>&lt;model resource="com.foo.domain.MyModel" /&gt;</code> in the
+	 * <code>domain</code> element.
 	 * 
 	 * @param domainPackage
 	 */
 	public void setDomainPackage(String domainPackage) {
 		mDomainPackage = domainPackage;
+	}
+
+	/**
+	 * Returns a <code>List</code> of all fully-qualified domain model classes
+	 * registered with this <code>ApplicationContext</code>. Domain models are
+	 * defined as being persistent entities.
+	 * 
+	 * @return a <code>List</code> of all registered domain model classes
+	 */
+	public List<String> getDomainModels() {
+		return mDomainModels;
+	}
+
+	/**
+	 * Adds the specified domain model class to the entire collection of domain
+	 * models registered with this <code>ApplicationContext</code>. Domain
+	 * models are defined in <code>infinitum.cfg.xml</code> using
+	 * <code>&lt;model resource="com.foo.domain.MyModel" /&gt;</code> in the
+	 * <code>domain</code> element.
+	 * 
+	 * @param domainModel
+	 */
+	public void addDomainModel(String domainModel) {
+		mDomainModels.add(domainModel);
 	}
 
 }

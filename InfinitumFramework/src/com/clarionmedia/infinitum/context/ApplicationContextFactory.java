@@ -157,6 +157,9 @@ public class ApplicationContextFactory {
 									event = config.getEventType();
 								}
 							}
+							config.next();
+							event = config.getEventType();
+							continue;
 						}
 
 						// Parse <sqlite> node
@@ -196,6 +199,36 @@ public class ApplicationContextFactory {
 									event = config.getEventType();
 								}
 							}
+							config.next();
+							event = config.getEventType();
+							continue;
+						}
+
+						// Parse <domain> node
+						String name = config.getName();
+						if (event == XmlPullParser.START_TAG
+								&& config.getName().contentEquals(ApplicationContextConstants.DOMAIN_ELEMENT)) {
+							config.next();
+							event = config.getEventType();
+
+							// Parse until we reach the end of <domain>
+							while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
+									&& !config.getName().contentEquals(ApplicationContextConstants.DOMAIN_ELEMENT)) {
+
+								// Parse models
+								if (event == XmlPullParser.START_TAG
+										&& config.getName().contentEquals(ApplicationContextConstants.MODEL_ELEMENT)) {
+									String resource = config.getAttributeValue(null,
+											ApplicationContextConstants.DOMAIN_RESOURCE_ATTRIBUTE);
+									ret.addDomainModel(resource);
+									config.next();
+									config.next();
+									event = config.getEventType();
+								}
+							}
+							config.next();
+							event = config.getEventType();
+							continue;
 						}
 					}
 				}
