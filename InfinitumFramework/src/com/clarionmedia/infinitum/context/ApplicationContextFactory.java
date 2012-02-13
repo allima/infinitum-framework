@@ -20,8 +20,15 @@
 package com.clarionmedia.infinitum.context;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+
+import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
+import com.clarionmedia.infinitum.orm.annotation.Persistence;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
