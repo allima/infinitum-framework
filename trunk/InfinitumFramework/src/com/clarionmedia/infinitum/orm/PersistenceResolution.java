@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
+import com.clarionmedia.infinitum.orm.annotation.Column;
+import com.clarionmedia.infinitum.orm.annotation.Entity;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
 
 /**
@@ -60,10 +62,36 @@ public class PersistenceResolution {
 	// This Map caches which fields are persistent
 	private static Map<Class<?>, List<Field>> sPersistenceMap;
 
+	// This Map caches the field-column map
+	private static Map<Field, String> sColumnMap;
+
 	static {
 		sPersistenceMap = new Hashtable<Class<?>, List<Field>>();
+		sColumnMap = new Hashtable<Field, String>();
 	}
 
+	public static boolean isPersistent(Class<?> c) {
+		Entity entity = c.getAnnotation(Entity.class);
+		if (entity == null)
+			return false;
+		return true;
+	}
+
+	/**
+	 * Retrieves a <code>List</code> of all persistent <code>Fields</code> for
+	 * the given <code>Class</code>. <code>Field</code> persistence can be
+	 * configured using the {@link Persistence} annotation by setting the
+	 * <code>mode</code> to <code>persistent</code>. Marking a
+	 * <code>Field</code> as <code>transient</code> means that it will not be
+	 * persisted. If the annotation is missing, the <code>Field</code> is
+	 * persistent by default.
+	 * 
+	 * @param c
+	 *            the <code>Class</code> to retrieve persistent
+	 *            <code>Fields</code> for
+	 * @return <code>List</code> of all persistent <code>Fields</code> for the
+	 *         specified <code>Class</code>
+	 */
 	public static List<Field> getPersistentFields(Class<?> c) {
 		if (sPersistenceMap.containsKey(c))
 			return sPersistenceMap.get(c);
@@ -71,10 +99,42 @@ public class PersistenceResolution {
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
 			Persistence persistence = f.getAnnotation(Persistence.class);
-			if (persistence != null && persistence.mode() == PersistenceMode.Persistent)
+			if (persistence == null || persistence.mode() == PersistenceMode.Persistent)
 				ret.add(f);
 		}
 		sPersistenceMap.put(c, ret);
+		return ret;
+	}
+
+	/**
+	 * Retrieves the name of the database column the specified
+	 * <code>Field</code> maps to. The column can be specified using the
+	 * {@link Column} annotation by setting the <code>name</code> value. If the
+	 * annotation is missing, the column is assumed to be the name of the
+	 * <code>Field</code>, sans the lowercase 'm' at the beginning of its name
+	 * if Android naming conventions are followed. For example, a
+	 * <code>Field</code> named <code>mFoobar</code> would map to the column
+	 * <code>foobar</code>.
+	 * 
+	 * @param f
+	 *            the <code>Field</code> to retrieve the column for
+	 * @return the name of the column
+	 */
+	public static String getFieldColumnName(Field f) {
+		if (sColumnMap.containsKey(f))
+			return sColumnMap.get(f);
+		String ret;
+		Column c = f.getAnnotation(Column.class);
+		if (c == null) {
+			String name = f.getName();
+			if (name.startsWith("m"))
+				ret = name.substring(1).toLowerCase();
+			else
+				ret = name.toLowerCase();
+		} else {
+			ret = c.name();
+		}
+		sColumnMap.put(f, ret);
 		return ret;
 	}
 
