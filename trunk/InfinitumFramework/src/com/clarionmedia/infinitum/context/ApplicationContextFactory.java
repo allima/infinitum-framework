@@ -20,14 +20,11 @@
 package com.clarionmedia.infinitum.context;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
-import com.clarionmedia.infinitum.orm.annotation.Persistence;
+import com.clarionmedia.infinitum.context.ApplicationContext.ConfigurationMode;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -102,21 +99,33 @@ public class ApplicationContextFactory {
 		try {
 			int event = config.getEventType();
 			boolean hasConfigNode = false;
+
+			// Parse entire XML config file
 			while (event != XmlPullParser.END_DOCUMENT) {
 				event = config.getEventType();
+
+				// Parse <infinitum-configuration> node
 				if (event == XmlPullParser.START_TAG
 						&& config.getName().contentEquals(ApplicationContextConstants.CONFIG_ELEMENT)) {
 					hasConfigNode = true;
 					config.next();
 					event = config.getEventType();
+
+					// Parse until we reach the end of <infinitum-configuration>
 					while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
 							&& !config.getName().contentEquals(ApplicationContextConstants.CONFIG_ELEMENT)) {
+
+						// Parse <application> node
 						if (event == XmlPullParser.START_TAG
 								&& config.getName().contentEquals(ApplicationContextConstants.APPLICATION_ELEMENT)) {
 							config.next();
 							event = config.getEventType();
+
+							// Parse until we reach the end of <application>
 							while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
 									&& !config.getName().contentEquals(ApplicationContextConstants.APPLICATION_ELEMENT)) {
+
+								// Parse properties
 								if (event == XmlPullParser.START_TAG
 										&& config.getName().contentEquals(ApplicationContextConstants.PROPERTY_ELEMENT)) {
 									String name = config.getAttributeValue(null,
@@ -133,6 +142,15 @@ public class ApplicationContextFactory {
 											ret.setDebug(true);
 										else
 											ret.setDebug(false);
+									} else if (name.equalsIgnoreCase(ApplicationContextConstants.MODE_ATTRIBUTE)) {
+										String mode = config.getText();
+										if (mode.equalsIgnoreCase(ConfigurationMode.Annotation.toString()))
+											ret.setConfigurationMode(ConfigurationMode.Annotation);
+										else if (mode.equalsIgnoreCase(ConfigurationMode.XML.toString()))
+											ret.setConfigurationMode(ConfigurationMode.XML);
+									} else if (name
+											.equalsIgnoreCase(ApplicationContextConstants.DOMAIN_PACKAGE_ATTRIBUTE)) {
+										ret.setDomainPackage(config.getText());
 									}
 									config.next();
 									config.next();
@@ -140,13 +158,19 @@ public class ApplicationContextFactory {
 								}
 							}
 						}
+
+						// Parse <sqlite> node
 						if (event == XmlPullParser.START_TAG
 								&& config.getName().contentEquals(ApplicationContextConstants.SQLITE_ELEMENT)) {
 							config.next();
 							event = config.getEventType();
+
+							// Parse until we reach the end of <sqlite>
 							while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
 									&& !config.getName().contentEquals(ApplicationContextConstants.SQLITE_ELEMENT)) {
 								ret.setHasSqliteDb(true);
+
+								// Parse properties
 								if (event == XmlPullParser.START_TAG
 										&& config.getName().contentEquals(ApplicationContextConstants.PROPERTY_ELEMENT)) {
 									String name = config.getAttributeValue(null,

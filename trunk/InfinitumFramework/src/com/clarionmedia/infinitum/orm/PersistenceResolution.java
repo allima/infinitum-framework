@@ -23,14 +23,39 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import com.clarionmedia.infinitum.context.ApplicationContext;
+import com.clarionmedia.infinitum.context.ApplicationContextFactory;
 import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
 
+/**
+ * <p>
+ * This class provides runtime resolution for model persistence through Java
+ * annotations or XML mappings. The latter has not yet been implemented. Model
+ * fields can be marked as transient or persistent using the {@link Persistence}
+ * annotation. If no annotation is provided, the field will be marked as
+ * persistent by default.
+ * </p>
+ * 
+ * <p>
+ * If using annotation configurations, model/domain classes must be located
+ * within a single package which is referenced in <code>infinitum.cfg.xml</code>
+ * using the <code>domainPackage</code> element. For example,
+ * <code>&lt;property name="domainPackage"&gt;com.foo.bar.domain&lt;/property&gt;</code>
+ * . It's also important to note that domain classes must extend
+ * {@link AbstractModel} in order to work with the Infinitum ORM framework.
+ * </p>
+ * 
+ * @author Tyler Treat
+ * @version 1.0 02/12/12
+ */
 public class PersistenceResolution {
 
-	public static void annotationTest(Class<?> c) {
+	public static void annotationTest() {
 		try {
-			List<Field> fields = getAllFields(c);
+			ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+			Class<?>[] classes = getClasses(ctx.getDomainPackage());
+			List<Field> fields = getAllFields(classes[0]);
 			for (Field f : fields) {
 				Persistence persistence = f.getAnnotation(Persistence.class);
 				if (persistence != null) {
@@ -48,11 +73,16 @@ public class PersistenceResolution {
 	}
 
 	private static List<Field> getAllFieldsRec(Class<?> c, List<Field> fields) {
-		Class superClass = c.getSuperclass();
+		Class<?> superClass = c.getSuperclass();
 		if (superClass != null)
 			getAllFieldsRec(superClass, fields);
 		fields.addAll(Arrays.asList(c.getDeclaredFields()));
 		return fields;
+	}
+	
+	private static Class<?>[] getClasses(String packageName) {
+		// TODO
+		return null;
 	}
 
 }
