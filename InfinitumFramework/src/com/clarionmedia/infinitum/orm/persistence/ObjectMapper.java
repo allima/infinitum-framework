@@ -17,13 +17,14 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm;
+package com.clarionmedia.infinitum.orm.persistence;
 
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.List;
 
 import com.clarionmedia.infinitum.datetime.DateFormatter;
+import com.clarionmedia.infinitum.orm.AbstractModel;
 
 import android.content.ContentValues;
 

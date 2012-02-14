@@ -17,20 +17,23 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm;
+package com.clarionmedia.infinitum.orm.sqlite;
+
+import com.clarionmedia.infinitum.orm.AbstractModel;
 
 import android.database.SQLException;
 
 /**
  * <p>
- * This provides abstracted methods for interacting with a SQLite database at an
- * object level.
+ * This interface specifies methods for basic SQLite operations. This is
+ * typically not used directly, rather the implementation {@link SqliteTemplate}
+ * is used.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
-public interface SqliteDao {
+public interface SqliteOperations {
 
 	/**
 	 * Opens the database to begin a transaction. If the database does not
@@ -40,7 +43,7 @@ public interface SqliteDao {
 	 * @throws SQLException
 	 *             thrown if the database cannot be opened for writing
 	 */
-	SqliteDao open() throws SQLException;
+	SqliteOperations open() throws SQLException;
 
 	/**
 	 * Closes the database connection, effectively ending the transaction.
@@ -116,5 +119,13 @@ public interface SqliteDao {
 	 * @return the number of records deleted
 	 */
 	int deleteAll(Iterable<? extends AbstractModel> models);
+
+	/**
+	 * Executes the given SQL query on the database.
+	 * 
+	 * @param sql
+	 *            the SQL query to execute
+	 */
+	void execute(String sql);
 
 }

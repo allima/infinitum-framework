@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm;
+package com.clarionmedia.infinitum.orm.persistence;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.clarionmedia.infinitum.orm.AbstractModel;
 import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
