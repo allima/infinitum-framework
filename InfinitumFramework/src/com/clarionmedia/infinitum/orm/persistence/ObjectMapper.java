@@ -23,10 +23,9 @@ import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.List;
 
-import com.clarionmedia.infinitum.datetime.DateFormatter;
-import com.clarionmedia.infinitum.orm.AbstractModel;
-
 import android.content.ContentValues;
+
+import com.clarionmedia.infinitum.datetime.DateFormatter;
 
 /**
  * <p>
@@ -44,11 +43,11 @@ public class ObjectMapper {
 	 * data values mapped to their respective columns.
 	 * 
 	 * @param model
-	 *            the {@link AbstractModel} to map
-	 * @return <code>ContentValues</code> with the <code>AbstractModel</code>
-	 *         entity's persistent fields mapped to their columns
+	 *            the <code>Object</code> to map
+	 * @return <code>ContentValues</code> with the entity's persistent fields
+	 *         mapped to their columns
 	 */
-	public static ContentValues mapModel(AbstractModel model) {
+	public static ContentValues mapModel(Object model) {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			return null;
 		ContentValues ret = new ContentValues();

@@ -25,6 +25,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import com.clarionmedia.infinitum.context.ApplicationContext.ConfigurationMode;
+import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 
 import android.content.Context;
 import android.content.res.Resources;

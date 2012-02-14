@@ -17,23 +17,29 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm;
+package com.clarionmedia.infinitum.context.exception;
 
 /**
  * <p>
- * Contains constants related to the Infinitum ORM.
+ * Indicates there is an error in the way Infinitum is configured.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/12/12
+ * @version 1.0 02/11/12
  */
-public class Constants {
+public class InfinitumConfigurationException extends Exception {
 
-	public static enum PersistenceMode {
-		Transient, Persistent
+	private static final long serialVersionUID = -6745750594618266996L;
+
+	/**
+	 * Constructs a new <code>InfinitumConfigurationException</code> with the
+	 * given error message.
+	 * 
+	 * @param error
+	 *            the error message for the <code>Exception</code>
+	 */
+	public InfinitumConfigurationException(String error) {
+		super(error);
 	}
-	
-	// Errors
-	public static final String NO_PRIMARY_KEY = "Primary key not defined in '{?}'!";
 
 }

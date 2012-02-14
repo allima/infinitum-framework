@@ -27,11 +27,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.clarionmedia.infinitum.orm.AbstractModel;
+import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
+import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
+import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
 /**
  * <p>
@@ -50,9 +52,7 @@ import com.clarionmedia.infinitum.orm.annotation.Persistence;
  * . However, domain classes can be individually registered in
  * <code>infinitum.cfg.xml</code> using
  * <code>&lt;model resource="com.foo.domain.MyModel" /&gt;</code> in the
- * <code>domain</code> element. It's also important to note that domain classes
- * must extend {@link AbstractModel} in order to work with the Infinitum ORM
- * framework.
+ * <code>domain</code> element.
  * </p>
  * 
  * @author Tyler Treat
@@ -66,11 +66,21 @@ public class PersistenceResolution {
 	// This Map caches the field-column map
 	private static Map<Field, String> sColumnMap;
 
+	// This Map caches the primary key Fields for each persistent class
+	private static Map<Class<?>, List<Field>> sPrimaryKeyMap;
+
 	static {
 		sPersistenceMap = new Hashtable<Class<?>, List<Field>>();
 		sColumnMap = new Hashtable<Field, String>();
 	}
 
+	/**
+	 * Indicates if the given <code>Class</code> is persistent or transient.
+	 * 
+	 * @param c
+	 *            the <code>Class</code> to check persistence for
+	 * @return true if persistent, false if transient
+	 */
 	public static boolean isPersistent(Class<?> c) {
 		Entity entity = c.getAnnotation(Entity.class);
 		if (entity == null)
@@ -100,10 +110,50 @@ public class PersistenceResolution {
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
 			Persistence persistence = f.getAnnotation(Persistence.class);
-			if (persistence == null || persistence.mode() == PersistenceMode.Persistent)
+			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
+			if ((persistence == null || persistence.mode() == PersistenceMode.Persistent) || pk != null)
 				ret.add(f);
 		}
 		sPersistenceMap.put(c, ret);
+		return ret;
+	}
+
+	/**
+	 * Retrieves a <code>List</code> of all primary key <code>Fields</code> for
+	 * the given <code>Class</code>. <code>Fields</code> can be marked as a
+	 * primary key using the {@link PrimaryKey} annotation. If the annotation is
+	 * missing from the class hierarchy, Infinitum will look for a
+	 * <code>Field</code> called <code>mId</code> or <code>id</code> to use as
+	 * the primary key. If there is no such <code>Field</code>, a
+	 * {@link ModelConfigurationException} will be thrown.
+	 * 
+	 * @param c
+	 *            the <code>Class</code> to retrieve primary key
+	 *            <code>Fields</code> for
+	 * @return <code>List</code> of all primary key <code>Fields</code> for the
+	 *         specified <code>Class</code>
+	 * @throws ModelConfigurationException
+	 *             thrown if no primary key is present
+	 */
+	public static List<Field> getPrimaryKeyFields(Class<?> c) throws ModelConfigurationException {
+		if (sPrimaryKeyMap.containsKey(c))
+			return sPrimaryKeyMap.get(c);
+		List<Field> ret = new ArrayList<Field>();
+		List<Field> fields = getAllFields(c);
+		for (Field f : fields) {
+			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
+			if (pk != null)
+				ret.add(f);
+		}
+		// Look for id fields if the annotation is missing
+		if (ret.size() == 0) {
+			Field f = findPrimaryKeyField(c);
+			if (f == null)
+				throw new ModelConfigurationException(String.format(Constants.NO_PRIMARY_KEY, c.getName()));
+			else
+				ret.add(f);
+		}
+		sPrimaryKeyMap.put(c, ret);
 		return ret;
 	}
 
@@ -139,18 +189,6 @@ public class PersistenceResolution {
 		return ret;
 	}
 
-	private static List<Field> getAllFields(Class<?> c) {
-		return getAllFieldsRec(c, new LinkedList<Field>());
-	}
-
-	private static List<Field> getAllFieldsRec(Class<?> c, List<Field> fields) {
-		Class<?> superClass = c.getSuperclass();
-		if (superClass != null)
-			getAllFieldsRec(superClass, fields);
-		fields.addAll(Arrays.asList(c.getDeclaredFields()));
-		return fields;
-	}
-
 	private static Class<?>[] getClasses(String packageName) {
 		// TODO
 		return null;
@@ -164,6 +202,27 @@ public class PersistenceResolution {
 			return null;
 		}
 		return c;
+	}
+
+	private static Field findPrimaryKeyField(Class<?> c) {
+		List<Field> fields = getAllFields(c);
+		for (Field f : fields) {
+			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
+				return f;
+		}
+		return null;
+	}
+
+	private static List<Field> getAllFields(Class<?> c) {
+		return getAllFieldsRec(c, new LinkedList<Field>());
+	}
+
+	private static List<Field> getAllFieldsRec(Class<?> c, List<Field> fields) {
+		Class<?> superClass = c.getSuperclass();
+		if (superClass != null)
+			getAllFieldsRec(superClass, fields);
+		fields.addAll(Arrays.asList(c.getDeclaredFields()));
+		return fields;
 	}
 
 }

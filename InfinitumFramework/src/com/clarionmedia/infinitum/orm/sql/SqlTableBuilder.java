@@ -17,23 +17,29 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm;
+package com.clarionmedia.infinitum.orm.sql;
+
+import com.clarionmedia.infinitum.orm.annotation.Column;
+import com.clarionmedia.infinitum.orm.annotation.Table;
+import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 
 /**
  * <p>
- * Contains constants related to the Infinitum ORM.
+ * <code>SqlTableBuilder</code> is used to dynamically construct SQL strings for
+ * table generation. It makes use of ORM annotations, such as {@link Table} and
+ * {@link Column} to compose statements.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/12/12
+ * @version 1.0 02/13/12
  */
-public class Constants {
+public class SqlTableBuilder {
 
-	public static enum PersistenceMode {
-		Transient, Persistent
+	public static String getCreateTableString(Object model) {
+		PersistenceResolution.isPersistent(model.getClass());
+		// TODO
+		return null;
+
 	}
-	
-	// Errors
-	public static final String NO_PRIMARY_KEY = "Primary key not defined in '{?}'!";
 
 }

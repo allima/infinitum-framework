@@ -19,12 +19,10 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
-import com.clarionmedia.infinitum.context.ApplicationContext;
-import com.clarionmedia.infinitum.orm.AbstractModel;
-
 import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import com.clarionmedia.infinitum.context.ApplicationContext;
 
 /**
  * <p>
@@ -71,43 +69,43 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public long save(AbstractModel model) {
+	public long save(Object model) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public long update(AbstractModel model) {
+	public long update(Object model) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public boolean delete(AbstractModel model) {
+	public boolean delete(Object model) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public long saveOrUpdate(AbstractModel model) {
+	public long saveOrUpdate(Object model) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public void saveOrUpdateAll(Iterable<? extends AbstractModel> models) {
+	public void saveOrUpdateAll(Iterable<? extends Object> models) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void saveAll(Iterable<? extends AbstractModel> models) {
+	public void saveAll(Iterable<? extends Object> models) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public int deleteAll(Iterable<? extends AbstractModel> models) {
+	public int deleteAll(Iterable<? extends Object> models) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -115,7 +113,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public void execute(String sql) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
