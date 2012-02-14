@@ -33,6 +33,7 @@ import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
 import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
+import com.clarionmedia.infinitum.orm.annotation.Table;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
 /**
@@ -61,21 +62,26 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 public class PersistenceResolution {
 
 	// This Map caches which fields are persistent
-	private static Map<Class<?>, List<Field>> sPersistenceMap;
+	private static Map<Class<?>, List<Field>> sPersistenceCache;
 
 	// This Map caches the field-column map
-	private static Map<Field, String> sColumnMap;
+	private static Map<Field, String> sColumnCache;
 
 	// This Map caches the primary key Fields for each persistent class
-	private static Map<Class<?>, List<Field>> sPrimaryKeyMap;
+	private static Map<Class<?>, List<Field>> sPrimaryKeyCache;
 
 	static {
-		sPersistenceMap = new Hashtable<Class<?>, List<Field>>();
-		sColumnMap = new Hashtable<Field, String>();
+		sPersistenceCache = new Hashtable<Class<?>, List<Field>>();
+		sColumnCache = new Hashtable<Field, String>();
 	}
 
 	/**
 	 * Indicates if the given <code>Class</code> is persistent or transient.
+	 * Persistence is denoted by the {@link Entity} annotation.
+	 * <code>Entity's</code> mode can be set to <code>transient</code> or
+	 * <code>persistent</code. If the mode is missing or if the annotation
+	 * itself is missing from a registered domain model, it will be marked
+	 * persistent by default.
 	 * 
 	 * @param c
 	 *            the <code>Class</code> to check persistence for
@@ -83,9 +89,34 @@ public class PersistenceResolution {
 	 */
 	public static boolean isPersistent(Class<?> c) {
 		Entity entity = c.getAnnotation(Entity.class);
-		if (entity == null)
+		if (entity == null || entity.mode() == PersistenceMode.Persistent)
+			return true;
+		else
 			return false;
-		return true;
+	}
+
+	/**
+	 * Retrieves the name of the database table for the specified
+	 * <code>Class</code>. If the <code>Class</code> is transient, this method
+	 * will return null. The table name can be specified using the {@link Table}
+	 * annotation. If the annotation is missing, the class name, completely
+	 * lowercase, will be used as the table name.
+	 * 
+	 * @param c
+	 *            the <code>Class</code> to retrieve the table name for
+	 * @return the name of the database table for the specified domain model
+	 *         <code>Class</code>
+	 */
+	public static String getModelTableName(Class<?> c) {
+		if (!isPersistent(c))
+			return null;
+		String ret;
+		Table table = c.getAnnotation(Table.class);
+		if (table == null)
+			ret = c.getSimpleName().toLowerCase();
+		else
+			ret = table.name();
+		return ret;
 	}
 
 	/**
@@ -104,17 +135,18 @@ public class PersistenceResolution {
 	 *         specified <code>Class</code>
 	 */
 	public static List<Field> getPersistentFields(Class<?> c) {
-		if (sPersistenceMap.containsKey(c))
-			return sPersistenceMap.get(c);
+		if (sPersistenceCache.containsKey(c))
+			return sPersistenceCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
 			Persistence persistence = f.getAnnotation(Persistence.class);
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-			if ((persistence == null || persistence.mode() == PersistenceMode.Persistent) || pk != null)
+			if ((persistence == null || persistence.mode() == PersistenceMode.Persistent)
+					|| pk != null)
 				ret.add(f);
 		}
-		sPersistenceMap.put(c, ret);
+		sPersistenceCache.put(c, ret);
 		return ret;
 	}
 
@@ -135,9 +167,10 @@ public class PersistenceResolution {
 	 * @throws ModelConfigurationException
 	 *             thrown if no primary key is present
 	 */
-	public static List<Field> getPrimaryKeyFields(Class<?> c) throws ModelConfigurationException {
-		if (sPrimaryKeyMap.containsKey(c))
-			return sPrimaryKeyMap.get(c);
+	public static List<Field> getPrimaryKeyFields(Class<?> c)
+			throws ModelConfigurationException {
+		if (sPrimaryKeyCache.containsKey(c))
+			return sPrimaryKeyCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
@@ -149,11 +182,12 @@ public class PersistenceResolution {
 		if (ret.size() == 0) {
 			Field f = findPrimaryKeyField(c);
 			if (f == null)
-				throw new ModelConfigurationException(String.format(Constants.NO_PRIMARY_KEY, c.getName()));
+				throw new ModelConfigurationException(String.format(
+						Constants.NO_PRIMARY_KEY, c.getName()));
 			else
 				ret.add(f);
 		}
-		sPrimaryKeyMap.put(c, ret);
+		sPrimaryKeyCache.put(c, ret);
 		return ret;
 	}
 
@@ -172,8 +206,8 @@ public class PersistenceResolution {
 	 * @return the name of the column
 	 */
 	public static String getFieldColumnName(Field f) {
-		if (sColumnMap.containsKey(f))
-			return sColumnMap.get(f);
+		if (sColumnCache.containsKey(f))
+			return sColumnCache.get(f);
 		String ret;
 		Column c = f.getAnnotation(Column.class);
 		if (c == null) {
@@ -185,7 +219,7 @@ public class PersistenceResolution {
 		} else {
 			ret = c.name();
 		}
-		sColumnMap.put(f, ret);
+		sColumnCache.put(f, ret);
 		return ret;
 	}
 
@@ -207,7 +241,8 @@ public class PersistenceResolution {
 	private static Field findPrimaryKeyField(Class<?> c) {
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
-			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
+			if (f.getName().equals("mId") || f.getName().equals("mID")
+					|| f.getName().equalsIgnoreCase("id"))
 				return f;
 		}
 		return null;

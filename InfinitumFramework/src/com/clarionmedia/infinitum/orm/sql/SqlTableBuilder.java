@@ -36,8 +36,9 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 public class SqlTableBuilder {
 
 	public static String getCreateTableString(Object model) {
-		PersistenceResolution.isPersistent(model.getClass());
-		// TODO
+		if (!PersistenceResolution.isPersistent(model.getClass()))
+			return null;
+		
 		return null;
 
 	}

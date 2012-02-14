@@ -24,9 +24,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
+
 /**
  * <p>
- * This annotation is used to indicate that a class is a persistent model entity.
+ * This annotation is used to indicate the persistence state of a model.
  * </p>
  * 
  * @author Tyler Treat
@@ -35,5 +37,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Entity {
-
+	PersistenceMode mode() default PersistenceMode.Persistent;
 }
