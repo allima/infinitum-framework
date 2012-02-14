@@ -19,8 +19,6 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
-import com.clarionmedia.infinitum.orm.AbstractModel;
-
 import android.database.SQLException;
 
 /**
@@ -51,74 +49,73 @@ public interface SqliteOperations {
 	void close();
 
 	/**
-	 * Persists the given {@link AbstractModel} to the database. This method is
+	 * Persists the given <code>Object</code> to the database. This method is
 	 * idempotent, meaning if the record already exists, it will not be
 	 * effected.
 	 * 
 	 * @param model
-	 *            AbstractModel to persist to the database
+	 *            <code>Object</code> to persist to the database
 	 * @return the row ID of the newly inserted record, or -1 if the insert
 	 *         failed
 	 */
-	long save(AbstractModel model);
+	long save(Object model);
 
 	/**
-	 * Updates the given (@link AbstractModel} in the database.
+	 * Updates the given <code>Object</code> in the database.
 	 * 
 	 * @param model
-	 *            AbstractModel to update in the database
+	 *            <code>Object</code> to update in the database
 	 * @return the row ID of the effected record, 0 if the record did not exist,
 	 *         or -1 if the update failed
 	 */
-	long update(AbstractModel model);
+	long update(Object model);
 
 	/**
-	 * Deletes the given {@link AbstractModel} from the database if it exists.
+	 * Deletes the given <code>Object</code> from the database if it exists.
 	 * 
 	 * @param model
-	 *            AbstractModel to delete from the database
+	 *            <code>Object</code> to delete from the database
 	 * @return true if the record was deleted, false otherwise
 	 */
-	boolean delete(AbstractModel model);
+	boolean delete(Object model);
 
 	/**
-	 * Persists the given {@link AbstractModel} to the database, or, if it
-	 * already exists, updates the record.
+	 * Persists the given <code>Object</code> to the database, or, if it already
+	 * exists, updates the record.
 	 * 
 	 * @param model
-	 *            AbstractModel to save or update in the database
+	 *            <code>Object</code> to save or update in the database
 	 * @return the row ID of the newly inserted row, 0 if the row was updated,
 	 *         or -1 if the query failed
 	 */
-	long saveOrUpdate(AbstractModel model);
+	long saveOrUpdate(Object model);
 
 	/**
-	 * Persists or updates the entire collection of (@link AbstractModel}
-	 * entities in the database.
-	 * 
-	 * @param models
-	 *            AbstractModels to save or update in the database
-	 */
-	void saveOrUpdateAll(Iterable<? extends AbstractModel> models);
-
-	/**
-	 * Persists the entire collection of {@link AbstractModel} entities to the
+	 * Persists or updates the entire collection of <code>Objects</code> in the
 	 * database.
 	 * 
 	 * @param models
-	 *            AbstractModels to persist to the database
+	 *            <code>Objects</code> to save or update in the database
 	 */
-	void saveAll(Iterable<? extends AbstractModel> models);
+	void saveOrUpdateAll(Iterable<? extends Object> models);
 
 	/**
-	 * Deletes the entire collection of {@link AbstractModel} entities from the
-	 * database if they exist.
+	 * Persists the entire collection of <code>Objects</code> to the database.
 	 * 
 	 * @param models
-	 *            AbstractModels to delete from the database
+	 *            <code>Objects</code> to persist to the database
+	 */
+	void saveAll(Iterable<? extends Object> models);
+
+	/**
+	 * Deletes the entire collection of <code>Objects</code> from the database
+	 * if they exist.
+	 * 
+	 * @param models
+	 *            <code>Objects</code> to delete from the database
 	 * @return the number of records deleted
 	 */
-	int deleteAll(Iterable<? extends AbstractModel> models);
+	int deleteAll(Iterable<? extends Object> models);
 
 	/**
 	 * Executes the given SQL query on the database.

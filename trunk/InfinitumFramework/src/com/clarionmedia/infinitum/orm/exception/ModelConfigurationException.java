@@ -17,42 +17,30 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.context;
+package com.clarionmedia.infinitum.orm.exception;
 
 /**
  * <p>
- * Indicates there is an error in the way Infinitum is configured.
+ * Indicates there is an error with the way a persistent domain model is
+ * configured, either through annotations or XML mappings.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/11/12
+ * @version 1.0 02/13/12
  */
-public class InfinitumConfigurationException extends Exception {
+public class ModelConfigurationException extends Exception {
 
-	private static final long serialVersionUID = -6745750594618266996L;
-
-	private static String mError;
+	private static final long serialVersionUID = 470937993563172405L;
 
 	/**
-	 * Constructs a new <code>InfinitumConfigurationException</code> with the
-	 * given error message.
+	 * Constructs a new <code>ModelConfigurationException</code> with the given
+	 * error message.
 	 * 
 	 * @param error
 	 *            the error message for the <code>Exception</code>
 	 */
-	public InfinitumConfigurationException(String error) {
+	public ModelConfigurationException(String error) {
 		super(error);
-		mError = error;
-	}
-
-	/**
-	 * Returns the error message for the
-	 * <code>InfinitumConfigurationException</code>.
-	 * 
-	 * @return the error message
-	 */
-	public String getError() {
-		return mError;
 	}
 
 }
