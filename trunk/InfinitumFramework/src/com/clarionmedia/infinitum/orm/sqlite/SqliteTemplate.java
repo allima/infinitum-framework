@@ -17,9 +17,10 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm;
+package com.clarionmedia.infinitum.orm.sqlite;
 
 import com.clarionmedia.infinitum.context.ApplicationContext;
+import com.clarionmedia.infinitum.orm.AbstractModel;
 
 import android.content.Context;
 import android.database.SQLException;
@@ -27,17 +28,16 @@ import android.database.sqlite.SQLiteDatabase;
 
 /**
  * <p>
- * An abstract implementation of {@link SqliteDao}. This class is designed to
- * provide DAO extensibility while providing implementations for core CRUD
- * operations. This class needs to be extended, and the super constructor should
- * be called in the extending class' constructor.
+ * An implementation of {@link SqliteOperations}. This class is designed to
+ * provide implementations of core CRUD operations for interacting with a SQLite
+ * database.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/11/12
  * 
  */
-public abstract class AbstractSqliteDao implements SqliteDao {
+public class SqliteTemplate implements SqliteOperations {
 
 	protected Context mContext;
 	protected ApplicationContext mAppContext;
@@ -53,13 +53,13 @@ public abstract class AbstractSqliteDao implements SqliteDao {
 	 * @param appContext
 	 *            the <code>ApplicationContext</code> for this application
 	 */
-	public AbstractSqliteDao(Context context, ApplicationContext appContext) {
+	public SqliteTemplate(Context context, ApplicationContext appContext) {
 		mContext = context;
 		mAppContext = appContext;
 	}
 
 	@Override
-	public SqliteDao open() throws SQLException {
+	public SqliteOperations open() throws SQLException {
 		mDbHelper = new SqliteDbHelper(mContext, mAppContext);
 		mSqliteDb = mDbHelper.getWritableDatabase();
 		return this;
@@ -110,6 +110,12 @@ public abstract class AbstractSqliteDao implements SqliteDao {
 	public int deleteAll(Iterable<? extends AbstractModel> models) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public void execute(String sql) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
