@@ -23,8 +23,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
+ * <p>
  * This class contains methods for formatting <code>Date</code> objects into
  * Strings and vice versa.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/13/12
