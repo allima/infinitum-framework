@@ -29,10 +29,9 @@ import java.lang.annotation.Target;
  * This annotation indicates if a <code>Field</code> is a primary key. If the
  * annotation is missing from the class hierarchy, Infinitum will look for a
  * <code>Field</code> called <code>mId</code> or <code>id</code> to use as the
- * primary key. If there is no such <code>Field</code>, a
- * {@link ModelConfigurationException} will be thrown. Any <code>Field</code>
- * marked as a primary key will inherently be marked as persistent, regardless
- * of any {@link Persistence} annotation that might be associated with it.
+ * primary key. Any <code>Field</code> marked as a primary key will inherently
+ * be marked as persistent, regardless of any {@link Persistence} annotation
+ * that might be associated with it.
  * </p>
  * 
  * @author Tyler Treat

@@ -66,6 +66,7 @@ public class ObjectMapper {
 			}
 
 			// TODO: figure out a better way to do this!
+			// Possibly use TypeResolution 
 			if (val instanceof String)
 				ret.put(PersistenceResolution.getFieldColumnName(f), (String) val);
 			else if (val instanceof Integer)
@@ -84,8 +85,6 @@ public class ObjectMapper {
 				ret.put(PersistenceResolution.getFieldColumnName(f), (Byte) val);
 			else if (val instanceof byte[])
 				ret.put(PersistenceResolution.getFieldColumnName(f), (byte[]) val);
-			else if (val instanceof Long)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (Long) val);
 			else if (val instanceof Character)
 				ret.put(PersistenceResolution.getFieldColumnName(f), (String) val);
 			else if (val instanceof Date)

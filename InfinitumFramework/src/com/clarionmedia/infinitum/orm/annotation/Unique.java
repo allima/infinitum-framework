@@ -17,23 +17,24 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm;
+package com.clarionmedia.infinitum.orm.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * <p>
- * Contains constants related to the Infinitum ORM.
- * </p>
+ * This annotation indicates that the <code>Field</code> value must be unique to
+ * the table when being persisted to the database. More concisely, this
+ * annotation is used to define a unique constraint on a column. This has no
+ * effect on a <code>Field</code> that is marked transient.
  * 
  * @author Tyler Treat
- * @version 1.0 02/12/12
+ * @version 1.0 02/14/12
  */
-public class Constants {
-
-	public static enum PersistenceMode {
-		Transient, Persistent
-	}
-
-	// Errors
-	public static final String NO_PERSISTENT_FIELDS = "No persistent fields defined in '{?}'!";
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Unique {
 
 }
