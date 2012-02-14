@@ -29,8 +29,10 @@ import com.clarionmedia.infinitum.orm.AbstractModel;
 import android.content.ContentValues;
 
 /**
+ * <p>
  * This class provides methods to map domain models to database columns and vice
  * versa.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/13/12
