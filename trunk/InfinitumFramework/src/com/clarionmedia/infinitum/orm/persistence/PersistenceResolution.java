@@ -31,9 +31,11 @@ import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
+import com.clarionmedia.infinitum.orm.annotation.NotNull;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
 import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
 import com.clarionmedia.infinitum.orm.annotation.Table;
+import com.clarionmedia.infinitum.orm.annotation.Unique;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
 /**
@@ -70,6 +72,12 @@ public class PersistenceResolution {
 	// This Map caches the primary key Fields for each persistent class
 	private static Map<Class<?>, List<Field>> sPrimaryKeyCache;
 
+	// This Map caches the "nullability" of Fields
+	private static Map<Field, Boolean> sFieldNullableCache;
+
+	// This Map caches the uniqueness of Fields
+	private static Map<Field, Boolean> sFieldUniqueCache;
+
 	static {
 		sPersistenceCache = new Hashtable<Class<?>, List<Field>>();
 		sColumnCache = new Hashtable<Field, String>();
@@ -85,7 +93,7 @@ public class PersistenceResolution {
 	 * 
 	 * @param c
 	 *            the <code>Class</code> to check persistence for
-	 * @return true if persistent, false if transient
+	 * @return <code>true</code> if persistent, <code>false</code> if transient
 	 */
 	public static boolean isPersistent(Class<?> c) {
 		Entity entity = c.getAnnotation(Entity.class);
@@ -156,19 +164,15 @@ public class PersistenceResolution {
 	 * primary key using the {@link PrimaryKey} annotation. If the annotation is
 	 * missing from the class hierarchy, Infinitum will look for a
 	 * <code>Field</code> called <code>mId</code> or <code>id</code> to use as
-	 * the primary key. If there is no such <code>Field</code>, a
-	 * {@link ModelConfigurationException} will be thrown.
+	 * the primary key.
 	 * 
 	 * @param c
 	 *            the <code>Class</code> to retrieve primary key
 	 *            <code>Fields</code> for
 	 * @return <code>List</code> of all primary key <code>Fields</code> for the
 	 *         specified <code>Class</code>
-	 * @throws ModelConfigurationException
-	 *             thrown if no primary key is present
 	 */
-	public static List<Field> getPrimaryKeyFields(Class<?> c)
-			throws ModelConfigurationException {
+	public static List<Field> getPrimaryKeyFields(Class<?> c) {
 		if (sPrimaryKeyCache.containsKey(c))
 			return sPrimaryKeyCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
@@ -181,13 +185,37 @@ public class PersistenceResolution {
 		// Look for id fields if the annotation is missing
 		if (ret.size() == 0) {
 			Field f = findPrimaryKeyField(c);
-			if (f == null)
-				throw new ModelConfigurationException(String.format(
-						Constants.NO_PRIMARY_KEY, c.getName()));
-			else
+			if (f != null)
 				ret.add(f);
 		}
 		sPrimaryKeyCache.put(c, ret);
+		return ret;
+	}
+
+	/**
+	 * Retrieves a <code>List</code> of all unique <code>Fields</code> for the
+	 * given <code>Class</code>. <code>Fields</code> can be marked unique using
+	 * the {@link Unique} annotation.
+	 * 
+	 * @param c
+	 *            the <code>Class</code> to retrieve unique <code>Fields</code>
+	 *            for
+	 * @return <code>List</code> of all unique <code>Fields</code> for the
+	 *         specified <code>Class</code>
+	 */
+	public static List<Field> getUniqueFields(Class<?> c) {
+		List<Field> ret = new ArrayList<Field>();
+		List<Field> fields = getPersistentFields(c);
+		for (Field f : fields) {
+			if (sFieldUniqueCache.containsKey(f))
+				ret.add(f);
+			else {
+				Unique u = f.getAnnotation(Unique.class);
+				boolean unique = u == null ? false : true;
+				sFieldUniqueCache.put(f, unique);
+				ret.add(f);
+			}
+		}
 		return ret;
 	}
 
@@ -220,6 +248,43 @@ public class PersistenceResolution {
 			ret = c.name();
 		}
 		sColumnCache.put(f, ret);
+		return ret;
+	}
+
+	/**
+	 * Checks if the specified <code>Field's</code> associated column is
+	 * nullable.
+	 * 
+	 * @param f
+	 *            the <code>Field</code> to check if nullable
+	 * @return <code>true</code> if the field is nullable, <code>false</code> if
+	 *         it is not nullable
+	 */
+	public static boolean isFieldNullable(Field f) {
+		if (sFieldNullableCache.containsKey(f))
+			return sFieldNullableCache.get(f);
+		boolean ret;
+		NotNull n = f.getAnnotation(NotNull.class);
+		ret = n == null ? true : false;
+		sFieldNullableCache.put(f, ret);
+		return ret;
+	}
+
+	/**
+	 * Checks if the specified <code>Field</code> is unique, meaning each record
+	 * must have a different value in the table. This is a way of implementing a
+	 * unique constraint on a column.
+	 * 
+	 * @param f
+	 * @return
+	 */
+	public static boolean isFieldUnique(Field f) {
+		if (sFieldUniqueCache.containsKey(f))
+			return sFieldUniqueCache.get(f);
+		boolean ret;
+		Unique u = f.getAnnotation(Unique.class);
+		ret = u == null ? false : true;
+		sFieldUniqueCache.put(f, ret);
 		return ret;
 	}
 

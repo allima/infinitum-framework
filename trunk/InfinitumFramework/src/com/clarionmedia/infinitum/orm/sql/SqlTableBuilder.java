@@ -19,9 +19,15 @@
 
 package com.clarionmedia.infinitum.orm.sql;
 
+import java.lang.reflect.Field;
+import java.util.List;
+
+import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Table;
+import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 
 /**
  * <p>
@@ -35,12 +41,80 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
  */
 public class SqlTableBuilder {
 
-	public static String getCreateTableString(Object model) {
-		if (!PersistenceResolution.isPersistent(model.getClass()))
-			return null;
-		
-		return null;
+	private static final String CREATE_TABLE = "CREATE TABLE";
+	private static final String NOT_NULL = "NOT NULL";
+	private static final String PRIMARY_KEY = "PRIMARY KEY";
+	private static final String UNIQUE = "UNIQUE";
 
+	/**
+	 * Generates the create table SQL statement for the specified
+	 * <code>Class</code>. If the <code>Class</code> does not contain any
+	 * persistent <code>Fields</code>, a {@link ModelConfigurationException}
+	 * will be thrown. If the <code>Class</code> itself is marked as transient,
+	 * this method will return null.
+	 * 
+	 * @param c
+	 *            the <code>Class</code> to generate the create table SQL
+	 *            statement for
+	 * @return create table SQL statement
+	 * @throws ModelConfigurationException
+	 */
+	public static String createTableString(Class<?> c)
+			throws ModelConfigurationException {
+		if (!PersistenceResolution.isPersistent(c))
+			return null;
+		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(" ")
+				.append(PersistenceResolution.getModelTableName(c))
+				.append(" (");
+		appendColumns(c, sb);
+		appendPrimaryKeys(c, sb);
+		appendUniqueColumns(c, sb);
+		sb.append(')');
+		return sb.toString();
 	}
 
+	private static void appendColumns(Class<?> c, StringBuilder sb)
+			throws ModelConfigurationException {
+		List<Field> fields = PersistenceResolution.getPersistentFields(c);
+		if (fields.size() == 0)
+			throw new ModelConfigurationException(String.format(
+					Constants.NO_PERSISTENT_FIELDS, c.getName()));
+		String prefix = "";
+		for (Field f : fields) {
+			sb.append(prefix);
+			prefix = ", ";
+			sb.append(PersistenceResolution.getFieldColumnName(f)).append(" ")
+					.append(TypeResolution.getSqliteDataType(f).toString());
+			if (!PersistenceResolution.isFieldNullable(f))
+				sb.append(" ").append(NOT_NULL);
+		}
+	}
+
+	private static void appendPrimaryKeys(Class<?> c, StringBuilder sb) {
+		List<Field> fields = PersistenceResolution.getPrimaryKeyFields(c);
+		if (fields.size() > 0) {
+			sb.append(", ").append(PRIMARY_KEY).append('(');
+			String prefix = "";
+			for (Field f : fields) {
+				sb.append(prefix);
+				prefix = ", ";
+				sb.append(PersistenceResolution.getFieldColumnName(f));
+			}
+			sb.append(')');
+		}
+	}
+
+	private static void appendUniqueColumns(Class<?> c, StringBuilder sb) {
+		List<Field> fields = PersistenceResolution.getUniqueFields(c);
+		if (fields.size() > 0) {
+			sb.append(", ").append(UNIQUE).append('(');
+			String prefix = "";
+			for (Field f : fields) {
+				sb.append(prefix);
+				prefix = ", ";
+				sb.append(PersistenceResolution.getFieldColumnName(f));
+			}
+			sb.append(')');
+		}
+	}
 }
