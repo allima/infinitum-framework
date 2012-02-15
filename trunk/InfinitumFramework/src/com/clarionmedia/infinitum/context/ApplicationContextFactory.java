@@ -206,7 +206,6 @@ public class ApplicationContextFactory {
 						}
 
 						// Parse <domain> node
-						String name = config.getName();
 						if (event == XmlPullParser.START_TAG
 								&& config.getName().contentEquals(ApplicationContextConstants.DOMAIN_ELEMENT)) {
 							config.next();

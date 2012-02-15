@@ -24,6 +24,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import com.clarionmedia.infinitum.context.ApplicationContext;
+import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.sql.SqlTableBuilder;
 
 /**
  * <p>
@@ -57,14 +60,27 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 		return mSqliteDb;
 	}
 
+	/**
+	 * Returns the encapsulated <code>ApplicationContext</code>.
+	 * 
+	 * @return <code>ApplicationContext</code> instance
+	 */
+	public ApplicationContext getApplicationContext() {
+		return mAppContext;
+	}
+
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		mSqliteDb = db;
 		if (mAppContext.isDebug())
-			Log.d(TAG, "Executing table create scripts");
-		// TODO: create tables
+			Log.d(TAG, "Creating database tables");
+		try {
+			SqlTableBuilder.createTables(this);
+		} catch (ModelConfigurationException e) {
+			Log.e(TAG, Constants.CREATE_TABLES_ERROR, e);
+		}
 		if (mAppContext.isDebug())
-			Log.d(TAG, "Table create scripts executed");
+			Log.d(TAG, "Database tables created successfully");
 	}
 
 	@Override

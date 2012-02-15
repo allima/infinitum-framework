@@ -35,5 +35,6 @@ public class Constants {
 
 	// Errors
 	public static final String NO_PERSISTENT_FIELDS = "No persistent fields defined in '{?}'!";
+	public static final String CREATE_TABLES_ERROR = "Error creating database tables!";
 
 }

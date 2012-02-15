@@ -22,12 +22,16 @@ package com.clarionmedia.infinitum.orm.sql;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import android.database.sqlite.SQLiteDatabase;
+
 import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Table;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteDbHelper;
+import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
  * <p>
@@ -41,10 +45,40 @@ import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
  */
 public class SqlTableBuilder {
 
+	// TODO: this class currently doesn't handle reserved keywords.
+	// See: http://www.sqlite.org/lang_keywords.html
+
 	private static final String CREATE_TABLE = "CREATE TABLE";
 	private static final String NOT_NULL = "NOT NULL";
 	private static final String PRIMARY_KEY = "PRIMARY KEY";
 	private static final String UNIQUE = "UNIQUE";
+
+	/**
+	 * Creates the model tables for the application in the SQLite database as
+	 * configured in <code>infinitum.cfg.xml</code> and returns the numbers of
+	 * tables created.
+	 * 
+	 * @param dbHelper
+	 *            the <code>SqliteDbHelper</code> encapsulating the
+	 *            <code>ApplicationContext</code> for this application
+	 * @return number of tables created
+	 * @throws ModelConfigurationException
+	 *             thrown if table(s) cannot be created due to a misconfigured
+	 *             model. For example, a model that does not contain any
+	 *             persistent <code>Fields</code>
+	 */
+	public static int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException {
+		int count = 0;
+		SQLiteDatabase db = dbHelper.getDatabase();
+		for (String m : dbHelper.getApplicationContext().getDomainModels()) {
+			String sql = createTableString(PackageReflector.getClass(m));
+			if (sql != null) {
+				db.execSQL(sql);
+				count++;
+			}
+		}
+		return count;
+	}
 
 	/**
 	 * Generates the create table SQL statement for the specified
@@ -59,13 +93,11 @@ public class SqlTableBuilder {
 	 * @return create table SQL statement
 	 * @throws ModelConfigurationException
 	 */
-	public static String createTableString(Class<?> c)
-			throws ModelConfigurationException {
+	private static String createTableString(Class<?> c) throws ModelConfigurationException {
 		if (!PersistenceResolution.isPersistent(c))
 			return null;
 		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(" ")
-				.append(PersistenceResolution.getModelTableName(c))
-				.append(" (");
+				.append(PersistenceResolution.getModelTableName(c)).append(" (");
 		appendColumns(c, sb);
 		appendPrimaryKeys(c, sb);
 		appendUniqueColumns(c, sb);
@@ -73,12 +105,10 @@ public class SqlTableBuilder {
 		return sb.toString();
 	}
 
-	private static void appendColumns(Class<?> c, StringBuilder sb)
-			throws ModelConfigurationException {
+	private static void appendColumns(Class<?> c, StringBuilder sb) throws ModelConfigurationException {
 		List<Field> fields = PersistenceResolution.getPersistentFields(c);
 		if (fields.size() == 0)
-			throw new ModelConfigurationException(String.format(
-					Constants.NO_PERSISTENT_FIELDS, c.getName()));
+			throw new ModelConfigurationException(String.format(Constants.NO_PERSISTENT_FIELDS, c.getName()));
 		String prefix = "";
 		for (Field f : fields) {
 			sb.append(prefix);
