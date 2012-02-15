@@ -34,7 +34,7 @@ import android.content.res.XmlResourceParser;
 /**
  * <p>
  * Provides access to an {@link ApplicationContext} singleton. In order for this
- * class to work, an infinitum.cfg.xml file must be created and
+ * class to work, an {@code infinitum.cfg.xml} file must be created and
  * <code>configure</code> must be called using the location of the XML file
  * before accessing the <code>ApplicationContext</code> or an
  * {@link InfinitumConfigurationException} will be thrown.
@@ -53,7 +53,7 @@ public class ApplicationContextFactory {
 	 * Indicates whether or not the <code>ApplicationContext</code> has been
 	 * configured.
 	 * 
-	 * @return true if it has been configured, false if not
+	 * @return {@code true} if it has been configured, {@code false} if not
 	 */
 	public static boolean isConfigured() {
 		return sConfigured;
@@ -61,7 +61,7 @@ public class ApplicationContextFactory {
 
 	/**
 	 * Configures Infinitum with the specified configuration file. Configuration
-	 * file must be named infinitum.cfg.xml. This method must be called before
+	 * file must be named {@code infinitum.cfg.xml}. This method must be called before
 	 * attempting to retrieve an {@link ApplicationContext}.
 	 * 
 	 * @param context
@@ -69,7 +69,7 @@ public class ApplicationContextFactory {
 	 * @param configId
 	 *            the resource ID for the XML config file
 	 * @throws InfinitumConfigurationException
-	 *             thrown if the configuration file could not be found or if the
+	 *             if the configuration file could not be found or if the
 	 *             file could not be parsed
 	 */
 	public static void configure(Context context, int configId) throws InfinitumConfigurationException {
@@ -82,12 +82,13 @@ public class ApplicationContextFactory {
 
 	/**
 	 * Retrieves the {@link ApplicationContext} singleton.
-	 * <code>configure</code> must be called before using this method.
-	 * Otherwise, an {@link InfinitumConfigurationException} will be thrown.
+	 * {@link ApplicationContextFactory#configure} must be called before using
+	 * this method. Otherwise, an {@link InfinitumConfigurationException} will
+	 * be thrown.
 	 * 
-	 * @return the ApplicationContext singleton
+	 * @return the {@code ApplicationContext} singleton
 	 * @throws InfinitumConfigurationException
-	 *             thrown if <code>configure</code> was not called
+	 *             if {@code configure} was not called
 	 */
 	public static ApplicationContext getApplicationContext() throws InfinitumConfigurationException {
 		if (!sConfigured || sApplicationContext == null)

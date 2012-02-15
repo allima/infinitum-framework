@@ -17,27 +17,29 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.annotation;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.clarionmedia.infinitum.exception;
 
 /**
  * <p>
- * This annotation indicates the name of a column a field is mapped to. If the
- * annotation is not provided, the field is mapped to a column with the same
- * name as the field.
+ * Indicates an unchecked exception occurred within the Infinitum runtime.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/13/12
+ * @version 1.0 02/15/12
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Column {
-	String name();
+public class InfinitumRuntimeException extends RuntimeException {
+
+	private static final long serialVersionUID = -2477796900040902595L;
+
+	/**
+	 * Constructs a new {@code InfinitumRuntimeException} with the given error
+	 * message.
+	 * 
+	 * @param error
+	 *            the error message for the {@link RuntimeException}
+	 */
+	public InfinitumRuntimeException(String error) {
+		super(error);
+	}
+
 }

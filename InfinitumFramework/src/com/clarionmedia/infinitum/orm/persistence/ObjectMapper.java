@@ -21,11 +21,15 @@ package com.clarionmedia.infinitum.orm.persistence;
 
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import android.content.ContentValues;
 
 import com.clarionmedia.infinitum.datetime.DateFormatter;
+import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 
 /**
  * <p>
@@ -46,13 +50,17 @@ public class ObjectMapper {
 	 *            the <code>Object</code> to map
 	 * @return <code>ContentValues</code> with the entity's persistent fields
 	 *         mapped to their columns
+	 * @throws InvalidMappingException
+	 *             if a type cannot be mapped
 	 */
-	public static ContentValues mapModel(Object model) {
+	public ContentValues mapModel(Object model) throws InvalidMappingException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			return null;
 		ContentValues ret = new ContentValues();
 		List<Field> fields = PersistenceResolution.getPersistentFields(model.getClass());
 		for (Field f : fields) {
+			if (PersistenceResolution.isFieldPrimaryKey(f) && PersistenceResolution.isPrimaryKeyAutoIncrement(f))
+				continue;
 			Object val = null;
 			try {
 				f.setAccessible(true);
@@ -64,32 +72,35 @@ public class ObjectMapper {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			String colName = PersistenceResolution.getFieldColumnName(f);
 
 			// TODO: figure out a better way to do this!
-			// Possibly use TypeResolution 
+			// Possibly use TypeResolution
+			// also figure out way to add support for other types
 			if (val instanceof String)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (String) val);
+				ret.put(colName, (String) val);
 			else if (val instanceof Integer)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (Integer) val);
+				ret.put(colName, (Integer) val);
 			else if (val instanceof Long)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (Long) val);
+				ret.put(colName, (Long) val);
 			else if (val instanceof Float)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (Float) val);
+				ret.put(colName, (Float) val);
 			else if (val instanceof Double)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (Double) val);
+				ret.put(colName, (Double) val);
 			else if (val instanceof Short)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (Short) val);
+				ret.put(colName, (Short) val);
 			else if (val instanceof Boolean)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (Boolean) val);
+				ret.put(colName, (Boolean) val);
 			else if (val instanceof Byte)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (Byte) val);
+				ret.put(colName, (Byte) val);
 			else if (val instanceof byte[])
-				ret.put(PersistenceResolution.getFieldColumnName(f), (byte[]) val);
+				ret.put(colName, (byte[]) val);
 			else if (val instanceof Character)
-				ret.put(PersistenceResolution.getFieldColumnName(f), (String) val);
+				ret.put(colName, (String) val);
 			else if (val instanceof Date)
-				ret.put(PersistenceResolution.getFieldColumnName(f), DateFormatter.getDateAsISO8601String((Date) val));
-			// TODO: add additional data types
+				ret.put(colName, DateFormatter.getDateAsISO8601String((Date) val));
+			else
+				throw new InvalidMappingException(String.format(Constants.CANNOT_MAP_TYPE, f.getType().getSimpleName()));
 
 		}
 		return ret;

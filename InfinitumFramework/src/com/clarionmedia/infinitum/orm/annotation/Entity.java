@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.orm.annotation;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -28,12 +29,15 @@ import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 
 /**
  * <p>
- * This annotation is used to indicate the persistence state of a model.
+ * This annotation is used to indicate the persistence state of a model. A model
+ * can be marked as either persistent or transient using the
+ * {@code PersistenceMode} enumeration.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/12/12
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Entity {

@@ -17,30 +17,34 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.context.exception;
+package com.clarionmedia.infinitum.orm.exception;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 
 /**
  * <p>
- * Indicates there is an error in the way Infinitum is configured.
+ * Indicates there is an issue with the mapping of a {@code Field} in a
+ * persistent domain model. Specifically, this may mean that Infinitum was
+ * unable to map a {@code Field} to a column in the database. This can typically
+ * be avoided by registering a {@link TypeAdapter} with the {@link ObjectMapper}
+ * being used to map a model of the {@code Type} in question.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/11/12
+ * @version 1.0 02/14/12
  */
-public class InfinitumConfigurationException extends InfinitumRuntimeException {
+public class InvalidMappingException extends InfinitumRuntimeException {
 
-	private static final long serialVersionUID = -6745750594618266996L;
+	private static final long serialVersionUID = 470937993563172405L;
 
 	/**
-	 * Constructs a new <code>InfinitumConfigurationException</code> with the
-	 * given error message.
+	 * Constructs a new {@code InvalidMappingException} with the given error
+	 * message.
 	 * 
 	 * @param error
 	 *            the error message for the {@link InfinitumRuntimeException}
 	 */
-	public InfinitumConfigurationException(String error) {
+	public InvalidMappingException(String error) {
 		super(error);
 	}
 

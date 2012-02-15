@@ -51,7 +51,7 @@ public class ApplicationContextConstants {
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the ApplicationContext!";
 	public static final String CONFIG_PARSE_ERROR = "Could not parse configuration file.";
-	public static final String CONFIG_PARSE_ERROR_LINE = "Could not parse configuration file at line {?}.";
+	public static final String CONFIG_PARSE_ERROR_LINE = "Could not parse configuration file at line %d.";
 	public static final String SQLITE_DB_NAME_MISSING = "SQLite database name is missing!";
 
 }

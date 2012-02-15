@@ -26,6 +26,9 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
@@ -69,6 +72,9 @@ public class PersistenceResolution {
 	// This Map caches the primary key Fields for each persistent class
 	private static Map<Class<?>, List<Field>> sPrimaryKeyCache;
 
+	// This Map caches if a Field is a primary key
+	private static Map<Field, Boolean> sIsPrimaryKeyCache;
+
 	// This Map caches the "nullability" of Fields
 	private static Map<Field, Boolean> sFieldNullableCache;
 
@@ -79,6 +85,7 @@ public class PersistenceResolution {
 		sPersistenceCache = new Hashtable<Class<?>, List<Field>>();
 		sColumnCache = new Hashtable<Field, String>();
 		sPrimaryKeyCache = new Hashtable<Class<?>, List<Field>>();
+		sIsPrimaryKeyCache = new Hashtable<Field, Boolean>();
 		sFieldNullableCache = new Hashtable<Field, Boolean>();
 		sFieldUniqueCache = new Hashtable<Field, Boolean>();
 	}
@@ -114,10 +121,12 @@ public class PersistenceResolution {
 	 *            the <code>Class</code> to retrieve the table name for
 	 * @return the name of the database table for the specified domain model
 	 *         <code>Class</code>
+	 * @throws IllegalArgumentException
+	 *             if the given {@code Class} is transient
 	 */
-	public static String getModelTableName(Class<?> c) {
+	public static String getModelTableName(Class<?> c) throws IllegalArgumentException {
 		if (!isPersistent(c))
-			return null;
+			throw new IllegalArgumentException();
 		String ret;
 		Table table = c.getAnnotation(Table.class);
 		if (table == null)
@@ -178,15 +187,22 @@ public class PersistenceResolution {
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-			if (pk != null)
+			if (pk != null) {
 				ret.add(f);
+				sIsPrimaryKeyCache.put(f, true);
+			} else {
+				sIsPrimaryKeyCache.put(f, false);
+			}
 		}
 		// Look for id fields if the annotation is missing
 		if (ret.size() == 0) {
 			Field f = findPrimaryKeyField(c);
-			if (f != null)
+			if (f != null) {
 				ret.add(f);
+				sIsPrimaryKeyCache.put(f, true);
+			}
 		}
+
 		sPrimaryKeyCache.put(c, ret);
 		return ret;
 	}
@@ -252,6 +268,65 @@ public class PersistenceResolution {
 	}
 
 	/**
+	 * Determines if the given {@link Field} is a primary key.
+	 * 
+	 * @param f
+	 *            the {@code Field} to check
+	 * @return {@code true} if it is a primary key, {@code false} if it's not
+	 */
+	public static boolean isFieldPrimaryKey(Field f) {
+		if (sPrimaryKeyCache.containsKey(f))
+			return sIsPrimaryKeyCache.get(f);
+		PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
+		if (pk != null) {
+			sIsPrimaryKeyCache.put(f, true);
+			return true;
+		}
+		if (f.equals(findPrimaryKeyField(f.getDeclaringClass()))) {
+			sIsPrimaryKeyCache.put(f, true);
+			return true;
+		}
+		sIsPrimaryKeyCache.put(f, false);
+		return false;
+	}
+
+	/**
+	 * Determines if the given primary key {@link Field} is set to
+	 * autoincrement. This method assumes, as a precondition, that the
+	 * {@code Field} being passed is guaranteed to be a primary key, whether
+	 * implicitly or explicitly.
+	 * 
+	 * @param f
+	 *            the primary key {@code Field} to check if it's set to
+	 *            autoincrement
+	 * @return {@code true} if it is set to autoincrement, {@code false} if it's
+	 *         not
+	 * @throws InfinitumRuntimeException
+	 *             if an explicit primary key that is set to autoincrement is
+	 *             not of type int or long
+	 */
+	public static boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException {
+		PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
+		if (pk == null) {
+			if (f.getType() == int.class || f.getType() == Integer.class || f.getType() == long.class
+					|| f.getType() == Long.class)
+				return true;
+			else
+				return false;
+		}
+		boolean ret = pk.autoincrement();
+		if (!ret)
+			return false;
+		// throw runtime exception if explicit PK is not an int or long
+		if (f.getType() != int.class || f.getType() != Integer.class || f.getType() != long.class
+				|| f.getType() != Long.class)
+			throw new InfinitumRuntimeException(String.format(Constants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
+					.getType().getName()));
+		else
+			return true;
+	}
+
+	/**
 	 * Checks if the specified <code>Field's</code> associated column is
 	 * nullable.
 	 * 
@@ -289,7 +364,7 @@ public class PersistenceResolution {
 	}
 
 	private static Field findPrimaryKeyField(Class<?> c) {
-		List<Field> fields = getAllFields(c);
+		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
 			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
 				return f;
