@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.datetime;
+package com.clarionmedia.infinitum.internal;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

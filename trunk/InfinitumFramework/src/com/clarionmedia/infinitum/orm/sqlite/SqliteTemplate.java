@@ -19,10 +19,13 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
+import java.util.Collection;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.clarionmedia.infinitum.context.ApplicationContext;
 import com.clarionmedia.infinitum.context.ApplicationContextFactory;
@@ -43,6 +46,8 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
  * 
  */
 public class SqliteTemplate implements SqliteOperations {
+
+	private static final String TAG = "SqliteTemplate";
 
 	protected Context mContext;
 	protected ApplicationContext mAppContext;
@@ -85,7 +90,10 @@ public class SqliteTemplate implements SqliteOperations {
 			throw new InfinitumRuntimeException(String.format(Constants.CANNOT_SAVE_TRANSIENT, model.getClass()
 					.getName()));
 		}
-		return mSqliteDb.insert(tableName, null, values);
+		long ret = mSqliteDb.insert(tableName, null, values);
+		if (mAppContext.isDebug())
+			Log.d(TAG, model.getClass().getSimpleName() + " model saved");
+		return ret;
 	}
 
 	@Override
@@ -107,19 +115,23 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public void saveOrUpdateAll(Iterable<? extends Object> models) {
+	public void saveOrUpdateAll(Collection<? extends Object> models) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void saveAll(Iterable<? extends Object> models) {
-		// TODO Auto-generated method stub
-
+	public void saveAll(Collection<? extends Object> models) {
+		if (mAppContext.isDebug())
+			Log.d(TAG, "Saving " + models.size() + " models");
+		for (Object o : models)
+			save(o);
+		if (mAppContext.isDebug())
+			Log.d(TAG, "Models saved");
 	}
 
 	@Override
-	public int deleteAll(Iterable<? extends Object> models) {
+	public int deleteAll(Collection<? extends Object> models) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

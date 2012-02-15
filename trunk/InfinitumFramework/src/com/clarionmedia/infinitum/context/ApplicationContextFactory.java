@@ -50,7 +50,7 @@ public class ApplicationContextFactory {
 	private static Context sContext;
 
 	/**
-	 * Indicates whether or not the <code>ApplicationContext</code> has been
+	 * Indicates whether or not the {@code ApplicationContext} has been
 	 * configured.
 	 * 
 	 * @return {@code true} if it has been configured, {@code false} if not
@@ -61,16 +61,16 @@ public class ApplicationContextFactory {
 
 	/**
 	 * Configures Infinitum with the specified configuration file. Configuration
-	 * file must be named {@code infinitum.cfg.xml}. This method must be called before
-	 * attempting to retrieve an {@link ApplicationContext}.
+	 * file must be named {@code infinitum.cfg.xml}. This method must be called
+	 * before attempting to retrieve an {@link ApplicationContext}.
 	 * 
 	 * @param context
 	 *            the calling <code>Context</code>
 	 * @param configId
 	 *            the resource ID for the XML config file
 	 * @throws InfinitumConfigurationException
-	 *             if the configuration file could not be found or if the
-	 *             file could not be parsed
+	 *             if the configuration file could not be found or if the file
+	 *             could not be parsed
 	 */
 	public static void configure(Context context, int configId) throws InfinitumConfigurationException {
 		sContext = context;
