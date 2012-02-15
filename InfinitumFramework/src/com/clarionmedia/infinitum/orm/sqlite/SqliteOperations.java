@@ -19,6 +19,8 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
+import java.util.Collection;
+
 import android.database.SQLException;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 
@@ -100,7 +102,7 @@ public interface SqliteOperations {
 	 * @param models
 	 *            <code>Objects</code> to save or update in the database
 	 */
-	void saveOrUpdateAll(Iterable<? extends Object> models);
+	void saveOrUpdateAll(Collection<? extends Object> models);
 
 	/**
 	 * Persists the entire collection of <code>Objects</code> to the database.
@@ -108,7 +110,7 @@ public interface SqliteOperations {
 	 * @param models
 	 *            <code>Objects</code> to persist to the database
 	 */
-	void saveAll(Iterable<? extends Object> models);
+	void saveAll(Collection<? extends Object> models);
 
 	/**
 	 * Deletes the entire collection of <code>Objects</code> from the database
@@ -118,7 +120,7 @@ public interface SqliteOperations {
 	 *            <code>Objects</code> to delete from the database
 	 * @return the number of records deleted
 	 */
-	int deleteAll(Iterable<? extends Object> models);
+	int deleteAll(Collection<? extends Object> models);
 
 	/**
 	 * Executes the given SQL query on the database.

@@ -21,13 +21,9 @@ package com.clarionmedia.infinitum.orm.persistence;
 
 import java.lang.reflect.Field;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import android.content.ContentValues;
-
-import com.clarionmedia.infinitum.datetime.DateFormatter;
+import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 
