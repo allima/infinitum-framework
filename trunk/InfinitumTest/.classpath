@@ -4,7 +4,7 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-	<classpathentry kind="src" path="/InfinitumFramework"/>
+	<classpathentry exported="true" kind="src" path="/InfinitumFramework"/>
 	<classpathentry kind="lib" path="assets/lib/joda-time-2.0.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
