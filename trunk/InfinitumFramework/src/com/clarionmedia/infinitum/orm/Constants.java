@@ -39,7 +39,9 @@ public class Constants {
 	public static final String CANNOT_REGISTER_TYPE_ADAPTER = "Cannot register a TypeAdapter for '%s'.";
 	public static final String CANNOT_MAP_TYPE = "Cannot map '%s' to a database column.";
 	public static final String CANNOT_SAVE_TRANSIENT = "Cannot save transient class '%s'.";
+	public static final String CANNOT_UPDATE_TRANSIENT = "Cannot update transient class '%s'.";
 	public static final String IMPLICIT_PK_TYPE_ERROR = "Implicit primary key '%s' is not of type int or long in '%s'.";
 	public static final String EXPLICIT_PK_TYPE_ERROR = "Explicit primary key '%s' is not of type int or long in '%s'.";
+	public static final String UNABLE_TO_GEN_QUERY = "Unable to generate SQL query for Object of type '%s'.";
 
 }
