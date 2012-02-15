@@ -21,6 +21,8 @@ package com.clarionmedia.infinitum.orm.persistence;
 
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * <p>
@@ -36,6 +38,13 @@ public class TypeResolution {
 	public static enum SqliteDataType {
 		NULL, INTEGER, REAL, TEXT, BLOB
 	};
+	
+	// This Map caches the SQLite data type for each Field
+	private static Map<Field, SqliteDataType> sDataTypeCache;
+	
+	static {
+		sDataTypeCache = new Hashtable<Field, SqliteDataType>();
+	}
 
 	/**
 	 * Retrieves the SQLite data type associated with the given
@@ -47,31 +56,36 @@ public class TypeResolution {
 	 *         <code>Field</code>
 	 */
 	public static SqliteDataType getSqliteDataType(Field field) {
+		if (sDataTypeCache.containsKey(field))
+			return sDataTypeCache.get(field);
+		SqliteDataType ret = null;
 		Class<?> c = field.getType();
 		if (c == String.class)
-			return SqliteDataType.TEXT;
+			ret = SqliteDataType.TEXT;
 		else if (c == Integer.class || c == int.class)
-			return SqliteDataType.INTEGER;
+			ret = SqliteDataType.INTEGER;
 		else if (c == Long.class || c == long.class)
-			return SqliteDataType.INTEGER;
+			ret = SqliteDataType.INTEGER;
 		else if (c == Float.class || c == float.class)
-			return SqliteDataType.REAL;
+			ret = SqliteDataType.REAL;
 		else if (c == Double.class || c == double.class)
-			return SqliteDataType.REAL;
+			ret = SqliteDataType.REAL;
 		else if (c == Short.class || c == short.class)
-			return SqliteDataType.INTEGER;
+			ret = SqliteDataType.INTEGER;
 		else if (c == Boolean.class || c == boolean.class)
-			return SqliteDataType.INTEGER;
+			ret = SqliteDataType.INTEGER;
 		else if (c == Byte.class || c == byte.class)
-			return SqliteDataType.INTEGER;
+			ret = SqliteDataType.INTEGER;
 		else if (c == byte[].class)
-			return SqliteDataType.BLOB;
+			ret = SqliteDataType.BLOB;
 		else if (c == Character.class || c == char.class)
-			return SqliteDataType.TEXT;
+			ret = SqliteDataType.TEXT;
 		else if (c == Date.class)
-			return SqliteDataType.TEXT;
+			ret = SqliteDataType.TEXT;
 		// TODO: support additional types
-		return null;
+		if (ret != null)
+			sDataTypeCache.put(field, ret);
+		return ret;
 	}
 
 }
