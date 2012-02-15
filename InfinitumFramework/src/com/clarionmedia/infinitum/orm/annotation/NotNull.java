@@ -27,8 +27,9 @@ import java.lang.annotation.Target;
 /**
  * This annotation indicates that the <code>Field</code> may not contain a null
  * value when being persisted to the database because its associated column is
- * "not null". This has no effect on a <code>Field</code> that is marked
- * transient.
+ * "not null". The {@link PrimaryKey} annotation implicitly defines a column as
+ * unique. <code>NotNull</code> has no effect on a <code>Field</code> that is
+ * marked transient.
  * 
  * @author Tyler Treat
  * @version 1.0 02/14/12

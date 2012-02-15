@@ -50,23 +50,23 @@ public class TypeResolution {
 		Class<?> c = field.getType();
 		if (c == String.class)
 			return SqliteDataType.TEXT;
-		else if (c == Integer.class)
+		else if (c == Integer.class || c == int.class)
 			return SqliteDataType.INTEGER;
-		else if (c == Long.class)
+		else if (c == Long.class || c == long.class)
 			return SqliteDataType.INTEGER;
-		else if (c == Float.class)
+		else if (c == Float.class || c == float.class)
 			return SqliteDataType.REAL;
-		else if (c == Double.class)
+		else if (c == Double.class || c == double.class)
 			return SqliteDataType.REAL;
-		else if (c == Short.class)
+		else if (c == Short.class || c == short.class)
 			return SqliteDataType.INTEGER;
-		else if (c == Boolean.class)
+		else if (c == Boolean.class || c == boolean.class)
 			return SqliteDataType.INTEGER;
-		else if (c == Byte.class)
+		else if (c == Byte.class || c == byte.class)
 			return SqliteDataType.INTEGER;
 		else if (c == byte[].class)
 			return SqliteDataType.BLOB;
-		else if (c == Character.class)
+		else if (c == Character.class || c == char.class)
 			return SqliteDataType.TEXT;
 		else if (c == Date.class)
 			return SqliteDataType.TEXT;

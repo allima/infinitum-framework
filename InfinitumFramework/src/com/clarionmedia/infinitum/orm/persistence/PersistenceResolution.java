@@ -26,8 +26,6 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
@@ -36,7 +34,6 @@ import com.clarionmedia.infinitum.orm.annotation.Persistence;
 import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
 import com.clarionmedia.infinitum.orm.annotation.Table;
 import com.clarionmedia.infinitum.orm.annotation.Unique;
-import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
 /**
  * <p>
@@ -81,6 +78,9 @@ public class PersistenceResolution {
 	static {
 		sPersistenceCache = new Hashtable<Class<?>, List<Field>>();
 		sColumnCache = new Hashtable<Field, String>();
+		sPrimaryKeyCache = new Hashtable<Class<?>, List<Field>>();
+		sFieldNullableCache = new Hashtable<Field, Boolean>();
+		sFieldUniqueCache = new Hashtable<Field, Boolean>();
 	}
 
 	/**
@@ -150,8 +150,7 @@ public class PersistenceResolution {
 		for (Field f : fields) {
 			Persistence persistence = f.getAnnotation(Persistence.class);
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-			if ((persistence == null || persistence.mode() == PersistenceMode.Persistent)
-					|| pk != null)
+			if ((persistence == null || persistence.mode() == PersistenceMode.Persistent) || pk != null)
 				ret.add(f);
 		}
 		sPersistenceCache.put(c, ret);
@@ -207,13 +206,14 @@ public class PersistenceResolution {
 		List<Field> ret = new ArrayList<Field>();
 		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
-			if (sFieldUniqueCache.containsKey(f))
+			if (sFieldUniqueCache.containsKey(f) && sFieldUniqueCache.get(f))
 				ret.add(f);
 			else {
 				Unique u = f.getAnnotation(Unique.class);
 				boolean unique = u == null ? false : true;
 				sFieldUniqueCache.put(f, unique);
-				ret.add(f);
+				if (unique)
+					ret.add(f);
 			}
 		}
 		return ret;
@@ -288,26 +288,10 @@ public class PersistenceResolution {
 		return ret;
 	}
 
-	private static Class<?>[] getClasses(String packageName) {
-		// TODO
-		return null;
-	}
-
-	private static Class<?> getClass(String className) {
-		Class<?> c;
-		try {
-			c = Class.forName(className);
-		} catch (ClassNotFoundException e) {
-			return null;
-		}
-		return c;
-	}
-
 	private static Field findPrimaryKeyField(Class<?> c) {
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
-			if (f.getName().equals("mId") || f.getName().equals("mID")
-					|| f.getName().equalsIgnoreCase("id"))
+			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
 				return f;
 		}
 		return null;
