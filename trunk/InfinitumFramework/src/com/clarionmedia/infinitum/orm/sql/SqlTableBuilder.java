@@ -51,6 +51,7 @@ public class SqlTableBuilder {
 	private static final String CREATE_TABLE = "CREATE TABLE";
 	private static final String NOT_NULL = "NOT NULL";
 	private static final String PRIMARY_KEY = "PRIMARY KEY";
+	private static final String AUTO_INCREMENT = "AUTOINCREMENT";
 	private static final String UNIQUE = "UNIQUE";
 
 	/**
@@ -63,9 +64,9 @@ public class SqlTableBuilder {
 	 *            <code>ApplicationContext</code> for this application
 	 * @return number of tables created
 	 * @throws ModelConfigurationException
-	 *             thrown if table(s) cannot be created due to a misconfigured
-	 *             model. For example, a model that does not contain any
-	 *             persistent <code>Fields</code>
+	 *             if table(s) cannot be created due to a misconfigured model.
+	 *             For example, a model that does not contain any persistent
+	 *             <code>Fields</code>
 	 */
 	public static int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException {
 		int count = 0;
@@ -99,7 +100,6 @@ public class SqlTableBuilder {
 		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(" ")
 				.append(PersistenceResolution.getModelTableName(c)).append(" (");
 		appendColumns(c, sb);
-		appendPrimaryKeys(c, sb);
 		appendUniqueColumns(c, sb);
 		sb.append(')');
 		return sb.toString();
@@ -107,35 +107,37 @@ public class SqlTableBuilder {
 
 	private static void appendColumns(Class<?> c, StringBuilder sb) throws ModelConfigurationException {
 		List<Field> fields = PersistenceResolution.getPersistentFields(c);
+
+		// Throw a runtime exception if there are no persistent fields
 		if (fields.size() == 0)
 			throw new ModelConfigurationException(String.format(Constants.NO_PERSISTENT_FIELDS, c.getName()));
+
 		String prefix = "";
 		for (Field f : fields) {
 			sb.append(prefix);
 			prefix = ", ";
+
+			// Append column name and data type, e.g. "foo INTEGER"
 			sb.append(PersistenceResolution.getFieldColumnName(f)).append(" ")
 					.append(TypeResolution.getSqliteDataType(f).toString());
+
+			// Check if the column is a PRIMARY KEY
+			if (PersistenceResolution.isFieldPrimaryKey(f)) {
+				sb.append(" ").append(PRIMARY_KEY);
+				if (PersistenceResolution.isPrimaryKeyAutoIncrement(f))
+					sb.append(" ").append(AUTO_INCREMENT);
+			}
+
+			// Check if the column is NOT NULL
 			if (!PersistenceResolution.isFieldNullable(f))
 				sb.append(" ").append(NOT_NULL);
 		}
 	}
 
-	private static void appendPrimaryKeys(Class<?> c, StringBuilder sb) {
-		List<Field> fields = PersistenceResolution.getPrimaryKeyFields(c);
-		if (fields.size() > 0) {
-			sb.append(", ").append(PRIMARY_KEY).append('(');
-			String prefix = "";
-			for (Field f : fields) {
-				sb.append(prefix);
-				prefix = ", ";
-				sb.append(PersistenceResolution.getFieldColumnName(f));
-			}
-			sb.append(')');
-		}
-	}
-
 	private static void appendUniqueColumns(Class<?> c, StringBuilder sb) {
 		List<Field> fields = PersistenceResolution.getUniqueFields(c);
+
+		// Append any unique constraints, e.g. UNIQUE(foo, bar)
 		if (fields.size() > 0) {
 			sb.append(", ").append(UNIQUE).append('(');
 			String prefix = "";

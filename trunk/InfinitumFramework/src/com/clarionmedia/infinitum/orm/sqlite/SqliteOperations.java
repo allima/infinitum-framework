@@ -20,6 +20,7 @@
 package com.clarionmedia.infinitum.orm.sqlite;
 
 import android.database.SQLException;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 
 /**
  * <p>
@@ -39,7 +40,7 @@ public interface SqliteOperations {
 	 * 
 	 * @return an instance of itself to enable chaining
 	 * @throws SQLException
-	 *             thrown if the database cannot be opened for writing
+	 *             if the database cannot be opened for writing
 	 */
 	SqliteOperations open() throws SQLException;
 
@@ -49,22 +50,24 @@ public interface SqliteOperations {
 	void close();
 
 	/**
-	 * Persists the given <code>Object</code> to the database. This method is
+	 * Persists the given {@link Object} to the database. This method is
 	 * idempotent, meaning if the record already exists, it will not be
 	 * effected.
 	 * 
 	 * @param model
-	 *            <code>Object</code> to persist to the database
+	 *            {@code Object} to persist to the database
 	 * @return the row ID of the newly inserted record, or -1 if the insert
 	 *         failed
+	 * @throws InfinitumRuntimeException
+	 *             if a transient {@code Class} is attempted to be saved
 	 */
-	long save(Object model);
+	long save(Object model) throws InfinitumRuntimeException;
 
 	/**
-	 * Updates the given <code>Object</code> in the database.
+	 * Updates the given {@link Object} in the database.
 	 * 
 	 * @param model
-	 *            <code>Object</code> to update in the database
+	 *            {@code Object} to update in the database
 	 * @return the row ID of the effected record, 0 if the record did not exist,
 	 *         or -1 if the update failed
 	 */

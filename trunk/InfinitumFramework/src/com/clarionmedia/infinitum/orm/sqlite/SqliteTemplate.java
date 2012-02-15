@@ -19,10 +19,17 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+
 import com.clarionmedia.infinitum.context.ApplicationContext;
+import com.clarionmedia.infinitum.context.ApplicationContextFactory;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.persistence.ObjectMapper;
+import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 
 /**
  * <p>
@@ -41,6 +48,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected ApplicationContext mAppContext;
 	protected SqliteDbHelper mDbHelper;
 	protected SQLiteDatabase mSqliteDb;
+	protected ObjectMapper mObjectMapper;
 
 	/**
 	 * Constructs a new <code>AbstractSqliteDao</code> using the given
@@ -48,12 +56,11 @@ public class SqliteTemplate implements SqliteOperations {
 	 * 
 	 * @param context
 	 *            the calling <code>Context</code>
-	 * @param appContext
-	 *            the <code>ApplicationContext</code> for this application
 	 */
-	public SqliteTemplate(Context context, ApplicationContext appContext) {
+	public SqliteTemplate(Context context) {
 		mContext = context;
-		mAppContext = appContext;
+		mAppContext = ApplicationContextFactory.getApplicationContext();
+		mObjectMapper = new ObjectMapper();
 	}
 
 	@Override
@@ -69,9 +76,16 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public long save(Object model) {
-		// TODO Auto-generated method stub
-		return 0;
+	public long save(Object model) throws InfinitumRuntimeException {
+		ContentValues values = mObjectMapper.mapModel(model);
+		String tableName;
+		try {
+			tableName = PersistenceResolution.getModelTableName(model.getClass());
+		} catch (IllegalArgumentException e) {
+			throw new InfinitumRuntimeException(String.format(Constants.CANNOT_SAVE_TRANSIENT, model.getClass()
+					.getName()));
+		}
+		return mSqliteDb.insert(tableName, null, values);
 	}
 
 	@Override

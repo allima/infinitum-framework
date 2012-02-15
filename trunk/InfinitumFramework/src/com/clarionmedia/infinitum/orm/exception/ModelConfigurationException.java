@@ -19,25 +19,27 @@
 
 package com.clarionmedia.infinitum.orm.exception;
 
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+
 /**
  * <p>
- * Indicates there is an error with the way a persistent domain model is
+ * Indicates there is an issue with the way a persistent domain model is
  * configured, either through annotations or XML mappings.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/13/12
  */
-public class ModelConfigurationException extends Exception {
+public class ModelConfigurationException extends InfinitumRuntimeException {
 
 	private static final long serialVersionUID = 470937993563172405L;
 
 	/**
-	 * Constructs a new <code>ModelConfigurationException</code> with the given
-	 * error message.
+	 * Constructs a new {@code ModelConfigurationException} with the given error
+	 * message.
 	 * 
 	 * @param error
-	 *            the error message for the <code>Exception</code>
+	 *            the error message for the {@link InfinitumRuntimeException}
 	 */
 	public ModelConfigurationException(String error) {
 		super(error);
