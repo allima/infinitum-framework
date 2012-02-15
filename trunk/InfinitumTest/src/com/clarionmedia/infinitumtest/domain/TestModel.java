@@ -4,11 +4,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
+import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
-import com.clarionmedia.infinitum.orm.annotation.Table;
+import com.clarionmedia.infinitum.orm.annotation.NotNull;
+import com.clarionmedia.infinitum.orm.annotation.Persistence;
 import com.clarionmedia.infinitum.orm.annotation.Unique;
 
-@Table(name = "test")
 public class TestModel {
 
 	private long mId;
@@ -18,17 +19,22 @@ public class TestModel {
 
 	private int mFoo;
 
+	@NotNull
 	private Date mBar;
 
 	@Unique
 	private double mBam;
+
+	@Persistence(mode = PersistenceMode.Transient)
+	private float mTransient;
 
 	public TestModel() {
 		Random rand = new Random(Calendar.getInstance().getTimeInMillis());
 		mBar = new Date();
 		mFoo = rand.nextInt();
 		mMyField = "hello world!";
-		setBam(rand.nextDouble());
+		mBam = rand.nextDouble();
+		mTransient = 42;
 	}
 
 	public long getId() {
@@ -69,6 +75,14 @@ public class TestModel {
 
 	public void setBam(double bam) {
 		mBam = bam;
+	}
+
+	public float getTransient() {
+		return mTransient;
+	}
+
+	public void setTransient(float t) {
+		mTransient = t;
 	}
 
 }
