@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE infinitum-configuration PUBLIC
+"-//Infinitum/Infinitum Configuration DTD 1.0//EN"
+"http://clarionmedia.com/infinitum/dtd/infinitum-configuration-1.0.dtd">
+
+<infinitum-configuration>
+
+    <application>
+        <property name="debug">true</property>
+        <property name="mode">annotations</property>
+        <property name="domainPackage">com.clarionmedia.infinitumtest.domain</property>
+    </application>
+    
+    <sqlite>
+        <property name="dbName">test</property>
+        <property name="dbVersion">2</property>
+    </sqlite>
+    
+    <domain>
+        <model resource="com.clarionmedia.infinitumtest.domain.TestModel" />
+    </domain>
+
+</infinitum-configuration>
