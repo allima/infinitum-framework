@@ -28,16 +28,22 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
 /**
  * <p>
- * This annotation indicates if a <code>Field</code> is a primary key. If the
+ * This annotation indicates if a {@link Field} is a primary key. If the
  * annotation is missing from the class hierarchy, Infinitum will look for a
- * <code>Field</code> called <code>mId</code> or <code>id</code> to use as the
- * primary key. If such a <code>Field</code> is found, autoincrement will be
- * enabled for it by default. If the primary key is assigned to a
- * <code>Field</code> which is not an <code>int</code> or <code>long</code> and
- * <code>autoincrement</code> is enabled, a {@link ModelConfigurationException}
- * will be thrown at runtime. Any <code>Field</code> marked as a primary key
- * will inherently be marked as persistent, regardless of any
- * {@link Persistence} annotation that might be associated with it.
+ * {@code Field} called {@code mId} or {@code id} to use as the primary key. If
+ * such a {@code Field} is found, autoincrement will be enabled for it by
+ * default if it is of type {@code int} or {@code long}. If the primary key is
+ * assigned to a <code>Field</code> which is not an {@code int} or {@code long}
+ * and <code>autoincrement</code> is enabled, a
+ * {@link ModelConfigurationException} will be thrown at runtime. Any
+ * {@code Field} marked as a primary key will inherently be marked as
+ * persistent, regardless of any {@link Persistence} annotation that might be
+ * associated with it.
+ * </p>
+ * 
+ * <p>
+ * The Infinitum ORM currently only supports a single primary key per model,
+ * meaning composite keys will throw a {@code ModelConfigurationException}.
  * </p>
  * 
  * @author Tyler Treat

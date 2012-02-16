@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.orm;
 
+import java.io.Serializable;
 import java.util.Collection;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 
@@ -90,8 +91,7 @@ public interface DatastoreOperations {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	void saveOrUpdateAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
 	 * Persists the entire collection of <code>Objects</code> to the database.
@@ -102,8 +102,7 @@ public interface DatastoreOperations {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	int saveAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
 	 * Deletes the entire collection of <code>Objects</code> from the database
@@ -115,8 +114,25 @@ public interface DatastoreOperations {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	int deleteAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
+
+	/**
+	 * Returns an instance of the given persistent model {@link Class} as
+	 * identified by the specified primary key(s) or {@code null} if no such
+	 * entity exists.
+	 * 
+	 * @param c
+	 *            the {@code Class} of the persistent instance to load
+	 * @param id
+	 *            the primary key value of the persistent instance to load
+	 * @return the persistent instance
+	 * @throws InfinitumRuntimeException
+	 *             if the specified {@code Class} is marked transient
+	 * @throws IllegalArgumentException
+	 *             if an incorrect number of primary keys is provided
+	 */
+	<T extends Object> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException,
+			IllegalArgumentException;
 
 	/**
 	 * Executes the given SQL query on the database.
