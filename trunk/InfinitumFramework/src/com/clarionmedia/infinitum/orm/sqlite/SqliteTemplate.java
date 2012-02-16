@@ -19,7 +19,11 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
+import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.List;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.SQLException;
@@ -103,7 +107,7 @@ public class SqliteTemplate implements SqliteOperations {
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (mAppContext.isDebug()) {
 			if (ret > 0)
-			    Log.d(TAG, model.getClass().getSimpleName() + " model updated");
+				Log.d(TAG, model.getClass().getSimpleName() + " model updated");
 			else
 				Log.d(TAG, model.getClass().getSimpleName() + " model was not updated");
 		}
@@ -120,7 +124,7 @@ public class SqliteTemplate implements SqliteOperations {
 		int result = mSqliteDb.delete(tableName, whereClause, null);
 		if (mAppContext.isDebug()) {
 			if (result == 1)
-			    Log.d(TAG, model.getClass().getSimpleName() + " model deleted");
+				Log.d(TAG, model.getClass().getSimpleName() + " model deleted");
 			else
 				Log.d(TAG, model.getClass().getSimpleName() + " model was not deleted");
 		}
@@ -174,10 +178,25 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
+	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+		if (!PersistenceResolution.isPersistent(c))
+			throw new InfinitumRuntimeException(String.format(Constants.CANNOT_LOAD_TRANSIENT, c.getName()));
+		if (!isValidPrimaryKey(c, id))
+			throw new IllegalArgumentException(String.format(Constants.INVALID_PK, id.getClass().getSimpleName(),
+					c.getName()));
+		return null;
+	}
+
+	@Override
 	public void execute(String sql) {
 		if (mAppContext.isDebug())
-		    Log.d(TAG, "Executing SQL: " + sql);
+			Log.d(TAG, "Executing SQL: " + sql);
 		mSqliteDb.execSQL(sql);
+	}
+
+	private boolean isValidPrimaryKey(Class<?> c, Serializable id) {
+		Field pk = PersistenceResolution.getPrimaryKeyField(c);
+		return (id != null && pk.getType() == id.getClass());
 	}
 
 }

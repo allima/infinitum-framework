@@ -20,7 +20,7 @@
 package com.clarionmedia.infinitum.orm.sql;
 
 import java.lang.reflect.Field;
-import java.util.List;
+
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
@@ -42,10 +42,9 @@ public class SqlUtil {
 	 * {@code String} "where" is not included with the resulting output.
 	 * 
 	 * <p>
-	 * For example, passing an object of class {@code Foobar} which has primary
-	 * keys {@code foo} and {@code bar} with values {@code 42} and "hello world"
-	 * respectively will result in the where clause
-	 * {@code foo = 42 AND bar = 'hello world'}.
+	 * For example, passing an object of class {@code Foobar} which has a
+	 * primary key {@code foo} with a value of {@code 42} will result in the
+	 * where clause {@code foo = 42}.
 	 * </p>
 	 * 
 	 * @param model
@@ -54,29 +53,20 @@ public class SqlUtil {
 	 * @throws InfinitumRuntimeException
 	 *             if there is an error generating the SQL
 	 */
-	public static String getUpdateWhereClause(Object model)
-			throws InfinitumRuntimeException {
-		List<Field> fields = PersistenceResolution.getPrimaryKeyFields(model
-				.getClass());
+	public static String getUpdateWhereClause(Object model) throws InfinitumRuntimeException {
+		Field pk = PersistenceResolution.getPrimaryKeyField(model.getClass());
 		StringBuilder sb = new StringBuilder();
-		String prefix = "";
-		for (Field f : fields) {
-			f.setAccessible(true);
-			sb.append(prefix);
-			prefix = " AND ";
-			sb.append(PersistenceResolution.getFieldColumnName(f))
-					.append(" = ");
-			SqliteDataType t = TypeResolution.getSqliteDataType(f);
-			try {
-				if (t == SqliteDataType.TEXT)
-					sb.append("'").append(f.get(model)).append("'");
-				else
-					sb.append(f.get(model));
-			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException(String.format(
-						Constants.UNABLE_TO_GEN_QUERY, model.getClass()
-								.getName()));
-			}
+		pk.setAccessible(true);
+		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
+		SqliteDataType t = TypeResolution.getSqliteDataType(pk);
+		try {
+			if (t == SqliteDataType.TEXT)
+				sb.append("'").append(pk.get(model)).append("'");
+			else
+				sb.append(pk.get(model));
+		} catch (IllegalAccessException e) {
+			throw new InfinitumRuntimeException(
+					String.format(Constants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
 		}
 		return sb.toString();
 	}

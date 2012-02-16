@@ -37,6 +37,7 @@ import com.clarionmedia.infinitum.orm.annotation.Persistence;
 import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
 import com.clarionmedia.infinitum.orm.annotation.Table;
 import com.clarionmedia.infinitum.orm.annotation.Unique;
+import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
 /**
  * <p>
@@ -69,11 +70,8 @@ public class PersistenceResolution {
 	// This Map caches the field-column map
 	private static Map<Field, String> sColumnCache;
 
-	// This Map caches the primary key Fields for each persistent class
-	private static Map<Class<?>, List<Field>> sPrimaryKeyCache;
-
-	// This Map caches if a Field is a primary key
-	private static Map<Field, Boolean> sIsPrimaryKeyCache;
+	// This Map caches the primary key Field for each persistent class
+	private static Map<Class<?>, Field> sPrimaryKeyCache;
 
 	// This Map caches the "nullability" of Fields
 	private static Map<Field, Boolean> sFieldNullableCache;
@@ -84,8 +82,7 @@ public class PersistenceResolution {
 	static {
 		sPersistenceCache = new Hashtable<Class<?>, List<Field>>();
 		sColumnCache = new Hashtable<Field, String>();
-		sPrimaryKeyCache = new Hashtable<Class<?>, List<Field>>();
-		sIsPrimaryKeyCache = new Hashtable<Field, Boolean>();
+		sPrimaryKeyCache = new Hashtable<Class<?>, Field>();
 		sFieldNullableCache = new Hashtable<Field, Boolean>();
 		sFieldUniqueCache = new Hashtable<Field, Boolean>();
 	}
@@ -167,40 +164,39 @@ public class PersistenceResolution {
 	}
 
 	/**
-	 * Retrieves a <code>List</code> of all primary key <code>Fields</code> for
-	 * the given <code>Class</code>. <code>Fields</code> can be marked as a
-	 * primary key using the {@link PrimaryKey} annotation. If the annotation is
-	 * missing from the class hierarchy, Infinitum will look for a
-	 * <code>Field</code> called <code>mId</code> or <code>id</code> to use as
-	 * the primary key.
+	 * Retrieves the primary key {@code Field} for the given {@code Class}. A
+	 * {@code Field} can be marked as a primary key using the {@link PrimaryKey}
+	 * annotation. If the annotation is missing from the class hierarchy,
+	 * Infinitum will look for a {@code Field} called {@code mId} or {@code id}
+	 * to use as the primary key.
 	 * 
 	 * @param c
-	 *            the <code>Class</code> to retrieve primary key
-	 *            <code>Fields</code> for
-	 * @return <code>List</code> of all primary key <code>Fields</code> for the
-	 *         specified <code>Class</code>
+	 *            the {@code Class} to retrieve the primary key {@code Field}
+	 *            for
+	 * @return the primary key {@code Field} for the specified {@code Class}
+	 * @throws ModelConfigurationException
+	 *             if multiple primary keys are declared in {@code c}
 	 */
-	public static List<Field> getPrimaryKeyFields(Class<?> c) {
+	public static Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
 		if (sPrimaryKeyCache.containsKey(c))
 			return sPrimaryKeyCache.get(c);
-		List<Field> ret = new ArrayList<Field>();
-		List<Field> fields = getAllFields(c);
+		Field ret = null;
+		boolean found = false;
+		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-			if (pk != null) {
-				ret.add(f);
-				sIsPrimaryKeyCache.put(f, true);
-			} else {
-				sIsPrimaryKeyCache.put(f, false);
+			if (pk != null && !found) {
+				ret = f;
+				found = true;
+			} else if (pk != null && found) {
+				throw new ModelConfigurationException(String.format(Constants.MULTIPLE_PK_ERROR, c.getName()));
 			}
 		}
 		// Look for id fields if the annotation is missing
-		if (ret.size() == 0) {
+		if (ret == null) {
 			Field f = findPrimaryKeyField(c);
-			if (f != null) {
-				ret.add(f);
-				sIsPrimaryKeyCache.put(f, true);
-			}
+			if (f != null)
+				ret = f;
 		}
 
 		sPrimaryKeyCache.put(c, ret);
@@ -275,19 +271,7 @@ public class PersistenceResolution {
 	 * @return {@code true} if it is a primary key, {@code false} if it's not
 	 */
 	public static boolean isFieldPrimaryKey(Field f) {
-		if (sPrimaryKeyCache.containsKey(f))
-			return sIsPrimaryKeyCache.get(f);
-		PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-		if (pk != null) {
-			sIsPrimaryKeyCache.put(f, true);
-			return true;
-		}
-		if (f.equals(findPrimaryKeyField(f.getDeclaringClass()))) {
-			sIsPrimaryKeyCache.put(f, true);
-			return true;
-		}
-		sIsPrimaryKeyCache.put(f, false);
-		return false;
+		return f.equals(getPrimaryKeyField(f.getDeclaringClass()));
 	}
 
 	/**
@@ -318,12 +302,12 @@ public class PersistenceResolution {
 		if (!ret)
 			return false;
 		// throw runtime exception if explicit PK is not an int or long
-		if (f.getType() != int.class || f.getType() != Integer.class || f.getType() != long.class
-				|| f.getType() != Long.class)
-			throw new InfinitumRuntimeException(String.format(Constants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
-					.getType().getName()));
-		else
+		if (f.getType() == int.class || f.getType() == Integer.class || f.getType() == long.class
+				|| f.getType() == Long.class)
 			return true;
+		else
+			throw new InfinitumRuntimeException(String.format(Constants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
+					.getDeclaringClass().getName()));
 	}
 
 	/**
