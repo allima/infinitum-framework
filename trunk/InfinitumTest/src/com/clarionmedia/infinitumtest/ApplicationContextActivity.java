@@ -21,25 +21,20 @@ package com.clarionmedia.infinitumtest;
 
 import android.app.Activity;
 import android.os.Bundle;
+
 import com.clarionmedia.infinitum.context.ApplicationContext;
 import com.clarionmedia.infinitum.context.ApplicationContextFactory;
-import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 
 public class ApplicationContextActivity extends Activity {
-	
+
 	public ApplicationContext mAppContext;
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		try {
-			ApplicationContextFactory.configure(this, R.xml.infinitum);
-			mAppContext = ApplicationContextFactory.getApplicationContext();
-		} catch (InfinitumConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ApplicationContextFactory.configure(this, R.xml.infinitum);
+		mAppContext = ApplicationContextFactory.getApplicationContext();
 	}
 
 }
