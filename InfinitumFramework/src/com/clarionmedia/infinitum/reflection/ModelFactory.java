@@ -34,12 +34,14 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 
 /**
+ * <p>
  * This class contains static methods for creating new instances of model
  * classes using reflection. Also provides methods for creating new, populated
  * instances from a SQLite {@link Cursor}. It's important to note that model
  * classes must contain an empty, parameterless constructor in order for these
  * methods to work. If no such constructor is present, a
  * {@link ModelConfigurationException} will be thrown at runtime.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/16/12
@@ -57,7 +59,7 @@ public class ModelFactory {
 	 * @param cursor
 	 *            the {@code Cursor} containing the row to convert to an
 	 *            {@code Object}
-	 * @param c
+	 * @param modelClass
 	 *            the {@code Class} of the {@code Object} being instantiated
 	 * @return a populated instance of the specified {@code Class}
 	 * @throws ModelConfigurationException
@@ -66,33 +68,33 @@ public class ModelFactory {
 	 * @throws InfinitumRuntimeException
 	 *             if the model could not be instantiated
 	 */
-	public static <T> T createFromCursor(Cursor cursor, Class<T> c) throws ModelConfigurationException,
+	public static <T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException,
 			InfinitumRuntimeException {
 		T ret = null;
 		try {
-			Constructor<T> ctor = c.getConstructor();
+			Constructor<T> ctor = modelClass.getConstructor();
 			ctor.setAccessible(true);
 			ret = ctor.newInstance();
 		} catch (SecurityException e) {
-			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, c.getName()));
+			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (NoSuchMethodException e) {
-			throw new ModelConfigurationException(String.format(Constants.NO_EMPTY_CONSTRUCTOR, c.getName()));
+			throw new ModelConfigurationException(String.format(Constants.NO_EMPTY_CONSTRUCTOR, modelClass.getName()));
 		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, c.getName()));
+			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (InstantiationException e) {
-			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, c.getName()));
+			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, c.getName()));
+			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (InvocationTargetException e) {
-			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, c.getName()));
+			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		}
-		List<Field> fields = PersistenceResolution.getPersistentFields(c);
+		List<Field> fields = PersistenceResolution.getPersistentFields(modelClass);
 		for (Field f : fields) {
 			f.setAccessible(true);
 			try {
 				f.set(ret, getCursorValue(f, cursor));
 			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, c.getName()));
+				throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 			}
 		}
 		return ret;

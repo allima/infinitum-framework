@@ -19,8 +19,11 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
+import android.database.Cursor;
 import android.database.SQLException;
+
 import com.clarionmedia.infinitum.orm.DatastoreOperations;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 
 /**
  * <p>
@@ -48,5 +51,24 @@ public interface SqliteOperations extends DatastoreOperations {
 	 * Closes the database connection, effectively ending the transaction.
 	 */
 	void close();
+
+	/**
+	 * Executes the given SQL query on the database for a result.
+	 * 
+	 * @param sql
+	 *            the SQL query to execute
+	 * @return {@link Cursor} containing the results of the query
+	 */
+	Cursor executeForResult(String sql);
+
+	/**
+	 * Creates a new {@link Criteria} instance for the given persistent entity
+	 * {@link Class}.
+	 * 
+	 * @param entityClass
+	 *            the persistent {@code Class} being queried for
+	 * @return {@code Criteria} for entityClass
+	 */
+	<T> Criteria<T> createCriteria(Class<T> entityClass);
 
 }

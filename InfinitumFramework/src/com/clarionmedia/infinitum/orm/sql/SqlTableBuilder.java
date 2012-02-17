@@ -35,7 +35,7 @@ import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
  * <p>
- * <code>SqlTableBuilder</code> is used to dynamically construct SQL strings for
+ * {@code SqlTableBuilder} is used to dynamically construct SQL strings for
  * table generation. It makes use of ORM annotations, such as {@link Table} and
  * {@link Column} to compose statements.
  * </p>
@@ -68,7 +68,8 @@ public class SqlTableBuilder {
 	 *             For example, a model that does not contain any persistent
 	 *             <code>Fields</code>
 	 */
-	public static int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException {
+	public static int createTables(SqliteDbHelper dbHelper)
+			throws ModelConfigurationException {
 		int count = 0;
 		SQLiteDatabase db = dbHelper.getDatabase();
 		for (String m : dbHelper.getApplicationContext().getDomainModels()) {
@@ -94,23 +95,27 @@ public class SqlTableBuilder {
 	 * @return create table SQL statement
 	 * @throws ModelConfigurationException
 	 */
-	private static String createTableString(Class<?> c) throws ModelConfigurationException {
+	private static String createTableString(Class<?> c)
+			throws ModelConfigurationException {
 		if (!PersistenceResolution.isPersistent(c))
 			return null;
 		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(" ")
-				.append(PersistenceResolution.getModelTableName(c)).append(" (");
+				.append(PersistenceResolution.getModelTableName(c))
+				.append(" (");
 		appendColumns(c, sb);
 		appendUniqueColumns(c, sb);
 		sb.append(')');
 		return sb.toString();
 	}
 
-	private static void appendColumns(Class<?> c, StringBuilder sb) throws ModelConfigurationException {
+	private static void appendColumns(Class<?> c, StringBuilder sb)
+			throws ModelConfigurationException {
 		List<Field> fields = PersistenceResolution.getPersistentFields(c);
 
 		// Throw a runtime exception if there are no persistent fields
 		if (fields.size() == 0)
-			throw new ModelConfigurationException(String.format(Constants.NO_PERSISTENT_FIELDS, c.getName()));
+			throw new ModelConfigurationException(String.format(
+					Constants.NO_PERSISTENT_FIELDS, c.getName()));
 
 		String prefix = "";
 		for (Field f : fields) {
