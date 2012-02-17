@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.orm.sql;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -53,7 +54,7 @@ public class SqlUtil {
 	 * @throws InfinitumRuntimeException
 	 *             if there is an error generating the SQL
 	 */
-	public static String getUpdateWhereClause(Object model) throws InfinitumRuntimeException {
+	public static String getWhereClause(Object model) throws InfinitumRuntimeException {
 		Field pk = PersistenceResolution.getPrimaryKeyField(model.getClass());
 		StringBuilder sb = new StringBuilder();
 		pk.setAccessible(true);
@@ -68,6 +69,43 @@ public class SqlUtil {
 			throw new InfinitumRuntimeException(
 					String.format(Constants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
 		}
+		return sb.toString();
+	}
+
+	/**
+	 * Generates a "where clause" {@link String} used for the given persistent
+	 * {@link Class} in the database with the given primary key. Where
+	 * conditions are indicated by primary key {@link Field}'s. Note that the
+	 * actual {@code String} "where" is not included with the resulting output.
+	 * 
+	 * <p>
+	 * For example, passing a {@code Class} {@code Foobar} which has a primary
+	 * key {@code foo} with a value of {@code 42} will result in the where
+	 * clause {@code foo = 42}.
+	 * </p>
+	 * 
+	 * @param c
+	 *            the {@code Class} of the model
+	 * @param id
+	 *            the primary key for the model
+	 * @return where clause {@code String} for specified {@code Class} and
+	 *         primary key
+	 * @throws IllegalArgumentException
+	 *             if there is a mismatch between the {@code Class}'s primary
+	 *             key type and the type of the given primary key
+	 */
+	public static String getWhereClause(Class<?> c, Serializable id) throws IllegalArgumentException {
+		Field pk = PersistenceResolution.getPrimaryKeyField(c);
+		if (!TypeResolution.isValidPrimaryKey(pk, id))
+			throw new IllegalArgumentException(String.format(Constants.INVALID_PK, id.getClass().getSimpleName(),
+					c.getName()));
+		StringBuilder sb = new StringBuilder();
+		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
+		SqliteDataType t = TypeResolution.getSqliteDataType(pk);
+		if (t == SqliteDataType.TEXT)
+			sb.append("'").append(id).append("'");
+		else
+			sb.append(id);
 		return sb.toString();
 	}
 

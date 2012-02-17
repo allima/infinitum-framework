@@ -46,5 +46,6 @@ public class Constants {
 	public static final String IMPLICIT_PK_TYPE_ERROR = "Implicit primary key '%s' is not of type int or long in '%s'.";
 	public static final String EXPLICIT_PK_TYPE_ERROR = "Explicit primary key '%s' is not of type int or long in '%s'.";
 	public static final String UNABLE_TO_GEN_QUERY = "Unable to generate SQL query for Object of type '%s'.";
+	public static final String NO_EMPTY_CONSTRUCTOR = "No empty constructor defined in '%s'.";
 
 }
