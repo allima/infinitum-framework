@@ -31,8 +31,17 @@ import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
  * <p>
  * This annotation is used to indicate the persistence state of a model. A model
  * can be marked as either persistent or transient using the
- * {@code PersistenceMode} enumeration.
+ * {@code PersistenceMode} enumeration. Persistent models must include an empty
+ * constructor in order for the Infinitum ORM to work. For example:
  * </p>
+ * 
+ * <pre>
+ * public class Foobar {
+ *     // ...
+ *     public Foobar() {}
+ *     // ...
+ * }
+ * </pre>
  * 
  * @author Tyler Treat
  * @version 1.0 02/12/12

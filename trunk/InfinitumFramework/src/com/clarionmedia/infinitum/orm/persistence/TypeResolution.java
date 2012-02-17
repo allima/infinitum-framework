@@ -19,10 +19,13 @@
 
 package com.clarionmedia.infinitum.orm.persistence;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
+
+import com.clarionmedia.infinitum.internal.Primitives;
 
 /**
  * <p>
@@ -38,10 +41,10 @@ public class TypeResolution {
 	public static enum SqliteDataType {
 		NULL, INTEGER, REAL, TEXT, BLOB
 	};
-	
+
 	// This Map caches the SQLite data type for each Field
 	private static Map<Field, SqliteDataType> sDataTypeCache;
-	
+
 	static {
 		sDataTypeCache = new Hashtable<Field, SqliteDataType>();
 	}
@@ -86,6 +89,14 @@ public class TypeResolution {
 		if (ret != null)
 			sDataTypeCache.put(field, ret);
 		return ret;
+	}
+
+	public static boolean isValidPrimaryKey(Field pkField, Serializable id) {
+		if (id == null)
+			return false;
+		Class<?> pkUnwrapped = Primitives.unwrap(pkField.getType());
+		Class<?> idUnwrapped = Primitives.unwrap(id.getClass());
+		return pkUnwrapped == idUnwrapped;
 	}
 
 }

@@ -20,22 +20,24 @@
 package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+
 import com.clarionmedia.infinitum.context.ApplicationContext;
 import com.clarionmedia.infinitum.context.ApplicationContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.Constants;
 import com.clarionmedia.infinitum.orm.persistence.ObjectMapper;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlUtil;
+import com.clarionmedia.infinitum.reflection.ModelFactory;
 
 /**
  * <p>
@@ -103,7 +105,7 @@ public class SqliteTemplate implements SqliteOperations {
 					.getName()));
 		ContentValues values = mObjectMapper.mapModel(model);
 		String tableName = PersistenceResolution.getModelTableName(model.getClass());
-		String whereClause = SqlUtil.getUpdateWhereClause(model);
+		String whereClause = SqlUtil.getWhereClause(model);
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (mAppContext.isDebug()) {
 			if (ret > 0)
@@ -120,7 +122,7 @@ public class SqliteTemplate implements SqliteOperations {
 			throw new InfinitumRuntimeException(String.format(Constants.CANNOT_UPDATE_TRANSIENT, model.getClass()
 					.getName()));
 		String tableName = PersistenceResolution.getModelTableName(model.getClass());
-		String whereClause = SqlUtil.getUpdateWhereClause(model);
+		String whereClause = SqlUtil.getWhereClause(model);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
 		if (mAppContext.isDebug()) {
 			if (result == 1)
@@ -181,10 +183,25 @@ public class SqliteTemplate implements SqliteOperations {
 	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		if (!PersistenceResolution.isPersistent(c))
 			throw new InfinitumRuntimeException(String.format(Constants.CANNOT_LOAD_TRANSIENT, c.getName()));
-		if (!isValidPrimaryKey(c, id))
+		if (!TypeResolution.isValidPrimaryKey(PersistenceResolution.getPrimaryKeyField(c), id))
 			throw new IllegalArgumentException(String.format(Constants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
-		return null;
+		Cursor cursor = mSqliteDb.query(PersistenceResolution.getModelTableName(c), null,
+				SqlUtil.getWhereClause(c, id), null, null, null, null, "1");
+		if (cursor.getCount() == 0) {
+			cursor.close();
+			return null;
+		}
+		cursor.moveToFirst();
+		T ret = null;
+		try {
+			ret = ModelFactory.createFromCursor(cursor, c);
+		} catch (InfinitumRuntimeException e) {
+			throw e;
+		} finally {
+			cursor.close();
+		}
+		return ret;
 	}
 
 	@Override
@@ -192,11 +209,6 @@ public class SqliteTemplate implements SqliteOperations {
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
 		mSqliteDb.execSQL(sql);
-	}
-
-	private boolean isValidPrimaryKey(Class<?> c, Serializable id) {
-		Field pk = PersistenceResolution.getPrimaryKeyField(c);
-		return (id != null && pk.getType() == id.getClass());
 	}
 
 }
