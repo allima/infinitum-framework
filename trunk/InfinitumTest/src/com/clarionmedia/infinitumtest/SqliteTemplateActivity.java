@@ -22,7 +22,8 @@ public class SqliteTemplateActivity extends Activity {
 		TestModel model = new TestModel();
 		SqliteTemplate sqlite = new SqliteTemplate(this);
 		sqlite.open();
-		sqlite.save(model);
+		//sqlite.save(model);
+		TestModel loaded = sqlite.load(TestModel.class, 2L);
 		sqlite.close();
 	}
 
