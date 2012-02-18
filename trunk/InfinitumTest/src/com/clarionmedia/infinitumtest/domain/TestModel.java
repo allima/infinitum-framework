@@ -23,7 +23,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
-import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
+import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.NotNull;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
