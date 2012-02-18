@@ -22,6 +22,7 @@ package com.clarionmedia.infinitum.orm.criteria;
 import java.util.List;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 
 /**
  * <p>

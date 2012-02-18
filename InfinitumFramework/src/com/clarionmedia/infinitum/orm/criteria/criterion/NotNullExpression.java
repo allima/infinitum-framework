@@ -17,42 +17,37 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.criteria;
+package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.lang.reflect.Field;
+
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
  * <p>
- * Represents a condition restraining a {@link Field} value to a specified set
- * of values.
+ * Represents a condition restraining a {@link Field} value to not {@code null}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/18/12
  */
-public class InExpression extends Criterion {
+public class NotNullExpression extends Criterion {
 
 	private static final long serialVersionUID = 1282172886230328002L;
 
-	private Object[] mValues;
-
 	/**
-	 * Constructs a new {@code InExpression} with the given {@link Field} name
-	 * and array of values.
+	 * Constructs a new {@code NotNullExpression} with the given {@link Field}
+	 * name.
 	 * 
 	 * @param fieldName
-	 *            the name of the field to check value for
-	 * @param values
-	 *            the set of values to constrain the {@code Field} to
+	 *            the name of the field to check not {@code null} for
 	 */
-	public InExpression(String fieldName, Object[] values) {
+	public NotNullExpression(String fieldName) {
 		super(fieldName);
-		mValues = values;
 	}
 
 	@Override
@@ -69,18 +64,7 @@ public class InExpression extends Criterion {
 			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 		}
 		String colName = PersistenceResolution.getFieldColumnName(f);
-		SqliteDataType sqlType = TypeResolution.getSqliteDataType(f);
-		query.append(colName).append(' ').append(SqlConstants.OP_IN).append(" (");
-		String prefix = "";
-		for (Object val : mValues) {
-			query.append(prefix);
-			prefix = ", ";
-			if (sqlType == SqliteDataType.TEXT)
-				query.append("'").append(val.toString()).append("'");
-			else
-				query.append(val.toString());
-		}
-		query.append(')');
+		query.append(colName).append(' ').append(SqlConstants.IS_NOT_NULL);
 		return query.toString();
 	}
 

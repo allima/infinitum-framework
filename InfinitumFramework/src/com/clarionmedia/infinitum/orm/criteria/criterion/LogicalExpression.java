@@ -17,32 +17,39 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.criteria;
+package com.clarionmedia.infinitum.orm.criteria.criterion;
 
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
-import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
- * Represents a negation of a {@link Criterion} expression.
+ * <p>
+ * Represents a compound Boolean logical expression consisting of two
+ * {@link Criterion} expressions and a logical operator.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/18/12
  */
-public class NotExpression extends Criterion {
+public class LogicalExpression extends Criterion {
 
 	private static final long serialVersionUID = 2819651961490738355L;
 
-	private Criterion mExpression;
+	private Criterion mLhs;
+	private Criterion mRhs;
+	private String mOperator;
 
-	public NotExpression(Criterion expression) {
+	public LogicalExpression(Criterion lhs, Criterion rhs, String operator) {
 		super(null);
-		mExpression = expression;
+		mLhs = lhs;
+		mRhs = rhs;
+		mOperator = operator;
 	}
 
 	@Override
 	public String toSql(Criteria<?> criteria) throws InvalidCriteriaException {
-		return new StringBuilder(SqlConstants.NEGATION).append(" (").append(mExpression.toSql(criteria)).append(')')
-				.toString();
+		return new StringBuilder("(").append(mLhs.toSql(criteria)).append(' ').append(mOperator).append(' ')
+				.append(mRhs.toSql(criteria)).append(')').toString();
 	}
 
 }

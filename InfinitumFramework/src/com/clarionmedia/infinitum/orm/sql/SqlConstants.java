@@ -29,6 +29,8 @@ package com.clarionmedia.infinitum.orm.sql;
  */
 public class SqlConstants {
 	
+	// SQL keywords
+	public static final String WHERE = "WHERE";
 	public static final String LOWER = "LOWER";
 	public static final String AND = "AND";
 	public static final String OR = "OR";
@@ -37,7 +39,7 @@ public class SqlConstants {
 	public static final String NEGATION = "NOT";
 	
 	
-	// Operators
+	// SQL Operators
 	public static final String OP_EQUALS = "=";
 	public static final String OP_NOT_EQUALS = "<>";
 	public static final String OP_GREATER_THAN = ">";
@@ -47,5 +49,8 @@ public class SqlConstants {
 	public static final String OP_LIKE = "LIKE";
 	public static final String OP_BETWEEN = "BETWEEN";
 	public static final String OP_IN = "IN";
+	
+	// SQL fragments
+	public static final String SELECT_ALL_FROM = "SELECT * FROM ";
 
 }
