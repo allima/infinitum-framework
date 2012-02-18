@@ -27,7 +27,7 @@ package com.clarionmedia.infinitum.orm.criteria;
  * @author Tyler Treat
  * @version 1.0 02/17/12
  */
-public class Constants {
+public class CriteriaConstants {
 	
 	// SQL
 	public static final String LOWER = "LOWER";

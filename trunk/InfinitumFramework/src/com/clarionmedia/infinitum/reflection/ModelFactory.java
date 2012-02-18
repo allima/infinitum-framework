@@ -28,7 +28,7 @@ import android.database.Cursor;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.DateFormatter;
-import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
@@ -78,7 +78,7 @@ public class ModelFactory {
 		} catch (SecurityException e) {
 			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (NoSuchMethodException e) {
-			throw new ModelConfigurationException(String.format(Constants.NO_EMPTY_CONSTRUCTOR, modelClass.getName()));
+			throw new ModelConfigurationException(String.format(OrmConstants.NO_EMPTY_CONSTRUCTOR, modelClass.getName()));
 		} catch (IllegalArgumentException e) {
 			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (InstantiationException e) {
@@ -130,6 +130,6 @@ public class ModelFactory {
 			String dateStr = cursor.getString(colIndex);
 			return DateFormatter.parseStringAsDate(dateStr);
 		} else
-			throw new InvalidMappingException(String.format(Constants.CANNOT_MAP_TYPE, f.getType().getSimpleName()));
+			throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, f.getType().getSimpleName()));
 	}
 }

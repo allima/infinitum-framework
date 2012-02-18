@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.List;
 import android.content.ContentValues;
 import com.clarionmedia.infinitum.internal.DateFormatter;
-import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 
 /**
@@ -96,7 +96,7 @@ public class ObjectMapper {
 			else if (val instanceof Date)
 				ret.put(colName, DateFormatter.getDateAsISO8601String((Date) val));
 			else
-				throw new InvalidMappingException(String.format(Constants.CANNOT_MAP_TYPE, f.getType().getSimpleName()));
+				throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, f.getType().getSimpleName()));
 
 		}
 		return ret;

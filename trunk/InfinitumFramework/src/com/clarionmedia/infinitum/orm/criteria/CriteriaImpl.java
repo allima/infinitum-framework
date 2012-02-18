@@ -57,7 +57,7 @@ public class CriteriaImpl<T> implements Criteria<T> {
 	 */
 	public CriteriaImpl(Class<T> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
-			throw new InfinitumRuntimeException(String.format(Constants.TRANSIENT_CRITERIA, entityClass.getName()));
+			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA, entityClass.getName()));
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
 		mCriterion = new ArrayList<Criterion>();
@@ -122,7 +122,7 @@ public class CriteriaImpl<T> implements Criteria<T> {
 				.createQuery(this));
 		if (result.getCount() > 1)
 			throw new InfinitumRuntimeException(String.format(
-					Constants.NON_UNIQUE_RESULT, mEntityClass.getName(),
+					CriteriaConstants.NON_UNIQUE_RESULT, mEntityClass.getName(),
 					result.getCount()));
 		else if (result.getCount() == 0)
 			return null;

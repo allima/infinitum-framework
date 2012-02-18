@@ -32,7 +32,7 @@ import android.util.Log;
 import com.clarionmedia.infinitum.context.ApplicationContext;
 import com.clarionmedia.infinitum.context.ApplicationContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaImpl;
 import com.clarionmedia.infinitum.orm.persistence.ObjectMapper;
@@ -96,7 +96,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public long save(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			throw new InfinitumRuntimeException(
-					String.format(Constants.CANNOT_SAVE_TRANSIENT, model
+					String.format(OrmConstants.CANNOT_SAVE_TRANSIENT, model
 							.getClass().getName()));
 		ContentValues values = mObjectMapper.mapModel(model);
 		String tableName = PersistenceResolution.getModelTableName(model
@@ -111,7 +111,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			throw new InfinitumRuntimeException(String.format(
-					Constants.CANNOT_UPDATE_TRANSIENT, model.getClass()
+					OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
 							.getName()));
 		ContentValues values = mObjectMapper.mapModel(model);
 		String tableName = PersistenceResolution.getModelTableName(model
@@ -132,7 +132,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			throw new InfinitumRuntimeException(String.format(
-					Constants.CANNOT_UPDATE_TRANSIENT, model.getClass()
+					OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
 							.getName()));
 		String tableName = PersistenceResolution.getModelTableName(model
 				.getClass());
@@ -202,11 +202,11 @@ public class SqliteTemplate implements SqliteOperations {
 			throws InfinitumRuntimeException, IllegalArgumentException {
 		if (!PersistenceResolution.isPersistent(c))
 			throw new InfinitumRuntimeException(String.format(
-					Constants.CANNOT_LOAD_TRANSIENT, c.getName()));
+					OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
 		if (!TypeResolution.isValidPrimaryKey(
 				PersistenceResolution.getPrimaryKeyField(c), id))
 			throw new IllegalArgumentException(String.format(
-					Constants.INVALID_PK, id.getClass().getSimpleName(),
+					OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
 		Cursor cursor = mSqliteDb.query(
 				PersistenceResolution.getModelTableName(c), null,
