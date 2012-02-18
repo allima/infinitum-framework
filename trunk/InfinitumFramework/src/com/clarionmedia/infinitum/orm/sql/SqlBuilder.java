@@ -25,8 +25,8 @@ import java.util.List;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.clarionmedia.infinitum.orm.OrmConstants;
-import com.clarionmedia.infinitum.orm.annotation.Column;
-import com.clarionmedia.infinitum.orm.annotation.Table;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
@@ -35,15 +35,14 @@ import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
  * <p>
- * {@code SqlTableBuilder} is used to dynamically construct SQL strings for
- * table generation. It makes use of ORM annotations, such as {@link Table} and
- * {@link Column} to compose statements.
+ * {@code SqlBuilder} is used to dynamically construct SQL strings for table
+ * generation and queries.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/13/12
  */
-public class SqlTableBuilder {
+public class SqlBuilder {
 
 	// TODO: this class currently doesn't handle reserved keywords.
 	// See: http://www.sqlite.org/lang_keywords.html
@@ -68,8 +67,7 @@ public class SqlTableBuilder {
 	 *             For example, a model that does not contain any persistent
 	 *             <code>Fields</code>
 	 */
-	public static int createTables(SqliteDbHelper dbHelper)
-			throws ModelConfigurationException {
+	public static int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException {
 		int count = 0;
 		SQLiteDatabase db = dbHelper.getDatabase();
 		for (String m : dbHelper.getApplicationContext().getDomainModels()) {
@@ -80,6 +78,26 @@ public class SqlTableBuilder {
 			}
 		}
 		return count;
+	}
+
+	/**
+	 * Generates a SQL query {@link String} from the given {@link Criteria}.
+	 * 
+	 * @param criteria
+	 *            the {@code Criteria} to build the SQL query from
+	 * @return SQL query
+	 */
+	public static String createQuery(Criteria<?> criteria) {
+		Class<?> c = criteria.getEntityClass();
+		StringBuilder query = new StringBuilder(SqlConstants.SELECT_ALL_FROM)
+				.append(PersistenceResolution.getModelTableName(c)).append(' ').append(SqlConstants.WHERE).append(' ');
+		String prefix = "";
+		for (Criterion criterion : criteria.getCriterion()) {
+			query.append(prefix);
+			prefix = SqlConstants.AND;
+			query.append(criterion.toSql(criteria));
+		}
+		return query.toString();
 	}
 
 	/**
@@ -95,27 +113,23 @@ public class SqlTableBuilder {
 	 * @return create table SQL statement
 	 * @throws ModelConfigurationException
 	 */
-	private static String createTableString(Class<?> c)
-			throws ModelConfigurationException {
+	private static String createTableString(Class<?> c) throws ModelConfigurationException {
 		if (!PersistenceResolution.isPersistent(c))
 			return null;
 		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(" ")
-				.append(PersistenceResolution.getModelTableName(c))
-				.append(" (");
+				.append(PersistenceResolution.getModelTableName(c)).append(" (");
 		appendColumns(c, sb);
 		appendUniqueColumns(c, sb);
 		sb.append(')');
 		return sb.toString();
 	}
 
-	private static void appendColumns(Class<?> c, StringBuilder sb)
-			throws ModelConfigurationException {
+	private static void appendColumns(Class<?> c, StringBuilder sb) throws ModelConfigurationException {
 		List<Field> fields = PersistenceResolution.getPersistentFields(c);
 
 		// Throw a runtime exception if there are no persistent fields
 		if (fields.size() == 0)
-			throw new ModelConfigurationException(String.format(
-					OrmConstants.NO_PERSISTENT_FIELDS, c.getName()));
+			throw new ModelConfigurationException(String.format(OrmConstants.NO_PERSISTENT_FIELDS, c.getName()));
 
 		String prefix = "";
 		for (Field f : fields) {

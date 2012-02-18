@@ -17,34 +17,49 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.criteria;
+package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.lang.reflect.Field;
 
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
  * <p>
- * Represents a condition restraining a {@link Field} value to {@code null}.
+ * Represents a condition restraining a {@link Field} value to between two
+ * values.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/18/12
  */
-public class NullExpression extends Criterion {
+public class BetweenExpression extends Criterion {
 
 	private static final long serialVersionUID = 1282172886230328002L;
 
+	private Object mLow;
+	private Object mHigh;
+
 	/**
-	 * Constructs a new {@code NullExpression} with the given {@link Field}.
+	 * Constructs a new {@code BetweenExpression} with the given {@link Field} name and
+	 * value range.
 	 * 
 	 * @param fieldName
-	 *            the name of the field to check {@code null} for
+	 *            the name of the field to check value for
+	 * @param low
+	 *            the lower bound
+	 * @param high
+	 *            the upper bound
 	 */
-	public NullExpression(String fieldName) {
+	public BetweenExpression(String fieldName, Object low, Object high) {
 		super(fieldName);
+		mLow = low;
+		mHigh = high;
 	}
 
 	@Override
@@ -61,7 +76,17 @@ public class NullExpression extends Criterion {
 			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 		}
 		String colName = PersistenceResolution.getFieldColumnName(f);
-		query.append(colName).append(' ').append(SqlConstants.IS_NULL);
+		SqliteDataType sqlType = TypeResolution.getSqliteDataType(f);
+		query.append(colName).append(' ').append(SqlConstants.OP_BETWEEN).append(' ');
+		if (sqlType == SqliteDataType.TEXT)
+			query.append("'").append(mLow.toString()).append("'");
+		else
+			query.append(mLow.toString());
+		query.append(SqlConstants.AND);
+		if (sqlType == SqliteDataType.TEXT)
+			query.append("'").append(mHigh.toString()).append("'");
+		else
+			query.append(mHigh.toString());
 		return query.toString();
 	}
 

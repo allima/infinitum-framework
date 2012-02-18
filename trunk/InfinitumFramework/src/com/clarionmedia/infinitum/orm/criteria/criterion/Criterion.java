@@ -17,9 +17,11 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.criteria;
+package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.io.Serializable;
+
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 
 /**
