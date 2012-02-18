@@ -19,19 +19,34 @@
 
 package com.clarionmedia.infinitum.orm.criteria;
 
+import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
+
 /**
- * <p>
- * Contains constants for the {@link Criteria} API.
- * </p>
+ * Represents a compound Boolean logical expression consisting of two
+ * {@link Criterion} expressions and a logical operator.
  * 
  * @author Tyler Treat
- * @version 1.0 02/17/12
+ * @version 1.0 02/18/12
  */
-public class CriteriaConstants {
+public class LogicalExpression extends Criterion {
 
-	// Errors
-	public static final String NON_UNIQUE_RESULT = "Criteria query for '%s' specified unique result but there were %d results.";
-	public static final String TRANSIENT_CRITERIA = "Cannot create Criteria for transient class '%s'.";
-	public static final String INVALID_CRITERIA = "Invalid Criteria for type '%s'.";
+	private static final long serialVersionUID = 2819651961490738355L;
+
+	private Criterion mLhs;
+	private Criterion mRhs;
+	private String mOperator;
+
+	public LogicalExpression(Criterion lhs, Criterion rhs, String operator) {
+		super(null);
+		mLhs = lhs;
+		mRhs = rhs;
+		mOperator = operator;
+	}
+
+	@Override
+	public String toSql(Criteria<?> criteria) throws InvalidCriteriaException {
+		return new StringBuilder("(").append(mLhs.toSql(criteria)).append(' ').append(mOperator).append(' ')
+				.append(mRhs.toSql(criteria)).append(')').toString();
+	}
 
 }

@@ -28,56 +28,35 @@ import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
  * <p>
- * Represents a binary logical expression {@link Criterion}.
+ * Represents a condition restraining a {@link Field} value to between two
+ * values.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/17/12
+ * @version 1.0 02/18/12
  */
-public class BinaryExpression extends Criterion {
+public class BetweenExpression extends Criterion {
 
 	private static final long serialVersionUID = 1282172886230328002L;
 
-	private Object mValue;
-	private String mOperator;
-	private boolean mIgnoreCase;
+	private Object mLow;
+	private Object mHigh;
 
 	/**
-	 * Constructs a new {@code BinaryExpression} with the given field name,
-	 * value, and binary operator.
+	 * Constructs a new {@code BetweenExpression} with the given {@link Field} name and
+	 * value range.
 	 * 
 	 * @param fieldName
 	 *            the name of the field to check value for
-	 * @param value
-	 *            the value to check for
-	 * @param operator
-	 *            the binary operator
+	 * @param low
+	 *            the lower bound
+	 * @param high
+	 *            the upper bound
 	 */
-	public BinaryExpression(String fieldName, Object value, String operator) {
+	public BetweenExpression(String fieldName, Object low, Object high) {
 		super(fieldName);
-		mValue = value;
-		mOperator = operator;
-	}
-
-	/**
-	 * Constructs a new {@code BinaryExpression} with the given {@link Field}
-	 * name, value, and binary operator, and ignore case {@code boolean}.
-	 * 
-	 * @param fieldName
-	 *            the name of the field to check value for
-	 * @param value
-	 *            the value to check for
-	 * @param operator
-	 *            the binary operator
-	 * @param ignoreCase
-	 *            indicates if case should be ignored for {@link String} values
-	 */
-	public BinaryExpression(String fieldName, Object value, String operator, boolean ignoreCase) {
-		super(fieldName);
-		mFieldName = fieldName;
-		mValue = value;
-		mOperator = operator;
-		mIgnoreCase = ignoreCase;
+		mLow = low;
+		mHigh = high;
 	}
 
 	@Override
@@ -95,17 +74,16 @@ public class BinaryExpression extends Criterion {
 		}
 		String colName = PersistenceResolution.getFieldColumnName(f);
 		SqliteDataType sqlType = TypeResolution.getSqliteDataType(f);
-		boolean lowerCase = mIgnoreCase && sqlType == SqliteDataType.TEXT;
-		if (lowerCase)
-			query.append(SqlConstants.LOWER).append('(');
-		query.append(colName);
-		if (lowerCase)
-			query.append(')');
-		query.append(' ').append(mOperator).append(' ');
+		query.append(colName).append(' ').append(SqlConstants.OP_BETWEEN).append(' ');
 		if (sqlType == SqliteDataType.TEXT)
-			query.append("'").append(mValue.toString()).append("'");
+			query.append("'").append(mLow.toString()).append("'");
 		else
-			query.append(mValue.toString());
+			query.append(mLow.toString());
+		query.append(SqlConstants.AND);
+		if (sqlType == SqliteDataType.TEXT)
+			query.append("'").append(mHigh.toString()).append("'");
+		else
+			query.append(mHigh.toString());
 		return query.toString();
 	}
 
