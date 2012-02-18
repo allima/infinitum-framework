@@ -24,7 +24,7 @@ import java.util.List;
 
 import android.database.sqlite.SQLiteDatabase;
 
-import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Table;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -115,7 +115,7 @@ public class SqlTableBuilder {
 		// Throw a runtime exception if there are no persistent fields
 		if (fields.size() == 0)
 			throw new ModelConfigurationException(String.format(
-					Constants.NO_PERSISTENT_FIELDS, c.getName()));
+					OrmConstants.NO_PERSISTENT_FIELDS, c.getName()));
 
 		String prefix = "";
 		for (Field f : fields) {

@@ -24,7 +24,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import com.clarionmedia.infinitum.context.ApplicationContext;
-import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.sql.SqlTableBuilder;
 
@@ -77,7 +77,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 		try {
 			SqlTableBuilder.createTables(this);
 		} catch (ModelConfigurationException e) {
-			Log.e(TAG, Constants.CREATE_TABLES_ERROR, e);
+			Log.e(TAG, OrmConstants.CREATE_TABLES_ERROR, e);
 		}
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Database tables created successfully");

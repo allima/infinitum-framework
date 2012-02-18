@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.Constants;
-import com.clarionmedia.infinitum.orm.Constants.PersistenceMode;
+import com.clarionmedia.infinitum.orm.OrmConstants;
+import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
 import com.clarionmedia.infinitum.orm.annotation.NotNull;
@@ -164,6 +164,25 @@ public class PersistenceResolution {
 	}
 
 	/**
+	 * Finds the persistent {@link Field} for the given {@link Class} which has
+	 * the specified name. Returns {@code null} if no such {@code Field} exists.
+	 * 
+	 * @param c
+	 *            the {@code Class} containing the {@code Field}
+	 * @param name
+	 *            the name of the {@code Field} to retrieve
+	 * @return {@code Field} with specified name
+	 */
+	public static Field findPersistentField(Class<?> c, String name) {
+		List<Field> fields = getPersistentFields(c);
+		for (Field f : fields) {
+			if (f.getName().equalsIgnoreCase(name))
+				return f;
+		}
+		return null;
+	}
+
+	/**
 	 * Retrieves the primary key {@code Field} for the given {@code Class}. A
 	 * {@code Field} can be marked as a primary key using the {@link PrimaryKey}
 	 * annotation. If the annotation is missing from the class hierarchy,
@@ -189,7 +208,7 @@ public class PersistenceResolution {
 				ret = f;
 				found = true;
 			} else if (pk != null && found) {
-				throw new ModelConfigurationException(String.format(Constants.MULTIPLE_PK_ERROR, c.getName()));
+				throw new ModelConfigurationException(String.format(OrmConstants.MULTIPLE_PK_ERROR, c.getName()));
 			}
 		}
 		// Look for id fields if the annotation is missing
@@ -306,7 +325,7 @@ public class PersistenceResolution {
 				|| f.getType() == Long.class)
 			return true;
 		else
-			throw new InfinitumRuntimeException(String.format(Constants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
+			throw new InfinitumRuntimeException(String.format(OrmConstants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
 					.getDeclaringClass().getName()));
 	}
 

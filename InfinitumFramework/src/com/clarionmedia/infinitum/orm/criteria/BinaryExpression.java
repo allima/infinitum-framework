@@ -72,8 +72,7 @@ public class BinaryExpression implements Criterion {
 	 * @param ignoreCase
 	 *            indicates if case should be ignored for {@link String} values
 	 */
-	public BinaryExpression(String fieldName, Object value, String operator,
-			boolean ignoreCase) {
+	public BinaryExpression(String fieldName, Object value, String operator, boolean ignoreCase) {
 		mFieldName = fieldName;
 		mValue = value;
 		mOperator = operator;
@@ -86,30 +85,34 @@ public class BinaryExpression implements Criterion {
 		Class<?> c = criteria.getEntityClass();
 		Field f = null;
 		try {
-			f = c.getField(mFieldName);
+			f = PersistenceResolution.findPersistentField(c, mFieldName);
+			if (f == null)
+				throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 			f.setAccessible(true);
 		} catch (SecurityException e) {
-			throw new InvalidCriteriaException(String.format(Constants.INVALID_CRITERIA, c.getName()));
-		} catch (NoSuchFieldException e) {
-			throw new InvalidCriteriaException(String.format(Constants.INVALID_CRITERIA, c.getName()));
+			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 		}
 		String colName = PersistenceResolution.getFieldColumnName(f);
 		SqliteDataType sqlType = TypeResolution.getSqliteDataType(f);
 		boolean lowerCase = mIgnoreCase && sqlType == SqliteDataType.TEXT;
 		if (lowerCase)
-			query.append(Constants.LOWER).append('(');
+			query.append(CriteriaConstants.LOWER).append('(');
 		query.append(colName);
 		if (lowerCase)
 			query.append(')');
-		query.append(mOperator).append(' ').append("%s");
+		query.append(' ').append(mOperator).append(' ');
+		if (sqlType == SqliteDataType.TEXT)
+			query.append("'").append(mValue.toString()).append("'");
+		else
+			query.append(mValue.toString());
 		return query.toString();
 	}
-	
+
 	@Override
 	public String getFieldName() {
 		return mFieldName;
 	}
-	
+
 	@Override
 	public Object getValue() {
 		return mValue;

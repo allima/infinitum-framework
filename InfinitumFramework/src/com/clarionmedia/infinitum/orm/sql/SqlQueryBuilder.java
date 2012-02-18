@@ -50,7 +50,7 @@ public class SqlQueryBuilder {
 		Class<?> c = criteria.getEntityClass();
 		StringBuilder query = new StringBuilder(SELECT_ALL_FROM)
 				.append(PersistenceResolution.getModelTableName(c)).append(' ')
-				.append(WHERE);
+				.append(WHERE).append(' ');
 		String prefix = "";
 		for (Criterion criterion : criteria.getCriterion()) {
 			query.append(prefix);

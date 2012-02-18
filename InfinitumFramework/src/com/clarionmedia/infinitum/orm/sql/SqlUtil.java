@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.Constants;
+import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
@@ -67,7 +67,7 @@ public class SqlUtil {
 				sb.append(pk.get(model));
 		} catch (IllegalAccessException e) {
 			throw new InfinitumRuntimeException(
-					String.format(Constants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
+					String.format(OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
 		}
 		return sb.toString();
 	}
@@ -97,7 +97,7 @@ public class SqlUtil {
 	public static String getWhereClause(Class<?> c, Serializable id) throws IllegalArgumentException {
 		Field pk = PersistenceResolution.getPrimaryKeyField(c);
 		if (!TypeResolution.isValidPrimaryKey(pk, id))
-			throw new IllegalArgumentException(String.format(Constants.INVALID_PK, id.getClass().getSimpleName(),
+			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
 		StringBuilder sb = new StringBuilder();
 		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");

@@ -27,7 +27,7 @@ package com.clarionmedia.infinitum.orm;
  * @author Tyler Treat
  * @version 1.0 02/12/12
  */
-public class Constants {
+public class OrmConstants {
 
 	public static enum PersistenceMode {
 		Transient, Persistent
