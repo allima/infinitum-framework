@@ -31,7 +31,21 @@ import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
  * @author Tyler Treat
  * @version 1.0 02/17/12
  */
-public interface Criterion extends Serializable {
+public abstract class Criterion implements Serializable {
+
+	private static final long serialVersionUID = -7011049036451270500L;
+
+	protected String mFieldName;
+
+	/**
+	 * Constructs a new {@code Criterion} with the given {@link Field} name.
+	 * 
+	 * @param fieldName
+	 *            the name of the {@code Field} to apply the condition to
+	 */
+	public Criterion(String fieldName) {
+		mFieldName = fieldName;
+	}
 
 	/**
 	 * Retrieves the SQL fragment for the {@code Criterion} as a {@link String}.
@@ -42,7 +56,7 @@ public interface Criterion extends Serializable {
 	 * @throws InvalidCriteriaException
 	 *             if there was a problem creating the {@code Criteria} instance
 	 */
-	String toSql(Criteria<?> criteria) throws InvalidCriteriaException;
+	public abstract String toSql(Criteria<?> criteria) throws InvalidCriteriaException;
 
 	/**
 	 * Returns the name of the {@link Field} this {@code Criterion} is being
@@ -50,13 +64,8 @@ public interface Criterion extends Serializable {
 	 * 
 	 * @return name of {@code Field}
 	 */
-	String getFieldName();
-
-	/**
-	 * Returns the {@link Field} value for this {@code Criterion}.
-	 * 
-	 * @return {@code Field} value
-	 */
-	Object getValue();
+	public String getFieldName() {
+		return mFieldName;
+	}
 
 }

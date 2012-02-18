@@ -20,64 +20,31 @@
 package com.clarionmedia.infinitum.orm.criteria;
 
 import java.lang.reflect.Field;
+
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
  * <p>
- * Represents a binary logical expression {@link Criterion}.
+ * Represents a condition restraining a {@link Field} value to {@code null}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/17/12
+ * @version 1.0 02/18/12
  */
-public class BinaryExpression extends Criterion {
+public class NullExpression extends Criterion {
 
 	private static final long serialVersionUID = 1282172886230328002L;
 
-	private Object mValue;
-	private String mOperator;
-	private boolean mIgnoreCase;
-
 	/**
-	 * Constructs a new {@code BinaryExpression} with the given field name,
-	 * value, and binary operator.
+	 * Constructs a new {@code NullExpression} with the given {@link Field}.
 	 * 
 	 * @param fieldName
-	 *            the name of the field to check value for
-	 * @param value
-	 *            the value to check for
-	 * @param operator
-	 *            the binary operator
+	 *            the name of the field to check {@code null} for
 	 */
-	public BinaryExpression(String fieldName, Object value, String operator) {
+	public NullExpression(String fieldName) {
 		super(fieldName);
-		mValue = value;
-		mOperator = operator;
-	}
-
-	/**
-	 * Constructs a new {@code BinaryExpression} with the given {@link Field}
-	 * name, value, and binary operator, and ignore case {@code boolean}.
-	 * 
-	 * @param fieldName
-	 *            the name of the field to check value for
-	 * @param value
-	 *            the value to check for
-	 * @param operator
-	 *            the binary operator
-	 * @param ignoreCase
-	 *            indicates if case should be ignored for {@link String} values
-	 */
-	public BinaryExpression(String fieldName, Object value, String operator, boolean ignoreCase) {
-		super(fieldName);
-		mFieldName = fieldName;
-		mValue = value;
-		mOperator = operator;
-		mIgnoreCase = ignoreCase;
 	}
 
 	@Override
@@ -94,18 +61,7 @@ public class BinaryExpression extends Criterion {
 			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 		}
 		String colName = PersistenceResolution.getFieldColumnName(f);
-		SqliteDataType sqlType = TypeResolution.getSqliteDataType(f);
-		boolean lowerCase = mIgnoreCase && sqlType == SqliteDataType.TEXT;
-		if (lowerCase)
-			query.append(SqlConstants.LOWER).append('(');
-		query.append(colName);
-		if (lowerCase)
-			query.append(')');
-		query.append(' ').append(mOperator).append(' ');
-		if (sqlType == SqliteDataType.TEXT)
-			query.append("'").append(mValue.toString()).append("'");
-		else
-			query.append(mValue.toString());
+		query.append(colName).append(' ').append(SqlConstants.IS_NULL);
 		return query.toString();
 	}
 
