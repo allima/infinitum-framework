@@ -6,13 +6,14 @@ import android.app.Activity;
 import android.os.Bundle;
 import com.clarionmedia.infinitum.context.ApplicationContextFactory;
 import com.clarionmedia.infinitum.orm.criteria.BinaryExpression;
+import com.clarionmedia.infinitum.orm.criteria.Conditions;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.Criterion;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTemplate;
 import com.clarionmedia.infinitumtest.domain.TestModel;
 
 public class SqliteTemplateActivity extends Activity {
-	
+
 	public List<Field> mPrimaryKeys;
 
 	@Override
@@ -23,12 +24,12 @@ public class SqliteTemplateActivity extends Activity {
 		TestModel model = new TestModel();
 		SqliteTemplate sqlite = new SqliteTemplate(this);
 		sqlite.open();
-		//sqlite.save(model);
-		//TestModel loaded = sqlite.load(TestModel.class, 2L);
+		// sqlite.save(model);
+		// TestModel loaded = sqlite.load(TestModel.class, 2L);
 		Criteria<TestModel> criteria = sqlite.createCriteria(TestModel.class);
-		Criterion c = new BinaryExpression("mMyField", "hello world!", "=", true);
-		criteria.add(c);
+		criteria.add(Conditions.eq("mMyField", "hello world!"));
 		String sql = criteria.toSql();
+		List<TestModel> results = criteria.toList();
 		sqlite.close();
 	}
 
