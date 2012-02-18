@@ -5,10 +5,10 @@ import java.util.List;
 import android.app.Activity;
 import android.os.Bundle;
 import com.clarionmedia.infinitum.context.ApplicationContextFactory;
-import com.clarionmedia.infinitum.orm.criteria.BinaryExpression;
-import com.clarionmedia.infinitum.orm.criteria.Conditions;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.Criterion;
+import com.clarionmedia.infinitum.orm.criteria.criterion.BinaryExpression;
+import com.clarionmedia.infinitum.orm.criteria.criterion.Conditions;
+import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTemplate;
 import com.clarionmedia.infinitumtest.domain.TestModel;
 
