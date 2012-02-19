@@ -38,29 +38,36 @@ public interface CriteriaQuery {
 	/**
 	 * Returns the {@code Criteria} query in SQL form.
 	 * 
-	 * @return SQL {@link String} for this {@code Criteria}
+	 * @return SQL {@link String} for this {@code CriteriaQuery}
 	 */
 	String toSql();
 
 	/**
-	 * Returns the {@link Class} associated with this {@code Criteria}.
+	 * Returns the {@link Class} associated with this {@code CriteriaQuery}.
 	 * 
 	 * @return {@code Criteria } entity {@code Class}
 	 */
 	Class<?> getEntityClass();
 
 	/**
-	 * Returns the {@link List} of {@link Criterion} for this {@code Criteria}.
+	 * Returns the {@link List} of {@link Criterion} for this {@code CriteriaQuery}.
 	 * 
 	 * @return {@code List} of {@code Criterion}
 	 */
 	List<Criterion> getCriterion();
 
 	/**
-	 * Returns the result set limit for this {@code Criteria}.
+	 * Returns the result set limit for this {@code CriteriaQuery}.
 	 * 
 	 * @return result set limit
 	 */
 	int getLimit();
+	
+	/**
+	 * Returns the offset value for this {@code CriteriaQuery}.
+	 * 
+	 * @return offset value
+	 */
+	int getOffset();
 
 }

@@ -37,7 +37,8 @@ public class SqlConstants {
 	public static final String IS_NULL = "IS NULL";
 	public static final String IS_NOT_NULL = "IS NOT NULL";
 	public static final String NEGATION = "NOT";
-	
+	public static final String LIMIT = "LIMIT";
+	public static final String OFFSET = "OFFSET";
 	
 	// SQL Operators
 	public static final String OP_EQUALS = "=";

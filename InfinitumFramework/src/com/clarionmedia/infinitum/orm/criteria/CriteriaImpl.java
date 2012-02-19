@@ -45,6 +45,7 @@ public class CriteriaImpl implements Criteria {
 	private SqliteOperations mSqliteOps;
 	private List<Criterion> mCriterion;
 	private int mLimit;
+	private int mOffset;
 
 	/**
 	 * Constructs a new {@code CriteriaImpl} with the given entity {@link Class}
@@ -86,6 +87,11 @@ public class CriteriaImpl implements Criteria {
 	public int getLimit() {
 		return mLimit;
 	}
+	
+	@Override
+	public int getOffset() {
+		return mOffset;
+	}
 
 	@Override
 	public Criteria add(Criterion criterion) {
@@ -96,6 +102,12 @@ public class CriteriaImpl implements Criteria {
 	@Override
 	public Criteria limit(int limit) {
 		mLimit = limit;
+		return this;
+	}
+	
+	@Override
+	public Criteria offset(int offset) {
+		mOffset = offset;
 		return this;
 	}
 

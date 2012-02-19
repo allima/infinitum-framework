@@ -98,6 +98,10 @@ public class SqlBuilder {
 			prefix = SqlConstants.AND;
 			query.append(criterion.toSql(criteria));
 		}
+		if (criteria.getLimit() > 0)
+			query.append(' ').append(SqlConstants.LIMIT).append(' ').append(criteria.getLimit());
+		if (criteria.getOffset() > 0)
+			query.append(' ').append(SqlConstants.OFFSET).append(' ').append(criteria.getOffset());
 		return query.toString();
 	}
 
