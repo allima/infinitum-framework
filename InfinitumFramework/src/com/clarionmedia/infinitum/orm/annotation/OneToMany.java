@@ -27,19 +27,32 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- * This annotation indicates the name of a table an entity is mapped to. If the
- * annotation is not provided, the entity is mapped to a table with the same
- * name as the class.
+ * This annotation indicates that the annotated {@link Field} represents a
+ * one-to-many relationship with another persistent class.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/13/12
+ * @version 1.0 02/19/12
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Table {
-	
-	String name();
-	
+@Target(ElementType.FIELD)
+public @interface OneToMany {
+
+	/**
+	 * Returns the name of the persistent {@link Class} this relationship links
+	 * to.
+	 * 
+	 * @return name of persistent {@code Class}
+	 */
+	String className();
+
+	/**
+	 * Returns the name of the column representing the foreign key in the other
+	 * entity's table linking back to this {@code Class}
+	 * 
+	 * @return name of foreign key column
+	 */
+	String column();
+
 }

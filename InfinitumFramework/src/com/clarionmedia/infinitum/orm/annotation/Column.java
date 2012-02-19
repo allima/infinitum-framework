@@ -27,9 +27,9 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- * This annotation indicates the name of a column a field is mapped to. If the
- * annotation is not provided, the field is mapped to a column with the same
- * name as the field.
+ * This annotation indicates the name of a column a {@link Field} is mapped to.
+ * If the annotation is not provided, the {@code Field} is mapped to a column
+ * with the same name as the {@code Field}.
  * </p>
  * 
  * @author Tyler Treat
@@ -39,5 +39,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Column {
+	
 	String name();
+	
 }
