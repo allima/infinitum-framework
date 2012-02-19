@@ -46,15 +46,17 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 	private SqliteOperations mSqliteOps;
 	private List<Criterion> mCriterion;
 	private int mLimit;
+	private int mOffset;
 
 	/**
-	 * Constructs a new {@code GenCriteriaImpl} with the given entity {@link Class}
+	 * Constructs a new {@code GenCriteriaImpl} with the given entity
+	 * {@link Class}
 	 * 
 	 * @param entityClass
 	 *            Class<?> to create {@code GenCriteriaImpl} for
 	 * @param sqliteOps
-	 *            {@link SqliteOperations} for which this {@code GenCriteriaImpl}
-	 *            is being created for
+	 *            {@link SqliteOperations} for which this
+	 *            {@code GenCriteriaImpl} is being created for
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
@@ -88,6 +90,11 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 	}
 
 	@Override
+	public int getOffset() {
+		return mOffset;
+	}
+
+	@Override
 	public GenCriteria<T> add(Criterion criterion) {
 		mCriterion.add(criterion);
 		return this;
@@ -96,6 +103,12 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 	@Override
 	public GenCriteria<T> limit(int limit) {
 		mLimit = limit;
+		return this;
+	}
+
+	@Override
+	public GenCriteria<T> offset(int offset) {
+		mOffset = offset;
 		return this;
 	}
 

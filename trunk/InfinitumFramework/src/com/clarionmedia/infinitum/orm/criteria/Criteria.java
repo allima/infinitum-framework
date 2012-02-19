@@ -36,33 +36,20 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
  */
 public interface Criteria extends CriteriaQuery {
 
-	/**
-	 * Returns the {@code Criteria} query in SQL form.
-	 * 
-	 * @return SQL {@link String} for this {@code Criteria}
-	 */
+	@Override
 	String toSql();
 
-	/**
-	 * Returns the {@link Class} associated with this {@code Criteria}.
-	 * 
-	 * @return {@code Criteria } entity {@code Class}
-	 */
+	@Override
 	Class<?> getEntityClass();
 
-	/**
-	 * Returns the {@link List} of {@link Criterion} for this {@code Criteria}.
-	 * 
-	 * @return {@code List} of {@code Criterion}
-	 */
+	@Override
 	List<Criterion> getCriterion();
 
-	/**
-	 * Returns the result set limit for this {@code Criteria}.
-	 * 
-	 * @return result set limit
-	 */
+	@Override
 	int getLimit();
+
+	@Override
+	int getOffset();
 
 	/**
 	 * Adds a {@link Criterion} to filter retrieved query results.
@@ -81,6 +68,15 @@ public interface Criteria extends CriteriaQuery {
 	 * @return this {@code Criteria} to allow for method chaining
 	 */
 	Criteria limit(int limit);
+
+	/**
+	 * Offsets the result set by the given amount.
+	 * 
+	 * @param offset
+	 *            amount to offset results
+	 * @return this {@code Criteria} to allow for method chaining
+	 */
+	Criteria offset(int offset);
 
 	/**
 	 * Retrieves the query results as a {@link List}.

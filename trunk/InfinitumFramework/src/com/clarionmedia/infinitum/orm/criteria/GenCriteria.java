@@ -27,8 +27,8 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
  * <p>
  * This generic interface represents a query for a particular persistent class.
  * {@code Criteria} queries consist of {@link Criterion}, which act as
- * restrictions on a query. For {@code GenCriteria's} non-generic counterpart, see
- * {@link Criteria}.
+ * restrictions on a query. For {@code GenCriteria's} non-generic counterpart,
+ * see {@link Criteria}.
  * </p>
  * 
  * @author Tyler Treat
@@ -36,39 +36,27 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
  */
 public interface GenCriteria<T> extends CriteriaQuery {
 
-	/**
-	 * Returns the {@code Criteria} query in SQL form.
-	 * 
-	 * @return SQL {@link String} for this {@code Criteria}
-	 */
+	@Override
 	String toSql();
 
-	/**
-	 * Returns the {@link Class} associated with this {@code Criteria}.
-	 * 
-	 * @return {@code Criteria } entity {@code Class}
-	 */
+	@Override
 	Class<T> getEntityClass();
 
-	/**
-	 * Returns the {@link List} of {@link Criterion} for this {@code Criteria}.
-	 * 
-	 * @return {@code List} of {@code Criterion}
-	 */
+	@Override
 	List<Criterion> getCriterion();
 
-	/**
-	 * Returns the result set limit for this {@code Criteria}.
-	 * 
-	 * @return result set limit
-	 */
+	@Override
 	int getLimit();
+
+	@Override
+	int getOffset();
 
 	/**
 	 * Adds a {@link Criterion} to filter retrieved query results.
 	 * 
 	 * @param criterion
-	 *            the {@code Criterion} to apply to the {@link GenCriteria} query
+	 *            the {@code Criterion} to apply to the {@link GenCriteria}
+	 *            query
 	 * @return this {@code Criteria} to allow for method chaining
 	 */
 	GenCriteria<T> add(Criterion criterion);
@@ -81,6 +69,15 @@ public interface GenCriteria<T> extends CriteriaQuery {
 	 * @return this {@code Criteria} to allow for method chaining
 	 */
 	GenCriteria<T> limit(int limit);
+
+	/**
+	 * Offsets the result set by the given amount.
+	 * 
+	 * @param offset
+	 *            amount to offset results
+	 * @return this {@code Criteria} to allow for method chaining
+	 */
+	GenCriteria<T> offset(int offset);
 
 	/**
 	 * Retrieves the query results as a {@link List}.
