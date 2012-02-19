@@ -22,6 +22,7 @@ package com.clarionmedia.infinitum.orm;
 import java.io.Serializable;
 import java.util.Collection;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 
 /**
  * <p>
@@ -91,8 +92,7 @@ public interface DatastoreOperations {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	void saveOrUpdateAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
 	 * Persists the entire collection of <code>Objects</code> to the database.
@@ -103,8 +103,7 @@ public interface DatastoreOperations {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	int saveAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
 	 * Deletes the entire collection of <code>Objects</code> from the database
@@ -116,8 +115,7 @@ public interface DatastoreOperations {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	int deleteAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
 	 * Returns an instance of the given persistent model {@link Class} as
@@ -134,8 +132,7 @@ public interface DatastoreOperations {
 	 * @throws IllegalArgumentException
 	 *             if an incorrect number of primary keys is provided
 	 */
-	<T extends Object> T load(Class<T> c, Serializable id)
-			throws InfinitumRuntimeException, IllegalArgumentException;
+	<T extends Object> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException;
 
 	/**
 	 * Executes the given SQL non-query on the database, meaning no result is
@@ -143,7 +140,9 @@ public interface DatastoreOperations {
 	 * 
 	 * @param sql
 	 *            the SQL query to execute
+	 * @throws SQLGrammarException
+	 *             if the SQL was formatted incorrectly
 	 */
-	void execute(String sql);
+	void execute(String sql) throws SQLGrammarException;
 
 }

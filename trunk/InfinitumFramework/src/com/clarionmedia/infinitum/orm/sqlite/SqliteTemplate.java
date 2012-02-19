@@ -27,6 +27,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
 import com.clarionmedia.infinitum.context.ApplicationContext;
@@ -35,6 +36,7 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteriaImpl;
+import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.ObjectMapper;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
@@ -84,7 +86,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public com.clarionmedia.infinitum.orm.criteria.Criteria createCriteria(Class<?> entityClass) {
 		return new com.clarionmedia.infinitum.orm.criteria.CriteriaImpl(entityClass, this);
 	}
-	
+
 	@Override
 	public SqliteOperations open() throws SQLException {
 		mDbHelper = new SqliteDbHelper(mContext, mAppContext);
@@ -100,12 +102,10 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(
-					String.format(OrmConstants.CANNOT_SAVE_TRANSIENT, model
-							.getClass().getName()));
+			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_SAVE_TRANSIENT, model.getClass()
+					.getName()));
 		ContentValues values = mObjectMapper.mapModel(model);
-		String tableName = PersistenceResolution.getModelTableName(model
-				.getClass());
+		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		long ret = mSqliteDb.insert(tableName, null, values);
 		if (mAppContext.isDebug())
 			Log.d(TAG, model.getClass().getSimpleName() + " model saved");
@@ -115,20 +115,17 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(
-					OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
-							.getName()));
+			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
+					.getName()));
 		ContentValues values = mObjectMapper.mapModel(model);
-		String tableName = PersistenceResolution.getModelTableName(model
-				.getClass());
+		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (mAppContext.isDebug()) {
 			if (ret > 0)
 				Log.d(TAG, model.getClass().getSimpleName() + " model updated");
 			else
-				Log.d(TAG, model.getClass().getSimpleName()
-						+ " model was not updated");
+				Log.d(TAG, model.getClass().getSimpleName() + " model was not updated");
 		}
 		return ret > 0;
 	}
@@ -136,19 +133,16 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(
-					OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
-							.getName()));
-		String tableName = PersistenceResolution.getModelTableName(model
-				.getClass());
+			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
+					.getName()));
+		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
 		if (mAppContext.isDebug()) {
 			if (result == 1)
 				Log.d(TAG, model.getClass().getSimpleName() + " model deleted");
 			else
-				Log.d(TAG, model.getClass().getSimpleName()
-						+ " model was not deleted");
+				Log.d(TAG, model.getClass().getSimpleName() + " model was not deleted");
 		}
 		return result == 1;
 	}
@@ -162,8 +156,7 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Saving or updating " + models.size() + " models");
 		for (Object o : models)
@@ -173,8 +166,7 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		int count = 0;
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Saving " + models.size() + " models");
@@ -188,8 +180,7 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		int count = 0;
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Deleting " + models.size() + " models");
@@ -203,18 +194,13 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public <T> T load(Class<T> c, Serializable id)
-			throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		if (!PersistenceResolution.isPersistent(c))
-			throw new InfinitumRuntimeException(String.format(
-					OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
-		if (!TypeResolution.isValidPrimaryKey(
-				PersistenceResolution.getPrimaryKeyField(c), id))
-			throw new IllegalArgumentException(String.format(
-					OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
+			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
+		if (!TypeResolution.isValidPrimaryKey(PersistenceResolution.getPrimaryKeyField(c), id))
+			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
-		Cursor cursor = mSqliteDb.query(
-				PersistenceResolution.getModelTableName(c), null,
+		Cursor cursor = mSqliteDb.query(PersistenceResolution.getModelTableName(c), null,
 				SqlUtil.getWhereClause(c, id), null, null, null, null, "1");
 		if (cursor.getCount() == 0) {
 			cursor.close();
@@ -233,17 +219,27 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public void execute(String sql) {
+	public void execute(String sql) throws SQLGrammarException {
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
-		mSqliteDb.execSQL(sql);
+		try {
+			mSqliteDb.execSQL(sql);
+		} catch (SQLiteException e) {
+			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL, sql));
+		}
 	}
 
 	@Override
-	public Cursor executeForResult(String sql) {
+	public Cursor executeForResult(String sql) throws SQLGrammarException {
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
-		return mSqliteDb.rawQuery(sql, null);
+		Cursor ret = null;
+		try {
+			ret = mSqliteDb.rawQuery(sql, null);
+		} catch (SQLiteException e) {
+			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL, sql));
+		}
+		return ret;
 	}
 
 }
