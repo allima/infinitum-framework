@@ -25,16 +25,16 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 
 /**
  * <p>
- * This interface represents a query for a particular persistent class.
+ * This generic interface represents a query for a particular persistent class.
  * {@code Criteria} queries consist of {@link Criterion}, which act as
- * restrictions on a query. For {@code Criteria's} generic counterpart, see
- * {@link GenCriteria}.
+ * restrictions on a query. For {@code GenCriteria's} non-generic counterpart, see
+ * {@link Criteria}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/17/12
  */
-public interface Criteria extends CriteriaQuery {
+public interface GenCriteria<T> extends CriteriaQuery {
 
 	/**
 	 * Returns the {@code Criteria} query in SQL form.
@@ -48,7 +48,7 @@ public interface Criteria extends CriteriaQuery {
 	 * 
 	 * @return {@code Criteria } entity {@code Class}
 	 */
-	Class<?> getEntityClass();
+	Class<T> getEntityClass();
 
 	/**
 	 * Returns the {@link List} of {@link Criterion} for this {@code Criteria}.
@@ -68,10 +68,10 @@ public interface Criteria extends CriteriaQuery {
 	 * Adds a {@link Criterion} to filter retrieved query results.
 	 * 
 	 * @param criterion
-	 *            the {@code Criterion} to apply to the {@link Criteria} query
+	 *            the {@code Criterion} to apply to the {@link GenCriteria} query
 	 * @return this {@code Criteria} to allow for method chaining
 	 */
-	Criteria add(Criterion criterion);
+	GenCriteria<T> add(Criterion criterion);
 
 	/**
 	 * Limits the number of query results.
@@ -80,14 +80,14 @@ public interface Criteria extends CriteriaQuery {
 	 *            max number of entities to retrieve
 	 * @return this {@code Criteria} to allow for method chaining
 	 */
-	Criteria limit(int limit);
+	GenCriteria<T> limit(int limit);
 
 	/**
 	 * Retrieves the query results as a {@link List}.
 	 * 
 	 * @return query results in {@code List} form
 	 */
-	List<Object> toList();
+	List<T> toList();
 
 	/**
 	 * Retrieves a unique query result for the {@code Criteria} query.
@@ -96,6 +96,6 @@ public interface Criteria extends CriteriaQuery {
 	 * @throws InfinitumRuntimeException
 	 *             if there was not a unique result for the query
 	 */
-	Object unique() throws InfinitumRuntimeException;
+	T unique() throws InfinitumRuntimeException;
 
 }

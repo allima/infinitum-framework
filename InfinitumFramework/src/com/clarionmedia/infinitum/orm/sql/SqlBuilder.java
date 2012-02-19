@@ -25,7 +25,8 @@ import java.util.List;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.clarionmedia.infinitum.orm.OrmConstants;
-import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
+import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
@@ -81,13 +82,13 @@ public class SqlBuilder {
 	}
 
 	/**
-	 * Generates a SQL query {@link String} from the given {@link Criteria}.
+	 * Generates a SQL query {@link String} from the given {@link GenCriteria}.
 	 * 
 	 * @param criteria
 	 *            the {@code Criteria} to build the SQL query from
 	 * @return SQL query
 	 */
-	public static String createQuery(Criteria<?> criteria) {
+	public static String createQuery(CriteriaQuery criteria) {
 		Class<?> c = criteria.getEntityClass();
 		StringBuilder query = new StringBuilder(SqlConstants.SELECT_ALL_FROM)
 				.append(PersistenceResolution.getModelTableName(c)).append(' ').append(SqlConstants.WHERE).append(' ');

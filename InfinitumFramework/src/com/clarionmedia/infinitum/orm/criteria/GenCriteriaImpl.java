@@ -22,9 +22,10 @@ package com.clarionmedia.infinitum.orm.criteria;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
 import android.database.Cursor;
+
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
@@ -33,32 +34,31 @@ import com.clarionmedia.infinitum.reflection.ModelFactory;
 
 /**
  * <p>
- * Implementation of {@link Criteria}.
+ * Implementation of {@link GenCriteria}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/17/12
  */
-public class CriteriaImpl implements Criteria {
+public class GenCriteriaImpl<T> implements GenCriteria<T> {
 
-	private Class<?> mEntityClass;
+	private Class<T> mEntityClass;
 	private SqliteOperations mSqliteOps;
 	private List<Criterion> mCriterion;
 	private int mLimit;
 
 	/**
-	 * Constructs a new {@code CriteriaImpl} with the given entity {@link Class}
-	 * .
+	 * Constructs a new {@code GenCriteriaImpl} with the given entity {@link Class}
 	 * 
 	 * @param entityClass
-	 *            Class<?> to create {@code CriteriaImpl} for
+	 *            Class<?> to create {@code GenCriteriaImpl} for
 	 * @param sqliteOps
-	 *            {@link SqliteOperations} for which this {@code CriteriaImpl}
+	 *            {@link SqliteOperations} for which this {@code GenCriteriaImpl}
 	 *            is being created for
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public CriteriaImpl(Class<?> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
+	public GenCriteriaImpl(Class<T> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA,
 					entityClass.getName()));
@@ -73,7 +73,7 @@ public class CriteriaImpl implements Criteria {
 	}
 
 	@Override
-	public Class<?> getEntityClass() {
+	public Class<T> getEntityClass() {
 		return mEntityClass;
 	}
 
@@ -88,20 +88,20 @@ public class CriteriaImpl implements Criteria {
 	}
 
 	@Override
-	public Criteria add(Criterion criterion) {
+	public GenCriteria<T> add(Criterion criterion) {
 		mCriterion.add(criterion);
 		return this;
 	}
 
 	@Override
-	public Criteria limit(int limit) {
+	public GenCriteria<T> limit(int limit) {
 		mLimit = limit;
 		return this;
 	}
 
 	@Override
-	public List<Object> toList() {
-		List<Object> ret = new LinkedList<Object>();
+	public List<T> toList() {
+		List<T> ret = new LinkedList<T>();
 		Cursor result = mSqliteOps.executeForResult(SqlBuilder.createQuery(this));
 		if (result.getCount() == 0) {
 			result.close();
@@ -120,7 +120,7 @@ public class CriteriaImpl implements Criteria {
 	}
 
 	@Override
-	public Object unique() throws InfinitumRuntimeException {
+	public T unique() throws InfinitumRuntimeException {
 		Cursor result = mSqliteOps.executeForResult(SqlBuilder.createQuery(this));
 		if (result.getCount() > 1)
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT,

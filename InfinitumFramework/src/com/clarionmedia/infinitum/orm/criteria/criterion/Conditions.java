@@ -19,13 +19,13 @@
 
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
-import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
  * <p>
  * Provides static factory methods for creating new {@link Criterion} to add to
- * {@link Criteria} queries. {@code Criterion} act as conditions to restrict or
+ * {@link GenCriteria} queries. {@code Criterion} act as conditions to restrict or
  * refine the result sets of queries. They generally are not constructed
  * directly but rather obtained through this class. However, it is possible to
  * create new types of {@code Criterion} in which case they would need to be

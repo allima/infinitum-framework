@@ -19,9 +19,10 @@
 
 package com.clarionmedia.infinitum.orm.criteria;
 
+
 /**
  * <p>
- * Contains constants for the {@link Criteria} API.
+ * Contains constants for the {@link GenCriteria} API.
  * </p>
  * 
  * @author Tyler Treat

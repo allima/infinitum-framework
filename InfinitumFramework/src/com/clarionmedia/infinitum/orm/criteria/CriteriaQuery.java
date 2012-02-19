@@ -20,21 +20,20 @@
 package com.clarionmedia.infinitum.orm.criteria;
 
 import java.util.List;
-import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 
 /**
  * <p>
- * This interface represents a query for a particular persistent class.
- * {@code Criteria} queries consist of {@link Criterion}, which act as
- * restrictions on a query. For {@code Criteria's} generic counterpart, see
- * {@link GenCriteria}.
+ * This interface represents a query for a particular persistent class. A
+ * {@code CriteriaQuery} consists of {@link Criterion}, which act as
+ * restrictions on a query. This interface is extended by a generic and
+ * non-generic interface to allow for greater flexibility.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/17/12
+ * @version 1.0 02/18/12
  */
-public interface Criteria extends CriteriaQuery {
+public interface CriteriaQuery {
 
 	/**
 	 * Returns the {@code Criteria} query in SQL form.
@@ -63,39 +62,5 @@ public interface Criteria extends CriteriaQuery {
 	 * @return result set limit
 	 */
 	int getLimit();
-
-	/**
-	 * Adds a {@link Criterion} to filter retrieved query results.
-	 * 
-	 * @param criterion
-	 *            the {@code Criterion} to apply to the {@link Criteria} query
-	 * @return this {@code Criteria} to allow for method chaining
-	 */
-	Criteria add(Criterion criterion);
-
-	/**
-	 * Limits the number of query results.
-	 * 
-	 * @param limit
-	 *            max number of entities to retrieve
-	 * @return this {@code Criteria} to allow for method chaining
-	 */
-	Criteria limit(int limit);
-
-	/**
-	 * Retrieves the query results as a {@link List}.
-	 * 
-	 * @return query results in {@code List} form
-	 */
-	List<Object> toList();
-
-	/**
-	 * Retrieves a unique query result for the {@code Criteria} query.
-	 * 
-	 * @return unique query result or {@code null} if no such result exists
-	 * @throws InfinitumRuntimeException
-	 *             if there was not a unique result for the query
-	 */
-	Object unique() throws InfinitumRuntimeException;
 
 }
