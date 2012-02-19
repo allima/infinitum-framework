@@ -47,5 +47,6 @@ public class OrmConstants {
 	public static final String EXPLICIT_PK_TYPE_ERROR = "Explicit primary key '%s' is not of type int or long in '%s'.";
 	public static final String UNABLE_TO_GEN_QUERY = "Unable to generate SQL query for Object of type '%s'.";
 	public static final String NO_EMPTY_CONSTRUCTOR = "No empty constructor defined in '%s'.";
+	public static final String BAD_SQL = "There was a problem with the SQL formatting. Could not execute query: %s";
 
 }
