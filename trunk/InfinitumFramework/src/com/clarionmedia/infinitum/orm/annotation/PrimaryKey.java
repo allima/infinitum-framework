@@ -53,5 +53,7 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface PrimaryKey {
+	
 	boolean autoincrement() default true;
+	
 }

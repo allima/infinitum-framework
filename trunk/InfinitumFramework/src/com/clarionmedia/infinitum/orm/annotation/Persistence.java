@@ -28,7 +28,8 @@ import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 
 /**
  * <p>
- * This annotation is used to indicate the persistence mode of a class field.
+ * This annotation is used to indicate the persistence mode of a class
+ * {@link Field}.
  * </p>
  * 
  * @author Tyler Treat
@@ -38,5 +39,7 @@ import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Persistence {
+
 	PersistenceMode mode() default PersistenceMode.Persistent;
+
 }

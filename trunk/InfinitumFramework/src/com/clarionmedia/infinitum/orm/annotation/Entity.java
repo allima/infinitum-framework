@@ -50,5 +50,7 @@ import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Entity {
+	
 	PersistenceMode mode() default PersistenceMode.Persistent;
+	
 }
