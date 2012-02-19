@@ -20,9 +20,8 @@
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.lang.reflect.Field;
-
-import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
+import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
@@ -51,7 +50,7 @@ public class NotNullExpression extends Criterion {
 	}
 
 	@Override
-	public String toSql(Criteria<?> criteria) throws InvalidCriteriaException {
+	public String toSql(CriteriaQuery criteria) throws InvalidCriteriaException {
 		StringBuilder query = new StringBuilder();
 		Class<?> c = criteria.getEntityClass();
 		Field f = null;

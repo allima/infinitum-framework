@@ -23,7 +23,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 
 import com.clarionmedia.infinitum.orm.DatastoreOperations;
-import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 
 /**
  * <p>
@@ -62,13 +62,23 @@ public interface SqliteOperations extends DatastoreOperations {
 	Cursor executeForResult(String sql);
 
 	/**
-	 * Creates a new {@link Criteria} instance for the given persistent entity
+	 * Creates a new {@link GenCriteria} instance for the given persistent entity
 	 * {@link Class}.
 	 * 
 	 * @param entityClass
 	 *            the persistent {@code Class} being queried for
 	 * @return {@code Criteria} for entityClass
 	 */
-	<T> Criteria<T> createCriteria(Class<T> entityClass);
+	<T> GenCriteria<T> createGenericCriteria(Class<T> entityClass);
+
+	/**
+	 * Creates a new {@link GenCriteria} instance for the given persistent entity
+	 * {@link Class}.
+	 * 
+	 * @param entityClass
+	 *            the persistent {@code Class} being queried for
+	 * @return {@code Criteria} for entityClass
+	 */
+	com.clarionmedia.infinitum.orm.criteria.Criteria createCriteria(Class<?> entityClass);
 
 }
