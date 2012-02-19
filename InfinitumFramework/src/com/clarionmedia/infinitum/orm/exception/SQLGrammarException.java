@@ -28,7 +28,7 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/13/12
+ * @version 1.0 02/17/12
  */
 public class SQLGrammarException extends InfinitumRuntimeException {
 
