@@ -53,5 +53,6 @@ public class SqlConstants {
 	
 	// SQL fragments
 	public static final String SELECT_ALL_FROM = "SELECT * FROM ";
+	public static final String ALIASED_SELECT_ALL_FROM = "SELECT %s.* FROM ";
 
 }
