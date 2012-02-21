@@ -48,5 +48,7 @@ public class OrmConstants {
 	public static final String UNABLE_TO_GEN_QUERY = "Unable to generate SQL query for Object of type '%s'.";
 	public static final String NO_EMPTY_CONSTRUCTOR = "No empty constructor defined in '%s'.";
 	public static final String BAD_SQL = "There was a problem with the SQL formatting. Could not execute query: %s";
+	public static final String CLASS_NOT_FOUND = "The specified class '%s' could not be resolved in '%s'.";
+	public static final String MM_RELATIONSHIP_ERROR = "Could not create many-to-many relationship between '%s' and '%s'. Are the specified columns correct?";
 
 }
