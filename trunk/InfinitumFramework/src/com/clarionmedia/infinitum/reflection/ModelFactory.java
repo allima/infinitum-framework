@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
+
 import android.database.Cursor;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -97,6 +98,7 @@ public class ModelFactory {
 				throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 			}
 		}
+		// TODO: load relationships
 		return ret;
 	}
 

@@ -91,6 +91,17 @@ public class TypeResolution {
 		return ret;
 	}
 
+	/**
+	 * Indicates if the given ID is a valid value for the given primary key
+	 * {@link Field}. Precondition assumes pkField is in fact a primary key.
+	 * 
+	 * @param pkField
+	 *            the primary key {@code Field}
+	 * @param id
+	 *            the primary key value to check
+	 * @return {@code true} if it is a valid primary key value, {@code false} if
+	 *         not
+	 */
 	public static boolean isValidPrimaryKey(Field pkField, Serializable id) {
 		if (id == null)
 			return false;

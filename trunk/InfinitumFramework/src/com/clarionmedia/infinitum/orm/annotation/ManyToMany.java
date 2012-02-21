@@ -55,19 +55,20 @@ public @interface ManyToMany {
 	String tableName();
 
 	/**
-	 * Returns the name of the column identifying this {@code Class's} side of
-	 * the relationship.
+	 * Returns the name of the {@link Field} identifying this {@code Class's}
+	 * side of the relationship, typically the primary key.
 	 * 
-	 * @return name of key column
+	 * @return name of key {@code Field}
 	 */
-	String keyColumn();
+	String keyField();
 
 	/**
-	 * Returns the name of the column identifying the associated {@code Class's}
-	 * side of the relationship.
+	 * Returns the name of the {@link Field} identifying the associated
+	 * {@code Class's} side of the relationship, typically the primary key of
+	 * the associated {@code Class}.
 	 * 
-	 * @return
+	 * @return name of foreign key {@code Field}
 	 */
-	String foreignColumn();
+	String foreignField();
 
 }

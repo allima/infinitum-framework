@@ -24,7 +24,9 @@ import java.util.List;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
+import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
@@ -72,7 +74,16 @@ public class SqlBuilder {
 		int count = 0;
 		SQLiteDatabase db = dbHelper.getDatabase();
 		for (String m : dbHelper.getApplicationContext().getDomainModels()) {
-			String sql = createTableString(PackageReflector.getClass(m));
+			Class<?> c = PackageReflector.getClass(m);
+			String sql = createModelTableString(c);
+			if (sql != null) {
+				db.execSQL(sql);
+				count++;
+			}
+			PersistenceResolution.getManyToManyRelationships(c);
+		}
+		for (ManyToManyRelationship r : PersistenceResolution.getManyToManyCache()) {
+			String sql = createManyToManyTableString(r);
 			if (sql != null) {
 				db.execSQL(sql);
 				count++;
@@ -118,14 +129,35 @@ public class SqlBuilder {
 	 * @return create table SQL statement
 	 * @throws ModelConfigurationException
 	 */
-	private static String createTableString(Class<?> c) throws ModelConfigurationException {
+	private static String createModelTableString(Class<?> c) throws ModelConfigurationException {
 		if (!PersistenceResolution.isPersistent(c))
 			return null;
-		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(" ")
+		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(' ')
 				.append(PersistenceResolution.getModelTableName(c)).append(" (");
 		appendColumns(c, sb);
 		appendUniqueColumns(c, sb);
 		sb.append(')');
+		return sb.toString();
+	}
+
+	private static String createManyToManyTableString(ManyToManyRelationship rel) throws ModelConfigurationException {
+		if (!PersistenceResolution.isPersistent(rel.getFirst()) || !PersistenceResolution.isPersistent(rel.getSecond()))
+			return null;
+		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(' ').append(rel.getTableName()).append(" (");
+		Field first = rel.getFirstField();
+		if (first == null)
+			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirst()
+					.getName(), rel.getSecond().getName()));
+		Field second = rel.getSecondField();
+		if (second == null)
+			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirst()
+					.getName(), rel.getSecond().getName()));
+		sb.append(PersistenceResolution.getModelTableName(rel.getFirst())).append('_')
+				.append(PersistenceResolution.getFieldColumnName(first)).append(' ')
+				.append(TypeResolution.getSqliteDataType(first).toString()).append(' ').append(NOT_NULL).append(", ")
+				.append(PersistenceResolution.getModelTableName(rel.getSecond())).append('_')
+				.append(PersistenceResolution.getFieldColumnName(second)).append(' ')
+				.append(TypeResolution.getSqliteDataType(second).toString()).append(' ').append(NOT_NULL).append(')');
 		return sb.toString();
 	}
 
@@ -138,11 +170,13 @@ public class SqlBuilder {
 
 		String prefix = "";
 		for (Field f : fields) {
+			if (f.isAnnotationPresent(ManyToMany.class))
+				continue;
 			sb.append(prefix);
 			prefix = ", ";
 
 			// Append column name and data type, e.g. "foo INTEGER"
-			sb.append(PersistenceResolution.getFieldColumnName(f)).append(" ")
+			sb.append(PersistenceResolution.getFieldColumnName(f)).append(' ')
 					.append(TypeResolution.getSqliteDataType(f).toString());
 
 			// Check if the column is a PRIMARY KEY

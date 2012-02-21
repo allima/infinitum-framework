@@ -15,8 +15,8 @@
  */
 
 /*
- * This class is taken from the open-source Java library Google Gson
- * (http://code.google.com/p/google-gson/) with modifications. Originally
+ * This class is taken from Google's open-source Java library Guava
+ * (http://code.google.com/p/guava-libraries/) with modifications. Originally
  * authored by Kevin Bourrillion, it is licensed under the Apache License,
  * Version 2.0 in compatibility with the licensing of this software, the
  * GNU Lesser General Public License. See license information above for

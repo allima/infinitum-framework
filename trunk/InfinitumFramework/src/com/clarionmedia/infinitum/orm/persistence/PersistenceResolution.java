@@ -22,16 +22,20 @@ package com.clarionmedia.infinitum.orm.persistence;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
+import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.annotation.NotNull;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
 import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
@@ -79,12 +83,20 @@ public class PersistenceResolution {
 	// This Map caches the uniqueness of Fields
 	private static Map<Field, Boolean> sFieldUniqueCache;
 
+	// This Set caches the many-to-many relationships
+	private static Set<ManyToManyRelationship> sManyToManyCache;
+
 	static {
 		sPersistenceCache = new Hashtable<Class<?>, List<Field>>();
 		sColumnCache = new Hashtable<Field, String>();
 		sPrimaryKeyCache = new Hashtable<Class<?>, Field>();
 		sFieldNullableCache = new Hashtable<Field, Boolean>();
 		sFieldUniqueCache = new Hashtable<Field, Boolean>();
+		sManyToManyCache = new HashSet<ManyToManyRelationship>();
+	}
+
+	public static Set<ManyToManyRelationship> getManyToManyCache() {
+		return sManyToManyCache;
 	}
 
 	/**
@@ -363,6 +375,33 @@ public class PersistenceResolution {
 		Unique u = f.getAnnotation(Unique.class);
 		ret = u == null ? false : true;
 		sFieldUniqueCache.put(f, ret);
+		return ret;
+	}
+
+	/**
+	 * Retrieves a {@link Set} of all {@link ManyToManyRelationship} instances
+	 * for the given {@link Class}.
+	 * 
+	 * @param c
+	 *            the {@code Class} to get relationships for
+	 * @return {@code Set} of all many-to-many relationships
+	 */
+	public static Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c) {
+		Set<ManyToManyRelationship> ret = new HashSet<ManyToManyRelationship>();
+		for (ManyToManyRelationship r : sManyToManyCache) {
+			if (r.contains(c))
+				ret.add(r);
+		}
+		if (ret.size() > 0)
+			return ret;
+		List<Field> fields = getPersistentFields(c);
+		for (Field f : fields) {
+			if (!f.isAnnotationPresent(ManyToMany.class))
+				continue;
+			ManyToManyRelationship rel = new ManyToManyRelationship(f);
+			sManyToManyCache.add(rel);
+			ret.add(rel);
+		}
 		return ret;
 	}
 
