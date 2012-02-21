@@ -41,7 +41,7 @@ import com.clarionmedia.infinitum.orm.persistence.ObjectMapper;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlUtil;
-import com.clarionmedia.infinitum.reflection.ModelFactory;
+import com.clarionmedia.infinitum.reflection.ModelFactoryImpl;
 
 /**
  * <p>
@@ -63,6 +63,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected SqliteDbHelper mDbHelper;
 	protected SQLiteDatabase mSqliteDb;
 	protected ObjectMapper mObjectMapper;
+	protected ModelFactoryImpl mModelFactory;
 
 	/**
 	 * Constructs a new <code>AbstractSqliteDao</code> using the given
@@ -75,6 +76,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mContext = context;
 		mAppContext = ApplicationContextFactory.getApplicationContext();
 		mObjectMapper = new ObjectMapper();
+		mModelFactory = new ModelFactoryImpl(this);
 	}
 
 	@Override
@@ -209,7 +211,7 @@ public class SqliteTemplate implements SqliteOperations {
 		cursor.moveToFirst();
 		T ret = null;
 		try {
-			ret = ModelFactory.createFromCursor(cursor, c);
+			ret = mModelFactory.createFromCursor(cursor, c);
 		} catch (InfinitumRuntimeException e) {
 			throw e;
 		} finally {

@@ -19,11 +19,13 @@
 
 package com.clarionmedia.infinitum.orm.sql;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
@@ -113,6 +115,75 @@ public class SqlBuilder {
 			query.append(' ').append(SqlConstants.LIMIT).append(' ').append(criteria.getLimit());
 		if (criteria.getOffset() > 0)
 			query.append(' ').append(SqlConstants.OFFSET).append(' ').append(criteria.getOffset());
+		return query.toString();
+	}
+
+	/**
+	 * Generates a SQL query {@link String} from the given
+	 * {@link ManyToManyRelationship} which retrieves rows of the given
+	 * direction type which are associated with the given ID.
+	 * 
+	 * <p>
+	 * For example, assume you have the models {@code Foo} and {@code Bar} which
+	 * have a many-to-many association and are mapped to the tables {@code foo}
+	 * and {@code bar} respectively with the relationships being stored in
+	 * {@code foobar}. Calling {@code createManyToManyJoinQuery(rel, 42,
+	 * Bar.class)} would generate a query that would retrieve all records of
+	 * {@code Bar} associated with the instance of {@code Foo} which has an ID
+	 * of 42.
+	 * </p>
+	 * 
+	 * @param rel
+	 *            the {@link ManyToManyRelationship} containing the association
+	 *            being queried
+	 * @param id
+	 *            the ID in which the associated records are linked with
+	 * @param direction
+	 *            the direction the relationship is being queried in, returning
+	 *            records of this {@link Class}
+	 * @return SQL query
+	 * @throws InfinitumRuntimeException
+	 *             if the direction {@code Class} is not a part of the given
+	 *             {@code ManyToManyRelationship}
+	 */
+	public static String createManyToManyJoinQuery(ManyToManyRelationship rel, Serializable id, Class<?> direction)
+			throws InfinitumRuntimeException {
+		if (!rel.contains(direction))
+			throw new InfinitumRuntimeException(String.format(
+					"'%s' is not a valid direction for relationship '%s'<=>'%s'.", direction.getName(), rel.getFirst()
+							.getName(), rel.getSecond().getName()));
+		StringBuilder query = new StringBuilder(String.format(SqlConstants.ALIASED_SELECT_ALL_FROM, 'x')).append(
+				PersistenceResolution.getModelTableName(rel.getFirst())).append(' ');
+		if (direction == rel.getFirst())
+			query.append("x, ");
+		else
+			query.append("y, ");
+		query.append(PersistenceResolution.getModelTableName(rel.getSecond())).append(' ');
+		if (direction == rel.getSecond())
+			query.append("x, ");
+		else
+			query.append("y, ");
+		query.append(rel.getTableName()).append(" z ").append(SqlConstants.WHERE).append(' ').append("z.");
+		if (direction == rel.getFirst())
+			query.append(PersistenceResolution.getModelTableName(rel.getFirst())).append('_')
+					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ").append("x.")
+					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(' ')
+					.append(SqlConstants.AND).append(" z.")
+					.append(PersistenceResolution.getModelTableName(rel.getSecond())).append('_')
+					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append("y.")
+					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(' ')
+					.append(SqlConstants.AND).append(" y.")
+					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append(id);
+		else
+			query.append(PersistenceResolution.getModelTableName(rel.getSecond())).append('_')
+					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append("x.")
+					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(' ')
+					.append(SqlConstants.AND).append(" z.")
+					.append(PersistenceResolution.getModelTableName(rel.getFirst())).append('_')
+					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ").append("y.")
+					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(' ')
+					.append(SqlConstants.AND).append(" y.")
+					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ").append(id);
 		return query.toString();
 	}
 

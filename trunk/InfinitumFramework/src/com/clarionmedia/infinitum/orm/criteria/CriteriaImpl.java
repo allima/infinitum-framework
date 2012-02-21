@@ -29,7 +29,7 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
-import com.clarionmedia.infinitum.reflection.ModelFactory;
+import com.clarionmedia.infinitum.reflection.ModelFactoryImpl;
 
 /**
  * <p>
@@ -43,6 +43,7 @@ public class CriteriaImpl implements Criteria {
 
 	private Class<?> mEntityClass;
 	private SqliteOperations mSqliteOps;
+	private ModelFactoryImpl mModelFactory;
 	private List<Criterion> mCriterion;
 	private int mLimit;
 	private int mOffset;
@@ -65,6 +66,7 @@ public class CriteriaImpl implements Criteria {
 					entityClass.getName()));
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
+		mModelFactory = new ModelFactoryImpl(sqliteOps);
 		mCriterion = new ArrayList<Criterion>();
 	}
 
@@ -121,7 +123,7 @@ public class CriteriaImpl implements Criteria {
 		}
 		try {
 			while (result.moveToNext())
-				ret.add(ModelFactory.createFromCursor(result, mEntityClass));
+				ret.add(mModelFactory.createFromCursor(result, mEntityClass));
 		} catch (InfinitumRuntimeException e) {
 			throw e;
 		} finally {
@@ -140,7 +142,7 @@ public class CriteriaImpl implements Criteria {
 		else if (result.getCount() == 0)
 			return null;
 		result.moveToFirst();
-		return ModelFactory.createFromCursor(result, mEntityClass);
+		return mModelFactory.createFromCursor(result, mEntityClass);
 	}
 
 }
