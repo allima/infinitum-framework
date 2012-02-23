@@ -19,23 +19,22 @@
 
 package com.clarionmedia.infinitumtest.domain;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
+import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.annotation.NotNull;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
-import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
 import com.clarionmedia.infinitum.orm.annotation.Unique;
 
-public class TestModel {
+public class TestModel extends AbstractBase {
 
-	@PrimaryKey
-	private long mId;
-
-	@Column(name = "field")
+	@Column("field")
 	private String mMyField;
 
 	private int mFoo;
@@ -46,8 +45,11 @@ public class TestModel {
 	@Unique
 	private double mBam;
 
-	@Persistence(mode = PersistenceMode.Transient)
+	@Persistence(PersistenceMode.Transient)
 	private float mTransient;
+
+	@ManyToMany(className = "com.clarionmedia.infinitumtest.domain.Foo", foreignField = "mId", keyField = "mId", tableName = "testmodel_foo")
+	private List<Foo> mRelated;
 
 	public TestModel() {
 		Random rand = new Random(Calendar.getInstance().getTimeInMillis());
@@ -56,14 +58,7 @@ public class TestModel {
 		mMyField = "hello world!";
 		mBam = rand.nextDouble();
 		mTransient = 42;
-	}
-
-	public long getId() {
-		return mId;
-	}
-
-	public void setId(long id) {
-		mId = id;
+		setRelated(new ArrayList<Foo>());
 	}
 
 	public String getMyField() {
@@ -104,6 +99,14 @@ public class TestModel {
 
 	public void setTransient(float t) {
 		mTransient = t;
+	}
+
+	public List<Foo> getRelated() {
+		return mRelated;
+	}
+
+	public void setRelated(List<Foo> related) {
+		mRelated = related;
 	}
 
 }
