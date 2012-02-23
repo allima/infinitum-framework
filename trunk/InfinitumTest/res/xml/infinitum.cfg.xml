@@ -18,6 +18,7 @@
     
     <domain>
         <model resource="com.clarionmedia.infinitumtest.domain.TestModel" />
+        <model resource="com.clarionmedia.infinitumtest.domain.Foo" />
     </domain>
 
 </infinitum-configuration>
