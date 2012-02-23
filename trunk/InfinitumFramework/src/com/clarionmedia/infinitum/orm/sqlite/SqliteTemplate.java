@@ -76,7 +76,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mContext = context;
 		mAppContext = ApplicationContextFactory.getApplicationContext();
 		mObjectMapper = new ObjectMapper();
-		mModelFactory = new ModelFactoryImpl(this);
+		mModelFactory = new ModelFactoryImpl();
 	}
 
 	@Override

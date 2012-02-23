@@ -24,8 +24,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+
 import android.database.Cursor;
+
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.orm.OrmConstants;
@@ -33,7 +37,6 @@ import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
 
 /**
  * <p>
@@ -51,28 +54,8 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
 public class ModelFactoryImpl implements ModelFactory {
 
 	private static final String INSTANTIATION_ERROR = "Could not instantiate Object of type '%s'.";
-
-	private SqliteOperations mSqlite;
-
-	/**
-	 * Constructs a new {@code ModelFactory} instance with the given
-	 * {@link SqliteOperations}.
-	 * 
-	 * @param sqlite
-	 *            the {@code SqliteOperations} instance to bind to this
-	 *            {@code ModelFactory}
-	 */
-	public ModelFactoryImpl(SqliteOperations sqlite) {
-		setSqlite(sqlite);
-	}
-
-	public SqliteOperations getSqlite() {
-		return mSqlite;
-	}
-
-	public void setSqlite(SqliteOperations sqlite) {
-		mSqlite = sqlite;
-	}
+	
+	private Map<Integer, Object> mObjectMap = new Hashtable<Integer, Object>();
 
 	@Override
 	public <T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException,
@@ -115,8 +98,17 @@ public class ModelFactoryImpl implements ModelFactory {
 				throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 			}
 		}
-		// TODO: load relationships
+		mObjectMap.put(PersistenceResolution.computeModelHash(ret), ret);
+		loadRelationships(ret);
 		return ret;
+	}
+	
+	private <T> void loadRelationships(T obj) {
+		for (Field f : PersistenceResolution.getPersistentFields(obj.getClass())) {
+			if (!f.isAnnotationPresent(ManyToMany.class))
+				continue;
+			// TODO: finish
+		}
 	}
 
 	private Object getCursorValue(Field f, Cursor cursor) {
