@@ -66,7 +66,7 @@ public class CriteriaImpl implements Criteria {
 					entityClass.getName()));
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
-		mModelFactory = new ModelFactoryImpl(sqliteOps);
+		mModelFactory = new ModelFactoryImpl();
 		mCriterion = new ArrayList<Criterion>();
 	}
 

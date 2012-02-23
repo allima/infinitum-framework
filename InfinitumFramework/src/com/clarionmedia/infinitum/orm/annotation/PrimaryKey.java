@@ -26,6 +26,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
+// TODO: will need to require a primary key
+
 /**
  * <p>
  * This annotation indicates if a {@link Field} is a primary key. If the
@@ -53,7 +55,7 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface PrimaryKey {
-	
+
 	boolean autoincrement() default true;
-	
+
 }

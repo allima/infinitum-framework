@@ -67,7 +67,7 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 					entityClass.getName()));
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
-		mModelFactory = new ModelFactoryImpl(sqliteOps);
+		mModelFactory = new ModelFactoryImpl();
 		mCriterion = new ArrayList<Criterion>();
 	}
 
