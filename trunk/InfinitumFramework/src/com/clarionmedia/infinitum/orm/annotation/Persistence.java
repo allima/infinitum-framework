@@ -40,6 +40,6 @@ import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 @Target(ElementType.FIELD)
 public @interface Persistence {
 
-	PersistenceMode mode() default PersistenceMode.Persistent;
+	PersistenceMode value() default PersistenceMode.Persistent;
 
 }
