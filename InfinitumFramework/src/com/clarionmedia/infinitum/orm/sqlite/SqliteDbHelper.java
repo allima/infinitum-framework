@@ -24,6 +24,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import com.clarionmedia.infinitum.context.ApplicationContext;
+import com.clarionmedia.infinitum.context.ApplicationContextFactory;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
@@ -46,9 +47,10 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	private SQLiteDatabase mSqliteDb;
 	private ApplicationContext mAppContext;
 
-	public SqliteDbHelper(Context context, ApplicationContext appContext) {
-		super(context, appContext.getSqliteDbName(), null, appContext.getSqliteDbVersion());
-		mAppContext = appContext;
+	public SqliteDbHelper(Context context) {
+		super(context, ApplicationContextFactory.getApplicationContext().getSqliteDbName(), null,
+				ApplicationContextFactory.getApplicationContext().getSqliteDbVersion());
+		mAppContext = ApplicationContextFactory.getApplicationContext();
 	}
 
 	/**

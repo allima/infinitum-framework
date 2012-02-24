@@ -22,6 +22,8 @@ package com.clarionmedia.infinitum.orm.criteria;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import android.content.Context;
 import android.database.Cursor;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
@@ -47,6 +49,7 @@ public class CriteriaImpl implements Criteria {
 	private List<Criterion> mCriterion;
 	private int mLimit;
 	private int mOffset;
+	private Context mContext;
 
 	/**
 	 * Constructs a new {@code CriteriaImpl} with the given entity {@link Class}
@@ -60,14 +63,15 @@ public class CriteriaImpl implements Criteria {
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public CriteriaImpl(Class<?> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
+	public CriteriaImpl(Context context, Class<?> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA,
 					entityClass.getName()));
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
-		mModelFactory = new ModelFactoryImpl();
+		mModelFactory = new ModelFactoryImpl(mContext);
 		mCriterion = new ArrayList<Criterion>();
+		mContext = context;
 	}
 
 	@Override

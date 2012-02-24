@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import android.database.Cursor;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteResult;
 
 /**
  * <p>
@@ -38,7 +39,7 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
  * @version 1.0 02/20/12
  */
 public interface ModelFactory {
-	
+
 	/**
 	 * Constructs a domain model instance and populates its {@link Field}'s from
 	 * the given {@link Cursor}. The precondition for this method is that the
@@ -57,6 +58,7 @@ public interface ModelFactory {
 	 * @throws InfinitumRuntimeException
 	 *             if the model could not be instantiated
 	 */
-	<T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException, InfinitumRuntimeException;
+	<T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException,
+			InfinitumRuntimeException;
 
 }

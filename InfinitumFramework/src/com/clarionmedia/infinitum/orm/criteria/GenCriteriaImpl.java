@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import android.content.Context;
 import android.database.Cursor;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -48,6 +49,7 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 	private List<Criterion> mCriterion;
 	private int mLimit;
 	private int mOffset;
+	private Context mContext;
 
 	/**
 	 * Constructs a new {@code GenCriteriaImpl} with the given entity
@@ -61,14 +63,15 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public GenCriteriaImpl(Class<T> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
+	public GenCriteriaImpl(Context context, Class<T> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA,
 					entityClass.getName()));
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
-		mModelFactory = new ModelFactoryImpl();
+		mModelFactory = new ModelFactoryImpl(mContext);
 		mCriterion = new ArrayList<Criterion>();
+		mContext = context;
 	}
 
 	@Override

@@ -34,6 +34,8 @@ import com.clarionmedia.infinitum.context.ApplicationContext;
 import com.clarionmedia.infinitum.context.ApplicationContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.criteria.CriteriaImpl;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteriaImpl;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
@@ -76,22 +78,22 @@ public class SqliteTemplate implements SqliteOperations {
 		mContext = context;
 		mAppContext = ApplicationContextFactory.getApplicationContext();
 		mObjectMapper = new ObjectMapper();
-		mModelFactory = new ModelFactoryImpl();
+		mModelFactory = new ModelFactoryImpl(mContext);
 	}
 
 	@Override
 	public <T> GenCriteria<T> createGenericCriteria(Class<T> entityClass) {
-		return new GenCriteriaImpl<T>(entityClass, this);
+		return new GenCriteriaImpl<T>(mContext, entityClass, this);
 	}
 
 	@Override
-	public com.clarionmedia.infinitum.orm.criteria.Criteria createCriteria(Class<?> entityClass) {
-		return new com.clarionmedia.infinitum.orm.criteria.CriteriaImpl(entityClass, this);
+	public Criteria createCriteria(Class<?> entityClass) {
+		return new CriteriaImpl(mContext, entityClass, this);
 	}
 
 	@Override
 	public SqliteOperations open() throws SQLException {
-		mDbHelper = new SqliteDbHelper(mContext, mAppContext);
+		mDbHelper = new SqliteDbHelper(mContext);
 		mSqliteDb = mDbHelper.getWritableDatabase();
 		return this;
 	}
