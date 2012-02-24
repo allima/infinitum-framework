@@ -26,7 +26,7 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
  * Indicates there is an issue with the mapping of a {@code Field} in a
  * persistent domain model. Specifically, this may mean that Infinitum was
  * unable to map a {@code Field} to a column in the database. This can typically
- * be avoided by registering a {@link TypeAdapter} with the {@link ObjectMapper}
+ * be avoided by registering a {@link TypeAdapter} with the {@link SqliteMapper}
  * being used to map a model of the {@code Type} in question.
  * </p>
  * 

@@ -50,5 +50,6 @@ public class OrmConstants {
 	public static final String BAD_SQL = "There was a problem with the SQL formatting. Could not execute query: %s";
 	public static final String CLASS_NOT_FOUND = "The specified class '%s' could not be resolved in '%s'.";
 	public static final String MM_RELATIONSHIP_ERROR = "Could not create many-to-many relationship between '%s' and '%s'. Are the specified columns correct?";
+	public static final String INVALID_MM_RELATIONSHIP = "Field '%s' is marked as a many-to-many relationship in '%s', but it is not a collection.";
 
 }

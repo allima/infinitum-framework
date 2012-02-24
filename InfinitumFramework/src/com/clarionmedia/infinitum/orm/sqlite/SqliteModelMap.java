@@ -17,28 +17,34 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.sql;
+package com.clarionmedia.infinitum.orm.sqlite;
 
-public interface QueryResult {
-	
-void close();
-	
-	int getInt(int columnIndex);
-	
-	long getLong(int columnIndex);
-	
-	String getString(int columnIndex);
-	
-	float getFloat(int columnIndex);
-	
-	double getDouble(int columnIndex);
-	
-	short getShort(int columnIndex);
-	
-	byte[] getBlob(int columnIndex);
-	
-	int getColumnCount(int columnIndex);
-	
-	int getColumnIndex(String columnName);
+import android.content.ContentValues;
+import com.clarionmedia.infinitum.orm.ModelMap;
+
+/**
+ * <p>
+ * Concrete implementation of {@link ModelMap} representing a domain model
+ * instance mapped to a SQLite table.
+ * </p>
+ * 
+ * @author Tyler Treat
+ * @version 1.0 02/23/12
+ */
+public class SqliteModelMap extends ModelMap {
+
+	private ContentValues mContentValues;
+
+	public SqliteModelMap(Object model) {
+		super(model);
+	}
+
+	public ContentValues getContentValues() {
+		return mContentValues;
+	}
+
+	public void setContentValues(ContentValues contentValues) {
+		mContentValues = contentValues;
+	}
 
 }

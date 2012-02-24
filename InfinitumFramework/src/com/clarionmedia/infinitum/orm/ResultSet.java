@@ -17,12 +17,36 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.sql;
+package com.clarionmedia.infinitum.orm;
 
-import com.clarionmedia.infinitum.orm.ResultSet;
+/**
+ * <p>
+ * This interface represents a result set from an SQL database query.
+ * </p>
+ * 
+ * @author Tyler Treat
+ * @version 1.0 02/23/12
+ */
+public interface ResultSet {
 
-public interface SqlExecutor {
-	
-	ResultSet execute(String sql);
+	void close();
+
+	int getInt(int columnIndex);
+
+	long getLong(int columnIndex);
+
+	String getString(int columnIndex);
+
+	float getFloat(int columnIndex);
+
+	double getDouble(int columnIndex);
+
+	short getShort(int columnIndex);
+
+	byte[] getBlob(int columnIndex);
+
+	int getColumnCount(int columnIndex);
+
+	int getColumnIndex(String columnName);
 
 }
