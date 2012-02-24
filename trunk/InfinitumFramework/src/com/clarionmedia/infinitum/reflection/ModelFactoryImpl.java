@@ -19,24 +19,32 @@
 
 package com.clarionmedia.infinitum.reflection;
 
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import android.content.Context;
 import android.database.Cursor;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.DateFormatter;
+import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
+import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteExecutor;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteResult;
 
 /**
  * <p>
@@ -54,8 +62,13 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 public class ModelFactoryImpl implements ModelFactory {
 
 	private static final String INSTANTIATION_ERROR = "Could not instantiate Object of type '%s'.";
-	
+
 	private Map<Integer, Object> mObjectMap = new Hashtable<Integer, Object>();
+	private SqlExecutor mExecutor;
+
+	public ModelFactoryImpl(Context context) {
+		mExecutor = new SqliteExecutor(context);
+	}
 
 	@Override
 	public <T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException,
@@ -63,6 +76,7 @@ public class ModelFactoryImpl implements ModelFactory {
 		return createFromCursorRec(cursor, modelClass, null);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> T createFromCursorRec(Cursor cursor, Class<T> modelClass, Object parent)
 			throws ModelConfigurationException, InfinitumRuntimeException {
 		T ret = null;
@@ -89,7 +103,7 @@ public class ModelFactoryImpl implements ModelFactory {
 			f.setAccessible(true);
 			try {
 				if (f.isAnnotationPresent(ManyToMany.class)) {
-					// TODO: only supporting Lists currently
+					// TODO Only supporting Lists currently
 					f.set(ret, new ArrayList<Object>());
 				} else {
 					f.set(ret, getCursorValue(f, cursor));
@@ -98,16 +112,39 @@ public class ModelFactoryImpl implements ModelFactory {
 				throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 			}
 		}
-		mObjectMap.put(PersistenceResolution.computeModelHash(ret), ret);
+		int objHash = PersistenceResolution.computeModelHash(ret);
+		if (mObjectMap.containsKey(objHash))
+			return (T) mObjectMap.get(objHash);
+		mObjectMap.put(objHash, ret);
 		loadRelationships(ret);
 		return ret;
 	}
-	
+
 	private <T> void loadRelationships(T obj) {
 		for (Field f : PersistenceResolution.getPersistentFields(obj.getClass())) {
+			f.setAccessible(true);
 			if (!f.isAnnotationPresent(ManyToMany.class))
 				continue;
-			// TODO: finish
+			try {
+				ManyToManyRelationship rel = new ManyToManyRelationship(f);
+				// TODO Add reflexive M:M support
+				Class<?> direction = obj.getClass() == rel.getFirst() ? rel.getSecond() : rel.getFirst();
+				Field pk = PersistenceResolution.getPrimaryKeyField(obj.getClass());
+				String sql = SqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(obj), direction);
+				SqliteResult result = (SqliteResult) mExecutor.execute(sql);
+				// TODO Currently only supporting Lists
+				List<Object> related = new LinkedList<Object>();
+				while (result.getCursor().moveToNext())
+					related.add(createFromCursor(result.getCursor(), direction));
+				result.close();
+				f.set(obj, related);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
