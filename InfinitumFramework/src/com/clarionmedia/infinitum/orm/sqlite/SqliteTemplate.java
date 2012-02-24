@@ -21,6 +21,8 @@ package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Hashtable;
+import java.util.Map;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -105,26 +107,23 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_SAVE_TRANSIENT, model.getClass()
-					.getName()));
-		SqliteModelMap map = mObjectMapper.mapModel(model);
-		ContentValues values = map.getContentValues();
-		String tableName = PersistenceResolution.getModelTableName(model.getClass());
-		long ret = mSqliteDb.insert(tableName, null, values);
-		// TODO Save/update relationships
-		if (mAppContext.isDebug())
-			Log.d(TAG, model.getClass().getSimpleName() + " model saved");
-		return ret;
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_SAVE_TRANSIENT, model.getClass()
+							.getName()));
+		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
+		return saveRec(model, objectMap);
 	}
 
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
-					.getName()));
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
+							.getName()));
 		SqliteModelMap map = mObjectMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
-		String tableName = PersistenceResolution.getModelTableName(model.getClass());
+		String tableName = PersistenceResolution.getModelTableName(model
+				.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		// TODO Save/update relationships
@@ -132,7 +131,8 @@ public class SqliteTemplate implements SqliteOperations {
 			if (ret > 0)
 				Log.d(TAG, model.getClass().getSimpleName() + " model updated");
 			else
-				Log.d(TAG, model.getClass().getSimpleName() + " model was not updated");
+				Log.d(TAG, model.getClass().getSimpleName()
+						+ " model was not updated");
 		}
 		return ret > 0;
 	}
@@ -140,30 +140,32 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
-					.getName()));
-		String tableName = PersistenceResolution.getModelTableName(model.getClass());
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
+							.getName()));
+		String tableName = PersistenceResolution.getModelTableName(model
+				.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
 		if (mAppContext.isDebug()) {
 			if (result == 1)
 				Log.d(TAG, model.getClass().getSimpleName() + " model deleted");
 			else
-				Log.d(TAG, model.getClass().getSimpleName() + " model was not deleted");
+				Log.d(TAG, model.getClass().getSimpleName()
+						+ " model was not deleted");
 		}
 		return result == 1;
 	}
 
 	@Override
 	public long saveOrUpdate(Object model) throws InfinitumRuntimeException {
-		if (!update(model))
-			return save(model);
-		else
-			return 0;
+		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
+		return saveOrUpdateRec(model, objectMap);
 	}
 
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public void saveOrUpdateAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Saving or updating " + models.size() + " models");
 		for (Object o : models)
@@ -173,7 +175,8 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		int count = 0;
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Saving " + models.size() + " models");
@@ -187,7 +190,8 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		int count = 0;
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Deleting " + models.size() + " models");
@@ -201,13 +205,18 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T load(Class<T> c, Serializable id)
+			throws InfinitumRuntimeException, IllegalArgumentException {
 		if (!PersistenceResolution.isPersistent(c))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
-		if (!TypeResolution.isValidPrimaryKey(PersistenceResolution.getPrimaryKeyField(c), id))
-			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
+		if (!TypeResolution.isValidPrimaryKey(
+				PersistenceResolution.getPrimaryKeyField(c), id))
+			throw new IllegalArgumentException(String.format(
+					OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
-		Cursor cursor = mSqliteDb.query(PersistenceResolution.getModelTableName(c), null,
+		Cursor cursor = mSqliteDb.query(
+				PersistenceResolution.getModelTableName(c), null,
 				SqlUtil.getWhereClause(c, id), null, null, null, null, "1");
 		if (cursor.getCount() == 0) {
 			cursor.close();
@@ -232,7 +241,8 @@ public class SqliteTemplate implements SqliteOperations {
 		try {
 			mSqliteDb.execSQL(sql);
 		} catch (SQLiteException e) {
-			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL, sql));
+			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL,
+					sql));
 		}
 	}
 
@@ -244,9 +254,80 @@ public class SqliteTemplate implements SqliteOperations {
 		try {
 			ret = mSqliteDb.rawQuery(sql, null);
 		} catch (SQLiteException e) {
-			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL, sql));
+			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL,
+					sql));
 		}
 		return ret;
+	}
+
+	private long saveRec(Object model, Map<Integer, Object> objectMap) {
+		SqliteModelMap map = mObjectMapper.mapModel(model);
+		ContentValues values = map.getContentValues();
+		String tableName = PersistenceResolution.getModelTableName(model
+				.getClass());
+		int objHash = PersistenceResolution.computeModelHash(model);
+		if (objectMap.containsKey(objHash))
+			return 0;
+		objectMap.put(objHash, model);
+		long ret = mSqliteDb.insert(tableName, null, values);
+		if (ret <= 0) {
+			if (mAppContext.isDebug())
+				Log.d(TAG, model.getClass().getSimpleName()
+						+ " model was not saved");
+			return ret;
+		}
+		if (ret > 0) {
+			long id;
+			for (Iterable<Object> i : map.getRelationships()) {
+				for (Object o : i) {
+					id = saveRec(o, objectMap);
+					if (id > 0) {
+						// TODO Save/update relationship in M:M table
+					}
+				}
+			}
+			if (mAppContext.isDebug())
+				Log.d(TAG, model.getClass().getSimpleName() + " model saved");
+		}
+		return ret;
+	}
+
+	private boolean updateRec(Object model, Map<Integer, Object> objectMap) {
+		SqliteModelMap map = mObjectMapper.mapModel(model);
+		ContentValues values = map.getContentValues();
+		String tableName = PersistenceResolution.getModelTableName(model
+				.getClass());
+		String whereClause = SqlUtil.getWhereClause(model);
+		int objHash = PersistenceResolution.computeModelHash(model);
+		if (objectMap.containsKey(objHash))
+			return false;
+		objectMap.put(objHash, model);
+		long ret = mSqliteDb.update(tableName, values, whereClause, null);
+		if (ret <= 0) {
+			if (mAppContext.isDebug())
+				Log.d(TAG, model.getClass().getSimpleName()
+						+ " model was not updated");
+			return false;
+		}
+		boolean success;
+		for (Iterable<Object> i : map.getRelationships()) {
+			for (Object o : i) {
+				success = updateRec(o, objectMap);
+				if (success) {
+					// TODO Save/update relationship in M:M table
+				}
+			}
+		}
+		if (mAppContext.isDebug())
+			Log.d(TAG, model.getClass().getSimpleName() + " model updated");
+		return true;
+	}
+
+	private long saveOrUpdateRec(Object model, Map<Integer, Object> objectMap) {
+		if (!updateRec(model, objectMap))
+			return saveRec(model, objectMap);
+		else
+			return 0;
 	}
 
 }
