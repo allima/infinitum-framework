@@ -73,7 +73,9 @@ public class ModelFactoryImpl implements ModelFactory {
 	@Override
 	public <T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException,
 			InfinitumRuntimeException {
-		return createFromCursorRec(cursor, modelClass, null);
+		T ret = createFromCursorRec(cursor, modelClass, null);
+		mObjectMap.clear();
+		return ret;
 	}
 
 	@SuppressWarnings("unchecked")
