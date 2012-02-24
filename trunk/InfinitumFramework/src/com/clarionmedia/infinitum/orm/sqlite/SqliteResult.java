@@ -19,13 +19,24 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
-import com.clarionmedia.infinitum.orm.sql.QueryResult;
+import com.clarionmedia.infinitum.orm.ResultSet;
+
 import android.database.Cursor;
 
-public class SqliteResult implements QueryResult {
-	
+/**
+ * <p>
+ * This implementation represents a {@link ResultSet} from a SQLite database
+ * query. It's essentially a wrapper for a {@link Cursor}, which is what is
+ * typically used to represent SQLite relations.
+ * </p>
+ * 
+ * @author Tyler Treat
+ * @version 1.0 02/23/12
+ */
+public class SqliteResult implements ResultSet {
+
 	private Cursor mCursor;
-	
+
 	public SqliteResult(Cursor cursor) {
 		mCursor = cursor;
 	}
@@ -37,43 +48,43 @@ public class SqliteResult implements QueryResult {
 	public void setCursor(Cursor cursor) {
 		mCursor = cursor;
 	}
-	
+
 	public void close() {
 		mCursor.close();
 	}
-	
+
 	public int getInt(int columnIndex) {
 		return mCursor.getInt(columnIndex);
 	}
-	
+
 	public long getLong(int columnIndex) {
 		return mCursor.getLong(columnIndex);
 	}
-	
+
 	public String getString(int columnIndex) {
 		return mCursor.getString(columnIndex);
 	}
-	
+
 	public float getFloat(int columnIndex) {
 		return mCursor.getFloat(columnIndex);
 	}
-	
+
 	public double getDouble(int columnIndex) {
 		return mCursor.getDouble(columnIndex);
 	}
-	
+
 	public short getShort(int columnIndex) {
 		return mCursor.getShort(columnIndex);
 	}
-	
+
 	public byte[] getBlob(int columnIndex) {
 		return mCursor.getBlob(columnIndex);
 	}
-	
+
 	public int getColumnCount(int columnIndex) {
 		return mCursor.getColumnCount();
 	}
-	
+
 	public int getColumnIndex(String columnName) {
 		return mCursor.getColumnIndex(columnName);
 	}

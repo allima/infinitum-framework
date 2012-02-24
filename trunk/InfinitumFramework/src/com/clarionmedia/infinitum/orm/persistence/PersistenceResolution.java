@@ -234,6 +234,8 @@ public class PersistenceResolution {
 				ret = f;
 		}
 
+		if (ret == null)
+			return null;
 		sPrimaryKeyCache.put(c, ret);
 		return ret;
 	}

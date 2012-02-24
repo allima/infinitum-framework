@@ -20,10 +20,11 @@
 package com.clarionmedia.infinitum.reflection;
 
 import java.lang.reflect.Field;
+
 import android.database.Cursor;
+
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteResult;
 
 /**
  * <p>

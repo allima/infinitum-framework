@@ -39,7 +39,6 @@ import com.clarionmedia.infinitum.orm.criteria.CriteriaImpl;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteriaImpl;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
-import com.clarionmedia.infinitum.orm.persistence.ObjectMapper;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlUtil;
@@ -49,7 +48,7 @@ import com.clarionmedia.infinitum.reflection.ModelFactoryImpl;
  * <p>
  * An implementation of {@link SqliteOperations}. This class is designed to
  * provide implementations of core CRUD operations for interacting with a SQLite
- * database.
+ * database and act as a factory for constructing {@link Criteria} queries.
  * </p>
  * 
  * @author Tyler Treat
@@ -64,7 +63,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected ApplicationContext mAppContext;
 	protected SqliteDbHelper mDbHelper;
 	protected SQLiteDatabase mSqliteDb;
-	protected ObjectMapper mObjectMapper;
+	protected SqliteMapper mObjectMapper;
 	protected ModelFactoryImpl mModelFactory;
 
 	/**
@@ -77,7 +76,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public SqliteTemplate(Context context) {
 		mContext = context;
 		mAppContext = ApplicationContextFactory.getApplicationContext();
-		mObjectMapper = new ObjectMapper();
+		mObjectMapper = new SqliteMapper();
 		mModelFactory = new ModelFactoryImpl(mContext);
 	}
 
@@ -108,9 +107,11 @@ public class SqliteTemplate implements SqliteOperations {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_SAVE_TRANSIENT, model.getClass()
 					.getName()));
-		ContentValues values = mObjectMapper.mapModel(model);
+		SqliteModelMap map = mObjectMapper.mapModel(model);
+		ContentValues values = map.getContentValues();
 		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		long ret = mSqliteDb.insert(tableName, null, values);
+		// TODO Save/update relationships
 		if (mAppContext.isDebug())
 			Log.d(TAG, model.getClass().getSimpleName() + " model saved");
 		return ret;
@@ -121,10 +122,12 @@ public class SqliteTemplate implements SqliteOperations {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
 					.getName()));
-		ContentValues values = mObjectMapper.mapModel(model);
+		SqliteModelMap map = mObjectMapper.mapModel(model);
+		ContentValues values = map.getContentValues();
 		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
+		// TODO Save/update relationships
 		if (mAppContext.isDebug()) {
 			if (ret > 0)
 				Log.d(TAG, model.getClass().getSimpleName() + " model updated");
