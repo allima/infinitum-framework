@@ -31,11 +31,9 @@ import com.clarionmedia.infinitum.reflection.PackageReflector;
  * @author Tyler Treat
  * @version 1.0 02/19/12
  */
-public class ManyToManyRelationship {
+public class ManyToManyRelationship extends ModelRelationship {
 
 	private String mTableName;
-	private Class<?> mFirst;
-	private Class<?> mSecond;
 	private String mFirstFieldName;
 	private String mSecondFieldName;
 
@@ -46,6 +44,7 @@ public class ManyToManyRelationship {
 		mSecond = PackageReflector.getClass(mtm.className());
 		mFirstFieldName = mtm.keyField();
 		mSecondFieldName = mtm.foreignField();
+		mRelationType = RelationType.ManyToMany;
 	}
 
 	public String getTableName() {
@@ -54,22 +53,6 @@ public class ManyToManyRelationship {
 
 	public void setTableName(String tableName) {
 		mTableName = tableName;
-	}
-
-	public Class<?> getFirst() {
-		return mFirst;
-	}
-
-	public void setFirst(Class<?> first) {
-		mFirst = first;
-	}
-
-	public Class<?> getSecond() {
-		return mSecond;
-	}
-
-	public void setSecond(Class<?> second) {
-		mSecond = second;
 	}
 
 	public String getFirstFieldName() {
@@ -96,10 +79,6 @@ public class ManyToManyRelationship {
 		mSecondFieldName = secondField;
 	}
 
-	public boolean contains(Class<?> c) {
-		return mFirst == c || mSecond == c;
-	}
-
 	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof ManyToManyRelationship))
@@ -124,4 +103,5 @@ public class ManyToManyRelationship {
 		hash *= PRIME + mSecondFieldName.hashCode();
 		return hash;
 	}
+
 }

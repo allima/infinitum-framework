@@ -19,45 +19,49 @@
 
 package com.clarionmedia.infinitum.orm;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.clarionmedia.infinitum.internal.Pair;
-
 /**
- * Represents a domain model instance mapped to a database table.
+ * This abstract class is used to define a relationship between two domain
+ * models.
  * 
  * @author Tyler Treat
- * @version 1.0 02/23/12
+ * @version 1.0 02/25/12
  */
-public abstract class ModelMap {
+public abstract class ModelRelationship {
 
-	protected Object mModel;
-	private List<Pair<ModelRelationship, Iterable<Object>>> mRelationships;
+	public static enum RelationType {
+		ManyToMany, ManyToOne, OneToMany, OneToOne
+	};
 
-	public ModelMap(Object model) {
-		mModel = model;
-		mRelationships = new ArrayList<Pair<ModelRelationship, Iterable<Object>>>();
+	protected Class<?> mFirst;
+	protected Class<?> mSecond;
+	protected RelationType mRelationType;
+
+	public Class<?> getFirstType() {
+		return mFirst;
 	}
 
-	public Object getModel() {
-		return mModel;
+	public void setFirstType(Class<?> first) {
+		mFirst = first;
 	}
 
-	public void setModel(Object model) {
-		mModel = model;
+	public Class<?> getSecondType() {
+		return mSecond;
 	}
 
-	public List<Pair<ModelRelationship, Iterable<Object>>> getRelationships() {
-		return mRelationships;
+	public void setSecondType(Class<?> second) {
+		mSecond = second;
 	}
 
-	public void setRelationships(List<Pair<ModelRelationship, Iterable<Object>>> aggregates) {
-		mRelationships = aggregates;
+	public boolean contains(Class<?> c) {
+		return mFirst == c || mSecond == c;
 	}
 
-	public void addRelationship(Pair<ModelRelationship, Iterable<Object>> aggregate) {
-		mRelationships.add(aggregate);
+	public RelationType getRelationType() {
+		return mRelationType;
+	}
+
+	public void setRelationType(RelationType type) {
+		mRelationType = type;
 	}
 
 }

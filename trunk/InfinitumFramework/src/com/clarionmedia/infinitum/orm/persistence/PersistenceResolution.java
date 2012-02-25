@@ -133,8 +133,7 @@ public class PersistenceResolution {
 	 * @throws IllegalArgumentException
 	 *             if the given {@code Class} is transient
 	 */
-	public static String getModelTableName(Class<?> c)
-			throws IllegalArgumentException {
+	public static String getModelTableName(Class<?> c) throws IllegalArgumentException {
 		if (!isPersistent(c))
 			throw new IllegalArgumentException();
 		String ret;
@@ -169,8 +168,7 @@ public class PersistenceResolution {
 		for (Field f : fields) {
 			Persistence persistence = f.getAnnotation(Persistence.class);
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-			if ((persistence == null || persistence.value() == PersistenceMode.Persistent)
-					|| pk != null)
+			if ((persistence == null || persistence.value() == PersistenceMode.Persistent) || pk != null)
 				ret.add(f);
 		}
 		sPersistenceCache.put(c, ret);
@@ -210,8 +208,7 @@ public class PersistenceResolution {
 	 * @throws ModelConfigurationException
 	 *             if multiple primary keys are declared in {@code c}
 	 */
-	public static Field getPrimaryKeyField(Class<?> c)
-			throws ModelConfigurationException {
+	public static Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
 		if (sPrimaryKeyCache.containsKey(c))
 			return sPrimaryKeyCache.get(c);
 		Field ret = null;
@@ -223,8 +220,7 @@ public class PersistenceResolution {
 				ret = f;
 				found = true;
 			} else if (pk != null && found) {
-				throw new ModelConfigurationException(String.format(
-						OrmConstants.MULTIPLE_PK_ERROR, c.getName()));
+				throw new ModelConfigurationException(String.format(OrmConstants.MULTIPLE_PK_ERROR, c.getName()));
 			}
 		}
 		// Look for id fields if the annotation is missing
@@ -326,12 +322,11 @@ public class PersistenceResolution {
 	 *             if an explicit primary key that is set to autoincrement is
 	 *             not of type int or long
 	 */
-	public static boolean isPrimaryKeyAutoIncrement(Field f)
-			throws InfinitumRuntimeException {
+	public static boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException {
 		PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
 		if (pk == null) {
-			if (f.getType() == int.class || f.getType() == Integer.class
-					|| f.getType() == long.class || f.getType() == Long.class)
+			if (f.getType() == int.class || f.getType() == Integer.class || f.getType() == long.class
+					|| f.getType() == Long.class)
 				return true;
 			else
 				return false;
@@ -340,13 +335,12 @@ public class PersistenceResolution {
 		if (!ret)
 			return false;
 		// throw runtime exception if explicit PK is not an int or long
-		if (f.getType() == int.class || f.getType() == Integer.class
-				|| f.getType() == long.class || f.getType() == Long.class)
+		if (f.getType() == int.class || f.getType() == Integer.class || f.getType() == long.class
+				|| f.getType() == Long.class)
 			return true;
 		else
-			throw new InfinitumRuntimeException(String.format(
-					OrmConstants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
-							.getDeclaringClass().getName()));
+			throw new InfinitumRuntimeException(String.format(OrmConstants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
+					.getDeclaringClass().getName()));
 	}
 
 	/**
@@ -394,8 +388,7 @@ public class PersistenceResolution {
 	 *            the {@code Class} to get relationships for
 	 * @return {@code Set} of all many-to-many relationships
 	 */
-	public static Set<ManyToManyRelationship> getManyToManyRelationships(
-			Class<?> c) {
+	public static Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c) {
 		Set<ManyToManyRelationship> ret = new HashSet<ManyToManyRelationship>();
 		for (ManyToManyRelationship r : sManyToManyCache) {
 			if (r.contains(c))
@@ -418,33 +411,29 @@ public class PersistenceResolution {
 		final int PRIME = 31;
 		int hash = 7;
 		hash *= PRIME + obj.getClass().hashCode();
-		for (Field f : getPersistentFields(obj.getClass())) {
-			f.setAccessible(true);
-			if (f.isAnnotationPresent(PrimaryKey.class)) {
-				Object o = null;
-				try {
-					o = f.get(obj);
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					return 0;
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					return 0;
-				}
-				if (o != null)
-					hash *= PRIME + o.hashCode();
-			}
+		Field f = getPrimaryKeyField(obj.getClass());
+		f.setAccessible(true);
+		Object o = null;
+		try {
+			o = f.get(obj);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return 0;
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return 0;
 		}
+		if (o != null)
+			hash *= PRIME + o.hashCode();
 		return hash;
 	}
 
 	private static Field findPrimaryKeyField(Class<?> c) {
 		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
-			if (f.getName().equals("mId") || f.getName().equals("mID")
-					|| f.getName().equalsIgnoreCase("id"))
+			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
 				return f;
 		}
 		return null;
