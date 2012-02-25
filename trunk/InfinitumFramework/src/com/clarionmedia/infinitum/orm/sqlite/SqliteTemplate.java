@@ -265,7 +265,7 @@ public class SqliteTemplate implements SqliteOperations {
 				Log.d(TAG, model.getClass().getSimpleName() + " model was not saved");
 			return ret;
 		}
-		if (ret > 0) {
+		if (ret > 0 && PersistenceResolution.isCascading(model.getClass())) {
 			Field f = PersistenceResolution.getPrimaryKeyField(model.getClass());
 			f.setAccessible(true);
 			try {
@@ -320,15 +320,17 @@ public class SqliteTemplate implements SqliteOperations {
 				Log.d(TAG, model.getClass().getSimpleName() + " model was not updated");
 			return false;
 		}
-		boolean success;
-		for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
-			for (Object o : p.getSecond()) {
-				success = saveOrUpdateRec(o, objectMap) >= 0;
-				if (success) {
-					// TODO Handle stale M:M relationships
-					ModelRelationship rel = p.getFirst();
-					if (rel.getRelationType() == RelationType.ManyToMany)
-						insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
+		if (PersistenceResolution.isCascading(model.getClass())) {
+			boolean success;
+			for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
+				for (Object o : p.getSecond()) {
+					success = saveOrUpdateRec(o, objectMap) >= 0;
+					if (success) {
+						// TODO Handle stale M:M relationships
+						ModelRelationship rel = p.getFirst();
+						if (rel.getRelationType() == RelationType.ManyToMany)
+							insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
+					}
 				}
 			}
 		}

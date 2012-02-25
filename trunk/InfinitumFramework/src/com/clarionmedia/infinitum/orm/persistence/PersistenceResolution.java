@@ -113,7 +113,7 @@ public class PersistenceResolution {
 	 */
 	public static boolean isPersistent(Class<?> c) {
 		Entity entity = c.getAnnotation(Entity.class);
-		if (entity == null || entity.value() == PersistenceMode.Persistent)
+		if (entity == null || entity.mode() == PersistenceMode.Persistent)
 			return true;
 		else
 			return false;
@@ -428,6 +428,13 @@ public class PersistenceResolution {
 		if (o != null)
 			hash *= PRIME + o.hashCode();
 		return hash;
+	}
+
+	public static boolean isCascading(Class<?> c) {
+		if (!c.isAnnotationPresent(Entity.class))
+			return true;
+		Entity entity = c.getAnnotation(Entity.class);
+		return entity.cascade();
 	}
 
 	private static Field findPrimaryKeyField(Class<?> c) {
