@@ -51,6 +51,8 @@ import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 @Target(ElementType.TYPE)
 public @interface Entity {
 	
-	PersistenceMode value() default PersistenceMode.Persistent;
+	PersistenceMode mode() default PersistenceMode.Persistent;
+	
+	boolean cascade() default true;
 	
 }

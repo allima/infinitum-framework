@@ -27,7 +27,7 @@ import java.util.List;
  * Acts as a container for application-wide context information. This should not
  * be instantiated directly but rather obtained through the
  * {@link ApplicationContextFactory}, which creates an instance of this from
- * <code>infinitum.cfg.xml</code>.
+ * {@code infinitum.cfg.xml}.
  * </p>
  * 
  * @author Tyler Treat
@@ -48,6 +48,7 @@ public class ApplicationContext {
 	private int mSqliteDbVersion;
 	private String mDomainPackage;
 	private List<String> mDomainModels;
+	private boolean mIsCascading;
 
 	/**
 	 * Constructs a new <code>ApplicationContext</code>. This constructor should
@@ -246,6 +247,31 @@ public class ApplicationContext {
 	 */
 	public void addDomainModel(String domainModel) {
 		mDomainModels.add(domainModel);
+	}
+
+	/**
+	 * Returns the cascade value for this {@code ApplicationContext}. When
+	 * cascade is enabled, saving a persistence object which contains a
+	 * collection of persistent objects will result in the collection being
+	 * saved also. If it is disabled, only the saved object will be persisted.
+	 * 
+	 * @return {@code true} if cascade is enabled, {@code false} if not
+	 */
+	public boolean isCascading() {
+		return mIsCascading;
+	}
+
+	/**
+	 * Sets the cascade value for this {@code ApplicationContext}. When cascade
+	 * is enabled, saving a persistence object which contains a collection of
+	 * persistent objects will result in the collection being saved also. If it
+	 * is disabled, only the saved object will be persisted.
+	 * 
+	 * @param isCascading
+	 *            boolean indicating if cascade should be enabled or disabled
+	 */
+	public void setCascading(boolean isCascading) {
+		mIsCascading = isCascading;
 	}
 
 }
