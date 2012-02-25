@@ -26,7 +26,10 @@ import java.util.List;
 import android.content.ContentValues;
 
 import com.clarionmedia.infinitum.internal.DateFormatter;
+import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
+import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.ModelRelationship;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
@@ -64,11 +67,12 @@ public class SqliteMapper implements ObjectMapper {
 
 				// Map relationships
 				if (f.isAnnotationPresent(ManyToMany.class)) {
+					ManyToManyRelationship mtm = new ManyToManyRelationship(f);
 					Object relationship = f.get(model);
 					if (!(relationship instanceof Iterable))
 						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP,
 								f.getName(), f.getDeclaringClass().getName()));
-					ret.addRelationship((Iterable<Object>) relationship);
+					ret.addRelationship(new Pair<ModelRelationship, Iterable<Object>>(mtm, (Iterable<Object>) relationship));
 					continue;
 				}
 

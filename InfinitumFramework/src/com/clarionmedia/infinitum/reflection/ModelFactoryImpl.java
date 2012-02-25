@@ -74,7 +74,6 @@ public class ModelFactoryImpl implements ModelFactory {
 	public <T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException,
 			InfinitumRuntimeException {
 		T ret = createFromCursorRec(cursor, modelClass, null);
-		mObjectMap.clear();
 		return ret;
 	}
 
@@ -130,7 +129,7 @@ public class ModelFactoryImpl implements ModelFactory {
 			try {
 				ManyToManyRelationship rel = new ManyToManyRelationship(f);
 				// TODO Add reflexive M:M support
-				Class<?> direction = obj.getClass() == rel.getFirst() ? rel.getSecond() : rel.getFirst();
+				Class<?> direction = obj.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
 				Field pk = PersistenceResolution.getPrimaryKeyField(obj.getClass());
 				String sql = SqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(obj), direction);
 				SqliteResult result = (SqliteResult) mExecutor.execute(sql);

@@ -150,36 +150,36 @@ public class SqlBuilder {
 			throws InfinitumRuntimeException {
 		if (!rel.contains(direction))
 			throw new InfinitumRuntimeException(String.format(
-					"'%s' is not a valid direction for relationship '%s'<=>'%s'.", direction.getName(), rel.getFirst()
-							.getName(), rel.getSecond().getName()));
+					"'%s' is not a valid direction for relationship '%s'<=>'%s'.", direction.getName(), rel
+							.getFirstType().getName(), rel.getSecondType().getName()));
 		StringBuilder query = new StringBuilder(String.format(SqlConstants.ALIASED_SELECT_ALL_FROM, 'x')).append(
-				PersistenceResolution.getModelTableName(rel.getFirst())).append(' ');
-		if (direction == rel.getFirst())
+				PersistenceResolution.getModelTableName(rel.getFirstType())).append(' ');
+		if (direction == rel.getFirstType())
 			query.append("x, ");
 		else
 			query.append("y, ");
-		query.append(PersistenceResolution.getModelTableName(rel.getSecond())).append(' ');
-		if (direction == rel.getSecond())
+		query.append(PersistenceResolution.getModelTableName(rel.getSecondType())).append(' ');
+		if (direction == rel.getSecondType())
 			query.append("x, ");
 		else
 			query.append("y, ");
 		query.append(rel.getTableName()).append(" z ").append(SqlConstants.WHERE).append(' ').append("z.");
-		if (direction == rel.getFirst())
-			query.append(PersistenceResolution.getModelTableName(rel.getFirst())).append('_')
+		if (direction == rel.getFirstType())
+			query.append(PersistenceResolution.getModelTableName(rel.getFirstType())).append('_')
 					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ").append("x.")
 					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(' ')
 					.append(SqlConstants.AND).append(" z.")
-					.append(PersistenceResolution.getModelTableName(rel.getSecond())).append('_')
+					.append(PersistenceResolution.getModelTableName(rel.getSecondType())).append('_')
 					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append("y.")
 					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(' ')
 					.append(SqlConstants.AND).append(" y.")
 					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append(id);
 		else
-			query.append(PersistenceResolution.getModelTableName(rel.getSecond())).append('_')
+			query.append(PersistenceResolution.getModelTableName(rel.getSecondType())).append('_')
 					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append("x.")
 					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(' ')
 					.append(SqlConstants.AND).append(" z.")
-					.append(PersistenceResolution.getModelTableName(rel.getFirst())).append('_')
+					.append(PersistenceResolution.getModelTableName(rel.getFirstType())).append('_')
 					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ").append("y.")
 					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(' ')
 					.append(SqlConstants.AND).append(" y.")
@@ -212,21 +212,22 @@ public class SqlBuilder {
 	}
 
 	private static String createManyToManyTableString(ManyToManyRelationship rel) throws ModelConfigurationException {
-		if (!PersistenceResolution.isPersistent(rel.getFirst()) || !PersistenceResolution.isPersistent(rel.getSecond()))
+		if (!PersistenceResolution.isPersistent(rel.getFirstType())
+				|| !PersistenceResolution.isPersistent(rel.getSecondType()))
 			return null;
 		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(' ').append(rel.getTableName()).append(" (");
 		Field first = rel.getFirstField();
 		if (first == null)
-			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirst()
-					.getName(), rel.getSecond().getName()));
+			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirstType()
+					.getName(), rel.getSecondType().getName()));
 		Field second = rel.getSecondField();
 		if (second == null)
-			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirst()
-					.getName(), rel.getSecond().getName()));
-		sb.append(PersistenceResolution.getModelTableName(rel.getFirst())).append('_')
+			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirstType()
+					.getName(), rel.getSecondType().getName()));
+		sb.append(PersistenceResolution.getModelTableName(rel.getFirstType())).append('_')
 				.append(PersistenceResolution.getFieldColumnName(first)).append(' ')
 				.append(TypeResolution.getSqliteDataType(first).toString()).append(' ').append(NOT_NULL).append(", ")
-				.append(PersistenceResolution.getModelTableName(rel.getSecond())).append('_')
+				.append(PersistenceResolution.getModelTableName(rel.getSecondType())).append('_')
 				.append(PersistenceResolution.getFieldColumnName(second)).append(' ')
 				.append(TypeResolution.getSqliteDataType(second).toString()).append(' ').append(NOT_NULL).append(')');
 		return sb.toString();
