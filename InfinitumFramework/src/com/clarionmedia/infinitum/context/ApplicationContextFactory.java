@@ -150,9 +150,6 @@ public class ApplicationContextFactory {
 											ret.setConfigurationMode(ConfigurationMode.Annotation);
 										else if (mode.equalsIgnoreCase(ConfigurationMode.XML.toString()))
 											ret.setConfigurationMode(ConfigurationMode.XML);
-									} else if (name
-											.equalsIgnoreCase(ApplicationContextConstants.DOMAIN_PACKAGE_ATTRIBUTE)) {
-										ret.setDomainPackage(config.getText());
 									}
 									config.next();
 									config.next();
@@ -222,6 +219,47 @@ public class ApplicationContextFactory {
 									String resource = config.getAttributeValue(null,
 											ApplicationContextConstants.DOMAIN_RESOURCE_ATTRIBUTE);
 									ret.addDomainModel(resource);
+									config.next();
+									config.next();
+									event = config.getEventType();
+								}
+							}
+							config.next();
+							event = config.getEventType();
+							continue;
+						}
+						
+						// Parse <rest> node
+						if (event == XmlPullParser.START_TAG
+								&& config.getName().contentEquals(ApplicationContextConstants.REST_ELEMENT)) {
+							config.next();
+							event = config.getEventType();
+
+							// Parse until we reach the end of <rest>
+							while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG
+									&& !config.getName().contentEquals(ApplicationContextConstants.REST_ELEMENT)) {
+								ret.setHasRestfulService(true);
+
+								// Parse properties
+								if (event == XmlPullParser.START_TAG
+										&& config.getName().contentEquals(ApplicationContextConstants.PROPERTY_ELEMENT)) {
+									String name = config.getAttributeValue(null,
+											ApplicationContextConstants.NAME_ATTRIBUTE);
+									config.next();
+									event = config.getEventType();
+									if (event != XmlPullParser.TEXT)
+										throw new InfinitumConfigurationException(String.format(
+												ApplicationContextConstants.CONFIG_PARSE_ERROR_LINE,
+												config.getLineNumber()));
+									if (name.equalsIgnoreCase(ApplicationContextConstants.REST_HOST_ATTRIBUTE)) {
+										String host = config.getText();
+										if (host.trim().equals(""))
+											throw new InfinitumConfigurationException(
+													ApplicationContextConstants.CONFIG_PARSE_ERROR + " "
+															+ ApplicationContextConstants.REST_HOST_MISSING);
+										else
+											ret.setRestHost(host);
+									}
 									config.next();
 									config.next();
 									event = config.getEventType();

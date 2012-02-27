@@ -46,8 +46,10 @@ public class ApplicationContext {
 	private boolean mHasSqliteDb;
 	private String mSqliteDbName;
 	private int mSqliteDbVersion;
-	private String mDomainPackage;
 	private List<String> mDomainModels;
+	private boolean mHasRestfulService;
+	private String mRestHost;
+	private List<String> mRestResources;
 
 	/**
 	 * Constructs a new <code>ApplicationContext</code>. This constructor should
@@ -57,6 +59,7 @@ public class ApplicationContext {
 	public ApplicationContext() {
 		mConfigMode = DEFAULT_MODE;
 		mDomainModels = new ArrayList<String>();
+		mRestResources = new ArrayList<String>();
 	}
 
 	/**
@@ -199,32 +202,6 @@ public class ApplicationContext {
 	}
 
 	/**
-	 * Returns the domain package for this <code>ApplicationContext</code>. The
-	 * domain package is the package containing all domain model classes for the
-	 * project.
-	 * 
-	 * @return the domain package
-	 */
-	public String getDomainPackage() {
-		return mDomainPackage;
-	}
-
-	/**
-	 * Sets the domain package for this <code>ApplicationContext</code>. The
-	 * domain package can be specified in <code>infinitum.cfg.xml</code> with
-	 * <code>&lt;property name="domainPackage"&gt;com.foo.bar.domain&lt;/property&gt;</code>
-	 * in the <code>application</code> element. Domain classes can be
-	 * individually registered in <code>infinitum.cfg.xml</code> using
-	 * <code>&lt;model resource="com.foo.domain.MyModel" /&gt;</code> in the
-	 * <code>domain</code> element.
-	 * 
-	 * @param domainPackage
-	 */
-	public void setDomainPackage(String domainPackage) {
-		mDomainPackage = domainPackage;
-	}
-
-	/**
 	 * Returns a <code>List</code> of all fully-qualified domain model classes
 	 * registered with this <code>ApplicationContext</code>. Domain models are
 	 * defined as being persistent entities.
@@ -246,6 +223,60 @@ public class ApplicationContext {
 	 */
 	public void addDomainModel(String domainModel) {
 		mDomainModels.add(domainModel);
+	}
+
+	/**
+	 * Returns the REST host URL registered with this {@code ApplicationContext}
+	 * or {@code null} if no RESTful web service was registered.
+	 * 
+	 * @return host URL
+	 */
+	public String getRestHost() {
+		return mRestHost;
+	}
+
+	/**
+	 * Registers the specified URI as a RESTful web service host for this
+	 * {@code ApplicationContext}. The REST host can be specified in
+	 * {@code infinitum.cfg.xml} using
+	 * <code>&lt;property name="host"&gt;http://localhost:8080&lt;/property&gt;</code>
+	 * in the {@code rest} element.
+	 * 
+	 * @param restHost
+	 */
+	public void setRestHost(String restHost) {
+		mRestHost = restHost;
+	}
+
+	/**
+	 * Returns a {@code List} of all REST resources registered with this
+	 * {@code ApplicationContext}.
+	 * 
+	 * @return {@code List} of REST resource names
+	 */
+	public List<String> getRestResources() {
+		return mRestResources;
+	}
+
+	/**
+	 * Adds the specified REST resource name to the collection of resources
+	 * registered to this {@code ApplicationContext}. REST resources are defined
+	 * in {@code infinitum.cfg.xml} using
+	 * <code>&lt;resource name="foo" /&gt;</code> in the <code>rest</code>
+	 * element.
+	 * 
+	 * @param resource
+	 */
+	public void addRestResource(String resource) {
+		mRestResources.add(resource);
+	}
+
+	public boolean hasRestfulService() {
+		return mHasRestfulService;
+	}
+
+	public void setHasRestfulService(boolean hasRestfulService) {
+		mHasRestfulService = hasRestfulService;
 	}
 
 }
