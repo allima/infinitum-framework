@@ -36,6 +36,7 @@ public class ApplicationContextConstants {
 	public static final String APPLICATION_ELEMENT = "application";
 	public static final String SQLITE_ELEMENT = "sqlite";
 	public static final String DOMAIN_ELEMENT = "domain";
+	public static final String REST_ELEMENT = "rest";
 	public static final String PROPERTY_ELEMENT = "property";
 	public static final String MODEL_ELEMENT = "model";
 	
@@ -47,11 +48,13 @@ public class ApplicationContextConstants {
 	public static final String MODE_ATTRIBUTE = "mode";
 	public static final String DOMAIN_PACKAGE_ATTRIBUTE = "domainPackage";
 	public static final String DOMAIN_RESOURCE_ATTRIBUTE = "resource";
+	public static final String REST_HOST_ATTRIBUTE = "host";
 
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the ApplicationContext!";
 	public static final String CONFIG_PARSE_ERROR = "Could not parse configuration file.";
 	public static final String CONFIG_PARSE_ERROR_LINE = "Could not parse configuration file at line %d.";
 	public static final String SQLITE_DB_NAME_MISSING = "SQLite database name is missing!";
+	public static final String REST_HOST_MISSING = "REST host is missing!";
 
 }
