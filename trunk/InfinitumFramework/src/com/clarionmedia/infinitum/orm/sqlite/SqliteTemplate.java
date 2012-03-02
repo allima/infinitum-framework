@@ -49,6 +49,7 @@ import com.clarionmedia.infinitum.orm.criteria.GenCriteriaImpl;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
+import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlUtil;
 import com.clarionmedia.infinitum.reflection.ModelFactoryImpl;
 
@@ -266,42 +267,7 @@ public class SqliteTemplate implements SqliteOperations {
 			return ret;
 		}
 		if (ret > 0 && PersistenceResolution.isCascading(model.getClass())) {
-			Field f = PersistenceResolution.getPrimaryKeyField(model.getClass());
-			f.setAccessible(true);
-			try {
-				f.set(model, ret);
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			long id;
-			for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
-				// TODO Handle stale M:M relationships
-				ModelRelationship rel = p.getFirst();
-				for (Object o : p.getSecond()) {
-					int oHash = PersistenceResolution.computeModelHash(o);
-					if (objectMap.containsKey(oHash))
-						continue;
-					id = saveOrUpdateRec(o, objectMap);
-					if (id > 0) {
-						f = PersistenceResolution.getPrimaryKeyField(o.getClass());
-						try {
-							f.set(o, id);
-						} catch (IllegalArgumentException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IllegalAccessException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						if (rel.getRelationType() == RelationType.ManyToMany)
-							insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
-					}
-				}
-			}
+			processRelationships(map, objectMap, model, ret);
 			if (mAppContext.isDebug())
 				Log.d(TAG, model.getClass().getSimpleName() + " model saved");
 		}
@@ -323,23 +289,8 @@ public class SqliteTemplate implements SqliteOperations {
 				Log.d(TAG, model.getClass().getSimpleName() + " model was not updated");
 			return false;
 		}
-		if (PersistenceResolution.isCascading(model.getClass())) {
-			boolean success;
-			for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
-				// TODO Handle stale M:M relationships
-				ModelRelationship rel = p.getFirst();
-				for (Object o : p.getSecond()) {
-					int oHash = PersistenceResolution.computeModelHash(o);
-					if (objectMap.containsKey(oHash))
-						continue;
-					success = saveOrUpdateRec(o, objectMap) >= 0;
-					if (success) {
-						if (rel.getRelationType() == RelationType.ManyToMany)
-							insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
-					}
-				}
-			}
-		}
+		if (PersistenceResolution.isCascading(model.getClass()))
+			processRelationships(map, objectMap, model);
 		if (mAppContext.isDebug())
 			Log.d(TAG, model.getClass().getSimpleName() + " model updated");
 		return true;
@@ -351,6 +302,80 @@ public class SqliteTemplate implements SqliteOperations {
 			return saveRec(model, objectMap);
 		} else
 			return 0;
+	}
+	
+	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model, long pk) {
+		Field f = PersistenceResolution.getPrimaryKeyField(model.getClass());
+		f.setAccessible(true);
+		try {
+			f.set(model, pk);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
+			ModelRelationship rel = p.getFirst();
+			StringBuilder staleQuery = null;
+			if (rel.getRelationType() == RelationType.ManyToMany)
+				staleQuery = SqlBuilder.createInitialStaleRelationshipQuery((ManyToManyRelationship) rel, model);
+			String prefix = "";
+			for (Object o : p.getSecond()) {
+				int oHash = PersistenceResolution.computeModelHash(o);
+				if (objectMap.containsKey(oHash))
+					continue;
+				long id = saveOrUpdateRec(o, objectMap);
+				if (id > 0) {
+					f = PersistenceResolution.getPrimaryKeyField(o.getClass());
+					try {
+						f.set(o, id);
+					} catch (IllegalArgumentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if (rel.getRelationType() == RelationType.ManyToMany)
+						insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
+				}
+				if (rel.getRelationType() == RelationType.ManyToMany) {
+				    SqlBuilder.addPrimaryKey(o, staleQuery, prefix);
+				    prefix = ", ";
+				}
+			}
+			staleQuery.append(')');
+			execute(staleQuery.toString());
+		}
+	}
+	
+	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model) {
+		boolean success;
+		for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
+			ModelRelationship rel = p.getFirst();
+			StringBuilder staleQuery = null;
+			if (rel.getRelationType() == RelationType.ManyToMany)
+				staleQuery = SqlBuilder.createInitialStaleRelationshipQuery((ManyToManyRelationship) rel, model);
+			String prefix = "";
+			for (Object o : p.getSecond()) {
+				int oHash = PersistenceResolution.computeModelHash(o);
+				if (objectMap.containsKey(oHash))
+					continue;
+				success = saveOrUpdateRec(o, objectMap) >= 0;
+				if (success) {
+					if (rel.getRelationType() == RelationType.ManyToMany)
+						insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
+				}
+				if (rel.getRelationType() == RelationType.ManyToMany) {
+				    SqlBuilder.addPrimaryKey(o, staleQuery, prefix);
+				    prefix = ", ";
+				}
+			}
+			staleQuery.append(')');
+			execute(staleQuery.toString());
+		}
 	}
 
 	private boolean insertManyToManyRelationship(Object model, Object related, ManyToManyRelationship mtm) {

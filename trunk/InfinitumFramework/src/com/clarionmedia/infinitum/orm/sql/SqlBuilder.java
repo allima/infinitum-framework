@@ -210,6 +210,70 @@ public class SqlBuilder {
 		sb.append(')');
 		return sb.toString();
 	}
+	
+	public static StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model) {
+		Field pkField = PersistenceResolution.getPrimaryKeyField(model.getClass());
+		pkField.setAccessible(true);
+		Object pk = null;
+		try {
+			pk = pkField.get(model);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		StringBuilder ret = new StringBuilder("DELETE FROM ").append(rel.getTableName()).append(' ').append("WHERE ");
+		Field col;
+		if (model.getClass() == rel.getFirstType()) {
+			ret.append(PersistenceResolution.getModelTableName(rel.getFirstType()) + '_'
+				+ PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ");
+			col = rel.getFirstField();
+		} else {
+			ret.append(PersistenceResolution.getModelTableName(rel.getSecondType()) + '_'
+					+ PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ");
+			col = rel.getSecondField();
+		}
+		switch (TypeResolution.getSqliteDataType(col)) {
+		case TEXT:
+			ret.append("'").append(ret.append(pk)).append("'");
+			break;
+		default:
+			ret.append(pk);
+		}
+		ret.append(" AND ");
+		if (model.getClass() == rel.getFirstType())
+			ret.append(PersistenceResolution.getModelTableName(rel.getSecondType()) + '_'
+					+ PersistenceResolution.getFieldColumnName(rel.getSecondField()));
+		else
+			ret.append(PersistenceResolution.getModelTableName(rel.getFirstType()) + '_'
+					+ PersistenceResolution.getFieldColumnName(rel.getFirstField()));
+		return ret.append(" NOT IN (");
+	}
+	
+	public static void addPrimaryKey(Object o, StringBuilder sb, String prefix) {
+		sb.append(prefix);
+		Field pkField = PersistenceResolution.getPrimaryKeyField(o.getClass());
+		pkField.setAccessible(true);
+		Object pk = null;
+		try {
+			pk = pkField.get(o);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		switch (TypeResolution.getSqliteDataType(pkField)) {
+		case TEXT:
+			sb.append("'").append(sb.append(pk)).append("'");
+			break;
+		default:
+			sb.append(pk);
+		}
+	}
 
 	private static String createManyToManyTableString(ManyToManyRelationship rel) throws ModelConfigurationException {
 		if (!PersistenceResolution.isPersistent(rel.getFirstType())
