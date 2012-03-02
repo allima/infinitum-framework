@@ -279,10 +279,14 @@ public class SqliteTemplate implements SqliteOperations {
 			}
 			long id;
 			for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
+				// TODO Handle stale M:M relationships
+				ModelRelationship rel = p.getFirst();
 				for (Object o : p.getSecond()) {
+					int oHash = PersistenceResolution.computeModelHash(o);
+					if (objectMap.containsKey(oHash))
+						continue;
 					id = saveOrUpdateRec(o, objectMap);
 					if (id > 0) {
-						// TODO Handle stale M:M relationships
 						f = PersistenceResolution.getPrimaryKeyField(o.getClass());
 						try {
 							f.set(o, id);
@@ -293,7 +297,6 @@ public class SqliteTemplate implements SqliteOperations {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						ModelRelationship rel = p.getFirst();
 						if (rel.getRelationType() == RelationType.ManyToMany)
 							insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
 					}
@@ -323,11 +326,14 @@ public class SqliteTemplate implements SqliteOperations {
 		if (PersistenceResolution.isCascading(model.getClass())) {
 			boolean success;
 			for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
+				// TODO Handle stale M:M relationships
+				ModelRelationship rel = p.getFirst();
 				for (Object o : p.getSecond()) {
+					int oHash = PersistenceResolution.computeModelHash(o);
+					if (objectMap.containsKey(oHash))
+						continue;
 					success = saveOrUpdateRec(o, objectMap) >= 0;
 					if (success) {
-						// TODO Handle stale M:M relationships
-						ModelRelationship rel = p.getFirst();
 						if (rel.getRelationType() == RelationType.ManyToMany)
 							insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
 					}

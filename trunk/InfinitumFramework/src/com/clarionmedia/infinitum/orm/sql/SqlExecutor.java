@@ -21,8 +21,21 @@ package com.clarionmedia.infinitum.orm.sql;
 
 import com.clarionmedia.infinitum.orm.ResultSet;
 
+/**
+ * Provides an API for executing SQL statements against a database.
+ * 
+ * @author Tyler Treat
+ * @version 1.0 02/24/12
+ */
 public interface SqlExecutor {
-	
+
+	/**
+	 * Executes the given SQL query and returns a {@link ResultSet} for it.
+	 * 
+	 * @param sql
+	 *            the SQL to execute
+	 * @return the result of the query
+	 */
 	ResultSet execute(String sql);
 
 }

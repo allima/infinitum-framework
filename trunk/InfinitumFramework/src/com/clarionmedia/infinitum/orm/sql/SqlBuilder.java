@@ -104,8 +104,8 @@ public class SqlBuilder {
 	public static String createQuery(CriteriaQuery criteria) {
 		Class<?> c = criteria.getEntityClass();
 		StringBuilder query = new StringBuilder(SqlConstants.SELECT_ALL_FROM)
-				.append(PersistenceResolution.getModelTableName(c)).append(' ').append(SqlConstants.WHERE).append(' ');
-		String prefix = "";
+				.append(PersistenceResolution.getModelTableName(c));
+		String prefix = " WHERE ";
 		for (Criterion criterion : criteria.getCriterion()) {
 			query.append(prefix);
 			prefix = SqlConstants.AND;
@@ -224,12 +224,14 @@ public class SqlBuilder {
 		if (second == null)
 			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirstType()
 					.getName(), rel.getSecondType().getName()));
-		sb.append(PersistenceResolution.getModelTableName(rel.getFirstType())).append('_')
-				.append(PersistenceResolution.getFieldColumnName(first)).append(' ')
-				.append(TypeResolution.getSqliteDataType(first).toString()).append(' ').append(NOT_NULL).append(", ")
-				.append(PersistenceResolution.getModelTableName(rel.getSecondType())).append('_')
-				.append(PersistenceResolution.getFieldColumnName(second)).append(' ')
-				.append(TypeResolution.getSqliteDataType(second).toString()).append(' ').append(NOT_NULL).append(')');
+		String firstCol = PersistenceResolution.getModelTableName(rel.getFirstType()) + '_'
+				+ PersistenceResolution.getFieldColumnName(first);
+		String secondCol = PersistenceResolution.getModelTableName(rel.getSecondType()) + '_'
+				+ PersistenceResolution.getFieldColumnName(second);
+		sb.append(firstCol).append(' ').append(TypeResolution.getSqliteDataType(first).toString()).append(' ')
+				.append(", ").append(secondCol).append(' ').append(TypeResolution.getSqliteDataType(second).toString())
+				.append(", ").append(PRIMARY_KEY).append('(').append(firstCol).append(", ").append(secondCol)
+				.append("))");
 		return sb.toString();
 	}
 
