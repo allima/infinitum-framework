@@ -67,11 +67,11 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 		if (!PersistenceResolution.isPersistent(entityClass))
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA,
 					entityClass.getName()));
+		mContext = context;
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
 		mModelFactory = new ModelFactoryImpl(mContext);
 		mCriterion = new ArrayList<Criterion>();
-		mContext = context;
 	}
 
 	@Override

@@ -24,6 +24,13 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
 
+/**
+ * Executes SQL statements against the registered SQLite database for this
+ * application.
+ * 
+ * @author Tyler Treat
+ * @version 1.0 02/24/12
+ */
 public class SqliteExecutor implements SqlExecutor {
 
 	private SQLiteDatabase mDb;
