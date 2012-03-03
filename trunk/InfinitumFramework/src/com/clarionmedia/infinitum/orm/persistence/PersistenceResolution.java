@@ -436,6 +436,32 @@ public class PersistenceResolution {
 		Entity entity = c.getAnnotation(Entity.class);
 		return entity.cascade();
 	}
+	
+	public static boolean isPKNullOrZero(Object model) {
+		Field f = getPrimaryKeyField(model.getClass());
+		f.setAccessible(true);
+		Object pk = null;
+		try {
+			pk = f.get(model);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (pk == null)
+			return true;
+		if (pk instanceof Integer)
+			return (((Integer) pk) == 0);
+		else if (pk instanceof Long)
+			return (((Long) pk) == 0);
+		else if (pk instanceof Float)
+			return (((Float) pk) == 0);
+		else if (pk instanceof Double)
+			return (((Double) pk) == 0);
+		return false;
+	}
 
 	private static Field findPrimaryKeyField(Class<?> c) {
 		List<Field> fields = getPersistentFields(c);
