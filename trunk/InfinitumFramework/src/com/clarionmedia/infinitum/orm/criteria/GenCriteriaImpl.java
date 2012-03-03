@@ -31,7 +31,7 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
-import com.clarionmedia.infinitum.reflection.ModelFactoryImpl;
+import com.clarionmedia.infinitum.reflection.SqliteModelFactory;
 
 /**
  * <p>
@@ -45,11 +45,12 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 
 	private Class<T> mEntityClass;
 	private SqliteOperations mSqliteOps;
-	private ModelFactoryImpl mModelFactory;
+	private SqliteModelFactory mModelFactory;
 	private List<Criterion> mCriterion;
 	private int mLimit;
 	private int mOffset;
 	private Context mContext;
+	private SqlBuilder mSqlBuilder;
 
 	/**
 	 * Constructs a new {@code GenCriteriaImpl} with the given entity
@@ -60,23 +61,27 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 	 * @param sqliteOps
 	 *            {@link SqliteOperations} for which this
 	 *            {@code GenCriteriaImpl} is being created for
+	 * @param sqlBuilder
+	 *            {@link SqlBuilder} for generating SQL statements
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public GenCriteriaImpl(Context context, Class<T> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
+	public GenCriteriaImpl(Context context, Class<T> entityClass, SqliteOperations sqliteOps, SqlBuilder sqlBuilder)
+			throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA,
 					entityClass.getName()));
 		mContext = context;
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
-		mModelFactory = new ModelFactoryImpl(mContext);
+		mModelFactory = new SqliteModelFactory(mContext);
 		mCriterion = new ArrayList<Criterion>();
+		mSqlBuilder = sqlBuilder;
 	}
 
 	@Override
 	public String toSql() {
-		return SqlBuilder.createQuery(this);
+		return mSqlBuilder.createQuery(this);
 	}
 
 	@Override
@@ -120,7 +125,7 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 	@Override
 	public List<T> toList() {
 		List<T> ret = new LinkedList<T>();
-		Cursor result = mSqliteOps.executeForResult(SqlBuilder.createQuery(this));
+		Cursor result = mSqliteOps.executeForResult(mSqlBuilder.createQuery(this));
 		if (result.getCount() == 0) {
 			result.close();
 			return ret;
@@ -139,7 +144,7 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 
 	@Override
 	public T unique() throws InfinitumRuntimeException {
-		Cursor result = mSqliteOps.executeForResult(SqlBuilder.createQuery(this));
+		Cursor result = mSqliteOps.executeForResult(mSqlBuilder.createQuery(this));
 		if (result.getCount() > 1)
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT,
 					mEntityClass.getName(), result.getCount()));

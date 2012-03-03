@@ -43,31 +43,35 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteExecutor;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteResult;
 
 /**
  * <p>
  * Implementation of {@link ModelFactory}, providing methods for creating new
- * instances of model classes using reflection. Also provides methods for
- * creating new, populated instances from a SQLite {@link Cursor}. It's
- * important to note that model classes must contain an empty, parameterless
- * constructor in order for these methods to work. If no such constructor is
- * present, a {@link ModelConfigurationException} will be thrown at runtime.
+ * instances of model classes from SQLite queries using reflection. Also
+ * provides methods for creating new, populated instances from a SQLite
+ * {@link Cursor}. It's important to note that model classes must contain an
+ * empty, parameterless constructor in order for these methods to work. If no
+ * such constructor is present, a {@link ModelConfigurationException} will be
+ * thrown at runtime.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/16/12
  */
-public class ModelFactoryImpl implements ModelFactory {
+public class SqliteModelFactory implements ModelFactory {
 
 	private static final String INSTANTIATION_ERROR = "Could not instantiate Object of type '%s'.";
 
 	private Map<Integer, Object> mObjectMap = new Hashtable<Integer, Object>();
 	private SqlExecutor mExecutor;
+	private SqlBuilder mSqlBuilder;
 
-	public ModelFactoryImpl(Context context) {
+	public SqliteModelFactory(Context context) {
 		mExecutor = new SqliteExecutor(context);
+		mSqlBuilder = new SqliteBuilder();
 	}
 
 	@Override
@@ -131,7 +135,7 @@ public class ModelFactoryImpl implements ModelFactory {
 				// TODO Add reflexive M:M support
 				Class<?> direction = obj.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
 				Field pk = PersistenceResolution.getPrimaryKeyField(obj.getClass());
-				String sql = SqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(obj), direction);
+				String sql = mSqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(obj), direction);
 				SqliteResult result = (SqliteResult) mExecutor.execute(sql);
 				// TODO Currently only supporting Lists
 				List<Object> related = new LinkedList<Object>();

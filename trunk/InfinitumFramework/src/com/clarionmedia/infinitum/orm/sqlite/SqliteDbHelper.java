@@ -46,11 +46,13 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 
 	private SQLiteDatabase mSqliteDb;
 	private ApplicationContext mAppContext;
+	private SqlBuilder mSqlBuilder;
 
 	public SqliteDbHelper(Context context) {
 		super(context, ApplicationContextFactory.getApplicationContext().getSqliteDbName(), null,
 				ApplicationContextFactory.getApplicationContext().getSqliteDbVersion());
 		mAppContext = ApplicationContextFactory.getApplicationContext();
+		mSqlBuilder = new SqliteBuilder();
 	}
 
 	/**
@@ -77,7 +79,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Creating database tables");
 		try {
-			SqlBuilder.createTables(this);
+			mSqlBuilder.createTables(this);
 		} catch (ModelConfigurationException e) {
 			Log.e(TAG, OrmConstants.CREATE_TABLES_ERROR, e);
 		}

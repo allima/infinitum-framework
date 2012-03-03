@@ -20,43 +20,24 @@
 package com.clarionmedia.infinitum.orm.sql;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.List;
-
-import android.database.sqlite.SQLiteDatabase;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
-import com.clarionmedia.infinitum.orm.OrmConstants;
-import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
-import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteDbHelper;
-import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
  * <p>
  * {@code SqlBuilder} is used to dynamically construct SQL strings for table
- * generation and queries.
+ * generation and queries at runtime.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/13/12
  */
-public class SqlBuilder {
-
-	// TODO: this class currently doesn't handle reserved keywords.
-	// See: http://www.sqlite.org/lang_keywords.html
-
-	private static final String CREATE_TABLE = "CREATE TABLE";
-	private static final String NOT_NULL = "NOT NULL";
-	private static final String PRIMARY_KEY = "PRIMARY KEY";
-	private static final String AUTO_INCREMENT = "AUTOINCREMENT";
-	private static final String UNIQUE = "UNIQUE";
+public interface SqlBuilder {
 
 	/**
 	 * Creates the model tables for the application in the SQLite database as
@@ -72,27 +53,7 @@ public class SqlBuilder {
 	 *             For example, a model that does not contain any persistent
 	 *             <code>Fields</code>
 	 */
-	public static int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException {
-		int count = 0;
-		SQLiteDatabase db = dbHelper.getDatabase();
-		for (String m : dbHelper.getApplicationContext().getDomainModels()) {
-			Class<?> c = PackageReflector.getClass(m);
-			String sql = createModelTableString(c);
-			if (sql != null) {
-				db.execSQL(sql);
-				count++;
-			}
-			PersistenceResolution.getManyToManyRelationships(c);
-		}
-		for (ManyToManyRelationship r : PersistenceResolution.getManyToManyCache()) {
-			String sql = createManyToManyTableString(r);
-			if (sql != null) {
-				db.execSQL(sql);
-				count++;
-			}
-		}
-		return count;
-	}
+	int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException;
 
 	/**
 	 * Generates a SQL query {@link String} from the given {@link GenCriteria}.
@@ -101,22 +62,7 @@ public class SqlBuilder {
 	 *            the {@code Criteria} to build the SQL query from
 	 * @return SQL query
 	 */
-	public static String createQuery(CriteriaQuery criteria) {
-		Class<?> c = criteria.getEntityClass();
-		StringBuilder query = new StringBuilder(SqlConstants.SELECT_ALL_FROM)
-				.append(PersistenceResolution.getModelTableName(c));
-		String prefix = " WHERE ";
-		for (Criterion criterion : criteria.getCriterion()) {
-			query.append(prefix);
-			prefix = SqlConstants.AND;
-			query.append(criterion.toSql(criteria));
-		}
-		if (criteria.getLimit() > 0)
-			query.append(' ').append(SqlConstants.LIMIT).append(' ').append(criteria.getLimit());
-		if (criteria.getOffset() > 0)
-			query.append(' ').append(SqlConstants.OFFSET).append(' ').append(criteria.getOffset());
-		return query.toString();
-	}
+	String createQuery(CriteriaQuery criteria);
 
 	/**
 	 * Generates a SQL query {@link String} from the given
@@ -146,203 +92,58 @@ public class SqlBuilder {
 	 *             if the direction {@code Class} is not a part of the given
 	 *             {@code ManyToManyRelationship}
 	 */
-	public static String createManyToManyJoinQuery(ManyToManyRelationship rel, Serializable id, Class<?> direction)
-			throws InfinitumRuntimeException {
-		if (!rel.contains(direction))
-			throw new InfinitumRuntimeException(String.format(
-					"'%s' is not a valid direction for relationship '%s'<=>'%s'.", direction.getName(), rel
-							.getFirstType().getName(), rel.getSecondType().getName()));
-		StringBuilder query = new StringBuilder(String.format(SqlConstants.ALIASED_SELECT_ALL_FROM, 'x')).append(
-				PersistenceResolution.getModelTableName(rel.getFirstType())).append(' ');
-		if (direction == rel.getFirstType())
-			query.append("x, ");
-		else
-			query.append("y, ");
-		query.append(PersistenceResolution.getModelTableName(rel.getSecondType())).append(' ');
-		if (direction == rel.getSecondType())
-			query.append("x, ");
-		else
-			query.append("y, ");
-		query.append(rel.getTableName()).append(" z ").append(SqlConstants.WHERE).append(' ').append("z.");
-		if (direction == rel.getFirstType())
-			query.append(PersistenceResolution.getModelTableName(rel.getFirstType())).append('_')
-					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ").append("x.")
-					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(' ')
-					.append(SqlConstants.AND).append(" z.")
-					.append(PersistenceResolution.getModelTableName(rel.getSecondType())).append('_')
-					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append("y.")
-					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(' ')
-					.append(SqlConstants.AND).append(" y.")
-					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append(id);
-		else
-			query.append(PersistenceResolution.getModelTableName(rel.getSecondType())).append('_')
-					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ").append("x.")
-					.append(PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(' ')
-					.append(SqlConstants.AND).append(" z.")
-					.append(PersistenceResolution.getModelTableName(rel.getFirstType())).append('_')
-					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ").append("y.")
-					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(' ')
-					.append(SqlConstants.AND).append(" y.")
-					.append(PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ").append(id);
-		return query.toString();
-	}
+	String createManyToManyJoinQuery(ManyToManyRelationship rel, Serializable id, Class<?> direction)
+			throws InfinitumRuntimeException;
 
 	/**
-	 * Generates the create table SQL statement for the specified
-	 * <code>Class</code>. If the <code>Class</code> does not contain any
-	 * persistent <code>Fields</code>, a {@link ModelConfigurationException}
-	 * will be thrown. If the <code>Class</code> itself is marked as transient,
-	 * this method will return null.
+	 * Generates a {@link StringBuilder} consisting of the initial segment of a
+	 * SQL query for deleting stale many-to-many relationships.
 	 * 
-	 * @param c
-	 *            the <code>Class</code> to generate the create table SQL
-	 *            statement for
-	 * @return create table SQL statement
-	 * @throws ModelConfigurationException
+	 * <p>
+	 * For example:
+	 * <code>DELETE FROM foo_bar WHERE foo_id = 42 AND bar_id NOT IN (</code>.
+	 * The <code>NOT IN</code> clause is intended to be populated with the IDs
+	 * of entities which are currently related to the {@code Foo} entity with ID
+	 * 42, typically using
+	 * {@link SqlBuilder#addPrimaryKeyToStaleQuery(Object, StringBuilder, String)}
+	 * . Thus, the completed query will be used to clear relationships which no
+	 * longer exist.
+	 * </p>
+	 * 
+	 * @param rel
+	 *            the {@link ManyToManyRelationship} for this relationship query
+	 * @param model
+	 *            the model containing the relationship
+	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	private static String createModelTableString(Class<?> c) throws ModelConfigurationException {
-		if (!PersistenceResolution.isPersistent(c))
-			return null;
-		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(' ')
-				.append(PersistenceResolution.getModelTableName(c)).append(" (");
-		appendColumns(c, sb);
-		appendUniqueColumns(c, sb);
-		sb.append(')');
-		return sb.toString();
-	}
-	
-	public static StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model) {
-		Field pkField = PersistenceResolution.getPrimaryKeyField(model.getClass());
-		pkField.setAccessible(true);
-		Object pk = null;
-		try {
-			pk = pkField.get(model);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		StringBuilder ret = new StringBuilder("DELETE FROM ").append(rel.getTableName()).append(' ').append("WHERE ");
-		Field col;
-		if (model.getClass() == rel.getFirstType()) {
-			ret.append(PersistenceResolution.getModelTableName(rel.getFirstType()) + '_'
-				+ PersistenceResolution.getFieldColumnName(rel.getFirstField())).append(" = ");
-			col = rel.getFirstField();
-		} else {
-			ret.append(PersistenceResolution.getModelTableName(rel.getSecondType()) + '_'
-					+ PersistenceResolution.getFieldColumnName(rel.getSecondField())).append(" = ");
-			col = rel.getSecondField();
-		}
-		switch (TypeResolution.getSqliteDataType(col)) {
-		case TEXT:
-			ret.append("'").append(ret.append(pk)).append("'");
-			break;
-		default:
-			ret.append(pk);
-		}
-		ret.append(" AND ");
-		if (model.getClass() == rel.getFirstType())
-			ret.append(PersistenceResolution.getModelTableName(rel.getSecondType()) + '_'
-					+ PersistenceResolution.getFieldColumnName(rel.getSecondField()));
-		else
-			ret.append(PersistenceResolution.getModelTableName(rel.getFirstType()) + '_'
-					+ PersistenceResolution.getFieldColumnName(rel.getFirstField()));
-		return ret.append(" NOT IN (");
-	}
-	
-	public static void addPrimaryKey(Object o, StringBuilder sb, String prefix) {
-		sb.append(prefix);
-		Field pkField = PersistenceResolution.getPrimaryKeyField(o.getClass());
-		pkField.setAccessible(true);
-		Object pk = null;
-		try {
-			pk = pkField.get(o);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		switch (TypeResolution.getSqliteDataType(pkField)) {
-		case TEXT:
-			sb.append("'").append(sb.append(pk)).append("'");
-			break;
-		default:
-			sb.append(pk);
-		}
-	}
+	StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model);
 
-	private static String createManyToManyTableString(ManyToManyRelationship rel) throws ModelConfigurationException {
-		if (!PersistenceResolution.isPersistent(rel.getFirstType())
-				|| !PersistenceResolution.isPersistent(rel.getSecondType()))
-			return null;
-		StringBuilder sb = new StringBuilder(CREATE_TABLE).append(' ').append(rel.getTableName()).append(" (");
-		Field first = rel.getFirstField();
-		if (first == null)
-			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirstType()
-					.getName(), rel.getSecondType().getName()));
-		Field second = rel.getSecondField();
-		if (second == null)
-			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirstType()
-					.getName(), rel.getSecondType().getName()));
-		String firstCol = PersistenceResolution.getModelTableName(rel.getFirstType()) + '_'
-				+ PersistenceResolution.getFieldColumnName(first);
-		String secondCol = PersistenceResolution.getModelTableName(rel.getSecondType()) + '_'
-				+ PersistenceResolution.getFieldColumnName(second);
-		sb.append(firstCol).append(' ').append(TypeResolution.getSqliteDataType(first).toString()).append(' ')
-				.append(", ").append(secondCol).append(' ').append(TypeResolution.getSqliteDataType(second).toString())
-				.append(", ").append(PRIMARY_KEY).append('(').append(firstCol).append(", ").append(secondCol)
-				.append("))");
-		return sb.toString();
-	}
+	/**
+	 * Adds the given {@code Object's} primary key to the specified stale
+	 * relationship query. This method is the counterpart to
+	 * {@link SqlBuilder#createInitialStaleRelationshipQuery(ManyToManyRelationship, Object)}
+	 * as it is used to populate the {@code NOT IN} clause of the delete query.
+	 * 
+	 * @param obj
+	 *            the {@code Object} whose primary key will be added to the
+	 *            query
+	 * @param sb
+	 *            the {@code StringBuilder} containing the query
+	 * @param prefix
+	 *            key prefix, usually "" or ", "
+	 */
+	void addPrimaryKeyToStaleQuery(Object obj, StringBuilder sb, String prefix);
 
-	private static void appendColumns(Class<?> c, StringBuilder sb) throws ModelConfigurationException {
-		List<Field> fields = PersistenceResolution.getPersistentFields(c);
+	/**
+	 * Generates a SQL query {@link String} for deleting relationships from a
+	 * many-to-many table.
+	 * 
+	 * @param obj
+	 *            owner of the relationship to be deleted
+	 * @param rel
+	 *            the relationship type
+	 * @return SQL query
+	 */
+	String createManyToManyDeleteQuery(Object obj, ManyToManyRelationship rel);
 
-		// Throw a runtime exception if there are no persistent fields
-		if (fields.size() == 0)
-			throw new ModelConfigurationException(String.format(OrmConstants.NO_PERSISTENT_FIELDS, c.getName()));
-
-		String prefix = "";
-		for (Field f : fields) {
-			if (f.isAnnotationPresent(ManyToMany.class))
-				continue;
-			sb.append(prefix);
-			prefix = ", ";
-
-			// Append column name and data type, e.g. "foo INTEGER"
-			sb.append(PersistenceResolution.getFieldColumnName(f)).append(' ')
-					.append(TypeResolution.getSqliteDataType(f).toString());
-
-			// Check if the column is a PRIMARY KEY
-			if (PersistenceResolution.isFieldPrimaryKey(f)) {
-				sb.append(" ").append(PRIMARY_KEY);
-				if (PersistenceResolution.isPrimaryKeyAutoIncrement(f))
-					sb.append(" ").append(AUTO_INCREMENT);
-			}
-
-			// Check if the column is NOT NULL
-			if (!PersistenceResolution.isFieldNullable(f))
-				sb.append(" ").append(NOT_NULL);
-		}
-	}
-
-	private static void appendUniqueColumns(Class<?> c, StringBuilder sb) {
-		List<Field> fields = PersistenceResolution.getUniqueFields(c);
-
-		// Append any unique constraints, e.g. UNIQUE(foo, bar)
-		if (fields.size() > 0) {
-			sb.append(", ").append(UNIQUE).append('(');
-			String prefix = "";
-			for (Field f : fields) {
-				sb.append(prefix);
-				prefix = ", ";
-				sb.append(PersistenceResolution.getFieldColumnName(f));
-			}
-			sb.append(')');
-		}
-	}
 }

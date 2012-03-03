@@ -31,7 +31,7 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
-import com.clarionmedia.infinitum.reflection.ModelFactoryImpl;
+import com.clarionmedia.infinitum.reflection.SqliteModelFactory;
 
 /**
  * <p>
@@ -45,11 +45,12 @@ public class CriteriaImpl implements Criteria {
 
 	private Class<?> mEntityClass;
 	private SqliteOperations mSqliteOps;
-	private ModelFactoryImpl mModelFactory;
+	private SqliteModelFactory mModelFactory;
 	private List<Criterion> mCriterion;
 	private int mLimit;
 	private int mOffset;
 	private Context mContext;
+	private SqlBuilder mSqlBuilder;
 
 	/**
 	 * Constructs a new {@code CriteriaImpl} with the given entity {@link Class}
@@ -60,23 +61,27 @@ public class CriteriaImpl implements Criteria {
 	 * @param sqliteOps
 	 *            {@link SqliteOperations} for which this {@code CriteriaImpl}
 	 *            is being created for
+	 * @param sqlBuilder
+	 *            {@link SqlBuilder} for generating SQL statements
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public CriteriaImpl(Context context, Class<?> entityClass, SqliteOperations sqliteOps) throws InfinitumRuntimeException {
+	public CriteriaImpl(Context context, Class<?> entityClass, SqliteOperations sqliteOps, SqlBuilder sqlBuilder)
+			throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA,
 					entityClass.getName()));
 		mContext = context;
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
-		mModelFactory = new ModelFactoryImpl(mContext);
+		mModelFactory = new SqliteModelFactory(mContext);
 		mCriterion = new ArrayList<Criterion>();
+		mSqlBuilder = sqlBuilder;
 	}
 
 	@Override
 	public String toSql() {
-		return SqlBuilder.createQuery(this);
+		return mSqlBuilder.createQuery(this);
 	}
 
 	@Override
@@ -93,7 +98,7 @@ public class CriteriaImpl implements Criteria {
 	public int getLimit() {
 		return mLimit;
 	}
-	
+
 	@Override
 	public int getOffset() {
 		return mOffset;
@@ -110,7 +115,7 @@ public class CriteriaImpl implements Criteria {
 		mLimit = limit;
 		return this;
 	}
-	
+
 	@Override
 	public Criteria offset(int offset) {
 		mOffset = offset;
@@ -120,7 +125,7 @@ public class CriteriaImpl implements Criteria {
 	@Override
 	public List<Object> toList() {
 		List<Object> ret = new LinkedList<Object>();
-		Cursor result = mSqliteOps.executeForResult(SqlBuilder.createQuery(this));
+		Cursor result = mSqliteOps.executeForResult(mSqlBuilder.createQuery(this));
 		if (result.getCount() == 0) {
 			result.close();
 			return ret;
@@ -139,7 +144,7 @@ public class CriteriaImpl implements Criteria {
 
 	@Override
 	public Object unique() throws InfinitumRuntimeException {
-		Cursor result = mSqliteOps.executeForResult(SqlBuilder.createQuery(this));
+		Cursor result = mSqliteOps.executeForResult(mSqlBuilder.createQuery(this));
 		if (result.getCount() > 1)
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT,
 					mEntityClass.getName(), result.getCount()));
