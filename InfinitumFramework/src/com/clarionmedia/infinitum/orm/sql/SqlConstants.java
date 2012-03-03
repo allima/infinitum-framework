@@ -36,9 +36,14 @@ public class SqlConstants {
 	public static final String OR = "OR";
 	public static final String IS_NULL = "IS NULL";
 	public static final String IS_NOT_NULL = "IS NOT NULL";
+	public static final String NOT_NULL = "NOT NULL";
 	public static final String NEGATION = "NOT";
 	public static final String LIMIT = "LIMIT";
 	public static final String OFFSET = "OFFSET";
+	public static final String PRIMARY_KEY = "PRIMARY KEY";
+	public static final String AUTO_INCREMENT = "AUTOINCREMENT";
+	public static final String UNIQUE = "UNIQUE";
+	public static final String NOT_IN = "NOT IN";
 	
 	// SQL Operators
 	public static final String OP_EQUALS = "=";
@@ -52,7 +57,10 @@ public class SqlConstants {
 	public static final String OP_IN = "IN";
 	
 	// SQL fragments
+	public static final String CREATE_TABLE = "CREATE TABLE";
 	public static final String SELECT_ALL_FROM = "SELECT * FROM ";
 	public static final String ALIASED_SELECT_ALL_FROM = "SELECT %s.* FROM ";
+	public static final String DELETE_FROM = "DELETE FROM ";
+	public static final String DELETE_FROM_WHERE = "DELETE FROM %s WHERE ";
 
 }
