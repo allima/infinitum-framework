@@ -74,6 +74,18 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 		return count;
 	}
+	
+	@Override
+	public String createModelTableString(Class<?> c) throws ModelConfigurationException {
+		if (!PersistenceResolution.isPersistent(c))
+			return null;
+		StringBuilder sb = new StringBuilder(SqlConstants.CREATE_TABLE).append(' ')
+				.append(PersistenceResolution.getModelTableName(c)).append(" (");
+		appendColumns(c, sb);
+		appendUniqueColumns(c, sb);
+		sb.append(')');
+		return sb.toString();
+	}
 
 	@Override
 	public String createQuery(CriteriaQuery criteria) {
@@ -236,31 +248,7 @@ public class SqliteBuilder implements SqlBuilder {
 		return query.toString();
 	}
 
-	/**
-	 * Generates the create table SQL statement for the specified
-	 * <code>Class</code>. If the <code>Class</code> does not contain any
-	 * persistent <code>Fields</code>, a {@link ModelConfigurationException}
-	 * will be thrown. If the <code>Class</code> itself is marked as transient,
-	 * this method will return null.
-	 * 
-	 * @param c
-	 *            the <code>Class</code> to generate the create table SQL
-	 *            statement for
-	 * @return create table SQL statement
-	 * @throws ModelConfigurationException
-	 */
-	private static String createModelTableString(Class<?> c) throws ModelConfigurationException {
-		if (!PersistenceResolution.isPersistent(c))
-			return null;
-		StringBuilder sb = new StringBuilder(SqlConstants.CREATE_TABLE).append(' ')
-				.append(PersistenceResolution.getModelTableName(c)).append(" (");
-		appendColumns(c, sb);
-		appendUniqueColumns(c, sb);
-		sb.append(')');
-		return sb.toString();
-	}
-
-	private static String createManyToManyTableString(ManyToManyRelationship rel) throws ModelConfigurationException {
+	private String createManyToManyTableString(ManyToManyRelationship rel) throws ModelConfigurationException {
 		if (!PersistenceResolution.isPersistent(rel.getFirstType())
 				|| !PersistenceResolution.isPersistent(rel.getSecondType()))
 			return null;
@@ -285,7 +273,7 @@ public class SqliteBuilder implements SqlBuilder {
 		return sb.toString();
 	}
 
-	private static void appendColumns(Class<?> c, StringBuilder sb) throws ModelConfigurationException {
+	private void appendColumns(Class<?> c, StringBuilder sb) throws ModelConfigurationException {
 		List<Field> fields = PersistenceResolution.getPersistentFields(c);
 
 		// Throw a runtime exception if there are no persistent fields
@@ -316,7 +304,7 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 	}
 
-	private static void appendUniqueColumns(Class<?> c, StringBuilder sb) {
+	private void appendUniqueColumns(Class<?> c, StringBuilder sb) {
 		List<Field> fields = PersistenceResolution.getUniqueFields(c);
 
 		// Append any unique constraints, e.g. UNIQUE(foo, bar)
