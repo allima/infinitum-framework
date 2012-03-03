@@ -257,7 +257,7 @@ public class SqliteTemplate implements SqliteOperations {
 		ContentValues values = map.getContentValues();
 		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		int objHash = PersistenceResolution.computeModelHash(model);
-		if (objectMap.containsKey(objHash))
+		if (objectMap.containsKey(objHash) && !PersistenceResolution.isPKNullOrZero(model))
 			return 0;
 		objectMap.put(objHash, model);
 		long ret = mSqliteDb.insert(tableName, null, values);
@@ -280,7 +280,7 @@ public class SqliteTemplate implements SqliteOperations {
 		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		int objHash = PersistenceResolution.computeModelHash(model);
-		if (objectMap.containsKey(objHash))
+		if (objectMap.containsKey(objHash) && !PersistenceResolution.isPKNullOrZero(model))
 			return false;
 		objectMap.put(objHash, model);
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
@@ -303,7 +303,7 @@ public class SqliteTemplate implements SqliteOperations {
 		} else
 			return 0;
 	}
-	
+
 	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model, long pk) {
 		Field f = PersistenceResolution.getPrimaryKeyField(model.getClass());
 		f.setAccessible(true);
@@ -324,33 +324,35 @@ public class SqliteTemplate implements SqliteOperations {
 			String prefix = "";
 			for (Object o : p.getSecond()) {
 				int oHash = PersistenceResolution.computeModelHash(o);
-				if (objectMap.containsKey(oHash))
+				if (objectMap.containsKey(oHash) && !PersistenceResolution.isPKNullOrZero(o))
 					continue;
 				long id = saveOrUpdateRec(o, objectMap);
-				if (id > 0) {
-					f = PersistenceResolution.getPrimaryKeyField(o.getClass());
-					try {
-						f.set(o, id);
-					} catch (IllegalArgumentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+				if (id >= 0) {
+					if (id > 0) {
+						f = PersistenceResolution.getPrimaryKeyField(o.getClass());
+						try {
+							f.set(o, id);
+						} catch (IllegalArgumentException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 					if (rel.getRelationType() == RelationType.ManyToMany)
 						insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
 				}
 				if (rel.getRelationType() == RelationType.ManyToMany) {
-				    SqlBuilder.addPrimaryKey(o, staleQuery, prefix);
-				    prefix = ", ";
+					SqlBuilder.addPrimaryKey(o, staleQuery, prefix);
+					prefix = ", ";
 				}
 			}
 			staleQuery.append(')');
 			execute(staleQuery.toString());
 		}
 	}
-	
+
 	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model) {
 		boolean success;
 		for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
@@ -361,7 +363,7 @@ public class SqliteTemplate implements SqliteOperations {
 			String prefix = "";
 			for (Object o : p.getSecond()) {
 				int oHash = PersistenceResolution.computeModelHash(o);
-				if (objectMap.containsKey(oHash))
+				if (objectMap.containsKey(oHash) && !PersistenceResolution.isPKNullOrZero(o))
 					continue;
 				success = saveOrUpdateRec(o, objectMap) >= 0;
 				if (success) {
@@ -369,8 +371,8 @@ public class SqliteTemplate implements SqliteOperations {
 						insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
 				}
 				if (rel.getRelationType() == RelationType.ManyToMany) {
-				    SqlBuilder.addPrimaryKey(o, staleQuery, prefix);
-				    prefix = ", ";
+					SqlBuilder.addPrimaryKey(o, staleQuery, prefix);
+					prefix = ", ";
 				}
 			}
 			staleQuery.append(')');
