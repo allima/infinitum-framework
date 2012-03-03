@@ -65,7 +65,7 @@ public class SqliteMapper implements ObjectMapper {
 				f.setAccessible(true);
 				val = f.get(model);
 
-				// Map relationships
+				// Map M:M relationships
 				if (f.isAnnotationPresent(ManyToMany.class)) {
 					ManyToManyRelationship mtm = new ManyToManyRelationship(f);
 					Object relationship = f.get(model);

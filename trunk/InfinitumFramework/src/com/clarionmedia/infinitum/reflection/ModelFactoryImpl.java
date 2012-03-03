@@ -23,10 +23,9 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +60,7 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteResult;
  * @author Tyler Treat
  * @version 1.0 02/16/12
  */
-public class SqliteModelFactory implements ModelFactory {
+public class ModelFactoryImpl implements ModelFactory {
 
 	private static final String INSTANTIATION_ERROR = "Could not instantiate Object of type '%s'.";
 
@@ -69,7 +68,13 @@ public class SqliteModelFactory implements ModelFactory {
 	private SqlExecutor mExecutor;
 	private SqlBuilder mSqlBuilder;
 
-	public SqliteModelFactory(Context context) {
+	/**
+	 * Constructs a {@code SqliteModelFactory} with the given {@link Context}.
+	 * 
+	 * @param context
+	 *            the {@code Context} for this model factory
+	 */
+	public ModelFactoryImpl(Context context) {
 		mExecutor = new SqliteExecutor(context);
 		mSqlBuilder = new SqliteBuilder();
 	}
@@ -107,12 +112,8 @@ public class SqliteModelFactory implements ModelFactory {
 		for (Field f : fields) {
 			f.setAccessible(true);
 			try {
-				if (f.isAnnotationPresent(ManyToMany.class)) {
-					// TODO Only supporting Lists currently
-					f.set(ret, new ArrayList<Object>());
-				} else {
+				if (!f.isAnnotationPresent(ManyToMany.class))
 					f.set(ret, getCursorValue(f, cursor));
-				}
 			} catch (IllegalAccessException e) {
 				throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 			}
@@ -125,7 +126,8 @@ public class SqliteModelFactory implements ModelFactory {
 		return ret;
 	}
 
-	private <T> void loadRelationships(T obj) {
+	private <T> void loadRelationships(T obj) throws ModelConfigurationException, InfinitumRuntimeException {
+		// TODO Relationships should be lazily loaded
 		for (Field f : PersistenceResolution.getPersistentFields(obj.getClass())) {
 			f.setAccessible(true);
 			if (!f.isAnnotationPresent(ManyToMany.class))
@@ -137,18 +139,18 @@ public class SqliteModelFactory implements ModelFactory {
 				Field pk = PersistenceResolution.getPrimaryKeyField(obj.getClass());
 				String sql = mSqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(obj), direction);
 				SqliteResult result = (SqliteResult) mExecutor.execute(sql);
-				// TODO Currently only supporting Lists
-				List<Object> related = new LinkedList<Object>();
+				@SuppressWarnings("unchecked")
+				Collection<Object> related = (Collection<Object>) f.get(obj);
 				while (result.getCursor().moveToNext())
 					related.add(createFromCursor(result.getCursor(), direction));
 				result.close();
 				f.set(obj, related);
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new ModelConfigurationException("Invalid many-to-many relationship specified on " + f.getName()
+						+ " of type '" + f.getType().getSimpleName() + "'.");
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new InfinitumRuntimeException("Unable to load relationship for model of type '"
+						+ obj.getClass().getName() + "'.");
 			}
 		}
 	}

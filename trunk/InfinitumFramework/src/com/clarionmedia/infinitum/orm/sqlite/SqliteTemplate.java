@@ -51,7 +51,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlUtil;
-import com.clarionmedia.infinitum.reflection.SqliteModelFactory;
+import com.clarionmedia.infinitum.reflection.ModelFactoryImpl;
 
 /**
  * <p>
@@ -73,7 +73,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected SqliteDbHelper mDbHelper;
 	protected SQLiteDatabase mSqliteDb;
 	protected SqliteMapper mObjectMapper;
-	protected SqliteModelFactory mModelFactory;
+	protected ModelFactoryImpl mModelFactory;
 	protected SqlBuilder mSqlBuilder;
 
 	/**
@@ -87,7 +87,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mContext = context;
 		mAppContext = ApplicationContextFactory.getApplicationContext();
 		mObjectMapper = new SqliteMapper();
-		mModelFactory = new SqliteModelFactory(mContext);
+		mModelFactory = new ModelFactoryImpl(mContext);
 		mSqlBuilder = new SqliteBuilder();
 	}
 

@@ -54,6 +54,21 @@ public interface SqlBuilder {
 	 *             <code>Fields</code>
 	 */
 	int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException;
+	
+	/**
+	 * Generates the create table SQL statement for the specified
+	 * <code>Class</code>. If the <code>Class</code> does not contain any
+	 * persistent <code>Fields</code>, a {@link ModelConfigurationException}
+	 * will be thrown. If the <code>Class</code> itself is marked as transient,
+	 * this method will return null.
+	 * 
+	 * @param c
+	 *            the <code>Class</code> to generate the create table SQL
+	 *            statement for
+	 * @return create table SQL statement
+	 * @throws ModelConfigurationException
+	 */
+	String createModelTableString(Class<?> c) throws ModelConfigurationException;
 
 	/**
 	 * Generates a SQL query {@link String} from the given {@link GenCriteria}.
