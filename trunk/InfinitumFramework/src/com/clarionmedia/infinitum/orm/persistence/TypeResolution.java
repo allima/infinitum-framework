@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 
+import com.clarionmedia.infinitum.context.ApplicationContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 
 /**
@@ -85,6 +86,8 @@ public class TypeResolution {
 			ret = SqliteDataType.TEXT;
 		else if (c == Date.class)
 			ret = SqliteDataType.TEXT;
+		else if (isDomainModel(c))
+			ret = getSqliteDataType(PersistenceResolution.getPrimaryKeyField(c));
 		// TODO: support additional types
 		if (ret != null)
 			sDataTypeCache.put(field, ret);
@@ -108,6 +111,22 @@ public class TypeResolution {
 		Class<?> pkUnwrapped = Primitives.unwrap(pkField.getType());
 		Class<?> idUnwrapped = Primitives.unwrap(id.getClass());
 		return pkUnwrapped == idUnwrapped;
+	}
+
+	/**
+	 * Indicates if the given {@link Class} is a registered domain model for
+	 * this application.
+	 * 
+	 * @param c
+	 *            the {@code Class} to check
+	 * @return {@code true} if it is a domain model, {@code false} if not
+	 */
+	public static boolean isDomainModel(Class<?> c) {
+		for (String s : ApplicationContextFactory.getApplicationContext().getDomainModels()) {
+			if (c.getName().equalsIgnoreCase(s))
+				return true;
+		}
+		return false;
 	}
 
 }

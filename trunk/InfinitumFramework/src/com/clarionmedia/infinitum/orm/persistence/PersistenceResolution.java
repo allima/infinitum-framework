@@ -31,12 +31,19 @@ import java.util.Set;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.ManyToOneRelationship;
+import com.clarionmedia.infinitum.orm.ModelRelationship;
+import com.clarionmedia.infinitum.orm.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
+import com.clarionmedia.infinitum.orm.annotation.ManyToOne;
 import com.clarionmedia.infinitum.orm.annotation.NotNull;
+import com.clarionmedia.infinitum.orm.annotation.OneToMany;
+import com.clarionmedia.infinitum.orm.annotation.OneToOne;
 import com.clarionmedia.infinitum.orm.annotation.Persistence;
 import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
 import com.clarionmedia.infinitum.orm.annotation.Table;
@@ -289,6 +296,8 @@ public class PersistenceResolution {
 				ret = name.substring(1).toLowerCase();
 			else
 				ret = name.toLowerCase();
+			if (PersistenceResolution.isRelationship(f))
+				ret = ret + "_id";
 		} else {
 			ret = c.value();
 		}
@@ -407,15 +416,23 @@ public class PersistenceResolution {
 		return ret;
 	}
 
-	public static <T> int computeModelHash(T obj) {
+	/**
+	 * Calculates a hash code for the specified persistent model based on its
+	 * {@link Class} and primary key.
+	 * 
+	 * @param model
+	 *            the model entity to compute the hash for
+	 * @return hash code for the model
+	 */
+	public static <T> int computeModelHash(T model) {
 		final int PRIME = 31;
 		int hash = 7;
-		hash *= PRIME + obj.getClass().hashCode();
-		Field f = getPrimaryKeyField(obj.getClass());
+		hash *= PRIME + model.getClass().hashCode();
+		Field f = getPrimaryKeyField(model.getClass());
 		f.setAccessible(true);
 		Object o = null;
 		try {
-			o = f.get(obj);
+			o = f.get(model);
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -430,13 +447,28 @@ public class PersistenceResolution {
 		return hash;
 	}
 
+	/**
+	 * Indicates if the given persistent {@link Class} has cascading enabled.
+	 * 
+	 * @param c
+	 *            the {@code Class} to check for cascading
+	 * @return {@code true} if it is cascading, {@code false} if not
+	 */
 	public static boolean isCascading(Class<?> c) {
 		if (!c.isAnnotationPresent(Entity.class))
 			return true;
 		Entity entity = c.getAnnotation(Entity.class);
 		return entity.cascade();
 	}
-	
+
+	/**
+	 * Indicates if the primary key {@link Field} for the given model is 0 or
+	 * {@code null}.
+	 * 
+	 * @param model
+	 *            the model to check the primary key value for
+	 * @return {@code true} if it is 0 or {@code null}, false if not
+	 */
 	public static boolean isPKNullOrZero(Object model) {
 		Field f = getPrimaryKeyField(model.getClass());
 		f.setAccessible(true);
@@ -461,6 +493,42 @@ public class PersistenceResolution {
 		else if (pk instanceof Double)
 			return (((Double) pk) == 0);
 		return false;
+	}
+
+	/**
+	 * Indicates if the given persistent {@link Field} is part of an entity
+	 * relationship, either many-to-many, many-to-one, one-to-many, or
+	 * one-to-one.
+	 * 
+	 * @param f
+	 *            the {@code Field} to check
+	 * @return {@code true} if it is part of a relationship, {@code false} if
+	 *         not
+	 */
+	public static boolean isRelationship(Field f) {
+		return f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(ManyToOne.class)
+				|| f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(OneToOne.class);
+	}
+
+	/**
+	 * Retrieves the {@link ModelRelationship} the given {@link Field} is a part
+	 * of.
+	 * 
+	 * @param f
+	 *            the {@code Field} to retrieve the relationship for
+	 * @return the {@code ModelRelationship} for {@code f} or {@code null} if
+	 *         there is none
+	 */
+	public static ModelRelationship getRelationship(Field f) {
+		if (f.isAnnotationPresent(ManyToMany.class))
+			return new ManyToManyRelationship(f);
+		if (f.isAnnotationPresent(ManyToOne.class))
+			return new ManyToOneRelationship(f);
+		if (f.isAnnotationPresent(OneToMany.class))
+			return new OneToManyRelationship(f);
+		if (f.isAnnotationPresent(OneToOne.class))
+			return new OneToOneRelationship(f);
+		return null;
 	}
 
 	private static Field findPrimaryKeyField(Class<?> c) {

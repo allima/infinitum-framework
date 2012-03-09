@@ -29,10 +29,10 @@ import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.ModelRelationship;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.OrmConstants;
-import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
@@ -65,14 +65,29 @@ public class SqliteMapper implements ObjectMapper {
 				f.setAccessible(true);
 				val = f.get(model);
 
-				// Map M:M relationships
-				if (f.isAnnotationPresent(ManyToMany.class)) {
-					ManyToManyRelationship mtm = new ManyToManyRelationship(f);
-					Object relationship = f.get(model);
-					if (!(relationship instanceof Iterable))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
-					ret.addRelationship(new Pair<ModelRelationship, Iterable<Object>>(mtm, (Iterable<Object>) relationship));
+				// Map relationships
+				if (PersistenceResolution.isRelationship(f)) {
+					ModelRelationship rel = PersistenceResolution.getRelationship(f);
+					switch (rel.getRelationType()) {
+					case ManyToMany:
+						ManyToManyRelationship mtm = (ManyToManyRelationship) rel;
+						Object relationship = f.get(model);
+						if (!(relationship instanceof Iterable))
+							throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP,
+									f.getName(), f.getDeclaringClass().getName()));
+						ret.addAggregateRelationship(new Pair<ModelRelationship, Iterable<Object>>(mtm,
+								(Iterable<Object>) relationship));
+						break;
+					case ManyToOne:
+						ManyToOneRelationship mto = (ManyToOneRelationship) rel;
+						Object related = f.get(model);
+						ret.addSingularRelationship(new Pair<ModelRelationship, Object>(mto, related));
+						break;
+					case OneToMany:
+						break;
+					case OneToOne:
+						break;
+					}
 					continue;
 				}
 

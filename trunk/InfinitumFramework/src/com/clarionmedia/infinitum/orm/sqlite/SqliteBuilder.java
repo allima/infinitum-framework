@@ -34,6 +34,7 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
@@ -74,7 +75,7 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 		return count;
 	}
-	
+
 	@Override
 	public String createModelTableString(Class<?> c) throws ModelConfigurationException {
 		if (!PersistenceResolution.isPersistent(c))
@@ -284,12 +285,14 @@ public class SqliteBuilder implements SqlBuilder {
 		for (Field f : fields) {
 			if (f.isAnnotationPresent(ManyToMany.class))
 				continue;
+			SqliteDataType type = TypeResolution.getSqliteDataType(f);
+			if (type == null)
+				continue;
 			sb.append(prefix);
 			prefix = ", ";
 
 			// Append column name and data type, e.g. "foo INTEGER"
-			sb.append(PersistenceResolution.getFieldColumnName(f)).append(' ')
-					.append(TypeResolution.getSqliteDataType(f).toString());
+			sb.append(PersistenceResolution.getFieldColumnName(f)).append(' ').append(type.toString());
 
 			// Check if the column is a PRIMARY KEY
 			if (PersistenceResolution.isFieldPrimaryKey(f)) {

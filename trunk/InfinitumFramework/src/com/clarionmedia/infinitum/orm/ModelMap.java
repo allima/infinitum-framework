@@ -25,7 +25,9 @@ import java.util.List;
 import com.clarionmedia.infinitum.internal.Pair;
 
 /**
+ * <p>
  * Represents a domain model instance mapped to a database table.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/23/12
@@ -33,11 +35,13 @@ import com.clarionmedia.infinitum.internal.Pair;
 public abstract class ModelMap {
 
 	protected Object mModel;
-	private List<Pair<ModelRelationship, Iterable<Object>>> mRelationships;
+	private List<Pair<ModelRelationship, Iterable<Object>>> mAggregateRelationships;
+	private List<Pair<ModelRelationship, Object>> mSingularRelationships;
 
 	public ModelMap(Object model) {
 		mModel = model;
-		mRelationships = new ArrayList<Pair<ModelRelationship, Iterable<Object>>>();
+		mAggregateRelationships = new ArrayList<Pair<ModelRelationship, Iterable<Object>>>();
+		mSingularRelationships = new ArrayList<Pair<ModelRelationship, Object>>();
 	}
 
 	public Object getModel() {
@@ -48,16 +52,28 @@ public abstract class ModelMap {
 		mModel = model;
 	}
 
-	public List<Pair<ModelRelationship, Iterable<Object>>> getRelationships() {
-		return mRelationships;
+	public List<Pair<ModelRelationship, Iterable<Object>>> getAggregateRelationships() {
+		return mAggregateRelationships;
 	}
 
-	public void setRelationships(List<Pair<ModelRelationship, Iterable<Object>>> aggregates) {
-		mRelationships = aggregates;
+	public void setAggregateRelationships(List<Pair<ModelRelationship, Iterable<Object>>> aggregates) {
+		mAggregateRelationships = aggregates;
 	}
 
-	public void addRelationship(Pair<ModelRelationship, Iterable<Object>> aggregate) {
-		mRelationships.add(aggregate);
+	public void addAggregateRelationship(Pair<ModelRelationship, Iterable<Object>> aggregate) {
+		mAggregateRelationships.add(aggregate);
+	}
+
+	public List<Pair<ModelRelationship, Object>> getSingularRelationships() {
+		return mSingularRelationships;
+	}
+
+	public void setSingularRelationships(List<Pair<ModelRelationship, Object>> singularRelationships) {
+		mSingularRelationships = singularRelationships;
+	}
+	
+	public void addSingularRelationship(Pair<ModelRelationship, Object> relationship) {
+		mSingularRelationships.add(relationship);
 	}
 
 }

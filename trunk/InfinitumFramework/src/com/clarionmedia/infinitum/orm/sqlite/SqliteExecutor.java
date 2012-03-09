@@ -34,10 +34,20 @@ import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
 public class SqliteExecutor implements SqlExecutor {
 
 	private SQLiteDatabase mDb;
+	private SqliteDbHelper mDbHelper;
 
 	public SqliteExecutor(Context context) {
-		SqliteDbHelper helper = new SqliteDbHelper(context);
-		mDb = helper.getWritableDatabase();
+		mDbHelper = new SqliteDbHelper(context);
+	}
+	
+	@Override
+	public void open() {
+		mDb = mDbHelper.getWritableDatabase();
+	}
+
+	@Override
+	public void close() {
+		mDbHelper.close();
 	}
 
 	@Override

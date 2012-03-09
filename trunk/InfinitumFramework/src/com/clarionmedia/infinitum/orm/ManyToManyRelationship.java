@@ -26,7 +26,9 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
+ * <p>
  * This class encapsulates a many-to-many relationship between two models.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/19/12
