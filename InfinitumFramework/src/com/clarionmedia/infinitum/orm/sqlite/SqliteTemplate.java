@@ -309,7 +309,8 @@ public class SqliteTemplate implements SqliteOperations {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
+		// Process aggregate relationships
+		for (Pair<ModelRelationship, Iterable<Object>> p : map.getAggregateRelationships()) {
 			ModelRelationship rel = p.getFirst();
 			StringBuilder staleQuery = null;
 			if (rel.getRelationType() == RelationType.ManyToMany)
@@ -323,6 +324,7 @@ public class SqliteTemplate implements SqliteOperations {
 				if (id >= 0) {
 					if (id > 0) {
 						f = PersistenceResolution.getPrimaryKeyField(o.getClass());
+						f.setAccessible(true);
 						try {
 							f.set(o, id);
 						} catch (IllegalArgumentException e) {
@@ -344,11 +346,12 @@ public class SqliteTemplate implements SqliteOperations {
 			staleQuery.append(')');
 			execute(staleQuery.toString());
 		}
+		processSingularRelationships(map, objectMap);
 	}
 
 	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model) {
 		boolean success;
-		for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
+		for (Pair<ModelRelationship, Iterable<Object>> p : map.getAggregateRelationships()) {
 			ModelRelationship rel = p.getFirst();
 			StringBuilder staleQuery = null;
 			if (rel.getRelationType() == RelationType.ManyToMany)
@@ -371,6 +374,13 @@ public class SqliteTemplate implements SqliteOperations {
 			staleQuery.append(')');
 			execute(staleQuery.toString());
 		}
+		processSingularRelationships(map, objectMap);
+	}
+
+	private void processSingularRelationships(SqliteModelMap map, Map<Integer, Object> objectMap) {
+		for (Pair<ModelRelationship, Object> p : map.getSingularRelationships())
+			saveOrUpdateRec(p.getSecond(), objectMap);
+		// TODO Set model's foreign key
 	}
 
 	private boolean insertManyToManyRelationship(Object model, Object related, ManyToManyRelationship mtm) {
@@ -467,7 +477,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	private void deleteRelationships(Object model) {
 		SqliteModelMap map = mObjectMapper.mapModel(model);
-		for (Pair<ModelRelationship, Iterable<Object>> p : map.getRelationships()) {
+		for (Pair<ModelRelationship, Iterable<Object>> p : map.getAggregateRelationships()) {
 			ModelRelationship rel = p.getFirst();
 			if (rel.getRelationType() == RelationType.ManyToMany)
 				execute(mSqlBuilder.createManyToManyDeleteQuery(model, (ManyToManyRelationship) rel));

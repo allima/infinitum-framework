@@ -35,11 +35,15 @@ import android.database.Cursor;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.ManyToOneRelationship;
+import com.clarionmedia.infinitum.orm.ModelRelationship;
+import com.clarionmedia.infinitum.orm.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
-import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteBuilder;
@@ -112,7 +116,7 @@ public class ModelFactoryImpl implements ModelFactory {
 		for (Field f : fields) {
 			f.setAccessible(true);
 			try {
-				if (!f.isAnnotationPresent(ManyToMany.class))
+				if (!PersistenceResolution.isRelationship(f))
 					f.set(ret, getCursorValue(f, cursor));
 			} catch (IllegalAccessException e) {
 				throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
@@ -126,32 +130,91 @@ public class ModelFactoryImpl implements ModelFactory {
 		return ret;
 	}
 
-	private <T> void loadRelationships(T obj) throws ModelConfigurationException, InfinitumRuntimeException {
+	private <T> void loadRelationships(T model) throws ModelConfigurationException, InfinitumRuntimeException {
 		// TODO Relationships should be lazily loaded
-		for (Field f : PersistenceResolution.getPersistentFields(obj.getClass())) {
+		for (Field f : PersistenceResolution.getPersistentFields(model.getClass())) {
 			f.setAccessible(true);
-			if (!f.isAnnotationPresent(ManyToMany.class))
+			if (!PersistenceResolution.isRelationship(f))
 				continue;
-			try {
-				ManyToManyRelationship rel = new ManyToManyRelationship(f);
-				// TODO Add reflexive M:M support
-				Class<?> direction = obj.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
-				Field pk = PersistenceResolution.getPrimaryKeyField(obj.getClass());
-				String sql = mSqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(obj), direction);
-				SqliteResult result = (SqliteResult) mExecutor.execute(sql);
-				@SuppressWarnings("unchecked")
-				Collection<Object> related = (Collection<Object>) f.get(obj);
-				while (result.getCursor().moveToNext())
-					related.add(createFromCursor(result.getCursor(), direction));
-				result.close();
-				f.set(obj, related);
-			} catch (IllegalArgumentException e) {
-				throw new ModelConfigurationException("Invalid many-to-many relationship specified on " + f.getName()
-						+ " of type '" + f.getType().getSimpleName() + "'.");
-			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException("Unable to load relationship for model of type '"
-						+ obj.getClass().getName() + "'.");
+			ModelRelationship rel = PersistenceResolution.getRelationship(f);
+			switch (rel.getRelationType()) {
+			case ManyToMany:
+				loadManyToMany((ManyToManyRelationship) rel, f, model);
+				break;
+			case ManyToOne:
+				loadManyToOne((ManyToOneRelationship) rel, f, model);
+				break;
+			case OneToMany:
+				loadOneToMany((OneToManyRelationship) rel, f, model);
+				break;
+			case OneToOne:
+				loadOneToOne((OneToOneRelationship) rel, f, model);
+				break;
 			}
+		}
+	}
+
+	private <T> void loadOneToOne(OneToOneRelationship rel, Field f, T model) {
+		// TODO
+	}
+
+	private <T> void loadOneToMany(OneToManyRelationship rel, Field f, T model) {
+		// TODO
+	}
+
+	private <T> void loadManyToOne(ManyToOneRelationship rel, Field f, T model) {
+		Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+		StringBuilder sql = new StringBuilder("SELECT * FROM ")
+				.append(PersistenceResolution.getModelTableName(direction)).append(" WHERE ").append(rel.getColumn())
+				.append(" = ");
+		Serializable pk = null;
+		try {
+			pk = (Serializable) f.get(model);
+			switch (TypeResolution.getSqliteDataType(f)) {
+			case TEXT:
+				sql.append("'").append(pk).append("'");
+				break;
+			default:
+				sql.append(pk);
+			}
+			sql.append(" LIMIT 1");
+			mExecutor.open();
+			SqliteResult result = (SqliteResult) mExecutor.execute(sql.toString());
+			while (result.getCursor().moveToNext())
+				f.set(model, createFromCursor(result.getCursor(), direction));
+			result.close();
+			mExecutor.close();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private <T> void loadManyToMany(ManyToManyRelationship rel, Field f, T model) throws ModelConfigurationException,
+			InfinitumRuntimeException {
+		try {
+			// TODO Add reflexive M:M support
+			Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+			Field pk = PersistenceResolution.getPrimaryKeyField(model.getClass());
+			String sql = mSqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(model), direction);
+			mExecutor.open();
+			SqliteResult result = (SqliteResult) mExecutor.execute(sql);
+			@SuppressWarnings("unchecked")
+			Collection<Object> related = (Collection<Object>) f.get(model);
+			while (result.getCursor().moveToNext())
+				related.add(createFromCursor(result.getCursor(), direction));
+			result.close();
+			mExecutor.close();
+			f.set(model, related);
+		} catch (IllegalArgumentException e) {
+			throw new ModelConfigurationException("Invalid many-to-many relationship specified on " + f.getName()
+					+ " of type '" + f.getType().getSimpleName() + "'.");
+		} catch (IllegalAccessException e) {
+			throw new InfinitumRuntimeException("Unable to load relationship for model of type '"
+					+ model.getClass().getName() + "'.");
 		}
 	}
 

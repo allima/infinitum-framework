@@ -17,36 +17,38 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.sql;
+package com.clarionmedia.infinitum.orm;
 
-import com.clarionmedia.infinitum.orm.ResultSet;
+import java.lang.reflect.Field;
+import com.clarionmedia.infinitum.orm.annotation.ManyToOne;
+import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
- * Provides an API for executing SQL statements against a database.
+ * <p>
+ * This class encapsulates a many-to-one relationship between two models.
+ * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/24/12
+ * @version 1.0 03/03/12
  */
-public interface SqlExecutor {
+public class ManyToOneRelationship extends ModelRelationship {
+	
+	private String mColumn;
 
-	/**
-	 * Opens the database to begin a transaction. If the database does not
-	 * exist, it will be created.
-	 */
-	void open();
+	public ManyToOneRelationship(Field f) {
+		ManyToOne mto = f.getAnnotation(ManyToOne.class);
+		mFirst = f.getDeclaringClass();
+		mSecond = PackageReflector.getClass(mto.className());
+		setColumn(mto.column());
+		mRelationType = RelationType.ManyToOne;
+	}
 
-	/**
-	 * Closes the database connection.
-	 */
-	void close();
+	public String getColumn() {
+		return mColumn;
+	}
 
-	/**
-	 * Executes the given SQL query and returns a {@link ResultSet} for it.
-	 * 
-	 * @param sql
-	 *            the SQL to execute
-	 * @return the result of the query
-	 */
-	ResultSet execute(String sql);
+	public void setColumn(String column) {
+		mColumn = column;
+	}
 
 }
