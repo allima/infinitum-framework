@@ -44,6 +44,9 @@ public class SqlConstants {
 	public static final String AUTO_INCREMENT = "AUTOINCREMENT";
 	public static final String UNIQUE = "UNIQUE";
 	public static final String NOT_IN = "NOT IN";
+	public static final String IN = "IN";
+	public static final String UPDATE = "UPDATE";
+	public static final String SET = "SET";
 	
 	// SQL Operators
 	public static final String OP_EQUALS = "=";

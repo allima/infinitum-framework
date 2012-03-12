@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -120,7 +121,7 @@ public interface SqlBuilder {
 	 * The <code>NOT IN</code> clause is intended to be populated with the IDs
 	 * of entities which are currently related to the {@code Foo} entity with ID
 	 * 42, typically using
-	 * {@link SqlBuilder#addPrimaryKeyToStaleQuery(Object, StringBuilder, String)}
+	 * {@link SqlBuilder#addPrimaryKeyToQuery(Object, StringBuilder, String)}
 	 * . Thus, the completed query will be used to clear relationships which no
 	 * longer exist.
 	 * </p>
@@ -132,12 +133,24 @@ public interface SqlBuilder {
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
 	StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model);
+	
+	/**
+	 * Generates a {@link StringBuilder} consisting of the initial segment of a
+	 * SQL query for updating the foreign keys in a one-to-many relationship.
+	 * 
+	 * @param rel
+	 * 			  the {@link OneToManyRelationship} for this relationship query
+	 * @param model
+	 * 			  the model containing the relationship
+	 * @return {@code StringBuilder} containing the initial query segment
+	 */
+	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel, Object model);
 
 	/**
-	 * Adds the given {@code Object's} primary key to the specified stale
-	 * relationship query. This method is the counterpart to
-	 * {@link SqlBuilder#createInitialStaleRelationshipQuery(ManyToManyRelationship, Object)}
-	 * as it is used to populate the {@code NOT IN} clause of the delete query.
+	 * Adds the given {@code Object's} primary key to the specified query. This method is the counterpart to
+	 * {@link SqlBuilder#createInitialStaleRelationshipQuery(ManyToManyRelationship, Object)} and 
+	 * {@link SqlBuilder#createInitialUpdateForeignKeyQuery(OneToManyRelationship, Object)}
+	 * as it is used to populate the {@code IN} or {@code NOT IN} clause of the query.
 	 * 
 	 * @param obj
 	 *            the {@code Object} whose primary key will be added to the
@@ -147,7 +160,7 @@ public interface SqlBuilder {
 	 * @param prefix
 	 *            key prefix, usually "" or ", "
 	 */
-	void addPrimaryKeyToStaleQuery(Object obj, StringBuilder sb, String prefix);
+	void addPrimaryKeyToQuery(Object obj, StringBuilder sb, String prefix);
 
 	/**
 	 * Generates a SQL query {@link String} for deleting relationships from a

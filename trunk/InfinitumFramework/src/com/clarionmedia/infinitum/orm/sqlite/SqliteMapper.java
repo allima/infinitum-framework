@@ -32,10 +32,13 @@ import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.ModelRelationship;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
+import com.clarionmedia.infinitum.orm.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 
 /**
  * <p>
@@ -68,24 +71,40 @@ public class SqliteMapper implements ObjectMapper {
 				// Map relationships
 				if (PersistenceResolution.isRelationship(f)) {
 					ModelRelationship rel = PersistenceResolution.getRelationship(f);
+					Object related;
 					switch (rel.getRelationType()) {
 					case ManyToMany:
 						ManyToManyRelationship mtm = (ManyToManyRelationship) rel;
-						Object relationship = f.get(model);
-						if (!(relationship instanceof Iterable))
+						related = f.get(model);
+						if (!(related instanceof Iterable))
 							throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP,
 									f.getName(), f.getDeclaringClass().getName()));
 						ret.addAggregateRelationship(new Pair<ModelRelationship, Iterable<Object>>(mtm,
-								(Iterable<Object>) relationship));
+								(Iterable<Object>) related));
 						break;
 					case ManyToOne:
 						ManyToOneRelationship mto = (ManyToOneRelationship) rel;
-						Object related = f.get(model);
-						ret.addSingularRelationship(new Pair<ModelRelationship, Object>(mto, related));
+						related = f.get(model);
+						if (related != null && !TypeResolution.isDomainModel(related.getClass()))
+							throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MO_RELATIONSHIP,
+									f.getName(), f.getDeclaringClass().getName()));
+						ret.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(mto, related));
 						break;
 					case OneToMany:
+						OneToManyRelationship otm = (OneToManyRelationship) rel;
+						related = f.get(model);
+						if (!(related instanceof Iterable))
+							throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OM_RELATIONSHIP,
+									f.getName(), f.getDeclaringClass().getName()));
+						ret.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(otm, (Iterable<Object>) related));
 						break;
 					case OneToOne:
+						OneToOneRelationship oto = (OneToOneRelationship) rel;
+						related = f.get(model);
+						if (related != null && !TypeResolution.isDomainModel(related.getClass()))
+							throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OO_RELATIONSHIP,
+									f.getName(), f.getDeclaringClass().getName()));
+						ret.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(oto, related));
 						break;
 					}
 					continue;

@@ -33,12 +33,44 @@ import com.clarionmedia.infinitum.reflection.PackageReflector;
  * @version 1.0 03/03/12
  */
 public class OneToManyRelationship extends ModelRelationship {
+	
+	private String mColumn;
+	private Class<?> mOneType;
+	private Class<?> mManyType;
 
 	public OneToManyRelationship(Field f) {
 		OneToMany otm = f.getAnnotation(OneToMany.class);
 		mFirst = f.getDeclaringClass();
+		setOneType(mFirst);
 		mSecond = PackageReflector.getClass(otm.className());
+		setManyType(mSecond);
 		mRelationType = RelationType.OneToMany;
+		mName = otm.name();
+		mColumn = otm.column();
+	}
+
+	public void setColumn(String mColumn) {
+		this.mColumn = mColumn;
+	}
+
+	public String getColumn() {
+		return mColumn;
+	}
+
+	public void setOneType(Class<?> mOneType) {
+		this.mOneType = mOneType;
+	}
+
+	public Class<?> getOneType() {
+		return mOneType;
+	}
+
+	public void setManyType(Class<?> mManyType) {
+		this.mManyType = mManyType;
+	}
+
+	public Class<?> getManyType() {
+		return mManyType;
 	}
 
 }

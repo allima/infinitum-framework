@@ -36,12 +36,16 @@ public abstract class ModelMap {
 
 	protected Object mModel;
 	private List<Pair<ModelRelationship, Iterable<Object>>> mAggregateRelationships;
-	private List<Pair<ModelRelationship, Object>> mSingularRelationships;
+	private List<Pair<ManyToOneRelationship, Object>> mManyToOneRelationships;
+	private List<Pair<OneToManyRelationship, Iterable<Object>>> mOneToManyRelationships;
+	private List<Pair<OneToOneRelationship, Object>> mOneToOneRelationships;
 
 	public ModelMap(Object model) {
 		mModel = model;
 		mAggregateRelationships = new ArrayList<Pair<ModelRelationship, Iterable<Object>>>();
-		mSingularRelationships = new ArrayList<Pair<ModelRelationship, Object>>();
+		mOneToManyRelationships = new ArrayList<Pair<OneToManyRelationship, Iterable<Object>>>();
+		mManyToOneRelationships = new ArrayList<Pair<ManyToOneRelationship, Object>>();
+		mOneToOneRelationships = new ArrayList<Pair<OneToOneRelationship, Object>>();
 	}
 
 	public Object getModel() {
@@ -64,16 +68,40 @@ public abstract class ModelMap {
 		mAggregateRelationships.add(aggregate);
 	}
 
-	public List<Pair<ModelRelationship, Object>> getSingularRelationships() {
-		return mSingularRelationships;
+	public List<Pair<ManyToOneRelationship, Object>> getManyToOneRelationships() {
+		return mManyToOneRelationships;
 	}
 
-	public void setSingularRelationships(List<Pair<ModelRelationship, Object>> singularRelationships) {
-		mSingularRelationships = singularRelationships;
+	public void setManyToOneRelationships(List<Pair<ManyToOneRelationship, Object>> manyToOneRelationships) {
+		mManyToOneRelationships = manyToOneRelationships;
 	}
 	
-	public void addSingularRelationship(Pair<ModelRelationship, Object> relationship) {
-		mSingularRelationships.add(relationship);
+	public void addManyToOneRelationship(Pair<ManyToOneRelationship, Object> relationship) {
+		mManyToOneRelationships.add(relationship);
+	}
+
+	public void setOneToOneRelationships(List<Pair<OneToOneRelationship, Object>> mOneToOneRelationships) {
+		this.mOneToOneRelationships = mOneToOneRelationships;
+	}
+
+	public List<Pair<OneToOneRelationship, Object>> getOneToOneRelationships() {
+		return mOneToOneRelationships;
+	}
+	
+	public void addOneToOneRelationship(Pair<OneToOneRelationship, Object> relationship) {
+		mOneToOneRelationships.add(relationship);
+	}
+
+	public void setOneToManyRelationships(List<Pair<OneToManyRelationship, Iterable<Object>>> mOneToManyRelationships) {
+		this.mOneToManyRelationships = mOneToManyRelationships;
+	}
+
+	public List<Pair<OneToManyRelationship, Iterable<Object>>> getOneToManyRelationships() {
+		return mOneToManyRelationships;
+	}
+	
+	public void addOneToManyRelationship(Pair<OneToManyRelationship, Iterable<Object>> relationship) {
+		mOneToManyRelationships.add(relationship);
 	}
 
 }

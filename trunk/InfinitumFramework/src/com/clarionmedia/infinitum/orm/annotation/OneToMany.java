@@ -54,5 +54,12 @@ public @interface OneToMany {
 	 * @return name of foreign key column
 	 */
 	String column();
+	
+	/**
+	 * Returns the name of this relationship.
+	 * 
+	 * @return name of one-to-many relationship.
+	 */
+	String name();
 
 }

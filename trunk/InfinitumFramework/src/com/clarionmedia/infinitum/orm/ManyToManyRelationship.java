@@ -47,6 +47,7 @@ public class ManyToManyRelationship extends ModelRelationship {
 		mFirstFieldName = mtm.keyField();
 		mSecondFieldName = mtm.foreignField();
 		mRelationType = RelationType.ManyToMany;
+		mName = mtm.name();
 	}
 
 	public String getTableName() {

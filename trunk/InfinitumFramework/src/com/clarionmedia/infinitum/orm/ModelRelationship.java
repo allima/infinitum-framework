@@ -19,9 +19,12 @@
 
 package com.clarionmedia.infinitum.orm;
 
+
 /**
+ * <p>
  * This abstract class is used to define a relationship between two domain
- * models.
+ * entities.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/25/12
@@ -35,6 +38,7 @@ public abstract class ModelRelationship {
 	protected Class<?> mFirst;
 	protected Class<?> mSecond;
 	protected RelationType mRelationType;
+	protected String mName;
 
 	public Class<?> getFirstType() {
 		return mFirst;
@@ -62,6 +66,14 @@ public abstract class ModelRelationship {
 
 	public void setRelationType(RelationType type) {
 		mRelationType = type;
+	}
+	
+	public String getName() {
+		return mName;
+	}
+	
+	public void setName(String name) {
+		mName = name;
 	}
 
 }

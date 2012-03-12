@@ -34,6 +34,7 @@ import android.database.Cursor;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.DateFormatter;
+import com.clarionmedia.infinitum.orm.ForeignKeyRelationship;
 import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.ModelRelationship;
@@ -155,35 +156,49 @@ public class ModelFactoryImpl implements ModelFactory {
 	}
 
 	private <T> void loadOneToOne(OneToOneRelationship rel, Field f, T model) {
-		// TODO
+		String sql = getEntityQuery(model, rel.getSecondType(), f, rel);
+		mExecutor.open();
+		SqliteResult result = (SqliteResult) mExecutor.execute(sql);
+		while (result.getCursor().moveToNext())
+			try {
+				f.set(model, createFromCursor(result.getCursor(), rel.getSecondType()));
+			} catch (ModelConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InfinitumRuntimeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		result.close();
+		mExecutor.close();
 	}
 
 	private <T> void loadOneToMany(OneToManyRelationship rel, Field f, T model) {
-		// TODO
-	}
-
-	private <T> void loadManyToOne(ManyToOneRelationship rel, Field f, T model) {
-		Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
 		StringBuilder sql = new StringBuilder("SELECT * FROM ")
-				.append(PersistenceResolution.getModelTableName(direction)).append(" WHERE ").append(rel.getColumn())
-				.append(" = ");
-		Serializable pk = null;
+				.append(PersistenceResolution.getModelTableName(rel.getManyType())).append(" WHERE ")
+				.append(rel.getColumn()).append(" = ");
+		Object pk = PersistenceResolution.getPrimaryKey(model);
+		switch (TypeResolution.getSqliteDataType(PersistenceResolution.getPrimaryKeyField(model.getClass()))) {
+		case TEXT:
+			sql.append("'").append(pk).append("'");
+			break;
+		default:
+			sql.append(pk);
+		}
+		mExecutor.open();
+		SqliteResult result = (SqliteResult) mExecutor.execute(sql.toString());
 		try {
-			pk = (Serializable) f.get(model);
-			switch (TypeResolution.getSqliteDataType(f)) {
-			case TEXT:
-				sql.append("'").append(pk).append("'");
-				break;
-			default:
-				sql.append(pk);
-			}
-			sql.append(" LIMIT 1");
-			mExecutor.open();
-			SqliteResult result = (SqliteResult) mExecutor.execute(sql.toString());
+			@SuppressWarnings("unchecked")
+			Collection<Object> related = (Collection<Object>) f.get(model);
 			while (result.getCursor().moveToNext())
-				f.set(model, createFromCursor(result.getCursor(), direction));
-			result.close();
-			mExecutor.close();
+				related.add(createFromCursor(result.getCursor(), rel.getManyType()));
+			f.set(model, related);
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -191,6 +206,33 @@ public class ModelFactoryImpl implements ModelFactory {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		result.close();
+		mExecutor.close();
+	}
+
+	private <T> void loadManyToOne(ManyToOneRelationship rel, Field f, T model) {
+		Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+		String sql = getEntityQuery(model, direction, f, rel);
+		mExecutor.open();
+		SqliteResult result = (SqliteResult) mExecutor.execute(sql);
+		while (result.getCursor().moveToNext())
+			try {
+				f.set(model, createFromCursor(result.getCursor(), direction));
+			} catch (ModelConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InfinitumRuntimeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		result.close();
+		mExecutor.close();
 	}
 
 	private <T> void loadManyToMany(ManyToManyRelationship rel, Field f, T model) throws ModelConfigurationException,
@@ -217,7 +259,44 @@ public class ModelFactoryImpl implements ModelFactory {
 					+ model.getClass().getName() + "'.");
 		}
 	}
+	
+	private String getEntityQuery(Object model, Class<?> c, Field f, ForeignKeyRelationship rel) {
+	    StringBuilder sql = new StringBuilder("SELECT * FROM ")
+		    .append(PersistenceResolution.getModelTableName(c)).append(" WHERE ")
+		    .append(PersistenceResolution.getFieldColumnName(PersistenceResolution.getPrimaryKeyField(c)))
+		    .append(" = ");
+        switch (TypeResolution.getSqliteDataType(f)) {
+        case TEXT:
+	        sql.append("'").append(getForeignKey(model, f, rel)).append("'");
+	        break;
+        default:
+	        sql.append(getForeignKey(model, f, rel));
+        }
+        return sql.append(" LIMIT 1").toString();
+	}
 
+	private long getForeignKey(Object model, Field f, ForeignKeyRelationship rel) {
+		StringBuilder q = new StringBuilder("SELECT ").append(rel.getColumn()).append(" FROM ")
+		.append(PersistenceResolution.getModelTableName(model.getClass()))
+		.append(" WHERE ").append(PersistenceResolution.getFieldColumnName(PersistenceResolution.getPrimaryKeyField(model.getClass())))
+		.append(" = ");
+		Object pk = PersistenceResolution.getPrimaryKey(model);
+		switch (TypeResolution.getSqliteDataType(f)) {
+		case TEXT:
+			q.append("'").append(pk).append("'");
+			break;
+		default:
+			q.append(pk);
+		}
+		mExecutor.open();
+		SqliteResult res = (SqliteResult) mExecutor.execute(q.toString());
+		res.getCursor().moveToFirst();
+		long id = res.getLong(0);
+		res.close();
+		mExecutor.close();
+		return id;
+	}
+	
 	private Object getCursorValue(Field f, Cursor cursor) {
 		int colIndex = cursor.getColumnIndex(PersistenceResolution.getFieldColumnName(f));
 		Class<?> type = f.getType();
