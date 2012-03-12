@@ -327,4 +327,30 @@ public class SqliteBuilder implements SqlBuilder {
 			sb.append(')');
 		}
 	}
+
+	@Override
+	public String createUpdateQuery(Object model, Object related, String column) {
+		Object pk = PersistenceResolution.getPrimaryKey(related);
+		 StringBuilder update = new StringBuilder("UPDATE ").append(PersistenceResolution.getModelTableName(model.getClass()));
+		    update.append(" SET ").append(column).append(" = ");
+		    switch (TypeResolution.getSqliteDataType(PersistenceResolution.getPrimaryKeyField(related.getClass()))) {
+		    case TEXT:
+		    	update.append("'").append(pk).append("'");
+		    	break;
+		    default:
+		    	update.append(pk);
+		    }
+		    update.append(" WHERE ");
+		    update.append(PersistenceResolution.getFieldColumnName(PersistenceResolution.getPrimaryKeyField(model.getClass())));
+		    update.append(" = ");
+		    pk = PersistenceResolution.getPrimaryKey(model);
+			switch (TypeResolution.getSqliteDataType(PersistenceResolution.getPrimaryKeyField(model.getClass()))) {
+			case TEXT:
+				update.append("'").append(pk).append("'");
+				break;
+			default:
+				update.append(pk);
+			}
+			return update.toString();
+	}
 }

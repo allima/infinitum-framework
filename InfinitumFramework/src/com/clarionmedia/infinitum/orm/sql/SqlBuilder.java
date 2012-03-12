@@ -173,5 +173,7 @@ public interface SqlBuilder {
 	 * @return SQL query
 	 */
 	String createManyToManyDeleteQuery(Object obj, ManyToManyRelationship rel);
+	
+	String createUpdateQuery(Object model, Object related, String column);
 
 }
