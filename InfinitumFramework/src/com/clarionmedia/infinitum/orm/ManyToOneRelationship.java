@@ -31,24 +31,15 @@ import com.clarionmedia.infinitum.reflection.PackageReflector;
  * @author Tyler Treat
  * @version 1.0 03/03/12
  */
-public class ManyToOneRelationship extends ModelRelationship {
-	
-	private String mColumn;
+public class ManyToOneRelationship extends ForeignKeyRelationship {
 
 	public ManyToOneRelationship(Field f) {
 		ManyToOne mto = f.getAnnotation(ManyToOne.class);
 		mFirst = f.getDeclaringClass();
 		mSecond = PackageReflector.getClass(mto.className());
-		setColumn(mto.column());
 		mRelationType = RelationType.ManyToOne;
-	}
-
-	public String getColumn() {
-		return mColumn;
-	}
-
-	public void setColumn(String column) {
-		mColumn = column;
+		mName = mto.name();
+		setColumn(mto.column());
 	}
 
 }

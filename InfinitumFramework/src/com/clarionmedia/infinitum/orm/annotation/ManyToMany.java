@@ -71,4 +71,11 @@ public @interface ManyToMany {
 	 */
 	String foreignField();
 
+	/**
+	 * Returns the name of this relationship.
+	 * 
+	 * @return name of many-to-many relationship.
+	 */
+	String name();
+
 }

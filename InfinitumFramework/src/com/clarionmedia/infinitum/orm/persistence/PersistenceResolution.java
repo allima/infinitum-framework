@@ -261,8 +261,9 @@ public class PersistenceResolution {
 			if (sFieldUniqueCache.containsKey(f) && sFieldUniqueCache.get(f))
 				ret.add(f);
 			else {
-				Unique u = f.getAnnotation(Unique.class);
-				boolean unique = u == null ? false : true;
+				boolean unique = f.isAnnotationPresent(Unique.class) ? true : false;
+				if (f.isAnnotationPresent(OneToOne.class))
+					unique = true;
 				sFieldUniqueCache.put(f, unique);
 				if (unique)
 					ret.add(f);
@@ -296,8 +297,10 @@ public class PersistenceResolution {
 				ret = name.substring(1).toLowerCase();
 			else
 				ret = name.toLowerCase();
-			if (PersistenceResolution.isRelationship(f))
-				ret = ret + "_id";
+			if (f.isAnnotationPresent(ManyToOne.class))
+				ret = new ManyToOneRelationship(f).getColumn();
+			else if (f.isAnnotationPresent(OneToOne.class))
+				ret = new OneToOneRelationship(f).getColumn();
 		} else {
 			ret = c.value();
 		}
@@ -365,8 +368,9 @@ public class PersistenceResolution {
 		if (sFieldNullableCache.containsKey(f))
 			return sFieldNullableCache.get(f);
 		boolean ret;
-		NotNull n = f.getAnnotation(NotNull.class);
-		ret = n == null ? true : false;
+		ret = f.isAnnotationPresent(NotNull.class) ? false : true;
+		if (f.isAnnotationPresent(OneToOne.class))
+			ret = false;
 		sFieldNullableCache.put(f, ret);
 		return ret;
 	}
@@ -509,6 +513,10 @@ public class PersistenceResolution {
 		return f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(ManyToOne.class)
 				|| f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(OneToOne.class);
 	}
+	
+	public static boolean isSingularRelationship(Field f) {
+		return f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToOne.class);
+	}
 
 	/**
 	 * Retrieves the {@link ModelRelationship} the given {@link Field} is a part
@@ -528,6 +536,52 @@ public class PersistenceResolution {
 			return new OneToManyRelationship(f);
 		if (f.isAnnotationPresent(OneToOne.class))
 			return new OneToOneRelationship(f);
+		return null;
+	}
+	
+	public static Object getPrimaryKey(Object model) {
+		Object ret = null;
+		Field pkField = getPrimaryKeyField(model.getClass());
+		pkField.setAccessible(true);
+		try {
+			ret = pkField.get(model);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	public static Field findRelationshipField(Class<?> c, ModelRelationship rel) {
+		for (Field f : getPersistentFields(c)) {
+			f.setAccessible(true);
+			if (!isRelationship(f))
+				continue;
+			switch (rel.getRelationType()) {
+			case ManyToMany:
+				ManyToMany mtm = f.getAnnotation(ManyToMany.class);
+				if (rel.getName().equalsIgnoreCase(mtm.name()))
+					return f;
+				break;
+			case ManyToOne:
+				ManyToOne mto = f.getAnnotation(ManyToOne.class);
+				if (rel.getName().equalsIgnoreCase(mto.name()))
+					return f;
+				break;
+			case OneToMany:
+				OneToMany otm = f.getAnnotation(OneToMany.class);
+				if (rel.getName().equalsIgnoreCase(otm.name()))
+					return f;
+				break;
+			case OneToOne:
+				OneToOne oto = f.getAnnotation(OneToOne.class);
+				if (rel.getName().equalsIgnoreCase(oto.name()))
+					return f;
+			}
+		}
 		return null;
 	}
 

@@ -54,5 +54,12 @@ public @interface ManyToOne {
 	 * @return name of foreign key column
 	 */
 	String column();
+	
+	/**
+	 * Returns the name of this relationship.
+	 * 
+	 * @return name of many-to-one relationship.
+	 */
+	String name();
 
 }

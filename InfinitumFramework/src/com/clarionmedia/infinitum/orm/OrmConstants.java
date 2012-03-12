@@ -51,5 +51,8 @@ public class OrmConstants {
 	public static final String CLASS_NOT_FOUND = "The specified class '%s' could not be resolved in '%s'.";
 	public static final String MM_RELATIONSHIP_ERROR = "Could not create many-to-many relationship between '%s' and '%s'. Are the specified columns correct?";
 	public static final String INVALID_MM_RELATIONSHIP = "Field '%s' is marked as a many-to-many relationship in '%s', but it is not a collection.";
+	public static final String INVALID_OM_RELATIONSHIP = "Field '%s' is marked as a one-to-many relationship in '%s', but it is not a collection.";
+	public static final String INVALID_OO_RELATIONSHIP = "Field '%s' is marked as a one-to-one relationship in '%s', but it is not a domain entity.";
+	public static final String INVALID_MO_RELATIONSHIP = "Field '%s' is marked as a many-to-one relationship in '%s', but it is not a domain entity.";
 
 }

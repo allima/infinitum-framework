@@ -27,6 +27,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
@@ -152,16 +153,7 @@ public class SqliteBuilder implements SqlBuilder {
 	public StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model) {
 		Field pkField = PersistenceResolution.getPrimaryKeyField(model.getClass());
 		pkField.setAccessible(true);
-		Object pk = null;
-		try {
-			pk = pkField.get(model);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Object pk = PersistenceResolution.getPrimaryKey(model);
 		StringBuilder ret = new StringBuilder(SqlConstants.DELETE_FROM).append(rel.getTableName()).append(' ')
 				.append(SqlConstants.WHERE).append(' ');
 		Field col;
@@ -192,22 +184,35 @@ public class SqliteBuilder implements SqlBuilder {
 					+ PersistenceResolution.getFieldColumnName(rel.getFirstField()));
 		return ret.append(' ').append(SqlConstants.NOT_IN).append(" (");
 	}
+	
+	@Override
+	public StringBuilder createInitialUpdateForeignKeyQuery(
+			OneToManyRelationship rel, Object model) {
+		StringBuilder ret = new StringBuilder(SqlConstants.UPDATE).append(' ')
+					.append(PersistenceResolution.getModelTableName(rel.getManyType()))
+					.append(' ').append(SqlConstants.SET).append(' ').append(rel.getColumn())
+					.append(" = ");
+		Field pkField = PersistenceResolution.getPrimaryKeyField(model.getClass());
+		pkField.setAccessible(true);
+		Object pk = PersistenceResolution.getPrimaryKey(model);
+		switch (TypeResolution.getSqliteDataType(pkField)) {
+		case TEXT:
+			ret.append("'").append(ret.append(pk)).append("'");
+			break;
+		default:
+			ret.append(pk);
+		}
+		ret.append(' ').append(SqlConstants.WHERE).append(' ');
+		pkField = PersistenceResolution.getPrimaryKeyField(rel.getManyType());
+		return ret.append(PersistenceResolution.getFieldColumnName(pkField))
+		.append(' ').append(SqlConstants.IN).append(" (");
+	}
 
 	@Override
-	public void addPrimaryKeyToStaleQuery(Object o, StringBuilder sb, String prefix) {
+	public void addPrimaryKeyToQuery(Object o, StringBuilder sb, String prefix) {
 		sb.append(prefix);
 		Field pkField = PersistenceResolution.getPrimaryKeyField(o.getClass());
-		pkField.setAccessible(true);
-		Object pk = null;
-		try {
-			pk = pkField.get(o);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Object pk = PersistenceResolution.getPrimaryKey(o);
 		switch (TypeResolution.getSqliteDataType(pkField)) {
 		case TEXT:
 			sb.append("'").append(pk).append("'");
