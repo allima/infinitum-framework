@@ -425,22 +425,9 @@ public class SqliteTemplate implements SqliteOperations {
 			Object o = p.getSecond();
 			if (o == null)
 				continue;
-			long id = saveOrUpdateRec(o, objectMap);
-			if (id > 0) {
-			    StringBuilder update = new StringBuilder("UPDATE ").append(PersistenceResolution.getModelTableName(model.getClass()));
-			    update.append(" SET ").append(p.getFirst().getColumn()).append(" = ").append(id).append(" WHERE ");
-			    update.append(PersistenceResolution.getFieldColumnName(PersistenceResolution.getPrimaryKeyField(model.getClass())));
-			    update.append(" = ");
-			    Object pk = PersistenceResolution.getPrimaryKey(model);
-				switch (TypeResolution.getSqliteDataType(PersistenceResolution.getPrimaryKeyField(model.getClass()))) {
-				case TEXT:
-					update.append("'").append(pk).append("'");
-					break;
-				default:
-					update.append(pk);
-				}
-				mSqliteDb.execSQL(update.toString());
-			}
+			saveOrUpdateRec(o, objectMap);
+			String update = mSqlBuilder.createUpdateQuery(model, o, p.getFirst().getColumn());
+		    mSqliteDb.execSQL(update);
 		}
 	}
 
