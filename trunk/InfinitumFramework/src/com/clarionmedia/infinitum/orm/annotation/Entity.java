@@ -37,9 +37,10 @@ import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
  * 
  * <pre>
  * public class Foobar {
- *     // ...
- *     public Foobar() {}
- *     // ...
+ * 	// ...
+ * 	public Foobar() {
+ * 	}
+ * 	// ...
  * }
  * </pre>
  * 
@@ -50,9 +51,29 @@ import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Entity {
-	
+
+	/**
+	 * Returns the {@link PersistenceMode} for this entity. The default mode is
+	 * persistent.
+	 * 
+	 * @return {@code PersistenceMode}
+	 */
 	PersistenceMode mode() default PersistenceMode.Persistent;
-	
+
+	/**
+	 * Indicates if the entity has cascading enabled. If it is, when its state
+	 * is changed in the database, any entities related to it will also be
+	 * updated.
+	 * 
+	 * @return {@code true} if cascading is enabled, {@code false} if not
+	 */
 	boolean cascade() default true;
-	
+
+	/**
+	 * Indicates if the entity has lazy loading enabled. If it is, related
+	 * entities will only be loaded when accessed.
+	 * 
+	 * @return {@code true} if lazy loading is enabled, {@code false} if not
+	 */
+	boolean lazy() default true;
 }

@@ -53,9 +53,13 @@ public interface SqlBuilder {
 	 *             if table(s) cannot be created due to a misconfigured model.
 	 *             For example, a model that does not contain any persistent
 	 *             <code>Fields</code>
+	 * @throws InfinitumConfigurationException
+	 *             if domain classes have not been properly configured in
+	 *             {@code infinitum.cfg.xml}
 	 */
-	int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException;
-	
+	int createTables(SqliteDbHelper dbHelper)
+			throws ModelConfigurationException;
+
 	/**
 	 * Generates the create table SQL statement for the specified
 	 * <code>Class</code>. If the <code>Class</code> does not contain any
@@ -69,7 +73,8 @@ public interface SqlBuilder {
 	 * @return create table SQL statement
 	 * @throws ModelConfigurationException
 	 */
-	String createModelTableString(Class<?> c) throws ModelConfigurationException;
+	String createModelTableString(Class<?> c)
+			throws ModelConfigurationException;
 
 	/**
 	 * Generates a SQL query {@link String} from the given {@link GenCriteria}.
@@ -108,7 +113,8 @@ public interface SqlBuilder {
 	 *             if the direction {@code Class} is not a part of the given
 	 *             {@code ManyToManyRelationship}
 	 */
-	String createManyToManyJoinQuery(ManyToManyRelationship rel, Serializable id, Class<?> direction)
+	String createManyToManyJoinQuery(ManyToManyRelationship rel,
+			Serializable id, Class<?> direction)
 			throws InfinitumRuntimeException;
 
 	/**
@@ -121,8 +127,8 @@ public interface SqlBuilder {
 	 * The <code>NOT IN</code> clause is intended to be populated with the IDs
 	 * of entities which are currently related to the {@code Foo} entity with ID
 	 * 42, typically using
-	 * {@link SqlBuilder#addPrimaryKeyToQuery(Object, StringBuilder, String)}
-	 * . Thus, the completed query will be used to clear relationships which no
+	 * {@link SqlBuilder#addPrimaryKeyToQuery(Object, StringBuilder, String)} .
+	 * Thus, the completed query will be used to clear relationships which no
 	 * longer exist.
 	 * </p>
 	 * 
@@ -132,25 +138,30 @@ public interface SqlBuilder {
 	 *            the model containing the relationship
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model);
-	
+	StringBuilder createInitialStaleRelationshipQuery(
+			ManyToManyRelationship rel, Object model);
+
 	/**
 	 * Generates a {@link StringBuilder} consisting of the initial segment of a
 	 * SQL query for updating the foreign keys in a one-to-many relationship.
 	 * 
 	 * @param rel
-	 * 			  the {@link OneToManyRelationship} for this relationship query
+	 *            the {@link OneToManyRelationship} for this relationship query
 	 * @param model
-	 * 			  the model containing the relationship
+	 *            the model containing the relationship
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel, Object model);
+	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel,
+			Object model);
 
 	/**
-	 * Adds the given {@code Object's} primary key to the specified query. This method is the counterpart to
-	 * {@link SqlBuilder#createInitialStaleRelationshipQuery(ManyToManyRelationship, Object)} and 
+	 * Adds the given {@code Object's} primary key to the specified query. This
+	 * method is the counterpart to
+	 * {@link SqlBuilder#createInitialStaleRelationshipQuery(ManyToManyRelationship, Object)}
+	 * and
 	 * {@link SqlBuilder#createInitialUpdateForeignKeyQuery(OneToManyRelationship, Object)}
-	 * as it is used to populate the {@code IN} or {@code NOT IN} clause of the query.
+	 * as it is used to populate the {@code IN} or {@code NOT IN} clause of the
+	 * query.
 	 * 
 	 * @param obj
 	 *            the {@code Object} whose primary key will be added to the
@@ -173,7 +184,7 @@ public interface SqlBuilder {
 	 * @return SQL query
 	 */
 	String createManyToManyDeleteQuery(Object obj, ManyToManyRelationship rel);
-	
+
 	String createUpdateQuery(Object model, Object related, String column);
 
 }
