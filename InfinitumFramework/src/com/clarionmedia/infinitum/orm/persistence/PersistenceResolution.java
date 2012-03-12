@@ -93,6 +93,9 @@ public class PersistenceResolution {
 	// This Set caches the many-to-many relationships
 	private static Set<ManyToManyRelationship> sManyToManyCache;
 
+	// This Map caches the lazy-loading status for each persistent class
+	private static Map<Class<?>, Boolean> sLazyLoadingCache;
+
 	static {
 		sPersistenceCache = new Hashtable<Class<?>, List<Field>>();
 		sColumnCache = new Hashtable<Field, String>();
@@ -100,6 +103,7 @@ public class PersistenceResolution {
 		sFieldNullableCache = new Hashtable<Field, Boolean>();
 		sFieldUniqueCache = new Hashtable<Field, Boolean>();
 		sManyToManyCache = new HashSet<ManyToManyRelationship>();
+		sLazyLoadingCache = new Hashtable<Class<?>, Boolean>();
 	}
 
 	public static Set<ManyToManyRelationship> getManyToManyCache() {
@@ -140,7 +144,8 @@ public class PersistenceResolution {
 	 * @throws IllegalArgumentException
 	 *             if the given {@code Class} is transient
 	 */
-	public static String getModelTableName(Class<?> c) throws IllegalArgumentException {
+	public static String getModelTableName(Class<?> c)
+			throws IllegalArgumentException {
 		if (!isPersistent(c))
 			throw new IllegalArgumentException();
 		String ret;
@@ -175,7 +180,8 @@ public class PersistenceResolution {
 		for (Field f : fields) {
 			Persistence persistence = f.getAnnotation(Persistence.class);
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-			if ((persistence == null || persistence.value() == PersistenceMode.Persistent) || pk != null)
+			if ((persistence == null || persistence.value() == PersistenceMode.Persistent)
+					|| pk != null)
 				ret.add(f);
 		}
 		sPersistenceCache.put(c, ret);
@@ -215,7 +221,8 @@ public class PersistenceResolution {
 	 * @throws ModelConfigurationException
 	 *             if multiple primary keys are declared in {@code c}
 	 */
-	public static Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
+	public static Field getPrimaryKeyField(Class<?> c)
+			throws ModelConfigurationException {
 		if (sPrimaryKeyCache.containsKey(c))
 			return sPrimaryKeyCache.get(c);
 		Field ret = null;
@@ -227,7 +234,8 @@ public class PersistenceResolution {
 				ret = f;
 				found = true;
 			} else if (pk != null && found) {
-				throw new ModelConfigurationException(String.format(OrmConstants.MULTIPLE_PK_ERROR, c.getName()));
+				throw new ModelConfigurationException(String.format(
+						OrmConstants.MULTIPLE_PK_ERROR, c.getName()));
 			}
 		}
 		// Look for id fields if the annotation is missing
@@ -261,7 +269,8 @@ public class PersistenceResolution {
 			if (sFieldUniqueCache.containsKey(f) && sFieldUniqueCache.get(f))
 				ret.add(f);
 			else {
-				boolean unique = f.isAnnotationPresent(Unique.class) ? true : false;
+				boolean unique = f.isAnnotationPresent(Unique.class) ? true
+						: false;
 				if (f.isAnnotationPresent(OneToOne.class))
 					unique = true;
 				sFieldUniqueCache.put(f, unique);
@@ -334,11 +343,12 @@ public class PersistenceResolution {
 	 *             if an explicit primary key that is set to autoincrement is
 	 *             not of type int or long
 	 */
-	public static boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException {
+	public static boolean isPrimaryKeyAutoIncrement(Field f)
+			throws InfinitumRuntimeException {
 		PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
 		if (pk == null) {
-			if (f.getType() == int.class || f.getType() == Integer.class || f.getType() == long.class
-					|| f.getType() == Long.class)
+			if (f.getType() == int.class || f.getType() == Integer.class
+					|| f.getType() == long.class || f.getType() == Long.class)
 				return true;
 			else
 				return false;
@@ -347,12 +357,13 @@ public class PersistenceResolution {
 		if (!ret)
 			return false;
 		// throw runtime exception if explicit PK is not an int or long
-		if (f.getType() == int.class || f.getType() == Integer.class || f.getType() == long.class
-				|| f.getType() == Long.class)
+		if (f.getType() == int.class || f.getType() == Integer.class
+				|| f.getType() == long.class || f.getType() == Long.class)
 			return true;
 		else
-			throw new InfinitumRuntimeException(String.format(OrmConstants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
-					.getDeclaringClass().getName()));
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
+							.getDeclaringClass().getName()));
 	}
 
 	/**
@@ -401,7 +412,8 @@ public class PersistenceResolution {
 	 *            the {@code Class} to get relationships for
 	 * @return {@code Set} of all many-to-many relationships
 	 */
-	public static Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c) {
+	public static Set<ManyToManyRelationship> getManyToManyRelationships(
+			Class<?> c) {
 		Set<ManyToManyRelationship> ret = new HashSet<ManyToManyRelationship>();
 		for (ManyToManyRelationship r : sManyToManyCache) {
 			if (r.contains(c))
@@ -510,12 +522,15 @@ public class PersistenceResolution {
 	 *         not
 	 */
 	public static boolean isRelationship(Field f) {
-		return f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(ManyToOne.class)
-				|| f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(OneToOne.class);
+		return f.isAnnotationPresent(ManyToMany.class)
+				|| f.isAnnotationPresent(ManyToOne.class)
+				|| f.isAnnotationPresent(OneToMany.class)
+				|| f.isAnnotationPresent(OneToOne.class);
 	}
-	
+
 	public static boolean isSingularRelationship(Field f) {
-		return f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToOne.class);
+		return f.isAnnotationPresent(ManyToOne.class)
+				|| f.isAnnotationPresent(OneToOne.class);
 	}
 
 	/**
@@ -538,7 +553,14 @@ public class PersistenceResolution {
 			return new OneToOneRelationship(f);
 		return null;
 	}
-	
+
+	/**
+	 * Retrieves the primary key value for the given persistent model.
+	 * 
+	 * @param model
+	 *            the model to retrieve the primary key for
+	 * @return primary key value
+	 */
 	public static Object getPrimaryKey(Object model) {
 		Object ret = null;
 		Field pkField = getPrimaryKeyField(model.getClass());
@@ -554,7 +576,19 @@ public class PersistenceResolution {
 		}
 		return ret;
 	}
-	
+
+	/**
+	 * Retrieves the {@link Field} pertaining to the given
+	 * {@link ModelRelationship} for the specified {@link Class}. If no such
+	 * {@code Field} exists, {@code null} is returned.
+	 * 
+	 * @param c
+	 *            the {@code Class} to retrieve the {@code Field} from
+	 * @param rel
+	 *            the {@code ModelRelationship} to retrieve the {@code Field}
+	 *            for
+	 * @return {@code Field} pertaining to the relationship or {@code null}
+	 */
 	public static Field findRelationshipField(Class<?> c, ModelRelationship rel) {
 		for (Field f : getPersistentFields(c)) {
 			f.setAccessible(true);
@@ -585,10 +619,33 @@ public class PersistenceResolution {
 		return null;
 	}
 
+	/**
+	 * Indicates if the given persistent {@link Class} has lazy loading enabled
+	 * or not.
+	 * 
+	 * @param c
+	 *            the {@code Class} to check lazy-loading status
+	 * @return {@code true} if lazy loading is enabled, {@code false} if not
+	 */
+	public static boolean isLazy(Class<?> c) {
+		if (sLazyLoadingCache.containsKey(c))
+			return sLazyLoadingCache.get(c);
+		boolean ret;
+		if (!c.isAnnotationPresent(Entity.class)) {
+			ret = true;
+		} else {
+			Entity entity = c.getAnnotation(Entity.class);
+			ret = entity.lazy();
+		}
+		sLazyLoadingCache.put(c, ret);
+		return ret;
+	}
+
 	private static Field findPrimaryKeyField(Class<?> c) {
 		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
-			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
+			if (f.getName().equals("mId") || f.getName().equals("mID")
+					|| f.getName().equalsIgnoreCase("id"))
 				return f;
 		}
 		return null;
