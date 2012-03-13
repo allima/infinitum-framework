@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.reflection;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -28,10 +29,8 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-
 import android.content.Context;
 import android.database.Cursor;
-
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.orm.ForeignKeyRelationship;
@@ -43,6 +42,7 @@ import com.clarionmedia.infinitum.orm.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.persistence.LazyLoadedObject;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
@@ -50,6 +50,7 @@ import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteExecutor;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteResult;
+import com.google.dexmaker.stock.ProxyBuilder;
 
 /**
  * <p>
@@ -72,6 +73,7 @@ public class ModelFactoryImpl implements ModelFactory {
 	private Map<Integer, Object> mObjectMap = new Hashtable<Integer, Object>();
 	private SqlExecutor mExecutor;
 	private SqlBuilder mSqlBuilder;
+	private Context mContext;
 
 	/**
 	 * Constructs a {@code SqliteModelFactory} with the given {@link Context}.
@@ -82,6 +84,7 @@ public class ModelFactoryImpl implements ModelFactory {
 	public ModelFactoryImpl(Context context) {
 		mExecutor = new SqliteExecutor(context);
 		mSqlBuilder = new SqliteBuilder();
+		mContext = context;
 	}
 
 	@Override
@@ -143,15 +146,62 @@ public class ModelFactoryImpl implements ModelFactory {
 				loadManyToMany((ManyToManyRelationship) rel, f, model);
 				break;
 			case ManyToOne:
-				loadManyToOne((ManyToOneRelationship) rel, f, model);
+				if (PersistenceResolution.isLazy(model.getClass()))
+					lazilyLoadManyToOne((ManyToOneRelationship) rel, f, model);
+				else
+				    loadManyToOne((ManyToOneRelationship) rel, f, model);
 				break;
 			case OneToMany:
-				loadOneToMany((OneToManyRelationship) rel, f, model);
+				if (PersistenceResolution.isLazy(model.getClass()))
+					lazilyLoadOneToMany((OneToManyRelationship) rel, f, model);
+				else
+				    loadOneToMany((OneToManyRelationship) rel, f, model);
 				break;
 			case OneToOne:
-				loadOneToOne((OneToOneRelationship) rel, f, model);
+				if (PersistenceResolution.isLazy(model.getClass()))
+					lazilyLoadOneToOne((OneToOneRelationship) rel, f, model);
+				else
+				    loadOneToOne((OneToOneRelationship) rel, f, model);
 				break;
 			}
+		}
+	}
+	
+	private <T> void lazilyLoadOneToOne(final OneToOneRelationship rel, Field f, T model) {
+		final String sql = getEntityQuery(model, rel.getSecondType(), f, rel);
+		Object related = null;
+		try {
+			related = ProxyBuilder.forClass(rel.getSecondType()).handler(new LazyLoadedObject() {
+				@Override
+				protected Object loadObject() {
+					Object ret = null;
+					mExecutor.open();
+					SqliteResult result = (SqliteResult) mExecutor.execute(sql);
+					while (result.getCursor().moveToNext())
+						ret = createFromCursor(result.getCursor(), rel.getSecondType());
+					result.close();
+					mExecutor.close();
+					return ret;
+				}
+			}).dexCache(mContext.getDir("dx", Context.MODE_PRIVATE)).build();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		try {
+			f.set(model, related);
+		} catch (ModelConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InfinitumRuntimeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -177,6 +227,46 @@ public class ModelFactoryImpl implements ModelFactory {
 			}
 		result.close();
 		mExecutor.close();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <T> void lazilyLoadOneToMany(final OneToManyRelationship rel, Field f, T model) {
+		final StringBuilder sql = new StringBuilder("SELECT * FROM ")
+				.append(PersistenceResolution.getModelTableName(rel.getManyType())).append(" WHERE ")
+				.append(rel.getColumn()).append(" = ");
+		Object pk = PersistenceResolution.getPrimaryKey(model);
+		switch (TypeResolution.getSqliteDataType(PersistenceResolution.getPrimaryKeyField(model.getClass()))) {
+		case TEXT:
+			sql.append("'").append(pk).append("'");
+			break;
+		default:
+			sql.append(pk);
+		}
+		try {
+			final Collection<Object> collection = (Collection<Object>) f.get(model);
+			Collection<Object> related = ProxyBuilder.forClass(collection.getClass()).handler(new LazyLoadedObject() {
+				@Override
+				protected Object loadObject() {
+					mExecutor.open();
+					SqliteResult result = (SqliteResult) mExecutor.execute(sql.toString());
+					while (result.getCursor().moveToNext())
+						collection.add(createFromCursor(result.getCursor(), rel.getManyType()));
+					result.close();
+					mExecutor.close();
+					return collection;
+				}
+			}).dexCache(mContext.getDir("dx", Context.MODE_PRIVATE)).build();
+			f.set(model, related);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private <T> void loadOneToMany(OneToManyRelationship rel, Field f, T model) {
@@ -208,6 +298,45 @@ public class ModelFactoryImpl implements ModelFactory {
 		}
 		result.close();
 		mExecutor.close();
+	}
+	
+	private <T> void lazilyLoadManyToOne(ManyToOneRelationship rel, Field f, T model) {
+		final Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+		final String sql = getEntityQuery(model, direction, f, rel);
+		Object related = null;
+		try {
+			related = ProxyBuilder.forClass(rel.getSecondType()).handler(new LazyLoadedObject() {
+				@Override
+				protected Object loadObject() {
+					Object ret = null;
+					mExecutor.open();
+					SqliteResult result = (SqliteResult) mExecutor.execute(sql);
+					while (result.getCursor().moveToNext())
+						ret = createFromCursor(result.getCursor(), direction);
+					result.close();
+					mExecutor.close();
+					return ret;
+				}
+			}).dexCache(mContext.getDir("dx", Context.MODE_PRIVATE)).build();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		try {
+			f.set(model, related);
+		} catch (ModelConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InfinitumRuntimeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private <T> void loadManyToOne(ManyToOneRelationship rel, Field f, T model) {
