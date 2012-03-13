@@ -42,7 +42,7 @@ import com.clarionmedia.infinitum.orm.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.LazyLoadedObject;
+import com.clarionmedia.infinitum.orm.persistence.LazilyLoadedObject;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
@@ -171,7 +171,7 @@ public class ModelFactoryImpl implements ModelFactory {
 		final String sql = getEntityQuery(model, rel.getSecondType(), f, rel);
 		Object related = null;
 		try {
-			related = ProxyBuilder.forClass(rel.getSecondType()).handler(new LazyLoadedObject() {
+			related = ProxyBuilder.forClass(rel.getSecondType()).handler(new LazilyLoadedObject() {
 				@Override
 				protected Object loadObject() {
 					Object ret = null;
@@ -244,7 +244,7 @@ public class ModelFactoryImpl implements ModelFactory {
 		}
 		try {
 			final Collection<Object> collection = (Collection<Object>) f.get(model);
-			Collection<Object> related = ProxyBuilder.forClass(collection.getClass()).handler(new LazyLoadedObject() {
+			Collection<Object> related = ProxyBuilder.forClass(collection.getClass()).handler(new LazilyLoadedObject() {
 				@Override
 				protected Object loadObject() {
 					mExecutor.open();
@@ -305,7 +305,7 @@ public class ModelFactoryImpl implements ModelFactory {
 		final String sql = getEntityQuery(model, direction, f, rel);
 		Object related = null;
 		try {
-			related = ProxyBuilder.forClass(rel.getSecondType()).handler(new LazyLoadedObject() {
+			related = ProxyBuilder.forClass(rel.getSecondType()).handler(new LazilyLoadedObject() {
 				@Override
 				protected Object loadObject() {
 					Object ret = null;

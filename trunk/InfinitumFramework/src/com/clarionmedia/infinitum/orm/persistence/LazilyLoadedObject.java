@@ -23,14 +23,16 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 /**
+ * <p>
  * Used to proxy an {@link Object} which has been lazily loaded. Every method
  * called on the {@code Object} will pass through this {@link InvocationHandler}
  * .
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/12/12
  */
-public abstract class LazyLoadedObject implements InvocationHandler {
+public abstract class LazilyLoadedObject implements InvocationHandler {
 
 	private Object mTarget;
 
