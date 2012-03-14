@@ -24,9 +24,16 @@ import java.lang.reflect.Method;
 
 /**
  * <p>
- * Used to proxy an {@link Object} which has been lazily loaded. Every method
- * called on the {@code Object} will pass through this {@link InvocationHandler}
- * .
+ * Used to proxy an {@link Object} which has been configured to lazily load.
+ * Every method called on the {@code Object} will pass through this
+ * {@link InvocationHandler} . This handler is responsible for lazily loading
+ * the {@code Object}, which occurs in {@link LazilyLoadedObject#loadObject()}.
+ * </p>
+ * <p>
+ * The first method invocation made on a proxy will result in the proxied
+ * {@code Object} being loaded and then the method will be passed to the loaded
+ * {@code Object} for invocation. Any subsequent method invocation made on the
+ * proxy will simply be intercepted and propagated to the {@code Object}.
  * </p>
  * 
  * @author Tyler Treat

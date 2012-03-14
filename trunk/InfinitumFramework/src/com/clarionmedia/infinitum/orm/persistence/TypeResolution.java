@@ -126,6 +126,22 @@ public class TypeResolution {
 			if (c.getName().equalsIgnoreCase(s))
 				return true;
 		}
+		return isDomainProxy(c);
+	}
+	
+	/**
+	 * Indicates if the given {@link Class} is a proxy for a domain model.
+	 * @param c the {@code Class} to check
+	 * @return {@code true} if it is a domain proxy, {@code false} if not
+	 */
+	public static boolean isDomainProxy(Class<?> c) {
+		for (String s : ApplicationContextFactory.getApplicationContext().getDomainModels()) {
+			String name = s;
+			if (name.contains("."))
+				name = name.substring(name.lastIndexOf('.') + 1);
+			if (c.getName().equalsIgnoreCase(name + "_Proxy"))
+				return true;
+		}
 		return false;
 	}
 

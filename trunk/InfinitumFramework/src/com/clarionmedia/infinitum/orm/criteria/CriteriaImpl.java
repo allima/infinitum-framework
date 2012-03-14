@@ -30,8 +30,8 @@ import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactoryImpl;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
-import com.clarionmedia.infinitum.reflection.ModelFactoryImpl;
 
 /**
  * <p>
@@ -45,7 +45,7 @@ public class CriteriaImpl implements Criteria {
 
 	private Class<?> mEntityClass;
 	private SqliteOperations mSqliteOps;
-	private ModelFactoryImpl mModelFactory;
+	private SqliteModelFactoryImpl mModelFactory;
 	private List<Criterion> mCriterion;
 	private int mLimit;
 	private int mOffset;
@@ -74,7 +74,7 @@ public class CriteriaImpl implements Criteria {
 		mContext = context;
 		mEntityClass = entityClass;
 		mSqliteOps = sqliteOps;
-		mModelFactory = new ModelFactoryImpl(mContext);
+		mModelFactory = new SqliteModelFactoryImpl(mContext);
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
 	}

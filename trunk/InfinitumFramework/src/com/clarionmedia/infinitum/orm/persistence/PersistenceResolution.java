@@ -20,6 +20,7 @@
 package com.clarionmedia.infinitum.orm.persistence;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -146,14 +147,20 @@ public class PersistenceResolution {
 	 */
 	public static String getModelTableName(Class<?> c)
 			throws IllegalArgumentException {
-		if (!isPersistent(c))
+		if (!isPersistent(c) || !TypeResolution.isDomainModel(c))
 			throw new IllegalArgumentException();
 		String ret;
 		Table table = c.getAnnotation(Table.class);
-		if (table == null)
-			ret = c.getSimpleName().toLowerCase();
-		else
+		if (table == null) {
+			if (TypeResolution.isDomainProxy(c)) {
+				ret = c.getName();
+				ret = ret.substring(0, ret.lastIndexOf("_Proxy")).toLowerCase();
+			} else {
+				ret = c.getSimpleName().toLowerCase();
+			}
+		} else {
 			ret = table.value();
+		}
 		return ret;
 	}
 
@@ -178,6 +185,8 @@ public class PersistenceResolution {
 		List<Field> ret = new ArrayList<Field>();
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
+			if (Modifier.isStatic(f.getModifiers()) || TypeResolution.isDomainProxy(f.getDeclaringClass()))
+				continue;
 			Persistence persistence = f.getAnnotation(Persistence.class);
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
 			if ((persistence == null || persistence.value() == PersistenceMode.Persistent)
