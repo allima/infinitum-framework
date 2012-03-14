@@ -66,6 +66,7 @@ public class SqliteMapper implements ObjectMapper {
 			Object val = null;
 			try {
 				f.setAccessible(true);
+				// TODO Fix Field access for proxies
 				val = f.get(model);
 
 				// Map relationships
