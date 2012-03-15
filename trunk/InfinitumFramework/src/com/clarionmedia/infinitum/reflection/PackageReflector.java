@@ -21,8 +21,9 @@ package com.clarionmedia.infinitum.reflection;
 
 /**
  * <p>
- * This class provides reflection methods for working with packages contained
- * within projects that are using Infinitum and their contained resources.
+ * This class provides static reflection methods for working with packages
+ * contained within projects that are using Infinitum and their contained
+ * resources.
  * </p>
  * 
  * @author Tyler Treat
