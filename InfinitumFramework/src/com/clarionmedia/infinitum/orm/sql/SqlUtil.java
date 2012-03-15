@@ -27,6 +27,7 @@ import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * This class contains utility methods for generating SQL strings.
@@ -54,21 +55,32 @@ public class SqlUtil {
 	 * @throws InfinitumRuntimeException
 	 *             if there is an error generating the SQL
 	 */
-	public static String getWhereClause(Object model) throws InfinitumRuntimeException {
+	public static String getWhereClause(Object model)
+			throws InfinitumRuntimeException {
 		Field pk = PersistenceResolution.getPrimaryKeyField(model.getClass());
 		StringBuilder sb = new StringBuilder();
 		pk.setAccessible(true);
 		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = TypeResolution.getSqliteDataType(pk);
-		try {
-			if (t == SqliteDataType.TEXT)
-				sb.append("'").append(pk.get(model)).append("'");
-			else
-				sb.append(pk.get(model));
-		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(
-					String.format(OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
-		}
+		Object pkVal = null;
+		if (TypeResolution.isDomainProxy(model.getClass()))
+			pkVal = ClassReflector.invokeGetter(pk, model);
+		else
+			try {
+				pkVal = pk.get(model);
+			} catch (IllegalArgumentException e) {
+				throw new InfinitumRuntimeException(String.format(
+						OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass()
+								.getName()));
+			} catch (IllegalAccessException e) {
+				throw new InfinitumRuntimeException(String.format(
+						OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass()
+								.getName()));
+			}
+		if (t == SqliteDataType.TEXT)
+			sb.append("'").append(pkVal).append("'");
+		else
+			sb.append(pkVal);
 		return sb.toString();
 	}
 
@@ -94,10 +106,12 @@ public class SqlUtil {
 	 *             if there is a mismatch between the {@code Class}'s primary
 	 *             key type and the type of the given primary key
 	 */
-	public static String getWhereClause(Class<?> c, Serializable id) throws IllegalArgumentException {
+	public static String getWhereClause(Class<?> c, Serializable id)
+			throws IllegalArgumentException {
 		Field pk = PersistenceResolution.getPrimaryKeyField(c);
 		if (!TypeResolution.isValidPrimaryKey(pk, id))
-			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
+			throw new IllegalArgumentException(String.format(
+					OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
 		StringBuilder sb = new StringBuilder();
 		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
