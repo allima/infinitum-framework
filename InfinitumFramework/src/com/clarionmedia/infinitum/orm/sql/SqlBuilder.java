@@ -22,11 +22,11 @@ package com.clarionmedia.infinitum.orm.sql;
 import java.io.Serializable;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
-import com.clarionmedia.infinitum.orm.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteDbHelper;
 
 /**

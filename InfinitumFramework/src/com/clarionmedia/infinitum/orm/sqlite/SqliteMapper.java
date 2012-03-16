@@ -28,17 +28,17 @@ import android.content.ContentValues;
 import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
-import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
-import com.clarionmedia.infinitum.orm.ManyToOneRelationship;
-import com.clarionmedia.infinitum.orm.ModelRelationship;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
-import com.clarionmedia.infinitum.orm.OneToManyRelationship;
-import com.clarionmedia.infinitum.orm.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
+import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
+import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
