@@ -31,11 +31,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.ManyToManyRelationship;
-import com.clarionmedia.infinitum.orm.ManyToOneRelationship;
-import com.clarionmedia.infinitum.orm.ModelRelationship;
-import com.clarionmedia.infinitum.orm.OneToManyRelationship;
-import com.clarionmedia.infinitum.orm.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
@@ -50,6 +45,11 @@ import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
 import com.clarionmedia.infinitum.orm.annotation.Table;
 import com.clarionmedia.infinitum.orm.annotation.Unique;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
+import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 
 /**
  * <p>

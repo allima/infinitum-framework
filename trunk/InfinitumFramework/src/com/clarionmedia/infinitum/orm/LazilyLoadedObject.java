@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.persistence;
+package com.clarionmedia.infinitum.orm;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

@@ -17,31 +17,29 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm;
+package com.clarionmedia.infinitum.orm.relationship;
 
 import java.lang.reflect.Field;
-
-import com.clarionmedia.infinitum.orm.annotation.OneToOne;
+import com.clarionmedia.infinitum.orm.annotation.ManyToOne;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
  * <p>
- * This class encapsulates a one-to-one relationship between two models.
+ * This class encapsulates a many-to-one relationship between two models.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/03/12
  */
-public class OneToOneRelationship extends ForeignKeyRelationship {
+public class ManyToOneRelationship extends ForeignKeyRelationship {
 
-	public OneToOneRelationship(Field f) {
-		OneToOne oto = f.getAnnotation(OneToOne.class);
+	public ManyToOneRelationship(Field f) {
+		ManyToOne mto = f.getAnnotation(ManyToOne.class);
 		mFirst = f.getDeclaringClass();
-		mSecond = PackageReflector.getClass(oto.className());
-		mRelationType = RelationType.OneToOne;
-		mName = oto.name();
-		setColumn(oto.column());
-		
+		mSecond = PackageReflector.getClass(mto.className());
+		mRelationType = RelationType.ManyToOne;
+		mName = mto.name();
+		setColumn(mto.column());
 	}
 
 }

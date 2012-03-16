@@ -23,6 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.clarionmedia.infinitum.internal.Pair;
+import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
+import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 
 /**
  * <p>
