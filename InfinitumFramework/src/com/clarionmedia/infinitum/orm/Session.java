@@ -21,40 +21,88 @@ package com.clarionmedia.infinitum.orm;
 
 import java.io.Serializable;
 import java.util.Collection;
-
+import android.database.SQLException;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteSession;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 
 /**
  * <p>
- * This interface specifies methods for interacting with a datastore. This is
- * not typically used directly but allows for greater testability.
+ * Represents the lifecycle of an Infinitum persistence service and acts as an
+ * interface to a configured application datastore. All database interaction
+ * goes through the {@code Session}, which also provides an API for creating
+ * {@link Criteria} and {@link GenCriteria} instances. {@code Session} instances
+ * should be acquired from an {@link InfinitumContext} by calling
+ * {@link InfinitumContext#getSession(Context, InfinitumContext.DataSource)} .
+ * </p>
+ * <p>
+ * When a {@code Session} is acquired, it must be opened by calling
+ * {@link Session#open()} before any {@code Session} operations can be
+ * performed. Subsequently, {@link Session#close()} should be called to close
+ * the persistence service and clean up any resources.
+ * </p>
+ * <p>
+ * In order to keep track of transient and persistent entities, {@code Session}
+ * implements a {@code Session} cache. This cache can be configured to recycle
+ * automatically in order to reclaim memory in {@code infinitum.cfg.xml}. The
+ * cache can also be explicitly recycled by invoking
+ * {@link Session#recycleCache()}. Additionally, the cache size can be modified
+ * by calling {@link Session#setCacheSize(int)}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/15/12
+ * @version 1.0 03/15/12
  */
-public interface DatastoreOperations {
+public interface Session {
 
 	/**
-	 * Constructs a new {@link GenCriteria} for the given entity {@link Class}.
+	 * Opens the {@code Session} for transactions.
 	 * 
-	 * @param entityClass
-	 *            the {@code Class} to create the {@code GenCriteria} for
-	 * @return new {@code GenCriteria}
+	 * @throws SQLException
+	 *             if the {@code Session} cannot be opened
 	 */
-	<T> GenCriteria<T> createGenericCriteria(Class<T> entityClass);
+	void open() throws SQLException;
 
 	/**
-	 * Constructs a new {@link Criteria} for the given entity {@link Class}.
-	 * 
-	 * @param entityClass
-	 *            the {@code Class} to create the {@code Criteria} for
-	 * @return new {@code Criteria}
+	 * Closes the {@code Session} and cleans up any resources.
 	 */
-	Criteria createCriteria(Class<?> entityClass);
+	void close();
+
+	/**
+	 * Indicates if the {@code Session} is open.
+	 * 
+	 * @return {@code true} if the {@code Session} is open, {@code false} if not
+	 */
+	boolean isOpen();
+
+	/**
+	 * Recycles the {@code Session} cache, effectively reclaiming its memory.
+	 */
+	void recycleCache();
+
+	/**
+	 * Sets the {@code Session} cache capacity in terms of how many
+	 * {@code Objects} it can store. The cache size dictates when the cache is
+	 * recycled if it is configured to do so automatically. Once the cache
+	 * reaches this capacity, it will be recycled. The cache can also be
+	 * recycled manually by calling {@link SqliteSession#recycleCache()}, which
+	 * will reclaim it regardless of how Infinitum is configured.
+	 * 
+	 * @param mCacheSize
+	 *            the maximum number of {@code Objects} the cache can store
+	 */
+	void setCacheSize(int mCacheSize);
+
+	/**
+	 * Returns the maximum capacity of the {@code Session} cache in terms of how
+	 * many {@code Objects} it can store.
+	 * 
+	 * @return the maximum number of {@code Objects} the cache can store
+	 */
+	int getCacheSize();
 
 	/**
 	 * Persists the given {@link Object} to the database. This method is
@@ -169,5 +217,25 @@ public interface DatastoreOperations {
 	 *             if the SQL was formatted incorrectly
 	 */
 	void execute(String sql) throws SQLGrammarException;
+
+	/**
+	 * Creates a new {@link GenCriteria} instance for the given persistent
+	 * entity {@link Class}.
+	 * 
+	 * @param entityClass
+	 *            the persistent {@code Class} being queried for
+	 * @return {@code Criteria} for entityClass
+	 */
+	<T> GenCriteria<T> createGenericCriteria(Class<T> entityClass);
+
+	/**
+	 * Creates a new {@link GenCriteria} instance for the given persistent
+	 * entity {@link Class}.
+	 * 
+	 * @param entityClass
+	 *            the persistent {@code Class} being queried for
+	 * @return {@code Criteria} for entityClass
+	 */
+	Criteria createCriteria(Class<?> entityClass);
 
 }

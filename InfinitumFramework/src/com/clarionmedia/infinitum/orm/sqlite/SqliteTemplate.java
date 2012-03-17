@@ -26,40 +26,39 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
-import com.clarionmedia.infinitum.context.ApplicationContext;
-import com.clarionmedia.infinitum.context.ApplicationContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.CriteriaImpl;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
-import com.clarionmedia.infinitum.orm.criteria.GenCriteriaImpl;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
+import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationType;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
-import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationType;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlUtil;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
  * An implementation of {@link SqliteOperations}. This class is designed to
  * provide implementations of core CRUD operations for interacting with a SQLite
- * database and act as a factory for constructing {@link Criteria} queries.
+ * database and act as a factory for constructing {@link Criteria} and
+ * {@link GenCriteria} queries.
  * </p>
  * 
  * @author Tyler Treat
@@ -70,56 +69,65 @@ public class SqliteTemplate implements SqliteOperations {
 
 	private static final String TAG = "SqliteTemplate";
 
-	protected Context mContext;
-	protected ApplicationContext mAppContext;
+	protected InfinitumContext mAppContext;
+	protected SqliteSession mSession;
 	protected SqliteDbHelper mDbHelper;
 	protected SQLiteDatabase mSqliteDb;
 	protected SqliteMapper mObjectMapper;
 	protected SqliteModelFactoryImpl mModelFactory;
 	protected SqlBuilder mSqlBuilder;
+	protected boolean mIsOpen;
 
 	/**
-	 * Constructs a new <code>AbstractSqliteDao</code> using the given
-	 * <code>Context</code>.
+	 * Constructs a new {@code SqliteTemplate} attached to the given
+	 * {@link SqliteSession}
 	 * 
-	 * @param context
-	 *            the calling <code>Context</code>
+	 * @param session
+	 *            the {@code SqliteSession} this {@code SqliteTemplate} is
+	 *            attached to
 	 */
-	public SqliteTemplate(Context context) {
-		mContext = context;
-		mAppContext = ApplicationContextFactory.getApplicationContext();
+	public SqliteTemplate(SqliteSession session) {
+		mSession = session;
+		mAppContext = InfinitumContextFactory.getInfinitumContext();
 		mObjectMapper = new SqliteMapper();
-		mModelFactory = new SqliteModelFactoryImpl(mContext);
+		mModelFactory = new SqliteModelFactoryImpl(mSession);
 		mSqlBuilder = new SqliteBuilder();
 	}
 
 	@Override
 	public <T> GenCriteria<T> createGenericCriteria(Class<T> entityClass) {
-		return new GenCriteriaImpl<T>(mContext, entityClass, this, mSqlBuilder);
+		return new SqliteGenCriteria<T>(mSession, entityClass, mSqlBuilder);
 	}
 
 	@Override
 	public Criteria createCriteria(Class<?> entityClass) {
-		return new CriteriaImpl(mContext, entityClass, this, mSqlBuilder);
+		return new SqliteCriteria(mSession, entityClass, mSqlBuilder);
 	}
 
 	@Override
-	public SqliteOperations open() throws SQLException {
-		mDbHelper = new SqliteDbHelper(mContext);
+	public void open() throws SQLException {
+		mDbHelper = new SqliteDbHelper(mSession.getContext());
 		mSqliteDb = mDbHelper.getWritableDatabase();
-		return this;
+		mIsOpen = true;
 	}
 
 	@Override
 	public void close() {
 		mDbHelper.close();
+		mIsOpen = false;
+	}
+
+	@Override
+	public boolean isOpen() {
+		return mIsOpen;
 	}
 
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_SAVE_TRANSIENT, model.getClass()
-					.getName()));
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_SAVE_TRANSIENT, model.getClass()
+							.getName()));
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveRec(model, objectMap);
 	}
@@ -127,8 +135,9 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
-					.getName()));
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
+							.getName()));
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return updateRec(model, objectMap);
 	}
@@ -136,9 +145,11 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
-					.getName()));
-		String tableName = PersistenceResolution.getModelTableName(model.getClass());
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass()
+							.getName()));
+		String tableName = PersistenceResolution.getModelTableName(model
+				.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
 		if (result == 1)
@@ -147,7 +158,8 @@ public class SqliteTemplate implements SqliteOperations {
 			if (result == 1)
 				Log.d(TAG, model.getClass().getSimpleName() + " model deleted");
 			else
-				Log.d(TAG, model.getClass().getSimpleName() + " model was not deleted");
+				Log.d(TAG, model.getClass().getSimpleName()
+						+ " model was not deleted");
 		}
 		return result == 1;
 	}
@@ -159,7 +171,8 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public void saveOrUpdateAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Saving or updating " + models.size() + " models");
 		for (Object o : models)
@@ -169,7 +182,8 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		int count = 0;
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Saving " + models.size() + " models");
@@ -183,7 +197,8 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		int count = 0;
 		if (mAppContext.isDebug())
 			Log.d(TAG, "Deleting " + models.size() + " models");
@@ -197,13 +212,18 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T load(Class<T> c, Serializable id)
+			throws InfinitumRuntimeException, IllegalArgumentException {
 		if (!PersistenceResolution.isPersistent(c))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
-		if (!TypeResolution.isValidPrimaryKey(PersistenceResolution.getPrimaryKeyField(c), id))
-			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
+		if (!TypeResolution.isValidPrimaryKey(
+				PersistenceResolution.getPrimaryKeyField(c), id))
+			throw new IllegalArgumentException(String.format(
+					OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
-		Cursor cursor = mSqliteDb.query(PersistenceResolution.getModelTableName(c), null,
+		Cursor cursor = mSqliteDb.query(
+				PersistenceResolution.getModelTableName(c), null,
 				SqlUtil.getWhereClause(c, id), null, null, null, null, "1");
 		if (cursor.getCount() == 0) {
 			cursor.close();
@@ -230,7 +250,8 @@ public class SqliteTemplate implements SqliteOperations {
 		try {
 			mSqliteDb.execSQL(sql);
 		} catch (SQLiteException e) {
-			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL, sql));
+			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL,
+					sql));
 		}
 	}
 
@@ -242,7 +263,8 @@ public class SqliteTemplate implements SqliteOperations {
 		try {
 			ret = mSqliteDb.rawQuery(sql, null);
 		} catch (SQLiteException e) {
-			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL, sql));
+			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL,
+					sql));
 		}
 		return ret;
 	}
@@ -250,16 +272,19 @@ public class SqliteTemplate implements SqliteOperations {
 	private long saveRec(Object model, Map<Integer, Object> objectMap) {
 		SqliteModelMap map = mObjectMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
-		String tableName = PersistenceResolution.getModelTableName(model.getClass());
+		String tableName = PersistenceResolution.getModelTableName(model
+				.getClass());
 		int objHash = PersistenceResolution.computeModelHash(model);
-		if (objectMap.containsKey(objHash) && !PersistenceResolution.isPKNullOrZero(model))
+		if (objectMap.containsKey(objHash)
+				&& !PersistenceResolution.isPKNullOrZero(model))
 			return 0;
 		objectMap.put(objHash, model);
 		processOneToOneRelationships(model, map, objectMap, values);
 		long ret = mSqliteDb.insert(tableName, null, values);
 		if (ret <= 0) {
 			if (mAppContext.isDebug())
-				Log.d(TAG, model.getClass().getSimpleName() + " model was not saved");
+				Log.d(TAG, model.getClass().getSimpleName()
+						+ " model was not saved");
 			return ret;
 		}
 		if (ret > 0 && PersistenceResolution.isCascading(model.getClass())) {
@@ -273,10 +298,12 @@ public class SqliteTemplate implements SqliteOperations {
 	private boolean updateRec(Object model, Map<Integer, Object> objectMap) {
 		SqliteModelMap map = mObjectMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
-		String tableName = PersistenceResolution.getModelTableName(model.getClass());
+		String tableName = PersistenceResolution.getModelTableName(model
+				.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		int objHash = PersistenceResolution.computeModelHash(model);
-		if (objectMap.containsKey(objHash) && !PersistenceResolution.isPKNullOrZero(model))
+		if (objectMap.containsKey(objHash)
+				&& !PersistenceResolution.isPKNullOrZero(model))
 			return true;
 		objectMap.put(objHash, model);
 		if (values.size() == 0)
@@ -285,7 +312,8 @@ public class SqliteTemplate implements SqliteOperations {
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (ret <= 0) {
 			if (mAppContext.isDebug())
-				Log.d(TAG, model.getClass().getSimpleName() + " model was not updated");
+				Log.d(TAG, model.getClass().getSimpleName()
+						+ " model was not updated");
 			return false;
 		}
 		if (PersistenceResolution.isCascading(model.getClass()))
@@ -303,7 +331,8 @@ public class SqliteTemplate implements SqliteOperations {
 			return 0;
 	}
 
-	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model, long pk) {
+	private void processRelationships(SqliteModelMap map,
+			Map<Integer, Object> objectMap, Object model, long pk) {
 		Field f = PersistenceResolution.getPrimaryKeyField(model.getClass());
 		f.setAccessible(true);
 		try {
@@ -316,20 +345,24 @@ public class SqliteTemplate implements SqliteOperations {
 			e.printStackTrace();
 		}
 		// Process aggregate relationships
-		for (Pair<ModelRelationship, Iterable<Object>> p : map.getAggregateRelationships()) {
+		for (Pair<ModelRelationship, Iterable<Object>> p : map
+				.getAggregateRelationships()) {
 			ModelRelationship rel = p.getFirst();
 			StringBuilder staleQuery = null;
 			if (rel.getRelationType() == RelationType.ManyToMany)
-				staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery((ManyToManyRelationship) rel, model);
+				staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery(
+						(ManyToManyRelationship) rel, model);
 			String prefix = "";
 			for (Object o : p.getSecond()) {
 				int oHash = PersistenceResolution.computeModelHash(o);
-				if (objectMap.containsKey(oHash) && !PersistenceResolution.isPKNullOrZero(o))
+				if (objectMap.containsKey(oHash)
+						&& !PersistenceResolution.isPKNullOrZero(o))
 					continue;
 				long id = saveOrUpdateRec(o, objectMap);
 				if (id >= 0) {
 					if (id > 0) {
-						f = PersistenceResolution.getPrimaryKeyField(o.getClass());
+						f = PersistenceResolution.getPrimaryKeyField(o
+								.getClass());
 						f.setAccessible(true);
 						try {
 							f.set(o, id);
@@ -342,7 +375,8 @@ public class SqliteTemplate implements SqliteOperations {
 						}
 					}
 					if (rel.getRelationType() == RelationType.ManyToMany)
-						insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
+						insertManyToManyRelationship(model, o,
+								(ManyToManyRelationship) rel);
 				}
 				if (rel.getRelationType() == RelationType.ManyToMany) {
 					mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
@@ -350,33 +384,33 @@ public class SqliteTemplate implements SqliteOperations {
 				}
 			}
 			staleQuery.append(')');
-			execute(staleQuery.toString());
+			mSqliteDb.rawQuery(staleQuery.toString(), null);
 		}
 		processManyToOneRelationships(model, map, objectMap);
 		processOneToManyRelationships(model, map, objectMap);
 	}
 
-	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model) {
+	private void processRelationships(SqliteModelMap map,
+			Map<Integer, Object> objectMap, Object model) {
 		for (Pair<ModelRelationship, Iterable<Object>> p : map.getAggregateRelationships()) {
 			ModelRelationship rel = p.getFirst();
-			StringBuilder staleQuery = null;
-			if (rel.getRelationType() == RelationType.ManyToMany)
-				staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery((ManyToManyRelationship) rel, model);
+			StringBuilder staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery((ManyToManyRelationship) rel, model);
 			String prefix = "";
 			for (Object o : p.getSecond()) {
 				boolean success;
 				int oHash = PersistenceResolution.computeModelHash(o);
-				if (objectMap.containsKey(oHash) && !PersistenceResolution.isPKNullOrZero(o))
+				if (objectMap.containsKey(oHash) && !PersistenceResolution.isPKNullOrZero(o)) {
+					mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
+					prefix = ", ";
 					continue;
+				}
 				success = saveOrUpdateRec(o, objectMap) >= 0;
 				if (success) {
 					if (rel.getRelationType() == RelationType.ManyToMany)
 						insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
 				}
-				if (rel.getRelationType() == RelationType.ManyToMany) {
-					mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
-					prefix = ", ";
-				}
+				mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
+				prefix = ", ";
 			}
 			staleQuery.append(')');
 			mSqliteDb.execSQL(staleQuery.toString());
@@ -384,53 +418,65 @@ public class SqliteTemplate implements SqliteOperations {
 		processManyToOneRelationships(model, map, objectMap);
 		processOneToManyRelationships(model, map, objectMap);
 	}
-	
-	private void processOneToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, ContentValues values) {
-		for (Pair<OneToOneRelationship, Object> p : map.getOneToOneRelationships()) {
+
+	private void processOneToOneRelationships(Object model, SqliteModelMap map,
+			Map<Integer, Object> objectMap, ContentValues values) {
+		for (Pair<OneToOneRelationship, Object> p : map
+				.getOneToOneRelationships()) {
 			Object o = p.getSecond();
-			if (o == null)
+			if (ClassReflector.isNull(o))
 				continue;
 			long id = saveOrUpdateRec(o, objectMap);
 			if (id > 0) {
-			    values.put(PersistenceResolution.getFieldColumnName(
-			    		PersistenceResolution.findRelationshipField(model.getClass(), p.getFirst())), id);
+				values.put(PersistenceResolution
+						.getFieldColumnName(PersistenceResolution
+								.findRelationshipField(model.getClass(),
+										p.getFirst())), id);
 			} else if (id == 0) {
 				Object pk = PersistenceResolution.getPrimaryKey(p.getSecond());
-				values.put(PersistenceResolution.getFieldColumnName(
-						PersistenceResolution.findRelationshipField(model.getClass(), p.getFirst())), (Long) pk);
+				values.put(PersistenceResolution
+						.getFieldColumnName(PersistenceResolution
+								.findRelationshipField(model.getClass(),
+										p.getFirst())), (Long) pk);
 			}
 		}
 	}
-	
-	private void processOneToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
-		for (Pair<OneToManyRelationship, Iterable<Object>> p : map.getOneToManyRelationships()) {
-			StringBuilder updateQuery = mSqlBuilder.createInitialUpdateForeignKeyQuery(p.getFirst(), model);
+
+	private void processOneToManyRelationships(Object model,
+			SqliteModelMap map, Map<Integer, Object> objectMap) {
+		for (Pair<OneToManyRelationship, Iterable<Object>> p : map
+				.getOneToManyRelationships()) {
+			StringBuilder updateQuery = mSqlBuilder
+					.createInitialUpdateForeignKeyQuery(p.getFirst(), model);
 			String prefix = "";
 			for (Object o : p.getSecond()) {
 				int oHash = PersistenceResolution.computeModelHash(o);
-				if (objectMap.containsKey(oHash) && !PersistenceResolution.isPKNullOrZero(o))
+				if (objectMap.containsKey(oHash)
+						&& !PersistenceResolution.isPKNullOrZero(o))
 					continue;
 				saveOrUpdateRec(o, objectMap);
 				mSqlBuilder.addPrimaryKeyToQuery(o, updateQuery, prefix);
 				prefix = ", ";
 			}
-		    updateQuery.append(')');
+			updateQuery.append(')');
 			mSqliteDb.execSQL(updateQuery.toString());
 		}
 	}
 
-	private void processManyToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
+	private void processManyToOneRelationships(Object model,
+			SqliteModelMap map, Map<Integer, Object> objectMap) {
 		for (Pair<ManyToOneRelationship, Object> p : map.getManyToOneRelationships()) {
 			Object o = p.getSecond();
-			if (o == null)
+			if (ClassReflector.isNull(o))
 				continue;
 			saveOrUpdateRec(o, objectMap);
 			String update = mSqlBuilder.createUpdateQuery(model, o, p.getFirst().getColumn());
-		    mSqliteDb.execSQL(update);
+			mSqliteDb.execSQL(update);
 		}
 	}
 
-	private boolean insertManyToManyRelationship(Object model, Object related, ManyToManyRelationship mtm) {
+	private void insertManyToManyRelationship(Object model, Object related,
+			ManyToManyRelationship mtm) {
 		// TODO Revisit this method
 		ContentValues relData = new ContentValues();
 		Class<?> first = mtm.getFirstType();
@@ -442,13 +488,17 @@ public class SqliteTemplate implements SqliteOperations {
 			Object fPk;
 			Object sPk;
 			if (model.getClass() == first) {
-				f = PersistenceResolution.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
-				s = PersistenceResolution.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
+				f = PersistenceResolution.findPersistentField(
+						mtm.getFirstType(), mtm.getFirstFieldName());
+				s = PersistenceResolution.findPersistentField(
+						mtm.getSecondType(), mtm.getSecondFieldName());
 				fPk = f.get(model);
 				sPk = s.get(related);
 			} else if (model.getClass() == second) {
-				s = PersistenceResolution.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
-				f = PersistenceResolution.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
+				s = PersistenceResolution.findPersistentField(
+						mtm.getFirstType(), mtm.getFirstFieldName());
+				f = PersistenceResolution.findPersistentField(
+						mtm.getSecondType(), mtm.getSecondFieldName());
 				fPk = f.get(related);
 				sPk = s.get(model);
 			} else {
@@ -505,9 +555,14 @@ public class SqliteTemplate implements SqliteOperations {
 				// TODO
 				throw new InfinitumRuntimeException("");
 			}
-			boolean ret = mSqliteDb.insert(mtm.getTableName(), null, relData) > 0;
+			boolean result = false;
+			try {
+			    result = mSqliteDb.insertOrThrow(mtm.getTableName(), null, relData) > 0;
+			} catch (SQLException e) {
+				return;
+			}
 			if (mAppContext.isDebug()) {
-				if (ret)
+				if (result)
 					Log.d(TAG, first.getSimpleName() + "-" + second.getSimpleName() + " relationship saved");
 				else
 					Log.e(TAG, first.getSimpleName() + "-" + second.getSimpleName() + " relationship was not saved");
@@ -519,15 +574,16 @@ public class SqliteTemplate implements SqliteOperations {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return false;
 	}
 
 	private void deleteRelationships(Object model) {
 		SqliteModelMap map = mObjectMapper.mapModel(model);
-		for (Pair<ModelRelationship, Iterable<Object>> p : map.getAggregateRelationships()) {
+		for (Pair<ModelRelationship, Iterable<Object>> p : map
+				.getAggregateRelationships()) {
 			ModelRelationship rel = p.getFirst();
 			if (rel.getRelationType() == RelationType.ManyToMany)
-				execute(mSqlBuilder.createManyToManyDeleteQuery(model, (ManyToManyRelationship) rel));
+				mSqliteDb.rawQuery(mSqlBuilder.createManyToManyDeleteQuery(model,
+						(ManyToManyRelationship) rel), null);
 		}
 		// TODO Update non M:M relationships
 	}

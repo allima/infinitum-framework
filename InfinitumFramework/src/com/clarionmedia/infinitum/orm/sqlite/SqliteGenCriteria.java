@@ -17,21 +17,20 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.criteria;
+package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import android.content.Context;
 import android.database.Cursor;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
+import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactoryImpl;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
 
 /**
  * <p>
@@ -41,40 +40,39 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
  * @author Tyler Treat
  * @version 1.0 02/17/12
  */
-public class GenCriteriaImpl<T> implements GenCriteria<T> {
+public class SqliteGenCriteria<T> implements GenCriteria<T> {
 
 	private Class<T> mEntityClass;
-	private SqliteOperations mSqliteOps;
+	private SqliteSession mSession;
 	private SqliteModelFactoryImpl mModelFactory;
 	private List<Criterion> mCriterion;
 	private int mLimit;
 	private int mOffset;
-	private Context mContext;
 	private SqlBuilder mSqlBuilder;
 
 	/**
 	 * Constructs a new {@code GenCriteriaImpl} with the given entity
 	 * {@link Class}
 	 * 
+	 * @param session
+	 *            the {@link SqliteSession} this {@code SqliteGenCriteria} is
+	 *            attached to
 	 * @param entityClass
 	 *            Class<?> to create {@code GenCriteriaImpl} for
-	 * @param sqliteOps
-	 *            {@link SqliteOperations} for which this
-	 *            {@code GenCriteriaImpl} is being created for
 	 * @param sqlBuilder
 	 *            {@link SqlBuilder} for generating SQL statements
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public GenCriteriaImpl(Context context, Class<T> entityClass, SqliteOperations sqliteOps, SqlBuilder sqlBuilder)
+	public SqliteGenCriteria(SqliteSession session, Class<T> entityClass, SqlBuilder sqlBuilder)
 			throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
-			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA,
-					entityClass.getName()));
-		mContext = context;
+			throw new InfinitumRuntimeException(
+					String.format(CriteriaConstants.TRANSIENT_CRITERIA,
+							entityClass.getName()));
+		mSession = session;
 		mEntityClass = entityClass;
-		mSqliteOps = sqliteOps;
-		mModelFactory = new SqliteModelFactoryImpl(mContext);
+		mModelFactory = new SqliteModelFactoryImpl(session);
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
 	}
@@ -125,7 +123,8 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 	@Override
 	public List<T> toList() {
 		List<T> ret = new LinkedList<T>();
-		Cursor result = mSqliteOps.executeForResult(mSqlBuilder.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder
+				.createQuery(this));
 		if (result.getCount() == 0) {
 			result.close();
 			return ret;
@@ -144,9 +143,11 @@ public class GenCriteriaImpl<T> implements GenCriteria<T> {
 
 	@Override
 	public T unique() throws InfinitumRuntimeException {
-		Cursor result = mSqliteOps.executeForResult(mSqlBuilder.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder
+				.createQuery(this));
 		if (result.getCount() > 1)
-			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT,
+			throw new InfinitumRuntimeException(String.format(
+					CriteriaConstants.NON_UNIQUE_RESULT,
 					mEntityClass.getName(), result.getCount()));
 		else if (result.getCount() == 0)
 			return null;

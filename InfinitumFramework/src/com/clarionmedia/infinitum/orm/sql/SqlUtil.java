@@ -63,9 +63,9 @@ public class SqlUtil {
 		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = TypeResolution.getSqliteDataType(pk);
 		Object pkVal = null;
-		if (TypeResolution.isDomainProxy(model.getClass()))
-			pkVal = ClassReflector.invokeGetter(pk, model);
-		else
+		if (TypeResolution.isDomainProxy(model.getClass())) {
+		    pkVal = ClassReflector.invokeGetter(pk, model);
+		} else {
 			try {
 				pkVal = pk.get(model);
 			} catch (IllegalArgumentException e) {
@@ -77,6 +77,7 @@ public class SqlUtil {
 						OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass()
 								.getName()));
 			}
+		}
 		if (t == SqliteDataType.TEXT)
 			sb.append("'").append(pkVal).append("'");
 		else

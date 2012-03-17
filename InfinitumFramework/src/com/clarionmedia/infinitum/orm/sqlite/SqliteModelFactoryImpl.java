@@ -26,9 +26,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -63,10 +61,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 
 	private static final String INSTANTIATION_ERROR = "Could not instantiate Object of type '%s'.";
 
-	private Map<Integer, Object> mObjectMap = new Hashtable<Integer, Object>();
 	private SqlExecutor mExecutor;
 	private SqlBuilder mSqlBuilder;
-	private Context mContext;
+	private SqliteSession mSession;
 
 	/**
 	 * Constructs a {@code SqliteModelFactoryImpl} with the given
@@ -75,27 +72,28 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	 * @param context
 	 *            the {@code Context} for this model factory
 	 */
-	public SqliteModelFactoryImpl(Context context) {
-		mExecutor = new SqliteExecutor(context);
+	public SqliteModelFactoryImpl(SqliteSession session) {
+		mExecutor = new SqliteExecutor(session.getContext());
 		mSqlBuilder = new SqliteBuilder();
-		mContext = context;
+		mSession = session;
 	}
 
 	@Override
 	public <T> T createFromResult(SqliteResult result, Class<T> modelClass)
 			throws ModelConfigurationException, InfinitumRuntimeException {
-		return createFromCursorRec(result.getCursor(), modelClass, null);
+		mSession.reconcileCache();
+		return createFromCursorRec(result.getCursor(), modelClass);
 	}
 
 	@Override
 	public <T> T createFromCursor(Cursor cursor, Class<T> modelClass)
 			throws ModelConfigurationException, InfinitumRuntimeException {
-		return createFromCursorRec(cursor, modelClass, null);
+		mSession.reconcileCache();
+		return createFromCursorRec(cursor, modelClass);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> T createFromCursorRec(Cursor cursor, Class<T> modelClass,
-			Object parent) throws ModelConfigurationException,
+	private <T> T createFromCursorRec(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException,
 			InfinitumRuntimeException {
 		T ret = null;
 		try {
@@ -134,9 +132,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			}
 		}
 		int objHash = PersistenceResolution.computeModelHash(ret);
-		if (mObjectMap.containsKey(objHash))
-			return (T) mObjectMap.get(objHash);
-		mObjectMap.put(objHash, ret);
+		if (mSession.getSessionCache().containsKey(objHash))
+			return (T) mSession.getSessionCache().get(objHash);
+		mSession.getSessionCache().put(objHash, ret);
 		loadRelationships(ret);
 		return ret;
 	}
@@ -197,8 +195,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 							mExecutor.close();
 							return ret;
 						}
-					}).dexCache(mContext.getDir("dx", Context.MODE_PRIVATE))
-					.build();
+					})
+					.dexCache(
+							mSession.getContext().getDir("dx",
+									Context.MODE_PRIVATE)).build();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -278,8 +278,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 							mExecutor.close();
 							return collection;
 						}
-					}).dexCache(mContext.getDir("dx", Context.MODE_PRIVATE))
-					.build();
+					})
+					.dexCache(
+							mSession.getContext().getDir("dx",
+									Context.MODE_PRIVATE)).build();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
@@ -348,8 +350,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 							mExecutor.close();
 							return ret;
 						}
-					}).dexCache(mContext.getDir("dx", Context.MODE_PRIVATE))
-					.build();
+					})
+					.dexCache(
+							mSession.getContext().getDir("dx",
+									Context.MODE_PRIVATE)).build();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

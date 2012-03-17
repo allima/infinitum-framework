@@ -46,8 +46,8 @@ public interface SqlBuilder {
 	 * tables created.
 	 * 
 	 * @param dbHelper
-	 *            the <code>SqliteDbHelper</code> encapsulating the
-	 *            <code>ApplicationContext</code> for this application
+	 *            the {@code SqliteDbHelper} encapsulating the
+	 *            {@code InfinitumContext} for this application
 	 * @return number of tables created
 	 * @throws ModelConfigurationException
 	 *             if table(s) cannot be created due to a misconfigured model.

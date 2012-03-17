@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 
 /**
  * <p>
@@ -45,11 +46,8 @@ public class ClassReflector {
 	 * @param object
 	 *            the {@code Object} to retrieve the value for
 	 * @return {@code Field} value
-	 * @throws ModelConfigurationException
-	 *             if there is no getter method for the specified {@code Field}
 	 */
-	public static Object invokeGetter(Field field, Object object)
-			throws ModelConfigurationException {
+	public static Object invokeGetter(Field field, Object object) {
 		field.setAccessible(true);
 		String name = field.getName();
 		if (name.startsWith("m") && name.length() > 1) {
@@ -78,6 +76,23 @@ public class ClassReflector {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	/**
+	 * Indicates if the given {@link Object} or {@code Object} proxy is
+	 * {@code null}.
+	 * 
+	 * @param object
+	 *            the {@code Object} to check
+	 * @return {@code true} if {@code object} is {@code null}, {@code false} if
+	 *         not
+	 */
+	public static boolean isNull(Object object) {
+		if (object == null)
+			return true;
+		if (TypeResolution.isDomainProxy(object.getClass()))
+			return object.getClass().isInstance(object);
+		return false;
 	}
 
 }

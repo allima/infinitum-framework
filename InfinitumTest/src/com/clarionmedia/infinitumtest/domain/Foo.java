@@ -23,15 +23,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
+import com.clarionmedia.infinitum.orm.annotation.ManyToOne;
 
 public class Foo extends AbstractBase {
 
 	private String mFoo;
+	
+	@ManyToOne(className = "com.clarionmedia.infinitumtest.domain.Bar", name = "foo-bar", column = "bar")
+	private Bar mBar;
 
-	@ManyToMany(className = "com.clarionmedia.infinitumtest.domain.TestModel", foreignField = "mId", keyField = "mId", tableName = "testmodel_foo")
+	@ManyToMany(className = "com.clarionmedia.infinitumtest.domain.TestModel", foreignField = "mId", keyField = "mId", tableName = "testmodel_foo", name = "foo-testmodel")
 	private List<TestModel> mRelated;
 
 	public Foo() {
+		setRelated(new ArrayList<TestModel>());
 	}
 
 	public Foo(String foo) {
@@ -53,6 +58,18 @@ public class Foo extends AbstractBase {
 
 	public void setRelated(List<TestModel> related) {
 		mRelated = related;
+	}
+	
+	public void addRelated(TestModel t) {
+		mRelated.add(t);
+	}
+
+	public void setBar(Bar mBar) {
+		this.mBar = mBar;
+	}
+
+	public Bar getBar() {
+		return mBar;
 	}
 
 }

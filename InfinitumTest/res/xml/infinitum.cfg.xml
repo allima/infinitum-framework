@@ -8,7 +8,7 @@
     <application>
         <property name="debug">true</property>
         <property name="mode">annotations</property>
-        <property name="domainPackage">com.clarionmedia.infinitumtest.domain</property>
+        <property name="recycleCache">true</property>
     </application>
     
     <sqlite>
@@ -19,6 +19,9 @@
     <domain>
         <model resource="com.clarionmedia.infinitumtest.domain.TestModel" />
         <model resource="com.clarionmedia.infinitumtest.domain.Foo" />
+        <model resource="com.clarionmedia.infinitumtest.domain.Bar" />
+        <model resource="com.clarionmedia.infinitumtest.domain.SideA" />
+        <model resource="com.clarionmedia.infinitumtest.domain.SideB" />
     </domain>
 
 </infinitum-configuration>
