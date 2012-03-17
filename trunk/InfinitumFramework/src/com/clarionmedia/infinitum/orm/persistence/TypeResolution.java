@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 
-import com.clarionmedia.infinitum.context.ApplicationContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 
 /**
@@ -122,7 +122,7 @@ public class TypeResolution {
 	 * @return {@code true} if it is a domain model, {@code false} if not
 	 */
 	public static boolean isDomainModel(Class<?> c) {
-		for (String s : ApplicationContextFactory.getApplicationContext().getDomainModels()) {
+		for (String s : InfinitumContextFactory.getInfinitumContext().getDomainModels()) {
 			if (c.getName().equalsIgnoreCase(s))
 				return true;
 		}
@@ -135,7 +135,7 @@ public class TypeResolution {
 	 * @return {@code true} if it is a domain proxy, {@code false} if not
 	 */
 	public static boolean isDomainProxy(Class<?> c) {
-		for (String s : ApplicationContextFactory.getApplicationContext().getDomainModels()) {
+		for (String s : InfinitumContextFactory.getInfinitumContext().getDomainModels()) {
 			String name = s;
 			if (name.contains("."))
 				name = name.substring(name.lastIndexOf('.') + 1);

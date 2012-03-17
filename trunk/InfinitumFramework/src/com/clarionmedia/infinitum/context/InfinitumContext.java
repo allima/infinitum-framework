@@ -22,44 +22,73 @@ package com.clarionmedia.infinitum.context;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Context;
+
+import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.orm.Session;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteSession;
+
 /**
  * <p>
  * Acts as a container for application-wide context information. This should not
  * be instantiated directly but rather obtained through the
- * {@link ApplicationContextFactory}, which creates an instance of this from
+ * {@link InfinitumContextFactory}, which creates an instance of this from
  * {@code infinitum.cfg.xml}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
-public class ApplicationContext {
+public class InfinitumContext {
 
 	public static enum ConfigurationMode {
 		XML, Annotation
-	};
+	}
+
+	public static enum DataSource {
+		Sqlite
+	}
 
 	private static final ConfigurationMode DEFAULT_MODE = ConfigurationMode.Annotation;
 
 	private boolean mIsDebug;
 	private ConfigurationMode mConfigMode;
+	private boolean mRecycleCache;
 	private boolean mHasSqliteDb;
 	private String mSqliteDbName;
 	private int mSqliteDbVersion;
 	private List<String> mDomainModels;
-	private boolean mHasRestfulService;
-	private String mRestHost;
-	private List<String> mRestResources;
 
 	/**
-	 * Constructs a new <code>ApplicationContext</code>. This constructor should
-	 * not be called outside of {@link ApplicationContextFactory} as it is
-	 * generated from <code>infinitum.cfg.xml</code>.
+	 * Constructs a new {@code InfinitumContext}. This constructor should
+	 * not be called outside of {@link InfinitumContextFactory} as it is
+	 * generated from {@code infinitum.cfg.xml}.
 	 */
-	public ApplicationContext() {
+	public InfinitumContext() {
 		mConfigMode = DEFAULT_MODE;
 		mDomainModels = new ArrayList<String>();
-		mRestResources = new ArrayList<String>();
+	}
+
+	/**
+	 * Retrieves a new {@link Session} instance for the configured data source.
+	 * 
+	 * @param context
+	 *            the {@link Context} of the {@code Session}
+	 * @param source
+	 *            the {@link DataSource} to target
+	 * @return new {@code Session} instance
+	 * @throws InfinitumConfigurationException
+	 *             if the specified {@code DataSource} was not configured
+	 */
+	public Session getSession(Context context, DataSource source)
+			throws InfinitumConfigurationException {
+		switch (source) {
+		case Sqlite:
+			return new SqliteSession(context);
+		default:
+			throw new InfinitumConfigurationException(
+					"Data source not configured.");
+		}
 	}
 
 	/**
@@ -93,7 +122,7 @@ public class ApplicationContext {
 
 	/**
 	 * Returns the <code>ConfigurationMode</code> value of this
-	 * <code>ApplicationContext</code>, indicating which style of configuration
+	 * {@code InfinitumContext}, indicating which style of configuration
 	 * this application is using, XML- or annotation-based. An XML configuration
 	 * means that domain model mappings are provided through XML mapping files,
 	 * while an annotation configuration means that mappings and other
@@ -107,7 +136,7 @@ public class ApplicationContext {
 
 	/**
 	 * Sets the <code>ConfigurationMode</code> value for this
-	 * <code>ApplicationContext</code>. The mode can be set in
+	 * {@code InfinitumContext}. The mode can be set in
 	 * <code>infinitum.cfg.xml</code> with
 	 * <code>&lt;property name="mode"&gt;xml&lt;/property&gt;</code> or
 	 * <code>&lt;property name="mode"&gt;annotations&lt;/property&gt;</code> in
@@ -138,7 +167,7 @@ public class ApplicationContext {
 	}
 
 	/**
-	 * Sets the value indicating if this <code>ApplicationContext</code> has a
+	 * Sets the value indicating if this {@code InfinitumContext} has a
 	 * SQLite database configured or not. This will be set to <code>true</code>
 	 * if <code>infinitum.cfg.xml</code> has a properly configured
 	 * <code>sqlite</code> element.
@@ -153,11 +182,11 @@ public class ApplicationContext {
 
 	/**
 	 * Returns the name of the SQLite database for this
-	 * <code>ApplicationContext</code>. This is the name used to construct the
+	 * {@code InfinitumContext}. This is the name used to construct the
 	 * database and subsequently open it.
 	 * 
 	 * @return the name of the SQLite database for this
-	 *         <code>ApplicationContext</code>
+	 *         {@code InfinitumContext}
 	 */
 	public String getSqliteDbName() {
 		return mSqliteDbName;
@@ -165,7 +194,7 @@ public class ApplicationContext {
 
 	/**
 	 * Sets the value of the SQLite database name for this
-	 * <code>ApplicationContext</code>. The SQLite database name can be
+	 * {@code InfinitumContext}. The SQLite database name can be
 	 * specified in <code>infinitum.cfg.xml</code> with
 	 * <code>&lt;property name="dbName"&gt;MyDB&lt;/property&gt;</code> in the
 	 * <code>sqlite</code> element.
@@ -179,7 +208,7 @@ public class ApplicationContext {
 
 	/**
 	 * Returns the version number of the SQLite database for this
-	 * <code>ApplicationContext</code>.
+	 * {@code InfinitumContext}.
 	 * 
 	 * @return the SQLite database version number
 	 */
@@ -189,7 +218,7 @@ public class ApplicationContext {
 
 	/**
 	 * Sets the version for the SQLite database for this
-	 * <code>ApplicationContext</code>. The SQLite database version can be
+	 * {@code InfinitumContext}. The SQLite database version can be
 	 * specified in <code>infinitum.cfg.xml</code> with
 	 * <code>&lt;property name="dbVersion"&gt;2&lt;/property&gt;</code> in the
 	 * <code>sqlite</code> element.
@@ -203,7 +232,7 @@ public class ApplicationContext {
 
 	/**
 	 * Returns a <code>List</code> of all fully-qualified domain model classes
-	 * registered with this <code>ApplicationContext</code>. Domain models are
+	 * registered with this {@code InfinitumContext}. Domain models are
 	 * defined as being persistent entities.
 	 * 
 	 * @return a <code>List</code> of all registered domain model classes
@@ -214,7 +243,7 @@ public class ApplicationContext {
 
 	/**
 	 * Adds the specified domain model class to the entire collection of domain
-	 * models registered with this <code>ApplicationContext</code>. Domain
+	 * models registered with this {@code InfinitumContext}. Domain
 	 * models are defined in <code>infinitum.cfg.xml</code> using
 	 * <code>&lt;model resource="com.foo.domain.MyModel" /&gt;</code> in the
 	 * <code>domain</code> element.
@@ -226,57 +255,29 @@ public class ApplicationContext {
 	}
 
 	/**
-	 * Returns the REST host URL registered with this {@code ApplicationContext}
-	 * or {@code null} if no RESTful web service was registered.
+	 * Sets the value indicating if the {@link Session} cache should be
+	 * automatically recycled. This value can be enabled in
+	 * {@code infinitum.cfg.xml} with
+	 * <code>&lt;property name="recycleCache"&gt;true&lt;/property&gt;</code> in
+	 * the {@code application} element.
 	 * 
-	 * @return host URL
+	 * @param recycleCache
+	 *            {@code true} if the cache should be recycled automatically,
+	 *            {@code false} if not
 	 */
-	public String getRestHost() {
-		return mRestHost;
+	public void setCacheRecyclable(boolean recycleCache) {
+		mRecycleCache = recycleCache;
 	}
 
 	/**
-	 * Registers the specified URI as a RESTful web service host for this
-	 * {@code ApplicationContext}. The REST host can be specified in
-	 * {@code infinitum.cfg.xml} using
-	 * <code>&lt;property name="host"&gt;http://localhost:8080&lt;/property&gt;</code>
-	 * in the {@code rest} element.
+	 * Indicates if the {@link Session} cache is configured to be automatically
+	 * recycled or not.
 	 * 
-	 * @param restHost
+	 * @return {@code true} if the cache is set to automatically recycle,
+	 *         {@code false} if not
 	 */
-	public void setRestHost(String restHost) {
-		mRestHost = restHost;
-	}
-
-	/**
-	 * Returns a {@code List} of all REST resources registered with this
-	 * {@code ApplicationContext}.
-	 * 
-	 * @return {@code List} of REST resource names
-	 */
-	public List<String> getRestResources() {
-		return mRestResources;
-	}
-
-	/**
-	 * Adds the specified REST resource name to the collection of resources
-	 * registered to this {@code ApplicationContext}. REST resources are defined
-	 * in {@code infinitum.cfg.xml} using
-	 * <code>&lt;resource name="foo" /&gt;</code> in the <code>rest</code>
-	 * element.
-	 * 
-	 * @param resource
-	 */
-	public void addRestResource(String resource) {
-		mRestResources.add(resource);
-	}
-
-	public boolean hasRestfulService() {
-		return mHasRestfulService;
-	}
-
-	public void setHasRestfulService(boolean hasRestfulService) {
-		mHasRestfulService = hasRestfulService;
+	public boolean isCacheRecyclable() {
+		return mRecycleCache;
 	}
 
 }

@@ -60,7 +60,7 @@ public class SqliteBuilder implements SqlBuilder {
 			throws ModelConfigurationException, InfinitumConfigurationException {
 		int count = 0;
 		SQLiteDatabase db = dbHelper.getDatabase();
-		for (String m : dbHelper.getApplicationContext().getDomainModels()) {
+		for (String m : dbHelper.getInfinitumContext().getDomainModels()) {
 			Class<?> c = PackageReflector.getClass(m);
 			if (c == null)
 				throw new InfinitumConfigurationException("No such class '" + m

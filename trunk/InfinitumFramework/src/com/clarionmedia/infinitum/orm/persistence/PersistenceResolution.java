@@ -50,6 +50,7 @@ import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
@@ -185,7 +186,8 @@ public class PersistenceResolution {
 		List<Field> ret = new ArrayList<Field>();
 		List<Field> fields = getAllFields(c);
 		for (Field f : fields) {
-			if (Modifier.isStatic(f.getModifiers()) || TypeResolution.isDomainProxy(f.getDeclaringClass()))
+			if (Modifier.isStatic(f.getModifiers())
+					|| TypeResolution.isDomainProxy(f.getDeclaringClass()))
 				continue;
 			Persistence persistence = f.getAnnotation(Persistence.class);
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
@@ -574,14 +576,19 @@ public class PersistenceResolution {
 		Object ret = null;
 		Field pkField = getPrimaryKeyField(model.getClass());
 		pkField.setAccessible(true);
-		try {
-			ret = pkField.get(model);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (TypeResolution.isDomainProxy(model.getClass())) {
+			// Need to invoke getter if it's a proxy
+			ret = ClassReflector.invokeGetter(pkField, model);
+		} else {
+			try {
+				ret = pkField.get(model);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return ret;
 	}

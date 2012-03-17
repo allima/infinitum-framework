@@ -23,8 +23,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import com.clarionmedia.infinitum.context.ApplicationContext;
-import com.clarionmedia.infinitum.context.ApplicationContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
@@ -45,13 +45,13 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	private static final String TAG = "SqliteDbHelper";
 
 	private SQLiteDatabase mSqliteDb;
-	private ApplicationContext mAppContext;
+	private InfinitumContext mInfinitumContext;
 	private SqlBuilder mSqlBuilder;
 
 	public SqliteDbHelper(Context context) {
-		super(context, ApplicationContextFactory.getApplicationContext().getSqliteDbName(), null,
-				ApplicationContextFactory.getApplicationContext().getSqliteDbVersion());
-		mAppContext = ApplicationContextFactory.getApplicationContext();
+		super(context, InfinitumContextFactory.getInfinitumContext().getSqliteDbName(), null,
+				InfinitumContextFactory.getInfinitumContext().getSqliteDbVersion());
+		mInfinitumContext = InfinitumContextFactory.getInfinitumContext();
 		mSqlBuilder = new SqliteBuilder();
 	}
 
@@ -65,31 +65,31 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * Returns the encapsulated <code>ApplicationContext</code>.
+	 * Returns the encapsulated {@link InfinitumContext}.
 	 * 
-	 * @return <code>ApplicationContext</code> instance
+	 * @return {@code InfinitumContext} instance
 	 */
-	public ApplicationContext getApplicationContext() {
-		return mAppContext;
+	public InfinitumContext getInfinitumContext() {
+		return mInfinitumContext;
 	}
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		mSqliteDb = db;
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Creating database tables");
 		try {
 			mSqlBuilder.createTables(this);
 		} catch (ModelConfigurationException e) {
 			Log.e(TAG, OrmConstants.CREATE_TABLES_ERROR, e);
 		}
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Database tables created successfully");
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion
 					+ ", which will destroy all old data");
 		// TODO: drop tables

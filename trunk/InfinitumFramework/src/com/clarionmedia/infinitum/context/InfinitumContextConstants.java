@@ -21,15 +21,15 @@ package com.clarionmedia.infinitum.context;
 
 /**
  * <p>
- * Contains constants used in {@link ApplicationContext},
- * {@link ApplicationContextFactory}, and other supporting classes.
+ * Contains constants used in {@link InfinitumContext},
+ * {@link InfinitumContextFactory}, and other supporting classes.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/12/12
  * 
  */
-public class ApplicationContextConstants {
+public class InfinitumContextConstants {
 	
 	// XML element names
 	public static final String CONFIG_ELEMENT = "infinitum-configuration";
@@ -46,12 +46,12 @@ public class ApplicationContextConstants {
 	public static final String DB_VERSION_ATTRIBUTE = "dbversion";
 	public static final String DEBUG_ATTRIBUTE = "debug";
 	public static final String MODE_ATTRIBUTE = "mode";
-	public static final String DOMAIN_PACKAGE_ATTRIBUTE = "domainPackage";
+	public static final String RECYCLE_ATTRIBUTE = "recycleCache";
 	public static final String DOMAIN_RESOURCE_ATTRIBUTE = "resource";
 	public static final String REST_HOST_ATTRIBUTE = "host";
 
 	// Error messages
-	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the ApplicationContext!";
+	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the InfinitumContext!";
 	public static final String CONFIG_PARSE_ERROR = "Could not parse configuration file.";
 	public static final String CONFIG_PARSE_ERROR_LINE = "Could not parse configuration file at line %d.";
 	public static final String SQLITE_DB_NAME_MISSING = "SQLite database name is missing!";
