@@ -93,8 +93,8 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> T createFromCursorRec(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException,
-			InfinitumRuntimeException {
+	private <T> T createFromCursorRec(Cursor cursor, Class<T> modelClass)
+			throws ModelConfigurationException, InfinitumRuntimeException {
 		T ret = null;
 		try {
 			Constructor<T> ctor = modelClass.getConstructor();
@@ -261,27 +261,20 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			sql.append(pk);
 		}
 		try {
-			final Collection<Object> collection = (Collection<Object>) f
-					.get(model);
-			Collection<Object> related = ProxyBuilder
-					.forClass(collection.getClass())
+			final Collection<Object> collection = (Collection<Object>) f.get(model);
+			Collection<Object> related = ProxyBuilder.forClass(collection.getClass())
 					.handler(new LazilyLoadedObject() {
 						@Override
 						protected Object loadObject() {
 							mExecutor.open();
-							SqliteResult result = (SqliteResult) mExecutor
-									.execute(sql.toString());
+							SqliteResult result = (SqliteResult) mExecutor.execute(sql.toString());
 							while (result.getCursor().moveToNext())
-								collection.add(createFromResult(result,
-										rel.getManyType()));
+								collection.add(createFromResult(result, rel.getManyType()));
 							result.close();
 							mExecutor.close();
 							return collection;
 						}
-					})
-					.dexCache(
-							mSession.getContext().getDir("dx",
-									Context.MODE_PRIVATE)).build();
+					}).dexCache(mSession.getContext().getDir("dx", Context.MODE_PRIVATE)).build();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block

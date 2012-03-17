@@ -22,9 +22,7 @@ package com.clarionmedia.infinitum.orm.sqlite;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.List;
-
 import android.content.ContentValues;
-
 import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
@@ -53,17 +51,14 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
 public class SqliteMapper implements ObjectMapper {
 
 	@Override
-	public SqliteModelMap mapModel(Object model)
-			throws InvalidMappingException, ModelConfigurationException {
+	public SqliteModelMap mapModel(Object model) throws InvalidMappingException, ModelConfigurationException {
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			return null;
 		SqliteModelMap ret = new SqliteModelMap(model);
 		ContentValues values = new ContentValues();
-		List<Field> fields = PersistenceResolution.getPersistentFields(model
-				.getClass());
+		List<Field> fields = PersistenceResolution.getPersistentFields(model.getClass());
 		for (Field f : fields) {
-			if (PersistenceResolution.isFieldPrimaryKey(f)
-					&& PersistenceResolution.isPrimaryKeyAutoIncrement(f))
+			if (PersistenceResolution.isFieldPrimaryKey(f) && PersistenceResolution.isPrimaryKeyAutoIncrement(f))
 				continue;
 			Object val = null;
 			try {
@@ -92,8 +87,7 @@ public class SqliteMapper implements ObjectMapper {
 		return ret;
 	}
 
-	private void mapValue(ContentValues values, Object val, Field f)
-			throws InvalidMappingException {
+	private void mapValue(ContentValues values, Object val, Field f) throws InvalidMappingException {
 		Class<?> type = Primitives.unwrap(f.getType());
 		String colName = PersistenceResolution.getFieldColumnName(f);
 		// TODO: figure out a better way to do this!
@@ -120,68 +114,48 @@ public class SqliteMapper implements ObjectMapper {
 		else if (type == Character.class)
 			values.put(colName, (String) val);
 		else if (type == Date.class)
-			values.put(colName,
-					DateFormatter.getDateAsISO8601String((Date) val));
+			values.put(colName, DateFormatter.getDateAsISO8601String((Date) val));
 		else
-			throw new InvalidMappingException(String.format(
-					OrmConstants.CANNOT_MAP_TYPE, f.getType().getSimpleName()));
+			throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, f.getType().getSimpleName()));
 	}
 
 	@SuppressWarnings("unchecked")
 	private void mapRelationship(SqliteModelMap map, Object model, Field f) {
 		try {
 			if (PersistenceResolution.isRelationship(f)) {
-				ModelRelationship rel = PersistenceResolution
-						.getRelationship(f);
+				ModelRelationship rel = PersistenceResolution.getRelationship(f);
 				Object related;
 				switch (rel.getRelationType()) {
 				case ManyToMany:
 					ManyToManyRelationship mtm = (ManyToManyRelationship) rel;
 					related = f.get(model);
 					if (!(related instanceof Iterable))
-						throw new ModelConfigurationException(String.format(
-								OrmConstants.INVALID_MM_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
-					map.addAggregateRelationship(new Pair<ModelRelationship, Iterable<Object>>(
-							mtm, (Iterable<Object>) related));
+						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
+					map.addManyToManyRelationship(new Pair<ManyToManyRelationship, Iterable<Object>>(mtm, (Iterable<Object>) related));
 					break;
 				case ManyToOne:
 					ManyToOneRelationship mto = (ManyToOneRelationship) rel;
 					related = f.get(model);
-					if (related != null
-							&& !TypeResolution
-									.isDomainModel(related.getClass()))
-						throw new ModelConfigurationException(String.format(
-								OrmConstants.INVALID_MO_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
-					map.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(
-							mto, related));
+					if (related != null && !TypeResolution.isDomainModel(related.getClass()))
+						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MO_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
+					map.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(mto, related));
 					break;
 				case OneToMany:
 					OneToManyRelationship otm = (OneToManyRelationship) rel;
 					related = f.get(model);
 					if (!(related instanceof Iterable))
-						throw new ModelConfigurationException(String.format(
-								OrmConstants.INVALID_OM_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
-					map.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(
-							otm, (Iterable<Object>) related));
+						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OM_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
+					map.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(otm, (Iterable<Object>) related));
 					break;
 				case OneToOne:
 					OneToOneRelationship oto = (OneToOneRelationship) rel;
 					related = f.get(model);
-					if (related != null
-							&& !TypeResolution
-									.isDomainModel(related.getClass()))
-						throw new ModelConfigurationException(String.format(
-								OrmConstants.INVALID_OO_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
-					map.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(
-							oto, related));
+					if (related != null && !TypeResolution.isDomainModel(related.getClass()))
+						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OO_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
+					map.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(oto, related));
 					break;
 				}
 			}
-
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

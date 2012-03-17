@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.clarionmedia.infinitum.internal.Pair;
+import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
-import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 
@@ -39,72 +39,137 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 public abstract class ModelMap {
 
 	protected Object mModel;
-	private List<Pair<ModelRelationship, Iterable<Object>>> mAggregateRelationships;
+	private List<Pair<ManyToManyRelationship, Iterable<Object>>> mManyToManyRelationships;
 	private List<Pair<ManyToOneRelationship, Object>> mManyToOneRelationships;
 	private List<Pair<OneToManyRelationship, Iterable<Object>>> mOneToManyRelationships;
 	private List<Pair<OneToOneRelationship, Object>> mOneToOneRelationships;
 
+	/**
+	 * Constructs a new {@code ModelMap} for the given {@link Object} model.
+	 * 
+	 * @param model
+	 *            the mapped {@code Object}
+	 */
 	public ModelMap(Object model) {
 		mModel = model;
-		mAggregateRelationships = new ArrayList<Pair<ModelRelationship, Iterable<Object>>>();
+		mManyToManyRelationships = new ArrayList<Pair<ManyToManyRelationship, Iterable<Object>>>();
 		mOneToManyRelationships = new ArrayList<Pair<OneToManyRelationship, Iterable<Object>>>();
 		mManyToOneRelationships = new ArrayList<Pair<ManyToOneRelationship, Object>>();
 		mOneToOneRelationships = new ArrayList<Pair<OneToOneRelationship, Object>>();
 	}
 
+	/**
+	 * Returns the {@link Object} model being mapped.
+	 * 
+	 * @return model
+	 */
 	public Object getModel() {
 		return mModel;
 	}
 
+	/**
+	 * Sets the {@link Object} model to map.
+	 * 
+	 * @param model
+	 *            {@code Object} being mapped
+	 */
 	public void setModel(Object model) {
 		mModel = model;
 	}
 
-	public List<Pair<ModelRelationship, Iterable<Object>>> getAggregateRelationships() {
-		return mAggregateRelationships;
+	/**
+	 * Returns the many-to-many relationships mapped to this model as a
+	 * {@code List} of {@code Pairs}. Each {@code Pair} contains a
+	 * {@link ManyToManyRelationship} and an {@code Iterable<Object>} containing
+	 * the associated entities.
+	 * 
+	 * @return {@code List<Pair<ManyToManyRelationship, Iterable<Object>>>
+	 */
+	public List<Pair<ManyToManyRelationship, Iterable<Object>>> getManyToManyRelationships() {
+		return mManyToManyRelationships;
 	}
 
-	public void setAggregateRelationships(List<Pair<ModelRelationship, Iterable<Object>>> aggregates) {
-		mAggregateRelationships = aggregates;
+	/**
+	 * Adds a many-to-many relationship map to this model.
+	 * 
+	 * @param relationship
+	 *            the {@code Pair<ModelRelationship, Iterable<Object>>} to add
+	 *            to this map
+	 */
+	public void addManyToManyRelationship(
+			Pair<ManyToManyRelationship, Iterable<Object>> relationship) {
+		mManyToManyRelationships.add(relationship);
 	}
 
-	public void addAggregateRelationship(Pair<ModelRelationship, Iterable<Object>> aggregate) {
-		mAggregateRelationships.add(aggregate);
-	}
-
+	/**
+	 * Returns the many-to-one relationships mapped to this model as a
+	 * {@code List} of {@code Pairs}. Each {@code Pair} contains a
+	 * {@link ManyToOneRelationship} and an {@code Iterable<Object>} containing
+	 * the associated entities.
+	 * 
+	 * @return {@code List<Pair<ManyToOneRelationship, Iterable<Object>>>
+	 */
 	public List<Pair<ManyToOneRelationship, Object>> getManyToOneRelationships() {
 		return mManyToOneRelationships;
 	}
 
-	public void setManyToOneRelationships(List<Pair<ManyToOneRelationship, Object>> manyToOneRelationships) {
-		mManyToOneRelationships = manyToOneRelationships;
-	}
-	
-	public void addManyToOneRelationship(Pair<ManyToOneRelationship, Object> relationship) {
+	/**
+	 * Adds a many-to-one relationship map to this model.
+	 * 
+	 * @param relationship
+	 *            the {@code Pair<ManyToOneRelationship, Iterable<Object>>} to
+	 *            add to this map
+	 */
+	public void addManyToOneRelationship(
+			Pair<ManyToOneRelationship, Object> relationship) {
 		mManyToOneRelationships.add(relationship);
 	}
 
-	public void setOneToOneRelationships(List<Pair<OneToOneRelationship, Object>> mOneToOneRelationships) {
-		this.mOneToOneRelationships = mOneToOneRelationships;
-	}
-
+	/**
+	 * Returns the one-to-one relationships mapped to this model as a
+	 * {@code List} of {@code Pairs}. Each {@code Pair} contains a
+	 * {@link OneToOneRelationship} and an {@code Iterable<Object>} containing
+	 * the associated entities.
+	 * 
+	 * @return {@code List<Pair<OneToOneRelationship, Iterable<Object>>>
+	 */
 	public List<Pair<OneToOneRelationship, Object>> getOneToOneRelationships() {
 		return mOneToOneRelationships;
 	}
-	
-	public void addOneToOneRelationship(Pair<OneToOneRelationship, Object> relationship) {
+
+	/**
+	 * Adds a one-to-one relationship map to this model.
+	 * 
+	 * @param relationship
+	 *            the {@code Pair<OneToOneRelationship, Iterable<Object>>} to
+	 *            add to this map
+	 */
+	public void addOneToOneRelationship(
+			Pair<OneToOneRelationship, Object> relationship) {
 		mOneToOneRelationships.add(relationship);
 	}
 
-	public void setOneToManyRelationships(List<Pair<OneToManyRelationship, Iterable<Object>>> mOneToManyRelationships) {
-		this.mOneToManyRelationships = mOneToManyRelationships;
-	}
-
+	/**
+	 * Returns the one-to-many relationships mapped to this model as a
+	 * {@code List} of {@code Pairs}. Each {@code Pair} contains a
+	 * {@link OneToManyRelationship} and an {@code Iterable<Object>} containing
+	 * the associated entities.
+	 * 
+	 * @return {@code List<Pair<OneToOneRelationship, Iterable<Object>>>
+	 */
 	public List<Pair<OneToManyRelationship, Iterable<Object>>> getOneToManyRelationships() {
 		return mOneToManyRelationships;
 	}
-	
-	public void addOneToManyRelationship(Pair<OneToManyRelationship, Iterable<Object>> relationship) {
+
+	/**
+	 * Adds a one-to-many relationship map to this model.
+	 * 
+	 * @param relationship
+	 *            the {@code Pair<OneToManyRelationship, Iterable<Object>>} to
+	 *            add to this map
+	 */
+	public void addOneToManyRelationship(
+			Pair<OneToManyRelationship, Iterable<Object>> relationship) {
 		mOneToManyRelationships.add(relationship);
 	}
 
