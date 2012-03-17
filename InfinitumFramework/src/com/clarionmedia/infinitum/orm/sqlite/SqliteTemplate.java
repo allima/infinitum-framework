@@ -45,7 +45,6 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
-import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationType;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
@@ -69,7 +68,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	private static final String TAG = "SqliteTemplate";
 
-	protected InfinitumContext mAppContext;
+	protected InfinitumContext mInfinitumContext;
 	protected SqliteSession mSession;
 	protected SqliteDbHelper mDbHelper;
 	protected SQLiteDatabase mSqliteDb;
@@ -88,7 +87,7 @@ public class SqliteTemplate implements SqliteOperations {
 	 */
 	public SqliteTemplate(SqliteSession session) {
 		mSession = session;
-		mAppContext = InfinitumContextFactory.getInfinitumContext();
+		mInfinitumContext = InfinitumContextFactory.getInfinitumContext();
 		mObjectMapper = new SqliteMapper();
 		mModelFactory = new SqliteModelFactoryImpl(mSession);
 		mSqlBuilder = new SqliteBuilder();
@@ -154,7 +153,7 @@ public class SqliteTemplate implements SqliteOperations {
 		int result = mSqliteDb.delete(tableName, whereClause, null);
 		if (result == 1)
 			deleteRelationships(model);
-		if (mAppContext.isDebug()) {
+		if (mInfinitumContext.isDebug()) {
 			if (result == 1)
 				Log.d(TAG, model.getClass().getSimpleName() + " model deleted");
 			else
@@ -173,11 +172,11 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public void saveOrUpdateAll(Collection<? extends Object> models)
 			throws InfinitumRuntimeException {
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Saving or updating " + models.size() + " models");
 		for (Object o : models)
 			saveOrUpdate(o);
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Models saved or updated");
 	}
 
@@ -185,13 +184,13 @@ public class SqliteTemplate implements SqliteOperations {
 	public int saveAll(Collection<? extends Object> models)
 			throws InfinitumRuntimeException {
 		int count = 0;
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Saving " + models.size() + " models");
 		for (Object o : models) {
 			if (save(o) > 0)
 				count++;
 		}
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, count + " models saved");
 		return count;
 	}
@@ -200,13 +199,13 @@ public class SqliteTemplate implements SqliteOperations {
 	public int deleteAll(Collection<? extends Object> models)
 			throws InfinitumRuntimeException {
 		int count = 0;
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Deleting " + models.size() + " models");
 		for (Object o : models) {
 			if (delete(o))
 				count++;
 		}
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, count + " models deleted");
 		return count;
 	}
@@ -238,14 +237,14 @@ public class SqliteTemplate implements SqliteOperations {
 		} finally {
 			cursor.close();
 		}
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, c.getSimpleName() + " model loaded");
 		return ret;
 	}
 
 	@Override
 	public void execute(String sql) throws SQLGrammarException {
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
 		try {
 			mSqliteDb.execSQL(sql);
@@ -257,7 +256,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public Cursor executeForResult(String sql) throws SQLGrammarException {
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
 		Cursor ret = null;
 		try {
@@ -267,6 +266,14 @@ public class SqliteTemplate implements SqliteOperations {
 					sql));
 		}
 		return ret;
+	}
+	
+	private long saveOrUpdateRec(Object model, Map<Integer, Object> objectMap) {
+		if (!updateRec(model, objectMap)) {
+			objectMap.clear();
+			return saveRec(model, objectMap);
+		} else
+			return 0;
 	}
 
 	private long saveRec(Object model, Map<Integer, Object> objectMap) {
@@ -282,14 +289,24 @@ public class SqliteTemplate implements SqliteOperations {
 		processOneToOneRelationships(model, map, objectMap, values);
 		long ret = mSqliteDb.insert(tableName, null, values);
 		if (ret <= 0) {
-			if (mAppContext.isDebug())
-				Log.d(TAG, model.getClass().getSimpleName()
-						+ " model was not saved");
+			if (mInfinitumContext.isDebug())
+				Log.d(TAG, model.getClass().getSimpleName() + " model was not saved");
 			return ret;
 		}
+		Field f = PersistenceResolution.getPrimaryKeyField(model.getClass());
+		f.setAccessible(true);
+		try {
+			f.set(model, ret);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		if (ret > 0 && PersistenceResolution.isCascading(model.getClass())) {
-			processRelationships(map, objectMap, model, ret);
-			if (mAppContext.isDebug())
+			processRelationships(map, objectMap, model);
+			if (mInfinitumContext.isDebug())
 				Log.d(TAG, model.getClass().getSimpleName() + " model saved");
 		}
 		return ret;
@@ -298,12 +315,10 @@ public class SqliteTemplate implements SqliteOperations {
 	private boolean updateRec(Object model, Map<Integer, Object> objectMap) {
 		SqliteModelMap map = mObjectMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
-		String tableName = PersistenceResolution.getModelTableName(model
-				.getClass());
+		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		String whereClause = SqlUtil.getWhereClause(model);
 		int objHash = PersistenceResolution.computeModelHash(model);
-		if (objectMap.containsKey(objHash)
-				&& !PersistenceResolution.isPKNullOrZero(model))
+		if (objectMap.containsKey(objHash) && !PersistenceResolution.isPKNullOrZero(model))
 			return true;
 		objectMap.put(objHash, model);
 		if (values.size() == 0)
@@ -311,90 +326,27 @@ public class SqliteTemplate implements SqliteOperations {
 		processOneToOneRelationships(model, map, objectMap, values);
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (ret <= 0) {
-			if (mAppContext.isDebug())
-				Log.d(TAG, model.getClass().getSimpleName()
-						+ " model was not updated");
+			if (mInfinitumContext.isDebug())
+				Log.d(TAG, model.getClass().getSimpleName() + " model was not updated");
 			return false;
 		}
 		if (PersistenceResolution.isCascading(model.getClass()))
 			processRelationships(map, objectMap, model);
-		if (mAppContext.isDebug())
+		if (mInfinitumContext.isDebug())
 			Log.d(TAG, model.getClass().getSimpleName() + " model updated");
 		return true;
 	}
 
-	private long saveOrUpdateRec(Object model, Map<Integer, Object> objectMap) {
-		if (!updateRec(model, objectMap)) {
-			objectMap.clear();
-			return saveRec(model, objectMap);
-		} else
-			return 0;
-	}
-
-	private void processRelationships(SqliteModelMap map,
-			Map<Integer, Object> objectMap, Object model, long pk) {
-		Field f = PersistenceResolution.getPrimaryKeyField(model.getClass());
-		f.setAccessible(true);
-		try {
-			f.set(model, pk);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// Process aggregate relationships
-		for (Pair<ModelRelationship, Iterable<Object>> p : map
-				.getAggregateRelationships()) {
-			ModelRelationship rel = p.getFirst();
-			StringBuilder staleQuery = null;
-			if (rel.getRelationType() == RelationType.ManyToMany)
-				staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery(
-						(ManyToManyRelationship) rel, model);
-			String prefix = "";
-			for (Object o : p.getSecond()) {
-				int oHash = PersistenceResolution.computeModelHash(o);
-				if (objectMap.containsKey(oHash)
-						&& !PersistenceResolution.isPKNullOrZero(o))
-					continue;
-				long id = saveOrUpdateRec(o, objectMap);
-				if (id >= 0) {
-					if (id > 0) {
-						f = PersistenceResolution.getPrimaryKeyField(o
-								.getClass());
-						f.setAccessible(true);
-						try {
-							f.set(o, id);
-						} catch (IllegalArgumentException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IllegalAccessException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-					if (rel.getRelationType() == RelationType.ManyToMany)
-						insertManyToManyRelationship(model, o,
-								(ManyToManyRelationship) rel);
-				}
-				if (rel.getRelationType() == RelationType.ManyToMany) {
-					mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
-					prefix = ", ";
-				}
-			}
-			staleQuery.append(')');
-			mSqliteDb.rawQuery(staleQuery.toString(), null);
-		}
+	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model) {
+		processManyToManyRelationships(model, map, objectMap);
 		processManyToOneRelationships(model, map, objectMap);
 		processOneToManyRelationships(model, map, objectMap);
-	}
-
-	private void processRelationships(SqliteModelMap map,
-			Map<Integer, Object> objectMap, Object model) {
-		for (Pair<ModelRelationship, Iterable<Object>> p : map.getAggregateRelationships()) {
-			ModelRelationship rel = p.getFirst();
-			StringBuilder staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery((ManyToManyRelationship) rel, model);
+	} 
+	
+	private void processManyToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
+		for (Pair<ManyToManyRelationship, Iterable<Object>> p : map.getManyToManyRelationships()) {
+			ManyToManyRelationship rel = p.getFirst();
+			StringBuilder staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery(rel, model);
 			String prefix = "";
 			for (Object o : p.getSecond()) {
 				boolean success;
@@ -406,53 +358,38 @@ public class SqliteTemplate implements SqliteOperations {
 				}
 				success = saveOrUpdateRec(o, objectMap) >= 0;
 				if (success) {
-					if (rel.getRelationType() == RelationType.ManyToMany)
-						insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
+				    insertManyToManyRelationship(model, o, (ManyToManyRelationship) rel);
+				    mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
+				    prefix = ", ";
 				}
-				mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
-				prefix = ", ";
 			}
 			staleQuery.append(')');
 			mSqliteDb.execSQL(staleQuery.toString());
 		}
-		processManyToOneRelationships(model, map, objectMap);
-		processOneToManyRelationships(model, map, objectMap);
 	}
 
-	private void processOneToOneRelationships(Object model, SqliteModelMap map,
-			Map<Integer, Object> objectMap, ContentValues values) {
-		for (Pair<OneToOneRelationship, Object> p : map
-				.getOneToOneRelationships()) {
+	private void processOneToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, ContentValues values) {
+		for (Pair<OneToOneRelationship, Object> p : map.getOneToOneRelationships()) {
 			Object o = p.getSecond();
 			if (ClassReflector.isNull(o))
 				continue;
 			long id = saveOrUpdateRec(o, objectMap);
 			if (id > 0) {
-				values.put(PersistenceResolution
-						.getFieldColumnName(PersistenceResolution
-								.findRelationshipField(model.getClass(),
-										p.getFirst())), id);
+				values.put(PersistenceResolution.getFieldColumnName(PersistenceResolution.findRelationshipField(model.getClass(), p.getFirst())), id);
 			} else if (id == 0) {
 				Object pk = PersistenceResolution.getPrimaryKey(p.getSecond());
-				values.put(PersistenceResolution
-						.getFieldColumnName(PersistenceResolution
-								.findRelationshipField(model.getClass(),
-										p.getFirst())), (Long) pk);
+				values.put(PersistenceResolution.getFieldColumnName(PersistenceResolution.findRelationshipField(model.getClass(), p.getFirst())), (Long) pk);
 			}
 		}
 	}
 
-	private void processOneToManyRelationships(Object model,
-			SqliteModelMap map, Map<Integer, Object> objectMap) {
-		for (Pair<OneToManyRelationship, Iterable<Object>> p : map
-				.getOneToManyRelationships()) {
-			StringBuilder updateQuery = mSqlBuilder
-					.createInitialUpdateForeignKeyQuery(p.getFirst(), model);
+	private void processOneToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
+		for (Pair<OneToManyRelationship, Iterable<Object>> p : map.getOneToManyRelationships()) {
+			StringBuilder updateQuery = mSqlBuilder.createInitialUpdateForeignKeyQuery(p.getFirst(), model);
 			String prefix = "";
 			for (Object o : p.getSecond()) {
 				int oHash = PersistenceResolution.computeModelHash(o);
-				if (objectMap.containsKey(oHash)
-						&& !PersistenceResolution.isPKNullOrZero(o))
+				if (objectMap.containsKey(oHash) && !PersistenceResolution.isPKNullOrZero(o))
 					continue;
 				saveOrUpdateRec(o, objectMap);
 				mSqlBuilder.addPrimaryKeyToQuery(o, updateQuery, prefix);
@@ -463,8 +400,7 @@ public class SqliteTemplate implements SqliteOperations {
 		}
 	}
 
-	private void processManyToOneRelationships(Object model,
-			SqliteModelMap map, Map<Integer, Object> objectMap) {
+	private void processManyToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
 		for (Pair<ManyToOneRelationship, Object> p : map.getManyToOneRelationships()) {
 			Object o = p.getSecond();
 			if (ClassReflector.isNull(o))
@@ -475,8 +411,7 @@ public class SqliteTemplate implements SqliteOperations {
 		}
 	}
 
-	private void insertManyToManyRelationship(Object model, Object related,
-			ManyToManyRelationship mtm) {
+	private void insertManyToManyRelationship(Object model, Object related, ManyToManyRelationship mtm) {
 		// TODO Revisit this method
 		ContentValues relData = new ContentValues();
 		Class<?> first = mtm.getFirstType();
@@ -561,7 +496,7 @@ public class SqliteTemplate implements SqliteOperations {
 			} catch (SQLException e) {
 				return;
 			}
-			if (mAppContext.isDebug()) {
+			if (mInfinitumContext.isDebug()) {
 				if (result)
 					Log.d(TAG, first.getSimpleName() + "-" + second.getSimpleName() + " relationship saved");
 				else
@@ -578,12 +513,10 @@ public class SqliteTemplate implements SqliteOperations {
 
 	private void deleteRelationships(Object model) {
 		SqliteModelMap map = mObjectMapper.mapModel(model);
-		for (Pair<ModelRelationship, Iterable<Object>> p : map
-				.getAggregateRelationships()) {
-			ModelRelationship rel = p.getFirst();
+		for (Pair<ManyToManyRelationship, Iterable<Object>> p : map.getManyToManyRelationships()) {
+			ManyToManyRelationship rel = p.getFirst();
 			if (rel.getRelationType() == RelationType.ManyToMany)
-				mSqliteDb.rawQuery(mSqlBuilder.createManyToManyDeleteQuery(model,
-						(ManyToManyRelationship) rel), null);
+				mSqliteDb.rawQuery(mSqlBuilder.createManyToManyDeleteQuery(model, rel), null);
 		}
 		// TODO Update non M:M relationships
 	}
