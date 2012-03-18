@@ -51,28 +51,27 @@ public class SqliteGenCriteria<T> implements GenCriteria<T> {
 	private SqlBuilder mSqlBuilder;
 
 	/**
-	 * Constructs a new {@code GenCriteriaImpl} with the given entity
-	 * {@link Class}
+	 * Constructs a new {@code SqliteGenCriteria}.
 	 * 
 	 * @param session
 	 *            the {@link SqliteSession} this {@code SqliteGenCriteria} is
 	 *            attached to
 	 * @param entityClass
-	 *            Class<?> to create {@code GenCriteriaImpl} for
+	 *            the {@code Class} to create {@code SqliteGenCriteria} for
 	 * @param sqlBuilder
 	 *            {@link SqlBuilder} for generating SQL statements
+	 * @param mapper
+	 *            the {@link SqliteMapper} to use for {@link Object} mapping
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public SqliteGenCriteria(SqliteSession session, Class<T> entityClass, SqlBuilder sqlBuilder)
-			throws InfinitumRuntimeException {
+	public SqliteGenCriteria(SqliteSession session, Class<T> entityClass, SqlBuilder sqlBuilder, SqliteMapper mapper)
+	        throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
-			throw new InfinitumRuntimeException(
-					String.format(CriteriaConstants.TRANSIENT_CRITERIA,
-							entityClass.getName()));
+			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA, entityClass.getName()));
 		mSession = session;
 		mEntityClass = entityClass;
-		mModelFactory = new SqliteModelFactoryImpl(session);
+		mModelFactory = new SqliteModelFactoryImpl(session, mapper);
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
 	}
@@ -123,8 +122,7 @@ public class SqliteGenCriteria<T> implements GenCriteria<T> {
 	@Override
 	public List<T> toList() {
 		List<T> ret = new LinkedList<T>();
-		Cursor result = mSession.executeForResult(mSqlBuilder
-				.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this));
 		if (result.getCount() == 0) {
 			result.close();
 			return ret;
@@ -143,16 +141,18 @@ public class SqliteGenCriteria<T> implements GenCriteria<T> {
 
 	@Override
 	public T unique() throws InfinitumRuntimeException {
-		Cursor result = mSession.executeForResult(mSqlBuilder
-				.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this));
 		if (result.getCount() > 1)
-			throw new InfinitumRuntimeException(String.format(
-					CriteriaConstants.NON_UNIQUE_RESULT,
-					mEntityClass.getName(), result.getCount()));
+			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT, mEntityClass.getName(), result.getCount()));
 		else if (result.getCount() == 0)
 			return null;
 		result.moveToFirst();
 		return mModelFactory.createFromCursor(result, mEntityClass);
+	}
+
+	@Override
+	public SqliteMapper getObjectMapper() {
+		return mSession.getSqliteMapper();
 	}
 
 }

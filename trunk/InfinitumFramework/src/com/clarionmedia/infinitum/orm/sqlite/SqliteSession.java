@@ -37,6 +37,7 @@ import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 
 /**
  * <p>
@@ -179,8 +180,7 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		reconcileCache();
 		for (Object model : models) {
 			int hash = PersistenceResolution.computeModelHash(model);
@@ -192,8 +192,7 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		reconcileCache();
 		for (Object model : models) {
 			int hash = PersistenceResolution.computeModelHash(model);
@@ -205,8 +204,7 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		for (Object model : models) {
 			int hash = PersistenceResolution.computeModelHash(model);
 			// Remove from session cache
@@ -217,14 +215,29 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public <T> T load(Class<T> c, Serializable id)
-			throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		return mSqlite.load(c, id);
 	}
 
 	@Override
 	public void execute(String sql) throws SQLGrammarException {
 		mSqlite.execute(sql);
+	}
+
+	@Override
+	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
+	    try {
+		    SqliteTypeAdapter<T> a = (SqliteTypeAdapter<T>) adapter;
+		    mSqlite.registerTypeAdapter(type, a);
+	    } catch (ClassCastException e) {
+	    	// If adapter is not a SqliteTypeAdapter, ignore it
+	    	return;
+	    }
+	}
+	
+	@Override
+	public Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters() {
+		return mSqlite.getRegisteredTypeAdapters();
 	}
 
 	/**
@@ -271,6 +284,16 @@ public class SqliteSession implements Session {
 			return;
 		if (mSessionCache.size() >= mCacheSize)
 			recycleCache();
+	}
+
+	/**
+	 * Returns the {@link SqliteMapper} associated with this
+	 * {@code SqliteSession}.
+	 * 
+	 * @return {@code SqliteMapper}
+	 */
+	public SqliteMapper getSqliteMapper() {
+		return mSqlite.getSqliteMapper();
 	}
 
 }

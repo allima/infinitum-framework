@@ -20,10 +20,11 @@
 package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.lang.reflect.Field;
-import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
 import android.content.ContentValues;
-import com.clarionmedia.infinitum.internal.DateFormatter;
+
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
@@ -32,6 +33,7 @@ import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
@@ -41,8 +43,8 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
- * This class provides methods to map domain models to SQLite table columns and
- * vice versa.
+ * This implementation of {@link ObjectMapper} provides methods to map domain
+ * models to SQLite table columns and vice versa.
  * </p>
  * 
  * @author Tyler Treat
@@ -50,17 +52,23 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  */
 public class SqliteMapper implements ObjectMapper {
 
+	private Map<Class<?>, SqliteTypeAdapter<?>> mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
+	
+	public SqliteMapper() {
+		mTypeAdapters.putAll(TypeResolution.sSqliteTypeResolvers);
+	}
+
 	@Override
 	public SqliteModelMap mapModel(Object model) throws InvalidMappingException, ModelConfigurationException {
+		// We do not map transient classes!
 		if (!PersistenceResolution.isPersistent(model.getClass()))
 			return null;
 		SqliteModelMap ret = new SqliteModelMap(model);
 		ContentValues values = new ContentValues();
-		List<Field> fields = PersistenceResolution.getPersistentFields(model.getClass());
-		for (Field f : fields) {
+		for (Field f : PersistenceResolution.getPersistentFields(model.getClass())) {
+			// Don't map primary keys if they are autoincrementing
 			if (PersistenceResolution.isFieldPrimaryKey(f) && PersistenceResolution.isPrimaryKeyAutoIncrement(f))
 				continue;
-			Object val = null;
 			try {
 				f.setAccessible(true);
 				// Map relationships
@@ -68,11 +76,8 @@ public class SqliteMapper implements ObjectMapper {
 					mapRelationship(ret, model, f);
 					continue;
 				}
-				// We need to use the Field's getter if model is a proxy
-				if (TypeResolution.isDomainProxy(model.getClass()))
-					val = ClassReflector.invokeGetter(f, model);
-				else
-					val = f.get(model);
+				// Map Field values
+				mapField(values, model, f);
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -80,43 +85,62 @@ public class SqliteMapper implements ObjectMapper {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			// Map Field values
-			mapValue(values, val, f);
 		}
 		ret.setContentValues(values);
 		return ret;
 	}
+	
+	/**
+	 * Retrieves a {@link SqliteTypeAdapter} for the given {@link Class}.
+	 * 
+	 * @param type
+	 *            the {@code Class} to retrieve a {@code SqliteTypeResolver} for
+	 * @return {@code SqliteTypeResolver} for the given type
+	 * @throws InvalidMappingException
+	 *             if no {@code SqliteTypeResolver} exists for the given
+	 *             {@code Class}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> SqliteTypeAdapter<T> resolveType(Class<T> type) throws InvalidMappingException {
+		type = Primitives.unwrap(type);
+		if (mTypeAdapters.containsKey(type))
+		    return (SqliteTypeAdapter<T>) mTypeAdapters.get(type);
+		throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, type.getSimpleName()));
+	}
+	
+	@Override
+	public <T> void registerTypeAdapter(Class<T> type, SqliteTypeAdapter<T> adapter) {
+		mTypeAdapters.put(type, adapter);
+	}
 
-	private void mapValue(ContentValues values, Object val, Field f) throws InvalidMappingException {
-		Class<?> type = Primitives.unwrap(f.getType());
-		String colName = PersistenceResolution.getFieldColumnName(f);
-		// TODO: figure out a better way to do this!
-		// Possibly use TypeResolution
-		// also figure out way to add support for other types
-		if (type == String.class)
-			values.put(colName, (String) val);
-		else if (type == int.class)
-			values.put(colName, (Integer) val);
-		else if (type == long.class)
-			values.put(colName, (Long) val);
-		else if (type == float.class)
-			values.put(colName, (Float) val);
-		else if (type == double.class)
-			values.put(colName, (Double) val);
-		else if (type == short.class)
-			values.put(colName, (Short) val);
-		else if (type == boolean.class)
-			values.put(colName, (Boolean) val);
-		else if (type == byte.class)
-			values.put(colName, (Byte) val);
-		else if (type == byte[].class)
-			values.put(colName, (byte[]) val);
-		else if (type == Character.class)
-			values.put(colName, (String) val);
-		else if (type == Date.class)
-			values.put(colName, DateFormatter.getDateAsISO8601String((Date) val));
-		else
-			throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, f.getType().getSimpleName()));
+	@Override
+	public Map<Class<?>, SqliteTypeAdapter<?>> getRegisteredTypeAdapters() {
+		return mTypeAdapters;
+	}
+	
+	@Override
+	public boolean isTextColumn(Field f) {
+		return getSqliteDataType(f) == SqliteDataType.TEXT;
+	}
+	
+	/**
+	 * Retrieves the SQLite data type associated with the given
+	 * <code>Field</code>.
+	 * 
+	 * @param field
+	 *            the <code>Field</code> to retrieve the SQLite data type for
+	 * @return <code>SqliteDataType</code> that matches the given
+	 *         <code>Field</code>
+	 */
+	public SqliteDataType getSqliteDataType(Field field) {
+		SqliteDataType ret = null;
+		Class<?> c = Primitives.unwrap(field.getType());
+		if (mTypeAdapters.containsKey(c))
+			ret = mTypeAdapters.get(c).getSqliteType();
+		else if (TypeResolution.isDomainModel(c))
+			ret = getSqliteDataType(PersistenceResolution.getPrimaryKeyField(c));
+		return ret;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -164,4 +188,18 @@ public class SqliteMapper implements ObjectMapper {
 			e.printStackTrace();
 		}
 	}
+
+	// Map Field value to ContentValues
+	private void mapField(ContentValues values, Object model, Field field) throws InvalidMappingException, IllegalArgumentException, IllegalAccessException {
+		Object val = null;
+		// We need to use the Field's getter if model is a proxy
+		if (TypeResolution.isDomainProxy(model.getClass()))
+			val = ClassReflector.invokeGetter(field, model);
+		// Otherwise just use normal reflection...
+		else
+			val = field.get(model);
+		String colName = PersistenceResolution.getFieldColumnName(field);
+		resolveType(field.getType()).mapObjectToColumn(val, colName, values);
+	}
+	
 }

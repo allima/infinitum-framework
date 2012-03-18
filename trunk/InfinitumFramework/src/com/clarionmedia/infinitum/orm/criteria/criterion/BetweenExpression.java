@@ -21,12 +21,10 @@ package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.lang.reflect.Field;
 
-import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
+import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
@@ -76,14 +74,13 @@ public class BetweenExpression extends Criterion {
 			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 		}
 		String colName = PersistenceResolution.getFieldColumnName(f);
-		SqliteDataType sqlType = TypeResolution.getSqliteDataType(f);
 		query.append(colName).append(' ').append(SqlConstants.OP_BETWEEN).append(' ');
-		if (sqlType == SqliteDataType.TEXT)
+		if (criteria.getObjectMapper().isTextColumn(f))
 			query.append("'").append(mLow.toString()).append("'");
 		else
 			query.append(mLow.toString());
 		query.append(SqlConstants.AND);
-		if (sqlType == SqliteDataType.TEXT)
+		if (criteria.getObjectMapper().isTextColumn(f))
 			query.append("'").append(mHigh.toString()).append("'");
 		else
 			query.append(mHigh.toString());

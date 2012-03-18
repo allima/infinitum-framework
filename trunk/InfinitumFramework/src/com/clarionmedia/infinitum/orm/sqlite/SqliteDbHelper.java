@@ -48,11 +48,21 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	private InfinitumContext mInfinitumContext;
 	private SqlBuilder mSqlBuilder;
 
-	public SqliteDbHelper(Context context) {
-		super(context, InfinitumContextFactory.getInfinitumContext().getSqliteDbName(), null,
-				InfinitumContextFactory.getInfinitumContext().getSqliteDbVersion());
+	/**
+	 * Constructs a new {@code SqliteDbHelper} with the given {@link Context}
+	 * and {@link SqliteMapper}.
+	 * 
+	 * @param context
+	 *            the {@code Context} of the {@code SqliteDbHelper}
+	 * @param mapper
+	 *            the {@code SqliteMapper} to use for {@link Object} mapping
+	 */
+	public SqliteDbHelper(Context context, SqliteMapper mapper) {
+		super(context, InfinitumContextFactory.getInfinitumContext()
+				.getSqliteDbName(), null, InfinitumContextFactory
+				.getInfinitumContext().getSqliteDbVersion());
 		mInfinitumContext = InfinitumContextFactory.getInfinitumContext();
-		mSqlBuilder = new SqliteBuilder();
+		mSqlBuilder = new SqliteBuilder(mapper);
 	}
 
 	/**
@@ -76,6 +86,8 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		mSqliteDb = db;
+		if (!mInfinitumContext.isSchemaGenerated())
+			return;
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Creating database tables");
 		try {
@@ -90,8 +102,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion
-					+ ", which will destroy all old data");
+			Log.d(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
 		// TODO: drop tables
 		onCreate(db);
 	}

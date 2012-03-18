@@ -174,7 +174,7 @@ public interface SqlBuilder {
 	void addPrimaryKeyToQuery(Object obj, StringBuilder sb, String prefix);
 
 	/**
-	 * Generates a SQL query {@link String} for deleting relationships from a
+	 * Generates an SQL query {@link String} for deleting relationships from a
 	 * many-to-many table.
 	 * 
 	 * @param obj
@@ -185,6 +185,17 @@ public interface SqlBuilder {
 	 */
 	String createManyToManyDeleteQuery(Object obj, ManyToManyRelationship rel);
 
+	/**
+	 * Generates an SQL query {@link String} for updating a model relationship.
+	 * 
+	 * @param model
+	 *            the model to update
+	 * @param related
+	 *            the related model
+	 * @param column
+	 *            the foreign key column
+	 * @return SQL query
+	 */
 	String createUpdateQuery(Object model, Object related, String column);
 
 }

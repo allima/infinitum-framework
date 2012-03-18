@@ -57,6 +57,7 @@ public class InfinitumContext {
 	private boolean mHasSqliteDb;
 	private String mSqliteDbName;
 	private int mSqliteDbVersion;
+	private boolean mIsSchemaGenerated;
 	private List<String> mDomainModels;
 
 	/**
@@ -67,6 +68,7 @@ public class InfinitumContext {
 	public InfinitumContext() {
 		mConfigMode = DEFAULT_MODE;
 		mDomainModels = new ArrayList<String>();
+		mIsSchemaGenerated = true;
 	}
 
 	/**
@@ -278,6 +280,14 @@ public class InfinitumContext {
 	 */
 	public boolean isCacheRecyclable() {
 		return mRecycleCache;
+	}
+
+	public void setSchemaGenerated(boolean isSchemaGenerated) {
+		mIsSchemaGenerated = isSchemaGenerated;
+	}
+
+	public boolean isSchemaGenerated() {
+		return mIsSchemaGenerated;
 	}
 
 }

@@ -19,15 +19,20 @@
 
 package com.clarionmedia.infinitum.orm;
 
+import java.lang.reflect.Field;
+import java.util.Map;
+
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteMapper;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
+import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 
 /**
  * <p>
  * {@code ObjectMapper} provides an API for mapping domain objects to database
- * tables. For mapping to SQLite databases, see this interface's implementation
- * {@link SqliteMapper}.
+ * tables and vice versa. For mapping to SQLite databases, see this interface's
+ * implementation {@link SqliteMapper}.
  * </p>
  * 
  * @author Tyler Treat
@@ -49,5 +54,51 @@ public interface ObjectMapper {
 	 *             if the model is configured incorrectly
 	 */
 	ModelMap mapModel(Object model) throws InvalidMappingException, ModelConfigurationException;
+
+	/**
+	 * Registers the given {@link TypeAdapter} for the specified {@link Class}
+	 * with this {@code SqliteMapper} instance. The {@code TypeAdapter} allows a
+	 * {@link Field} of this type to be mapped to a database column. Registering
+	 * a {@code TypeAdapter} for a {@code Class} which already has a
+	 * {@code TypeAdapter} registered for it will result in the previous
+	 * {@code TypeAdapter} being overridden.
+	 * 
+	 * @param type
+	 *            the {@code Class} this {@code TypeAdapter} is for
+	 * @param adapter
+	 *            the {@code TypeAdapter} to register
+	 */
+	<T> void registerTypeAdapter(Class<T> type, SqliteTypeAdapter<T> adapter);
+	
+	/**
+	 * Returns a {@link Map} containing all {@link TypeAdapter} instances
+	 * registered with this {@code Session} and the {@link Class} instances in
+	 * which they are registered for.
+	 * 
+	 * @return {@code Map<Class<?>, TypeAdapter<?>>
+	 */
+	Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
+
+	/**
+	 * Retrieves the {@link TypeAdapter} registered for the given {@link Class}.
+	 * 
+	 * @param type
+	 *            the {@code Class} to retrieve the {@code TypeAdapter} for
+	 * @return {@code TypeAdapter} for the specified type
+	 * @throws InvalidMappingException
+	 *             if there is no registered {@code TypeAdapter} for the given
+	 *             {@code Class}
+	 */
+	<T> TypeAdapter<T> resolveType(Class<T> type) throws InvalidMappingException;
+
+	/**
+	 * Indicates if the given {@link Field} is a "text" data type as represented
+	 * in a database.
+	 * 
+	 * @param f
+	 *            the {@code Field} to check
+	 * @return {@code true} if it is a text type, {@code false} if not
+	 */
+	boolean isTextColumn(Field f);
 
 }

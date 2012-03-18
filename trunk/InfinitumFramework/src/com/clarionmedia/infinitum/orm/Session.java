@@ -20,14 +20,20 @@
 package com.clarionmedia.infinitum.orm;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Map;
+
+import android.content.Context;
 import android.database.SQLException;
+
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
+import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteSession;
-import com.clarionmedia.infinitum.context.InfinitumContext;
 
 /**
  * <p>
@@ -237,5 +243,29 @@ public interface Session {
 	 * @return {@code Criteria} for entityClass
 	 */
 	Criteria createCriteria(Class<?> entityClass);
+
+	/**
+	 * Registers the given {@link TypeAdapter} for the specified {@link Class}
+	 * with this {@code Session} instance. The {@code TypeAdapter} allows a
+	 * {@link Field} of this type to be mapped to a database column. Registering
+	 * a {@code TypeAdapter} for a {@code Class} which already has a
+	 * {@code TypeAdapter} registered for it will result in the previous
+	 * {@code TypeAdapter} being overridden.
+	 * 
+	 * @param type
+	 *            the {@code Class} this {@code TypeAdapter} is for
+	 * @param adapter
+	 *            the {@code TypeAdapter} to register
+	 */
+	<T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter);
+
+	/**
+	 * Returns a {@link Map} containing all {@link TypeAdapter} instances
+	 * registered with this {@code Session} and the {@link Class} instances in
+	 * which they are registered for.
+	 * 
+	 * @return {@code Map<Class<?>, ? extends TypeAdapter<?>>
+	 */
+	Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
 
 }

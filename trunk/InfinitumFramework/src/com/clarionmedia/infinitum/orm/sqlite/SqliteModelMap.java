@@ -35,14 +35,31 @@ public class SqliteModelMap extends ModelMap {
 
 	private ContentValues mContentValues;
 
+	/**
+	 * Constructs a new {@code SqliteModelMap} for the given model.
+	 * 
+	 * @param model
+	 *            the model to map
+	 */
 	public SqliteModelMap(Object model) {
 		super(model);
 	}
 
+	/**
+	 * Retrieves the {@link ContentValues} for this {@code SqliteModelMap}.
+	 * 
+	 * @return {@code ContentValues} containing mapped values
+	 */
 	public ContentValues getContentValues() {
 		return mContentValues;
 	}
 
+	/**
+	 * Sets the {@link ContentValues} for this {@code SqliteModelMap}.
+	 * 
+	 * @param contentValues
+	 *            the {@code ContentValues} to set
+	 */
 	public void setContentValues(ContentValues contentValues) {
 		mContentValues = contentValues;
 	}
