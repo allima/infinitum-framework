@@ -235,6 +235,12 @@ public class InfinitumContextFactory {
 											ret.setSchemaGenerated(true);
 										else
 											ret.setSchemaGenerated(false);
+									} else if (name.equalsIgnoreCase(InfinitumContextConstants.DB_AUTOCOMMIT_ATTRIBUTE)) {
+										String commit = config.getText();
+										if (Boolean.valueOf(commit))
+											ret.setAutocommit(true);
+										else
+											ret.setAutocommit(false);
 									}
 									config.next();
 									config.next();

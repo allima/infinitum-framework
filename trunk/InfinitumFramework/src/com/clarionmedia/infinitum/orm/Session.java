@@ -85,6 +85,53 @@ public interface Session {
 	boolean isOpen();
 
 	/**
+	 * Starts a new database transaction. If autocommit is enabled, invoking
+	 * this method will have no effect. A transaction must be committed or
+	 * rolled back by calling {@link Session#commit()} or
+	 * {@link Session#rollback()}, respectively.
+	 */
+	void beginTransaction();
+
+	/**
+	 * Commits the current transaction. This method is idempotent. If no
+	 * transaction is open or autocommit is enabled, this will have no effect.
+	 */
+	void commit();
+
+	/**
+	 * Rolls back the current transaction. This method is idempotent. If no
+	 * transaction is open or autocommit is enabled, this will have no effect.
+	 */
+	void rollback();
+
+	/**
+	 * Indicates if a transaction is currently open.
+	 * 
+	 * @return {@code true} if a transaction is open, {@code false} if not
+	 */
+	boolean isTransactionOpen();
+
+	/**
+	 * Sets the autocommit value for this {@code Session}. If autocommit is
+	 * enabled, a {@code Session} transaction must be initiated by invoking
+	 * {@link Session#beginTransaction()}. A transaction must then be committed
+	 * or rolled back by calling {@link Session#commit()} or
+	 * {@link Session#rollback()}, respectively. If autocommit is disabled,
+	 * database operations will be committed when they are executed.
+	 * 
+	 * @param autocommit
+	 *            {@code true} to enable autocommit, {@code false} to disable it
+	 */
+	void setAutocommit(boolean autocommit);
+
+	/**
+	 * Indicates if autocommit is enabled or disabled.
+	 * 
+	 * @return {@code true} if autocommit is enabled, {@code false} if not
+	 */
+	boolean isAutocommit();
+
+	/**
 	 * Recycles the {@code Session} cache, effectively reclaiming its memory.
 	 */
 	void recycleCache();
@@ -264,7 +311,7 @@ public interface Session {
 	 * registered with this {@code Session} and the {@link Class} instances in
 	 * which they are registered for.
 	 * 
-	 * @return {@code Map<Class<?>, ? extends TypeAdapter<?>>
+	 * @return {@code Map<Class<?>, ? extends TypeAdapter<?>>
 	 */
 	Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
 

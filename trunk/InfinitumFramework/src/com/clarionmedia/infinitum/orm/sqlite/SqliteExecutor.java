@@ -36,7 +36,6 @@ import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
 public class SqliteExecutor implements SqlExecutor {
 
 	private SQLiteDatabase mDb;
-	private SqliteDbHelper mDbHelper;
 
 	/**
 	 * Constructs a new {@code SqliteExecutor} with the given {@link Context}
@@ -47,18 +46,8 @@ public class SqliteExecutor implements SqlExecutor {
 	 * @param mapper
 	 *            the {@code SqliteMapper} to use for {@link Object} mapping
 	 */
-	public SqliteExecutor(Context context, SqliteMapper mapper) {
-		mDbHelper = new SqliteDbHelper(context, mapper);
-	}
-
-	@Override
-	public void open() {
-		mDb = mDbHelper.getWritableDatabase();
-	}
-
-	@Override
-	public void close() {
-		mDbHelper.close();
+	public SqliteExecutor(SQLiteDatabase db) {
+		mDb = db;
 	}
 
 	@Override

@@ -62,6 +62,53 @@ public interface SqliteOperations extends DatastoreOperations {
 	boolean isOpen();
 
 	/**
+	 * Starts a new database transaction. If autocommit is enabled, invoking
+	 * this method will have no effect. A transaction must be committed or
+	 * rolled back by calling {@link SqliteOperations#commit()} or
+	 * {@link SqliteOperations#rollback()}, respectively.
+	 */
+	void beginTransaction();
+
+	/**
+	 * Commits the current transaction. This method is idempotent. If no
+	 * transaction is open or autocommit is enabled, this will have no effect.
+	 */
+	void commit();
+
+	/**
+	 * Rolls back the current transaction. This method is idempotent. If no
+	 * transaction is open or autocommit is enabled, this will have no effect.
+	 */
+	void rollback();
+
+	/**
+	 * Indicates if a transaction is currently open.
+	 * 
+	 * @return {@code true} if a transaction is open, {@code false} if not
+	 */
+	boolean isTransactionOpen();
+
+	/**
+	 * Sets the autocommit value for this {@code SqliteOperations}. If
+	 * autocommit is enabled, a transaction must be initiated by invoking
+	 * {@link SqliteOperations#beginTransaction()}. A transaction must then be
+	 * committed or rolled back by calling {@link SqliteOperations#commit()} or
+	 * {@link SqliteOperations#rollback()}, respectively. If autocommit is
+	 * disabled, database operations will be committed when they are executed.
+	 * 
+	 * @param autocommit
+	 *            {@code true} to enable autocommit, {@code false} to disable it
+	 */
+	void setAutocommit(boolean autocommit);
+
+	/**
+	 * Indicates if autocommit is enabled or disabled.
+	 * 
+	 * @return {@code true} if autocommit is enabled, {@code false} if not
+	 */
+	boolean isAutocommit();
+
+	/**
 	 * Executes the given SQL query on the database for a result.
 	 * 
 	 * @param sql
@@ -92,7 +139,7 @@ public interface SqliteOperations extends DatastoreOperations {
 	 * registered with this {@code Session} and the {@link Class} instance in
 	 * which they are registered for.
 	 * 
-	 * @return {@code Map<Class<?>, SqliteTypeAdapter<?>>
+	 * @return {@code Map<Class<?>, SqliteTypeAdapter<?>>
 	 */
 	Map<Class<?>, SqliteTypeAdapter<?>> getRegisteredTypeAdapters();
 

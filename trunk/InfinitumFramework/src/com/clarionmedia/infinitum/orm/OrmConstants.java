@@ -38,8 +38,7 @@ public class OrmConstants {
 	public static final String CREATE_TABLES_ERROR = "Error creating database tables.";
 	public static final String CANNOT_REGISTER_TYPE_ADAPTER = "Cannot register a TypeAdapter for '%s'.";
 	public static final String CANNOT_MAP_TYPE = "Cannot map '%s' to a database column.";
-	public static final String CANNOT_SAVE_TRANSIENT = "Cannot save transient class '%s'.";
-	public static final String CANNOT_UPDATE_TRANSIENT = "Cannot update transient class '%s'.";
+	public static final String CANNOT_MODIFY_TRANSIENT = "Cannot modify transient class '%s'.";
 	public static final String CANNOT_LOAD_TRANSIENT = "Cannot load transient class '%s'.";
 	public static final String MULTIPLE_PK_ERROR = "Multiple primary keys declared in '%s'.";
 	public static final String INVALID_PK = "Invalid primary key value of type '%s' for '%s'.";
