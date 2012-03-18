@@ -215,35 +215,27 @@ public class InfinitumContextFactory {
 								ret.setHasSqliteDb(true);
 
 								// Parse properties
-								if (event == XmlPullParser.START_TAG
-										&& config
-												.getName()
-												.contentEquals(
-														InfinitumContextConstants.PROPERTY_ELEMENT)) {
-									String name = config
-											.getAttributeValue(
-													null,
-													InfinitumContextConstants.NAME_ATTRIBUTE);
+								if (event == XmlPullParser.START_TAG && config.getName().contentEquals(InfinitumContextConstants.PROPERTY_ELEMENT)) {
+									String name = config.getAttributeValue(null,InfinitumContextConstants.NAME_ATTRIBUTE);
 									config.next();
 									event = config.getEventType();
 									if (event != XmlPullParser.TEXT)
-										throw new InfinitumConfigurationException(
-												String.format(
-														InfinitumContextConstants.CONFIG_PARSE_ERROR_LINE,
-														config.getLineNumber()));
+										throw new InfinitumConfigurationException(String.format(InfinitumContextConstants.CONFIG_PARSE_ERROR_LINE, config.getLineNumber()));
 									if (name.equalsIgnoreCase(InfinitumContextConstants.DB_NAME_ATTRIBUTE)) {
 										String dbName = config.getText();
 										if (dbName.trim().equals(""))
-											throw new InfinitumConfigurationException(
-													InfinitumContextConstants.CONFIG_PARSE_ERROR
-															+ " "
-															+ InfinitumContextConstants.SQLITE_DB_NAME_MISSING);
+											throw new InfinitumConfigurationException(InfinitumContextConstants.CONFIG_PARSE_ERROR + " " + InfinitumContextConstants.SQLITE_DB_NAME_MISSING);
 										else
 											ret.setSqliteDbName(dbName);
-									} else if (name
-											.equalsIgnoreCase(InfinitumContextConstants.DB_VERSION_ATTRIBUTE))
-										ret.setSqliteDbVersion(Integer
-												.parseInt(config.getText()));
+									} else if (name.equalsIgnoreCase(InfinitumContextConstants.DB_VERSION_ATTRIBUTE)) {
+										ret.setSqliteDbVersion(Integer.parseInt(config.getText()));
+									} else if (name.equalsIgnoreCase(InfinitumContextConstants.DB_GENERATE_SCHEMA_ATTRIBUTE)) {
+										String generate = config.getText();
+										if (Boolean.valueOf(generate))
+											ret.setSchemaGenerated(true);
+										else
+											ret.setSchemaGenerated(false);
+									}
 									config.next();
 									config.next();
 									event = config.getEventType();

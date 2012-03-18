@@ -22,11 +22,13 @@ package com.clarionmedia.infinitum.orm.persistence;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Date;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
+import com.clarionmedia.infinitum.internal.bind.SqliteTypeResolvers;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 
 /**
  * <p>
@@ -39,59 +41,28 @@ import com.clarionmedia.infinitum.internal.Primitives;
  */
 public class TypeResolution {
 
+	// Represent the data types used in SQLite
 	public static enum SqliteDataType {
 		NULL, INTEGER, REAL, TEXT, BLOB
 	};
+	
+	// This Map contains SqliteTypeResolvers for basic types
+	public static Map<Class<?>, SqliteTypeAdapter<?>> sSqliteTypeResolvers;
 
-	// This Map caches the SQLite data type for each Field
-	private static Map<Field, SqliteDataType> sDataTypeCache;
-
+	// Load basic TypeAdapters
 	static {
-		sDataTypeCache = new Hashtable<Field, SqliteDataType>();
-	}
-
-	/**
-	 * Retrieves the SQLite data type associated with the given
-	 * <code>Field</code>.
-	 * 
-	 * @param field
-	 *            the <code>Field</code> to retrieve the SQLite data type for
-	 * @return <code>SqliteDataType</code> that matches the given
-	 *         <code>Field</code>
-	 */
-	public static SqliteDataType getSqliteDataType(Field field) {
-		if (sDataTypeCache.containsKey(field))
-			return sDataTypeCache.get(field);
-		SqliteDataType ret = null;
-		Class<?> c = field.getType();
-		if (c == String.class)
-			ret = SqliteDataType.TEXT;
-		else if (c == Integer.class || c == int.class)
-			ret = SqliteDataType.INTEGER;
-		else if (c == Long.class || c == long.class)
-			ret = SqliteDataType.INTEGER;
-		else if (c == Float.class || c == float.class)
-			ret = SqliteDataType.REAL;
-		else if (c == Double.class || c == double.class)
-			ret = SqliteDataType.REAL;
-		else if (c == Short.class || c == short.class)
-			ret = SqliteDataType.INTEGER;
-		else if (c == Boolean.class || c == boolean.class)
-			ret = SqliteDataType.INTEGER;
-		else if (c == Byte.class || c == byte.class)
-			ret = SqliteDataType.INTEGER;
-		else if (c == byte[].class)
-			ret = SqliteDataType.BLOB;
-		else if (c == Character.class || c == char.class)
-			ret = SqliteDataType.TEXT;
-		else if (c == Date.class)
-			ret = SqliteDataType.TEXT;
-		else if (isDomainModel(c))
-			ret = getSqliteDataType(PersistenceResolution.getPrimaryKeyField(c));
-		// TODO: support additional types
-		if (ret != null)
-			sDataTypeCache.put(field, ret);
-		return ret;
+		sSqliteTypeResolvers = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
+		sSqliteTypeResolvers.put(boolean.class, SqliteTypeResolvers.BOOLEAN);
+		sSqliteTypeResolvers.put(byte.class, SqliteTypeResolvers.BYTE);
+		sSqliteTypeResolvers.put(byte[].class, SqliteTypeResolvers.BYTE_ARRAY);
+		sSqliteTypeResolvers.put(char.class, SqliteTypeResolvers.CHARACTER);
+		sSqliteTypeResolvers.put(Date.class, SqliteTypeResolvers.DATE);
+		sSqliteTypeResolvers.put(double.class, SqliteTypeResolvers.DOUBLE);
+		sSqliteTypeResolvers.put(float.class, SqliteTypeResolvers.FLOAT);
+		sSqliteTypeResolvers.put(int.class, SqliteTypeResolvers.INTEGER);
+		sSqliteTypeResolvers.put(long.class, SqliteTypeResolvers.LONG);
+		sSqliteTypeResolvers.put(short.class, SqliteTypeResolvers.SHORT);
+		sSqliteTypeResolvers.put(String.class, SqliteTypeResolvers.STRING);
 	}
 
 	/**
@@ -128,10 +99,12 @@ public class TypeResolution {
 		}
 		return isDomainProxy(c);
 	}
-	
+
 	/**
 	 * Indicates if the given {@link Class} is a proxy for a domain model.
-	 * @param c the {@code Class} to check
+	 * 
+	 * @param c
+	 *            the {@code Class} to check
 	 * @return {@code true} if it is a domain proxy, {@code false} if not
 	 */
 	public static boolean isDomainProxy(Class<?> c) {

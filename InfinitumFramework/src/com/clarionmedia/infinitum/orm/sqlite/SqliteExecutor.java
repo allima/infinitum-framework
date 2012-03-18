@@ -25,8 +25,10 @@ import android.database.sqlite.SQLiteDatabase;
 import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
 
 /**
+ * <p>
  * Executes SQL statements against the registered SQLite database for this
  * application.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/24/12
@@ -36,10 +38,19 @@ public class SqliteExecutor implements SqlExecutor {
 	private SQLiteDatabase mDb;
 	private SqliteDbHelper mDbHelper;
 
-	public SqliteExecutor(Context context) {
-		mDbHelper = new SqliteDbHelper(context);
+	/**
+	 * Constructs a new {@code SqliteExecutor} with the given {@link Context}
+	 * and {@link SqliteMapper}.
+	 * 
+	 * @param context
+	 *            the {@code Context} of the {@code SqliteExecutor}
+	 * @param mapper
+	 *            the {@code SqliteMapper} to use for {@link Object} mapping
+	 */
+	public SqliteExecutor(Context context, SqliteMapper mapper) {
+		mDbHelper = new SqliteDbHelper(context, mapper);
 	}
-	
+
 	@Override
 	public void open() {
 		mDb = mDbHelper.getWritableDatabase();

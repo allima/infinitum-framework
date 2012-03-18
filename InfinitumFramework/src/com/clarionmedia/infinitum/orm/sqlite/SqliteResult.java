@@ -37,54 +37,82 @@ public class SqliteResult implements ResultSet {
 
 	private Cursor mCursor;
 
+	/**
+	 * Constructs a new {@code SqliteResult} with the given {@link Cursor}.
+	 * 
+	 * @param cursor
+	 *            the SQLite {@code Cursor} to wrap
+	 */
 	public SqliteResult(Cursor cursor) {
 		mCursor = cursor;
 	}
 
+	/**
+	 * Retrieves the SQLite {@link Cursor} this {@code SqliteResult} is
+	 * wrapping.
+	 * 
+	 * @return {@code Cursor}
+	 */
 	public Cursor getCursor() {
 		return mCursor;
 	}
 
+	/**
+	 * Sets the SQLite {@link Cursor} which this {@code SqliteResult} wraps.
+	 * 
+	 * @param cursor
+	 *            the {@code Cursor} to wrap
+	 */
 	public void setCursor(Cursor cursor) {
 		mCursor = cursor;
 	}
 
+	@Override
 	public void close() {
 		mCursor.close();
 	}
 
+	@Override
 	public int getInt(int columnIndex) {
 		return mCursor.getInt(columnIndex);
 	}
 
+	@Override
 	public long getLong(int columnIndex) {
 		return mCursor.getLong(columnIndex);
 	}
 
+	@Override
 	public String getString(int columnIndex) {
 		return mCursor.getString(columnIndex);
 	}
 
+	@Override
 	public float getFloat(int columnIndex) {
 		return mCursor.getFloat(columnIndex);
 	}
 
+	@Override
 	public double getDouble(int columnIndex) {
 		return mCursor.getDouble(columnIndex);
 	}
 
+	@Override
 	public short getShort(int columnIndex) {
 		return mCursor.getShort(columnIndex);
 	}
 
+	@Override
 	public byte[] getBlob(int columnIndex) {
 		return mCursor.getBlob(columnIndex);
 	}
 
-	public int getColumnCount(int columnIndex) {
+	@Override
+	public int getColumnCount() {
 		return mCursor.getColumnCount();
 	}
 
+	@Override
 	public int getColumnIndex(String columnName) {
 		return mCursor.getColumnIndex(columnName);
 	}

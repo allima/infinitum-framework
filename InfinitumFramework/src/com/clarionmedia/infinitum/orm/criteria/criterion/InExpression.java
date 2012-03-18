@@ -20,12 +20,11 @@
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.lang.reflect.Field;
+
 import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
@@ -71,13 +70,12 @@ public class InExpression extends Criterion {
 			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 		}
 		String colName = PersistenceResolution.getFieldColumnName(f);
-		SqliteDataType sqlType = TypeResolution.getSqliteDataType(f);
 		query.append(colName).append(' ').append(SqlConstants.OP_IN).append(" (");
 		String prefix = "";
 		for (Object val : mValues) {
 			query.append(prefix);
 			prefix = ", ";
-			if (sqlType == SqliteDataType.TEXT)
+			if (criteria.getObjectMapper().isTextColumn(f))
 				query.append("'").append(val.toString()).append("'");
 			else
 				query.append(val.toString());

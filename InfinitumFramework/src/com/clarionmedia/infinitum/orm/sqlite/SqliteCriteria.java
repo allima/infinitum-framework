@@ -34,7 +34,7 @@ import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 
 /**
  * <p>
- * Implementation of {@link Criteria}.
+ * Implementation of {@link Criteria} for SQLite database queries.
  * </p>
  * 
  * @author Tyler Treat
@@ -63,15 +63,12 @@ public class SqliteCriteria implements Criteria {
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public SqliteCriteria(SqliteSession session, Class<?> entityClass,
-			SqlBuilder sqlBuilder) throws InfinitumRuntimeException {
+	public SqliteCriteria(SqliteSession session, Class<?> entityClass, SqlBuilder sqlBuilder, SqliteMapper mapper) throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
-			throw new InfinitumRuntimeException(
-					String.format(CriteriaConstants.TRANSIENT_CRITERIA,
-							entityClass.getName()));
+			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA, entityClass.getName()));
 		mEntityClass = entityClass;
 		mSession = session;
-		mModelFactory = new SqliteModelFactoryImpl(session);
+		mModelFactory = new SqliteModelFactoryImpl(session, mapper);
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
 	}
@@ -122,8 +119,7 @@ public class SqliteCriteria implements Criteria {
 	@Override
 	public List<Object> toList() {
 		List<Object> ret = new LinkedList<Object>();
-		Cursor result = mSession.executeForResult(mSqlBuilder
-				.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this));
 		if (result.getCount() == 0) {
 			result.close();
 			return ret;
@@ -142,16 +138,18 @@ public class SqliteCriteria implements Criteria {
 
 	@Override
 	public Object unique() throws InfinitumRuntimeException {
-		Cursor result = mSession.executeForResult(mSqlBuilder
-				.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this));
 		if (result.getCount() > 1)
-			throw new InfinitumRuntimeException(String.format(
-					CriteriaConstants.NON_UNIQUE_RESULT,
-					mEntityClass.getName(), result.getCount()));
+			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT, mEntityClass.getName(), result.getCount()));
 		else if (result.getCount() == 0)
 			return null;
 		result.moveToFirst();
 		return mModelFactory.createFromCursor(result, mEntityClass);
+	}
+
+	@Override
+	public SqliteMapper getObjectMapper() {
+		return mSession.getSqliteMapper();
 	}
 
 }

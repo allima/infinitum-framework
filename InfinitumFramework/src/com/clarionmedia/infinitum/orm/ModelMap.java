@@ -39,10 +39,10 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 public abstract class ModelMap {
 
 	protected Object mModel;
-	private List<Pair<ManyToManyRelationship, Iterable<Object>>> mManyToManyRelationships;
-	private List<Pair<ManyToOneRelationship, Object>> mManyToOneRelationships;
-	private List<Pair<OneToManyRelationship, Iterable<Object>>> mOneToManyRelationships;
-	private List<Pair<OneToOneRelationship, Object>> mOneToOneRelationships;
+	protected List<Pair<ManyToManyRelationship, Iterable<Object>>> mManyToManyRelationships;
+	protected List<Pair<ManyToOneRelationship, Object>> mManyToOneRelationships;
+	protected List<Pair<OneToManyRelationship, Iterable<Object>>> mOneToManyRelationships;
+	protected List<Pair<OneToOneRelationship, Object>> mOneToOneRelationships;
 
 	/**
 	 * Constructs a new {@code ModelMap} for the given {@link Object} model.

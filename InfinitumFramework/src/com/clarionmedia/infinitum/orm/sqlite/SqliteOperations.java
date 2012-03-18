@@ -19,11 +19,15 @@
 
 package com.clarionmedia.infinitum.orm.sqlite;
 
+import java.lang.reflect.Field;
+import java.util.Map;
+
 import android.database.Cursor;
 import android.database.SQLException;
 
 import com.clarionmedia.infinitum.orm.DatastoreOperations;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
+import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 
 /**
  * <p>
@@ -67,5 +71,29 @@ public interface SqliteOperations extends DatastoreOperations {
 	 *             if the SQL was formatted incorrectly
 	 */
 	Cursor executeForResult(String sql) throws SQLGrammarException;
+
+	/**
+	 * Registers the given {@link TypeAdapter} for the specified {@link Class}
+	 * with this {@code SqliteMapper} instance. The {@code TypeAdapter} allows a
+	 * {@link Field} of this type to be mapped to a database column. Registering
+	 * a {@code TypeAdapter} for a {@code Class} which already has a
+	 * {@code TypeAdapter} registered for it will result in the previous
+	 * {@code TypeAdapter} being overridden.
+	 * 
+	 * @param type
+	 *            the {@code Class} this {@code TypeAdapter} is for
+	 * @param adapter
+	 *            the {@code TypeAdapter} to register
+	 */
+	<T> void registerTypeAdapter(Class<T> type, SqliteTypeAdapter<T> adapter);
+
+	/**
+	 * Returns a {@link Map} containing all {@link SqliteTypeAdapter} instances
+	 * registered with this {@code Session} and the {@link Class} instance in
+	 * which they are registered for.
+	 * 
+	 * @return {@code Map<Class<?>, SqliteTypeAdapter<?>>
+	 */
+	Map<Class<?>, SqliteTypeAdapter<?>> getRegisteredTypeAdapters();
 
 }

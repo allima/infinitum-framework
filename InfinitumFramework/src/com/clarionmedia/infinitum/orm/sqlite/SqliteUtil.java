@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.sql;
+package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -30,12 +30,15 @@ import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
- * This class contains utility methods for generating SQL strings.
+ * <p>
+ * This class contains utility methods for generating SQL strings
+ * for a SQLite database.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/15/12
  */
-public class SqlUtil {
+public class SqliteUtil {
 
 	/**
 	 * Generates a "where clause" {@link String} used for updating or deleting
@@ -55,13 +58,12 @@ public class SqlUtil {
 	 * @throws InfinitumRuntimeException
 	 *             if there is an error generating the SQL
 	 */
-	public static String getWhereClause(Object model)
-			throws InfinitumRuntimeException {
+	public static String getWhereClause(Object model, SqliteMapper mapper) throws InfinitumRuntimeException {
 		Field pk = PersistenceResolution.getPrimaryKeyField(model.getClass());
 		StringBuilder sb = new StringBuilder();
 		pk.setAccessible(true);
 		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
-		SqliteDataType t = TypeResolution.getSqliteDataType(pk);
+		SqliteDataType t = mapper.getSqliteDataType(pk);
 		Object pkVal = null;
 		if (TypeResolution.isDomainProxy(model.getClass())) {
 		    pkVal = ClassReflector.invokeGetter(pk, model);
@@ -69,13 +71,9 @@ public class SqlUtil {
 			try {
 				pkVal = pk.get(model);
 			} catch (IllegalArgumentException e) {
-				throw new InfinitumRuntimeException(String.format(
-						OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass()
-								.getName()));
+				throw new InfinitumRuntimeException(String.format(OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
 			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException(String.format(
-						OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass()
-								.getName()));
+				throw new InfinitumRuntimeException(String.format(OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
 			}
 		}
 		if (t == SqliteDataType.TEXT)
@@ -107,16 +105,13 @@ public class SqlUtil {
 	 *             if there is a mismatch between the {@code Class}'s primary
 	 *             key type and the type of the given primary key
 	 */
-	public static String getWhereClause(Class<?> c, Serializable id)
-			throws IllegalArgumentException {
+	public static String getWhereClause(Class<?> c, Serializable id, SqliteMapper mapper) throws IllegalArgumentException {
 		Field pk = PersistenceResolution.getPrimaryKeyField(c);
 		if (!TypeResolution.isValidPrimaryKey(pk, id))
-			throw new IllegalArgumentException(String.format(
-					OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
-					c.getName()));
+			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(), c.getName()));
 		StringBuilder sb = new StringBuilder();
 		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
-		SqliteDataType t = TypeResolution.getSqliteDataType(pk);
+		SqliteDataType t = mapper.getSqliteDataType(pk);
 		if (t == SqliteDataType.TEXT)
 			sb.append("'").append(id).append("'");
 		else

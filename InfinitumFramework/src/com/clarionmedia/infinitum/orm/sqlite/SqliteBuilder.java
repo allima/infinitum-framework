@@ -33,7 +33,6 @@ import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
@@ -54,6 +53,12 @@ public class SqliteBuilder implements SqlBuilder {
 
 	// TODO: this class currently doesn't handle reserved keywords.
 	// See: http://www.sqlite.org/lang_keywords.html
+	
+	private SqliteMapper mMapper;
+	
+	public SqliteBuilder(SqliteMapper mapper) {
+		mMapper = mapper;
+	}
 
 	@Override
 	public int createTables(SqliteDbHelper dbHelper)
@@ -227,7 +232,7 @@ public class SqliteBuilder implements SqlBuilder {
 									.getSecondField())).append(" = ");
 			col = rel.getSecondField();
 		}
-		switch (TypeResolution.getSqliteDataType(col)) {
+		switch (mMapper.getSqliteDataType(col)) {
 		case TEXT:
 			ret.append("'").append(ret.append(pk)).append("'");
 			break;
@@ -262,7 +267,7 @@ public class SqliteBuilder implements SqlBuilder {
 				.getClass());
 		pkField.setAccessible(true);
 		Object pk = PersistenceResolution.getPrimaryKey(model);
-		switch (TypeResolution.getSqliteDataType(pkField)) {
+		switch (mMapper.getSqliteDataType(pkField)) {
 		case TEXT:
 			ret.append("'").append(ret.append(pk)).append("'");
 			break;
@@ -280,7 +285,7 @@ public class SqliteBuilder implements SqlBuilder {
 		sb.append(prefix);
 		Field pkField = PersistenceResolution.getPrimaryKeyField(o.getClass());
 		Object pk = PersistenceResolution.getPrimaryKey(o);
-		switch (TypeResolution.getSqliteDataType(pkField)) {
+		switch (mMapper.getSqliteDataType(pkField)) {
 		case TEXT:
 			sb.append("'").append(pk).append("'");
 			break;
@@ -320,7 +325,7 @@ public class SqliteBuilder implements SqlBuilder {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		switch (TypeResolution.getSqliteDataType(pkField)) {
+		switch (mMapper.getSqliteDataType(pkField)) {
 		case TEXT:
 			query.append("'").append(pk).append("'");
 			break;
@@ -328,6 +333,38 @@ public class SqliteBuilder implements SqlBuilder {
 			query.append(pk);
 		}
 		return query.toString();
+	}
+	
+	@Override
+	public String createUpdateQuery(Object model, Object related, String column) {
+		Object pk = PersistenceResolution.getPrimaryKey(related);
+		StringBuilder update = new StringBuilder("UPDATE ")
+				.append(PersistenceResolution.getModelTableName(model
+						.getClass()));
+		update.append(" SET ").append(column).append(" = ");
+		switch (mMapper.getSqliteDataType(PersistenceResolution
+				.getPrimaryKeyField(related.getClass()))) {
+		case TEXT:
+			update.append("'").append(pk).append("'");
+			break;
+		default:
+			update.append(pk);
+		}
+		update.append(" WHERE ");
+		update.append(PersistenceResolution
+				.getFieldColumnName(PersistenceResolution
+						.getPrimaryKeyField(model.getClass())));
+		update.append(" = ");
+		pk = PersistenceResolution.getPrimaryKey(model);
+		switch (mMapper.getSqliteDataType(PersistenceResolution
+				.getPrimaryKeyField(model.getClass()))) {
+		case TEXT:
+			update.append("'").append(pk).append("'");
+			break;
+		default:
+			update.append(pk);
+		}
+		return update.toString();
 	}
 
 	private String createManyToManyTableString(ManyToManyRelationship rel)
@@ -356,9 +393,9 @@ public class SqliteBuilder implements SqlBuilder {
 				+ '_'
 				+ PersistenceResolution.getFieldColumnName(second);
 		sb.append(firstCol).append(' ')
-				.append(TypeResolution.getSqliteDataType(first).toString())
+				.append(mMapper.getSqliteDataType(first).toString())
 				.append(' ').append(", ").append(secondCol).append(' ')
-				.append(TypeResolution.getSqliteDataType(second).toString())
+				.append(mMapper.getSqliteDataType(second).toString())
 				.append(", ").append(SqlConstants.PRIMARY_KEY).append('(')
 				.append(firstCol).append(", ").append(secondCol).append("))");
 		return sb.toString();
@@ -377,7 +414,7 @@ public class SqliteBuilder implements SqlBuilder {
 		for (Field f : fields) {
 			if (f.isAnnotationPresent(ManyToMany.class))
 				continue;
-			SqliteDataType type = TypeResolution.getSqliteDataType(f);
+			SqliteDataType type = mMapper.getSqliteDataType(f);
 			if (type == null)
 				continue;
 			sb.append(prefix);
@@ -416,35 +453,4 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 	}
 
-	@Override
-	public String createUpdateQuery(Object model, Object related, String column) {
-		Object pk = PersistenceResolution.getPrimaryKey(related);
-		StringBuilder update = new StringBuilder("UPDATE ")
-				.append(PersistenceResolution.getModelTableName(model
-						.getClass()));
-		update.append(" SET ").append(column).append(" = ");
-		switch (TypeResolution.getSqliteDataType(PersistenceResolution
-				.getPrimaryKeyField(related.getClass()))) {
-		case TEXT:
-			update.append("'").append(pk).append("'");
-			break;
-		default:
-			update.append(pk);
-		}
-		update.append(" WHERE ");
-		update.append(PersistenceResolution
-				.getFieldColumnName(PersistenceResolution
-						.getPrimaryKeyField(model.getClass())));
-		update.append(" = ");
-		pk = PersistenceResolution.getPrimaryKey(model);
-		switch (TypeResolution.getSqliteDataType(PersistenceResolution
-				.getPrimaryKeyField(model.getClass()))) {
-		case TEXT:
-			update.append("'").append(pk).append("'");
-			break;
-		default:
-			update.append(pk);
-		}
-		return update.toString();
-	}
 }

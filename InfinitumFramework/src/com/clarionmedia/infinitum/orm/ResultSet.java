@@ -29,24 +29,88 @@ package com.clarionmedia.infinitum.orm;
  */
 public interface ResultSet {
 
+	/**
+	 * Closes the {@code ResultSet}.
+	 */
 	void close();
 
+	/**
+	 * Retrieves an {@code int} from the given column index.
+	 * 
+	 * @param columnIndex
+	 *            index of column to retrieve value from
+	 * @return {@code int} from {@code ResultSet} column
+	 */
 	int getInt(int columnIndex);
 
+	/**
+	 * Retrieves a {@code long} from the given column index.
+	 * 
+	 * @param columnIndex
+	 *            index of column to retrieve value from
+	 * @return {@code long} from {@code ResultSet} column
+	 */
 	long getLong(int columnIndex);
 
+	/**
+	 * Retrieves a {@code String} from the given column index.
+	 * 
+	 * @param columnIndex
+	 *            index of column to retrieve value from
+	 * @return {@code String} from {@code ResultSet} column
+	 */
 	String getString(int columnIndex);
 
+	/**
+	 * Retrieves a {@code float} from the given column index.
+	 * 
+	 * @param columnIndex
+	 *            index of column to retrieve value from
+	 * @return {@code float} from {@code ResultSet} column
+	 */
 	float getFloat(int columnIndex);
 
+	/**
+	 * Retrieves a {@code double} from the given column index.
+	 * 
+	 * @param columnIndex
+	 *            index of column to retrieve value from
+	 * @return {@code double} from {@code ResultSet} column
+	 */
 	double getDouble(int columnIndex);
 
+	/**
+	 * Retrieves a {@code short} from the given column index.
+	 * 
+	 * @param columnIndex
+	 *            index of column to retrieve value from
+	 * @return {@code short} from {@code ResultSet} column
+	 */
 	short getShort(int columnIndex);
 
+	/**
+	 * Retrieves a {@code byte[]} from the given column index.
+	 * 
+	 * @param columnIndex
+	 *            index of column to retrieve value from
+	 * @return {@code byte[]} from {@code ResultSet} column
+	 */
 	byte[] getBlob(int columnIndex);
 
-	int getColumnCount(int columnIndex);
+	/**
+	 * Retrieves the number of columns contained in the {@code ResultSet}.
+	 * 
+	 * @return number of columns
+	 */
+	int getColumnCount();
 
+	/**
+	 * Retrieves the column index of the column with the given name.
+	 * 
+	 * @param columnName
+	 *            the name of the column to get the name for
+	 * @return column name
+	 */
 	int getColumnIndex(String columnName);
 
 }

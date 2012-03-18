@@ -23,13 +23,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
@@ -99,13 +98,14 @@ public class PersistenceResolution {
 	private static Map<Class<?>, Boolean> sLazyLoadingCache;
 
 	static {
-		sPersistenceCache = new Hashtable<Class<?>, List<Field>>();
-		sColumnCache = new Hashtable<Field, String>();
-		sPrimaryKeyCache = new Hashtable<Class<?>, Field>();
-		sFieldNullableCache = new Hashtable<Field, Boolean>();
-		sFieldUniqueCache = new Hashtable<Field, Boolean>();
+		// Initialize the caches
+		sPersistenceCache = new HashMap<Class<?>, List<Field>>();
+		sColumnCache = new HashMap<Field, String>();
+		sPrimaryKeyCache = new HashMap<Class<?>, Field>();
+		sFieldNullableCache = new HashMap<Field, Boolean>();
+		sFieldUniqueCache = new HashMap<Field, Boolean>();
 		sManyToManyCache = new HashSet<ManyToManyRelationship>();
-		sLazyLoadingCache = new Hashtable<Class<?>, Boolean>();
+		sLazyLoadingCache = new HashMap<Class<?>, Boolean>();
 	}
 
 	public static Set<ManyToManyRelationship> getManyToManyCache() {
@@ -116,7 +116,7 @@ public class PersistenceResolution {
 	 * Indicates if the given <code>Class</code> is persistent or transient.
 	 * Persistence is denoted by the {@link Entity} annotation.
 	 * <code>Entity's</code> mode can be set to <code>transient</code> or
-	 * <code>persistent</code. If the mode is missing or if the annotation
+	 * <code>persistent</code>. If the mode is missing or if the annotation
 	 * itself is missing from a registered domain model, it will be marked
 	 * persistent by default.
 	 * 

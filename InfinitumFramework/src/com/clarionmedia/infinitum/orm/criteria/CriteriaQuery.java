@@ -20,6 +20,8 @@
 package com.clarionmedia.infinitum.orm.criteria;
 
 import java.util.List;
+
+import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 
 /**
@@ -50,7 +52,8 @@ public interface CriteriaQuery {
 	Class<?> getEntityClass();
 
 	/**
-	 * Returns the {@link List} of {@link Criterion} for this {@code CriteriaQuery}.
+	 * Returns the {@link List} of {@link Criterion} for this
+	 * {@code CriteriaQuery}.
 	 * 
 	 * @return {@code List} of {@code Criterion}
 	 */
@@ -62,12 +65,20 @@ public interface CriteriaQuery {
 	 * @return result set limit
 	 */
 	int getLimit();
-	
+
 	/**
 	 * Returns the offset value for this {@code CriteriaQuery}.
 	 * 
 	 * @return offset value
 	 */
 	int getOffset();
+
+	/**
+	 * Returns the {@link ObjectMapper} associated with this
+	 * {@code CriteriaQuery}.
+	 * 
+	 * @return {@code ObjectMapper}
+	 */
+	ObjectMapper getObjectMapper();
 
 }
