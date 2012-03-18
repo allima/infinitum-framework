@@ -181,7 +181,8 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public void saveOrUpdateAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		reconcileCache();
 		for (Object model : models) {
 			int hash = PersistenceResolution.computeModelHash(model);
@@ -193,7 +194,8 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		reconcileCache();
 		for (Object model : models) {
 			int hash = PersistenceResolution.computeModelHash(model);
@@ -205,7 +207,8 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		for (Object model : models) {
 			int hash = PersistenceResolution.computeModelHash(model);
 			// Remove from session cache
@@ -216,7 +219,8 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T load(Class<T> c, Serializable id)
+			throws InfinitumRuntimeException, IllegalArgumentException {
 		return mSqlite.load(c, id);
 	}
 
@@ -227,20 +231,20 @@ public class SqliteSession implements Session {
 
 	@Override
 	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
-	    try {
-		    SqliteTypeAdapter<T> a = (SqliteTypeAdapter<T>) adapter;
-		    mSqlite.registerTypeAdapter(type, a);
-	    } catch (ClassCastException e) {
-	    	// If adapter is not a SqliteTypeAdapter, ignore it
-	    	return;
-	    }
+		try {
+			SqliteTypeAdapter<T> a = (SqliteTypeAdapter<T>) adapter;
+			mSqlite.registerTypeAdapter(type, a);
+		} catch (ClassCastException e) {
+			// If adapter is not a SqliteTypeAdapter, ignore it
+			return;
+		}
 	}
-	
+
 	@Override
 	public Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters() {
 		return mSqlite.getRegisteredTypeAdapters();
 	}
-	
+
 	@Override
 	public void beginTransaction() {
 		mSqlite.beginTransaction();
@@ -255,17 +259,17 @@ public class SqliteSession implements Session {
 	public void rollback() {
 		mSqlite.rollback();
 	}
-	
+
 	@Override
 	public boolean isTransactionOpen() {
 		return mSqlite.isTransactionOpen();
 	}
-	
+
 	@Override
 	public void setAutocommit(boolean autocommit) {
 		mSqlite.setAutocommit(autocommit);
 	}
-	
+
 	@Override
 	public boolean isAutocommit() {
 		return mSqlite.isAutocommit();
@@ -276,12 +280,16 @@ public class SqliteSession implements Session {
 	 * 
 	 * @param sql
 	 *            the SQL query to execute
+	 * @param force
+	 *            indicates if the query should be executed regardless of
+	 *            transaction state
 	 * @return {@link Cursor} containing the results of the query
 	 * @throws SQLGrammarException
 	 *             if the SQL was formatted incorrectly
 	 */
-	public Cursor executeForResult(String sql) throws SQLGrammarException {
-		return mSqlite.executeForResult(sql);
+	public Cursor executeForResult(String sql, boolean force)
+			throws SQLGrammarException {
+		return mSqlite.executeForResult(sql, force);
 	}
 
 	/**
@@ -326,7 +334,7 @@ public class SqliteSession implements Session {
 	public SqliteMapper getSqliteMapper() {
 		return mSqlite.getSqliteMapper();
 	}
-	
+
 	public SQLiteDatabase getDatabase() {
 		return mSqlite.getDatabase();
 	}

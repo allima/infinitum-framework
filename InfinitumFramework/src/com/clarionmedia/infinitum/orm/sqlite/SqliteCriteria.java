@@ -119,7 +119,7 @@ public class SqliteCriteria implements Criteria {
 	@Override
 	public List<Object> toList() {
 		List<Object> ret = new LinkedList<Object>();
-		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
 		if (result.getCount() == 0) {
 			result.close();
 			return ret;
@@ -138,7 +138,7 @@ public class SqliteCriteria implements Criteria {
 
 	@Override
 	public Object unique() throws InfinitumRuntimeException {
-		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
 		if (result.getCount() > 1)
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT, mEntityClass.getName(), result.getCount()));
 		else if (result.getCount() == 0)

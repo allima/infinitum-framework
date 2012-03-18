@@ -113,11 +113,15 @@ public interface SqliteOperations extends DatastoreOperations {
 	 * 
 	 * @param sql
 	 *            the SQL query to execute
+	 * @param force
+	 *            indicates if the query should be executed regardless of
+	 *            transaction state
 	 * @return {@link Cursor} containing the results of the query
 	 * @throws SQLGrammarException
 	 *             if the SQL was formatted incorrectly
 	 */
-	Cursor executeForResult(String sql) throws SQLGrammarException;
+	Cursor executeForResult(String sql, boolean force)
+			throws SQLGrammarException;
 
 	/**
 	 * Registers the given {@link TypeAdapter} for the specified {@link Class}
