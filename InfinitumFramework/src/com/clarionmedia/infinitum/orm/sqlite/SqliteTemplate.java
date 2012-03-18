@@ -36,6 +36,7 @@ import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
+import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
@@ -75,6 +76,8 @@ public class SqliteTemplate implements SqliteOperations {
 	protected SqliteModelFactoryImpl mModelFactory;
 	protected SqlBuilder mSqlBuilder;
 	protected boolean mIsOpen;
+	protected boolean mIsTransactionOpen;
+	protected boolean mIsAutocommit;
 
 	/**
 	 * Constructs a new {@code SqliteTemplate} attached to the given
@@ -87,15 +90,14 @@ public class SqliteTemplate implements SqliteOperations {
 	public SqliteTemplate(SqliteSession session) {
 		mSession = session;
 		mInfinitumContext = InfinitumContextFactory.getInfinitumContext();
+		mIsAutocommit = mInfinitumContext.isAutocommit();
 		mMapper = new SqliteMapper();
-		mModelFactory = new SqliteModelFactoryImpl(mSession, mMapper);
 		mSqlBuilder = new SqliteBuilder(mMapper);
 	}
 
 	@Override
 	public <T> GenCriteria<T> createGenericCriteria(Class<T> entityClass) {
-		return new SqliteGenCriteria<T>(mSession, entityClass, mSqlBuilder,
-				mMapper);
+		return new SqliteGenCriteria<T>(mSession, entityClass, mSqlBuilder, mMapper);
 	}
 
 	@Override
@@ -107,6 +109,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public void open() throws SQLException {
 		mDbHelper = new SqliteDbHelper(mSession.getContext(), mMapper);
 		mSqliteDb = mDbHelper.getWritableDatabase();
+		mModelFactory = new SqliteModelFactoryImpl(mSession, mMapper);
 		mIsOpen = true;
 	}
 
@@ -120,27 +123,71 @@ public class SqliteTemplate implements SqliteOperations {
 	public boolean isOpen() {
 		return mIsOpen;
 	}
+	
+	@Override
+	public void beginTransaction() {
+		mSqliteDb.beginTransaction();
+		mIsTransactionOpen = true;
+		if (mInfinitumContext.isDebug())
+			Log.d(TAG, "Transaction started");
+	}
+
+	@Override
+	public void commit() {
+		if (!mIsTransactionOpen)
+			return;
+		mSqliteDb.setTransactionSuccessful();
+		mSqliteDb.endTransaction();
+		mIsTransactionOpen = false;
+		if (mInfinitumContext.isDebug())
+			Log.d(TAG, "Transaction committed");
+	}
+
+	@Override
+	public void rollback() {
+		if (!mIsTransactionOpen)
+			return;
+		mSqliteDb.endTransaction();
+		mIsTransactionOpen = false;
+		if (mInfinitumContext.isDebug())
+			Log.d(TAG, "Transaction rolled back");
+	}
+	
+	@Override
+	public boolean isTransactionOpen() {
+		return mIsTransactionOpen;
+	}
+	
+	@Override
+	public void setAutocommit(boolean autocommit) {
+		mIsAutocommit = autocommit;
+	}
+	
+	@Override
+	public boolean isAutocommit() {
+		return mIsAutocommit;
+	}
 
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
-		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_SAVE_TRANSIENT, model.getClass().getName()));
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkPersistenceForModify(model);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveRec(model, objectMap);
 	}
 
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
-		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass().getName()));
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkPersistenceForModify(model);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return updateRec(model, objectMap);
 	}
 
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
-		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_UPDATE_TRANSIENT, model.getClass().getName()));
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkPersistenceForModify(model);
 		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		String whereClause = SqliteUtil.getWhereClause(model, mMapper);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
@@ -157,24 +204,27 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public long saveOrUpdate(Object model) throws InfinitumRuntimeException {
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkPersistenceForModify(model);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveOrUpdateRec(model, objectMap);
 	}
 
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Saving or updating " + models.size() + " models");
-		for (Object o : models)
+		for (Object o : models) {
 			saveOrUpdate(o);
+		}
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Models saved or updated");
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
 		int count = 0;
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Saving " + models.size() + " models");
@@ -188,8 +238,8 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
 		int count = 0;
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Deleting " + models.size() + " models");
@@ -203,12 +253,9 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public <T> T load(Class<T> c, Serializable id)
-			throws InfinitumRuntimeException, IllegalArgumentException {
-		if (!PersistenceResolution.isPersistent(c))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
-		if (!TypeResolution.isValidPrimaryKey(
-				PersistenceResolution.getPrimaryKeyField(c), id))
+	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+		Preconditions.checkPersistenceForLoading(c);
+		if (!TypeResolution.isValidPrimaryKey(PersistenceResolution.getPrimaryKeyField(c), id))
 			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(), c.getName()));
 		Cursor cursor = mSqliteDb.query(
 				PersistenceResolution.getModelTableName(c), null,
@@ -234,6 +281,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public void execute(String sql) throws SQLGrammarException {
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
 		try {
@@ -245,6 +293,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public Cursor executeForResult(String sql) throws SQLGrammarException {
+		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
 		Cursor ret = null;
@@ -274,6 +323,16 @@ public class SqliteTemplate implements SqliteOperations {
 	 */
 	public SqliteMapper getSqliteMapper() {
 		return mMapper;
+	}
+	
+	/**
+	 * Returns the {@link SQLiteDatabase} instance attached to
+	 * this {@code SqliteTemplate}.
+	 * 
+	 * @return {@code SQLiteDatabase} instance
+	 */
+	public SQLiteDatabase getDatabase() {
+		return mSqliteDb;
 	}
 
 	private long saveOrUpdateRec(Object model, Map<Integer, Object> objectMap) {

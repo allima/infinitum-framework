@@ -27,6 +27,7 @@ import java.util.Map;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
@@ -239,6 +240,36 @@ public class SqliteSession implements Session {
 	public Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters() {
 		return mSqlite.getRegisteredTypeAdapters();
 	}
+	
+	@Override
+	public void beginTransaction() {
+		mSqlite.beginTransaction();
+	}
+
+	@Override
+	public void commit() {
+		mSqlite.commit();
+	}
+
+	@Override
+	public void rollback() {
+		mSqlite.rollback();
+	}
+	
+	@Override
+	public boolean isTransactionOpen() {
+		return mSqlite.isTransactionOpen();
+	}
+	
+	@Override
+	public void setAutocommit(boolean autocommit) {
+		mSqlite.setAutocommit(autocommit);
+	}
+	
+	@Override
+	public boolean isAutocommit() {
+		return mSqlite.isAutocommit();
+	}
 
 	/**
 	 * Executes the given SQL query on the database for a result.
@@ -294,6 +325,10 @@ public class SqliteSession implements Session {
 	 */
 	public SqliteMapper getSqliteMapper() {
 		return mSqlite.getSqliteMapper();
+	}
+	
+	public SQLiteDatabase getDatabase() {
+		return mSqlite.getDatabase();
 	}
 
 }

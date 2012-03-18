@@ -58,6 +58,7 @@ public class InfinitumContext {
 	private String mSqliteDbName;
 	private int mSqliteDbVersion;
 	private boolean mIsSchemaGenerated;
+	private boolean mAutocommit;
 	private List<String> mDomainModels;
 
 	/**
@@ -69,6 +70,7 @@ public class InfinitumContext {
 		mConfigMode = DEFAULT_MODE;
 		mDomainModels = new ArrayList<String>();
 		mIsSchemaGenerated = true;
+		mAutocommit = true;
 	}
 
 	/**
@@ -288,6 +290,14 @@ public class InfinitumContext {
 
 	public boolean isSchemaGenerated() {
 		return mIsSchemaGenerated;
+	}
+
+	public void setAutocommit(boolean autocommit) {
+		mAutocommit = autocommit;
+	}
+
+	public boolean isAutocommit() {
+		return mAutocommit;
 	}
 
 }

@@ -45,6 +45,7 @@ public class InfinitumContextConstants {
 	public static final String DB_NAME_ATTRIBUTE = "dbname";
 	public static final String DB_VERSION_ATTRIBUTE = "dbversion";
 	public static final String DB_GENERATE_SCHEMA_ATTRIBUTE = "generateSchema";
+	public static final String DB_AUTOCOMMIT_ATTRIBUTE = "autocommit";
 	public static final String DEBUG_ATTRIBUTE = "debug";
 	public static final String MODE_ATTRIBUTE = "mode";
 	public static final String RECYCLE_ATTRIBUTE = "recycleCache";

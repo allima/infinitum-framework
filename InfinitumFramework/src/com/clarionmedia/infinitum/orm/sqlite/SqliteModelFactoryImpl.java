@@ -70,7 +70,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	 *            the {@code Context} for this model factory
 	 */
 	public SqliteModelFactoryImpl(SqliteSession session, SqliteMapper mapper) {
-		mExecutor = new SqliteExecutor(session.getContext(), mapper);
+		mExecutor = new SqliteExecutor(session.getDatabase());
 		mSqlBuilder = new SqliteBuilder(mapper);
 		mSession = session;
 		mMapper = mapper;
@@ -176,12 +176,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						@Override
 						protected Object loadObject() {
 							Object ret = null;
-							mExecutor.open();
 							SqliteResult result = (SqliteResult) mExecutor.execute(sql);
 							while (result.getCursor().moveToNext())
 								ret = createFromResult(result, rel.getSecondType());
 							result.close();
-							mExecutor.close();
 							return ret;
 						}
 					}).dexCache(mSession.getContext().getDir("dx", Context.MODE_PRIVATE)).build();
@@ -208,7 +206,6 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 
 	private <T> void loadOneToOne(OneToOneRelationship rel, Field f, T model) {
 		String sql = getEntityQuery(model, rel.getSecondType(), f, rel);
-		mExecutor.open();
 		SqliteResult result = (SqliteResult) mExecutor.execute(sql);
 		while (result.getCursor().moveToNext())
 			try {
@@ -227,7 +224,6 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 				e.printStackTrace();
 			}
 		result.close();
-		mExecutor.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -250,12 +246,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 					.handler(new LazilyLoadedObject() {
 						@Override
 						protected Object loadObject() {
-							mExecutor.open();
 							SqliteResult result = (SqliteResult) mExecutor.execute(sql.toString());
 							while (result.getCursor().moveToNext())
 								collection.add(createFromResult(result, rel.getManyType()));
 							result.close();
-							mExecutor.close();
 							return collection;
 						}
 					}).dexCache(mSession.getContext().getDir("dx", Context.MODE_PRIVATE)).build();
@@ -284,7 +278,6 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		default:
 			sql.append(pk);
 		}
-		mExecutor.open();
 		SqliteResult result = (SqliteResult) mExecutor.execute(sql.toString());
 		try {
 			@SuppressWarnings("unchecked")
@@ -300,7 +293,6 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			e.printStackTrace();
 		}
 		result.close();
-		mExecutor.close();
 	}
 
 	private <T> void lazilyLoadManyToOne(ManyToOneRelationship rel, Field f, T model) {
@@ -314,13 +306,11 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						@Override
 						protected Object loadObject() {
 							Object ret = null;
-							mExecutor.open();
 							SqliteResult result = (SqliteResult) mExecutor
 									.execute(sql);
 							while (result.getCursor().moveToNext())
 								ret = createFromResult(result, direction);
 							result.close();
-							mExecutor.close();
 							return ret;
 						}
 					}).dexCache(mSession.getContext().getDir("dx", Context.MODE_PRIVATE)).build();
@@ -348,7 +338,6 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private <T> void loadManyToOne(ManyToOneRelationship rel, Field f, T model) {
 		Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
 		String sql = getEntityQuery(model, direction, f, rel);
-		mExecutor.open();
 		SqliteResult result = (SqliteResult) mExecutor.execute(sql);
 		while (result.getCursor().moveToNext())
 			try {
@@ -367,7 +356,6 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 				e.printStackTrace();
 			}
 		result.close();
-		mExecutor.close();
 	}
 
 	private <T> void loadManyToMany(ManyToManyRelationship rel, Field f, T model) throws ModelConfigurationException, InfinitumRuntimeException {
@@ -376,14 +364,12 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
 			Field pk = PersistenceResolution.getPrimaryKeyField(model.getClass());
 			String sql = mSqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(model), direction);
-			mExecutor.open();
 			SqliteResult result = (SqliteResult) mExecutor.execute(sql);
 			@SuppressWarnings("unchecked")
 			Collection<Object> related = (Collection<Object>) f.get(model);
 			while (result.getCursor().moveToNext())
 				related.add(createFromResult(result, direction));
 			result.close();
-			mExecutor.close();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
 			throw new ModelConfigurationException("Invalid many-to-many relationship specified on " + f.getName() + " of type '" + f.getType().getSimpleName() + "'.");
@@ -424,12 +410,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		default:
 			q.append(pk);
 		}
-		mExecutor.open();
 		SqliteResult res = (SqliteResult) mExecutor.execute(q.toString());
 		res.getCursor().moveToFirst();
 		long id = res.getLong(0);
 		res.close();
-		mExecutor.close();
 		return id;
 	}
 

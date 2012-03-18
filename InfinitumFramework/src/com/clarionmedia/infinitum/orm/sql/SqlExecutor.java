@@ -22,23 +22,14 @@ package com.clarionmedia.infinitum.orm.sql;
 import com.clarionmedia.infinitum.orm.ResultSet;
 
 /**
+ * <p>
  * Provides an API for executing SQL statements against a database.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/24/12
  */
 public interface SqlExecutor {
-
-	/**
-	 * Opens the database to begin a transaction. If the database does not
-	 * exist, it will be created.
-	 */
-	void open();
-
-	/**
-	 * Closes the database connection.
-	 */
-	void close();
 
 	/**
 	 * Executes the given SQL query and returns a {@link ResultSet} for it.
