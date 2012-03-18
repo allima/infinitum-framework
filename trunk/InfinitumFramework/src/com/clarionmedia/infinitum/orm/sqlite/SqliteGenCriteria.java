@@ -122,7 +122,7 @@ public class SqliteGenCriteria<T> implements GenCriteria<T> {
 	@Override
 	public List<T> toList() {
 		List<T> ret = new LinkedList<T>();
-		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
 		if (result.getCount() == 0) {
 			result.close();
 			return ret;
@@ -141,7 +141,7 @@ public class SqliteGenCriteria<T> implements GenCriteria<T> {
 
 	@Override
 	public T unique() throws InfinitumRuntimeException {
-		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this));
+		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
 		if (result.getCount() > 1)
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT, mEntityClass.getName(), result.getCount()));
 		else if (result.getCount() == 0)

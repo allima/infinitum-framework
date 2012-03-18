@@ -292,8 +292,9 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public Cursor executeForResult(String sql) throws SQLGrammarException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+	public Cursor executeForResult(String sql, boolean force) throws SQLGrammarException {
+		if (!force)
+		    Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
 		Cursor ret = null;
@@ -304,6 +305,10 @@ public class SqliteTemplate implements SqliteOperations {
 		}
 		return ret;
 	}
+	
+	//private Cursor executeQueryForResult(String sql) {
+		
+	//}
 
 	@Override
 	public <T> void registerTypeAdapter(Class<T> type, SqliteTypeAdapter<T> adapter) {
