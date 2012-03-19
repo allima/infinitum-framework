@@ -24,14 +24,13 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
-
+import java.util.Stack;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.util.Log;
-
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -76,7 +75,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected SqliteModelFactoryImpl mModelFactory;
 	protected SqlBuilder mSqlBuilder;
 	protected boolean mIsOpen;
-	protected boolean mIsTransactionOpen;
+	protected Stack<Boolean> mTransactionStack;
 	protected boolean mIsAutocommit;
 
 	/**
@@ -93,6 +92,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mIsAutocommit = mInfinitumContext.isAutocommit();
 		mMapper = new SqliteMapper();
 		mSqlBuilder = new SqliteBuilder(mMapper);
+		mTransactionStack = new Stack<Boolean>();
 	}
 
 	@Override
@@ -126,36 +126,38 @@ public class SqliteTemplate implements SqliteOperations {
 	
 	@Override
 	public void beginTransaction() {
+		if (mIsAutocommit)
+			return;
 		mSqliteDb.beginTransaction();
-		mIsTransactionOpen = true;
+		mTransactionStack.push(true);
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Transaction started");
 	}
 
 	@Override
 	public void commit() {
-		if (!mIsTransactionOpen)
+		if (!isTransactionOpen())
 			return;
 		mSqliteDb.setTransactionSuccessful();
 		mSqliteDb.endTransaction();
-		mIsTransactionOpen = false;
+		mTransactionStack.pop();
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Transaction committed");
 	}
 
 	@Override
 	public void rollback() {
-		if (!mIsTransactionOpen)
+		if (!isTransactionOpen())
 			return;
 		mSqliteDb.endTransaction();
-		mIsTransactionOpen = false;
+		mTransactionStack.pop();
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Transaction rolled back");
 	}
 	
 	@Override
 	public boolean isTransactionOpen() {
-		return mIsTransactionOpen;
+		return mTransactionStack.size() > 0;
 	}
 	
 	@Override
@@ -170,7 +172,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveRec(model, objectMap);
@@ -178,7 +180,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return updateRec(model, objectMap);
@@ -186,7 +188,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model);
 		String tableName = PersistenceResolution.getModelTableName(model.getClass());
 		String whereClause = SqliteUtil.getWhereClause(model, mMapper);
@@ -204,7 +206,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public long saveOrUpdate(Object model) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveOrUpdateRec(model, objectMap);
@@ -212,7 +214,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Saving or updating " + models.size() + " models");
 		for (Object o : models) {
@@ -224,7 +226,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		int count = 0;
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Saving " + models.size() + " models");
@@ -239,7 +241,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		int count = 0;
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Deleting " + models.size() + " models");
@@ -281,7 +283,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public void execute(String sql) throws SQLGrammarException {
-		Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
 		try {
@@ -294,7 +296,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public Cursor executeForResult(String sql, boolean force) throws SQLGrammarException {
 		if (!force)
-		    Preconditions.checkForTransaction(mIsAutocommit, mIsTransactionOpen);
+		    Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		if (mInfinitumContext.isDebug())
 			Log.d(TAG, "Executing SQL: " + sql);
 		Cursor ret = null;
