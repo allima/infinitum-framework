@@ -22,13 +22,13 @@ package com.clarionmedia.infinitum.rest;
 /**
  * This interface provides an API for communicating with a RESTful web service
  * using objects. Infinitum provides an implementation called
- * {@link BasicRestClient}, which can be extended or re-implemented for specific
+ * {@link BasicRestfulClient}, which can be extended or re-implemented for specific
  * business needs.
  * 
  * @author Tyler Treat
  * @version 1.0 02/27/12
  */
-public interface RestClient {
+public interface RestfulClient {
 
 	boolean save(Object model);
 

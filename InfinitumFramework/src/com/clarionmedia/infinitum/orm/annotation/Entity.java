@@ -76,4 +76,11 @@ public @interface Entity {
 	 * @return {@code true} if lazy loading is enabled, {@code false} if not
 	 */
 	boolean lazy() default true;
+
+	/**
+	 * Returns the RESTful resource name for this entity.
+	 * 
+	 * @return RESTful resource name
+	 */
+	String resource();
 }
