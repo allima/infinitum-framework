@@ -35,8 +35,8 @@ public class InfinitumContextConstants {
 	public static final String CONFIG_ELEMENT = "infinitum-configuration";
 	public static final String APPLICATION_ELEMENT = "application";
 	public static final String SQLITE_ELEMENT = "sqlite";
-	public static final String DOMAIN_ELEMENT = "domain";
 	public static final String REST_ELEMENT = "rest";
+	public static final String DOMAIN_ELEMENT = "domain";
 	public static final String PROPERTY_ELEMENT = "property";
 	public static final String MODEL_ELEMENT = "model";
 	
@@ -46,11 +46,11 @@ public class InfinitumContextConstants {
 	public static final String DB_VERSION_ATTRIBUTE = "dbversion";
 	public static final String DB_GENERATE_SCHEMA_ATTRIBUTE = "generateSchema";
 	public static final String DB_AUTOCOMMIT_ATTRIBUTE = "autocommit";
+	public static final String REST_HOST_ATTRIBUTE = "host";
 	public static final String DEBUG_ATTRIBUTE = "debug";
 	public static final String MODE_ATTRIBUTE = "mode";
 	public static final String RECYCLE_ATTRIBUTE = "recycleCache";
 	public static final String DOMAIN_RESOURCE_ATTRIBUTE = "resource";
-	public static final String REST_HOST_ATTRIBUTE = "host";
 
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the InfinitumContext!";

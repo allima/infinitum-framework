@@ -97,6 +97,8 @@ public class PersistenceResolution {
 	// This Map caches the lazy-loading status for each persistent class
 	private static Map<Class<?>, Boolean> sLazyLoadingCache;
 
+	private static Map<Class<?>, String> sRestCache;
+
 	static {
 		// Initialize the caches
 		sPersistenceCache = new HashMap<Class<?>, List<Field>>();
@@ -106,6 +108,7 @@ public class PersistenceResolution {
 		sFieldUniqueCache = new HashMap<Field, Boolean>();
 		sManyToManyCache = new HashSet<ManyToManyRelationship>();
 		sLazyLoadingCache = new HashMap<Class<?>, Boolean>();
+		sRestCache = new HashMap<Class<?>, String>();
 	}
 
 	public static Set<ManyToManyRelationship> getManyToManyCache() {
@@ -654,6 +657,34 @@ public class PersistenceResolution {
 			ret = entity.lazy();
 		}
 		sLazyLoadingCache.put(c, ret);
+		return ret;
+	}
+
+	/**
+	 * Retrieves the RESTful resource name for the given persistent
+	 * {@link Class}.
+	 * 
+	 * @param c
+	 *            the {@code Class} to retrieve the RESTful resource name for
+	 * @return resource name
+	 * @throws IllegalArgumentException
+	 *             if the given {@code Class} is not a domain model or
+	 *             persistent
+	 */
+	public static String getRestfulResource(Class<?> c)
+			throws IllegalArgumentException {
+		if (!isPersistent(c) || !TypeResolution.isDomainModel(c))
+			throw new IllegalArgumentException();
+		if (sRestCache.containsKey(c))
+			return sRestCache.get(c);
+		String ret;
+		if (!c.isAnnotationPresent(Entity.class)) {
+			ret = c.getSimpleName().toLowerCase();
+		} else {
+			Entity entity = c.getAnnotation(Entity.class);
+			ret = entity.resource();
+		}
+		sRestCache.put(c, ret);
 		return ret;
 	}
 

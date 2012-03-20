@@ -60,6 +60,7 @@ public class InfinitumContext {
 	private boolean mIsSchemaGenerated;
 	private boolean mAutocommit;
 	private List<String> mDomainModels;
+	private String mRestHost;
 
 	/**
 	 * Constructs a new {@code InfinitumContext}. This constructor should
@@ -298,6 +299,16 @@ public class InfinitumContext {
 
 	public boolean isAutocommit() {
 		return mAutocommit;
+	}
+
+	public String getRestHost() {
+		return mRestHost;
+	}
+
+	public void setRestHost(String restHost) {
+		if (!restHost.endsWith("/"))
+			restHost += '/';
+		mRestHost = restHost;
 	}
 
 }

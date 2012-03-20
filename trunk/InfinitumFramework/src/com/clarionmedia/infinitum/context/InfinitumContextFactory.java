@@ -251,6 +251,38 @@ public class InfinitumContextFactory {
 							event = config.getEventType();
 							continue;
 						}
+						
+						// Parse <rest> node
+						if (event == XmlPullParser.START_TAG && config.getName().contentEquals(InfinitumContextConstants.REST_ELEMENT)) {
+							config.next();
+							event = config.getEventType();
+
+							// Parse until we reach the end of <rest>
+							while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG && !config.getName().contentEquals(InfinitumContextConstants.REST_ELEMENT)) {
+
+								// Parse properties
+								if (event == XmlPullParser.START_TAG && config.getName().contentEquals(InfinitumContextConstants.PROPERTY_ELEMENT)) {
+									String name = config.getAttributeValue(null,InfinitumContextConstants.NAME_ATTRIBUTE);
+									config.next();
+									event = config.getEventType();
+									if (event != XmlPullParser.TEXT)
+										throw new InfinitumConfigurationException(String.format(InfinitumContextConstants.CONFIG_PARSE_ERROR_LINE, config.getLineNumber()));
+									if (name.equalsIgnoreCase(InfinitumContextConstants.REST_HOST_ATTRIBUTE)) {
+										String host = config.getText();
+										if (host.trim().equals(""))
+											throw new InfinitumConfigurationException(InfinitumContextConstants.CONFIG_PARSE_ERROR + " " + InfinitumContextConstants.REST_HOST_MISSING);
+										else
+											ret.setRestHost(host);
+									}
+									config.next();
+									config.next();
+									event = config.getEventType();
+								}
+							}
+							config.next();
+							event = config.getEventType();
+							continue;
+						}
 
 						// Parse <domain> node
 						if (event == XmlPullParser.START_TAG
