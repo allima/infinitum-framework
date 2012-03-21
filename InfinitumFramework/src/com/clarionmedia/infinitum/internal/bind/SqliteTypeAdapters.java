@@ -31,13 +31,13 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 
 /**
  * <p>
- * {@code SqliteTypeResolvers} for basic types.
+ * {@code SqliteTypeAdapters} for basic types.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/17/12
  */
-public final class SqliteTypeResolvers {
+public final class SqliteTypeAdapters {
 	
 	public static final SqliteTypeAdapter<String> STRING = new SqliteTypeAdapter<String>(SqliteDataType.TEXT) {
 		@Override

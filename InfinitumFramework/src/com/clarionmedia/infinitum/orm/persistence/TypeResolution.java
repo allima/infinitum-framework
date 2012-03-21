@@ -21,14 +21,9 @@ package com.clarionmedia.infinitum.orm.persistence;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
-import com.clarionmedia.infinitum.internal.bind.SqliteTypeResolvers;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 
 /**
  * <p>
@@ -45,25 +40,6 @@ public class TypeResolution {
 	public static enum SqliteDataType {
 		NULL, INTEGER, REAL, TEXT, BLOB
 	};
-	
-	// This Map contains SqliteTypeResolvers for basic types
-	public static Map<Class<?>, SqliteTypeAdapter<?>> sSqliteTypeResolvers;
-
-	// Load basic TypeAdapters
-	static {
-		sSqliteTypeResolvers = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
-		sSqliteTypeResolvers.put(boolean.class, SqliteTypeResolvers.BOOLEAN);
-		sSqliteTypeResolvers.put(byte.class, SqliteTypeResolvers.BYTE);
-		sSqliteTypeResolvers.put(byte[].class, SqliteTypeResolvers.BYTE_ARRAY);
-		sSqliteTypeResolvers.put(char.class, SqliteTypeResolvers.CHARACTER);
-		sSqliteTypeResolvers.put(Date.class, SqliteTypeResolvers.DATE);
-		sSqliteTypeResolvers.put(double.class, SqliteTypeResolvers.DOUBLE);
-		sSqliteTypeResolvers.put(float.class, SqliteTypeResolvers.FLOAT);
-		sSqliteTypeResolvers.put(int.class, SqliteTypeResolvers.INTEGER);
-		sSqliteTypeResolvers.put(long.class, SqliteTypeResolvers.LONG);
-		sSqliteTypeResolvers.put(short.class, SqliteTypeResolvers.SHORT);
-		sSqliteTypeResolvers.put(String.class, SqliteTypeResolvers.STRING);
-	}
 
 	/**
 	 * Indicates if the given ID is a valid value for the given primary key
