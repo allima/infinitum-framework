@@ -20,25 +20,22 @@
 package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import android.content.ContentValues;
 
-import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
+import com.clarionmedia.infinitum.internal.bind.SqliteTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
-import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
-import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
-import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
-import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
-import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
@@ -50,12 +47,23 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  * @author Tyler Treat
  * @version 1.0 02/13/12
  */
-public class SqliteMapper implements ObjectMapper {
+public class SqliteMapper extends ObjectMapper {
 
-	private Map<Class<?>, SqliteTypeAdapter<?>> mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
+	private Map<Class<?>, SqliteTypeAdapter<?>> mTypeAdapters;
 	
 	public SqliteMapper() {
-		mTypeAdapters.putAll(TypeResolution.sSqliteTypeResolvers);
+		mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
+		mTypeAdapters.put(boolean.class, SqliteTypeAdapters.BOOLEAN);
+		mTypeAdapters.put(byte.class, SqliteTypeAdapters.BYTE);
+		mTypeAdapters.put(byte[].class, SqliteTypeAdapters.BYTE_ARRAY);
+		mTypeAdapters.put(char.class, SqliteTypeAdapters.CHARACTER);
+		mTypeAdapters.put(Date.class, SqliteTypeAdapters.DATE);
+		mTypeAdapters.put(double.class, SqliteTypeAdapters.DOUBLE);
+		mTypeAdapters.put(float.class, SqliteTypeAdapters.FLOAT);
+		mTypeAdapters.put(int.class, SqliteTypeAdapters.INTEGER);
+		mTypeAdapters.put(long.class, SqliteTypeAdapters.LONG);
+		mTypeAdapters.put(short.class, SqliteTypeAdapters.SHORT);
+		mTypeAdapters.put(String.class, SqliteTypeAdapters.STRING);
 	}
 
 	@Override
@@ -110,8 +118,13 @@ public class SqliteMapper implements ObjectMapper {
 	}
 	
 	@Override
-	public <T> void registerTypeAdapter(Class<T> type, SqliteTypeAdapter<T> adapter) {
-		mTypeAdapters.put(type, adapter);
+	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
+		try {
+		    SqliteTypeAdapter<T> sqliteAdapter = (SqliteTypeAdapter<T>) adapter;
+		    mTypeAdapters.put(type, sqliteAdapter);
+		} catch (ClassCastException e) {
+			// Ignore TypeAdapters that are not SqliteTypeAdapters
+		}
 	}
 
 	@Override
@@ -141,52 +154,6 @@ public class SqliteMapper implements ObjectMapper {
 		else if (TypeResolution.isDomainModel(c))
 			ret = getSqliteDataType(PersistenceResolution.getPrimaryKeyField(c));
 		return ret;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void mapRelationship(SqliteModelMap map, Object model, Field f) {
-		try {
-			if (PersistenceResolution.isRelationship(f)) {
-				ModelRelationship rel = PersistenceResolution.getRelationship(f);
-				Object related;
-				switch (rel.getRelationType()) {
-				case ManyToMany:
-					ManyToManyRelationship mtm = (ManyToManyRelationship) rel;
-					related = f.get(model);
-					if (!(related instanceof Iterable))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
-					map.addManyToManyRelationship(new Pair<ManyToManyRelationship, Iterable<Object>>(mtm, (Iterable<Object>) related));
-					break;
-				case ManyToOne:
-					ManyToOneRelationship mto = (ManyToOneRelationship) rel;
-					related = f.get(model);
-					if (related != null && !TypeResolution.isDomainModel(related.getClass()))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MO_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
-					map.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(mto, related));
-					break;
-				case OneToMany:
-					OneToManyRelationship otm = (OneToManyRelationship) rel;
-					related = f.get(model);
-					if (!(related instanceof Iterable))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OM_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
-					map.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(otm, (Iterable<Object>) related));
-					break;
-				case OneToOne:
-					OneToOneRelationship oto = (OneToOneRelationship) rel;
-					related = f.get(model);
-					if (related != null && !TypeResolution.isDomainModel(related.getClass()))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OO_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
-					map.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(oto, related));
-					break;
-				}
-			}
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	// Map Field value to ContentValues
