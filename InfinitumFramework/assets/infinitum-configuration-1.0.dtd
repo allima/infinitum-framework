@@ -22,10 +22,11 @@
  
 -->
 
-<!ELEMENT infinitum-configuration (application? , sqlite? , domain?)>
+<!ELEMENT infinitum-configuration (application? , sqlite? , rest? , domain?)>
 
 <!ELEMENT application (property*)>
 <!ELEMENT sqlite (property+)>
+<!ELEMENT rest (property+)>
 <!ELEMENT domain (model*)>
 
 <!ELEMENT property (#PCDATA)>

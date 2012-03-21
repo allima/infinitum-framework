@@ -244,7 +244,7 @@ public interface Session {
 
 	/**
 	 * Returns an instance of the given persistent model {@link Class} as
-	 * identified by the specified primary key(s) or {@code null} if no such
+	 * identified by the specified primary key or {@code null} if no such
 	 * entity exists.
 	 * 
 	 * @param c
@@ -255,7 +255,7 @@ public interface Session {
 	 * @throws InfinitumRuntimeException
 	 *             if the specified {@code Class} is marked transient
 	 * @throws IllegalArgumentException
-	 *             if an incorrect number of primary keys is provided
+	 *             if an invalid primary key is provided
 	 */
 	<T extends Object> T load(Class<T> c, Serializable id)
 			throws InfinitumRuntimeException, IllegalArgumentException;
