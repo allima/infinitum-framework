@@ -37,11 +37,16 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import android.util.Log;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.rest.RestfulClient;
 
@@ -75,6 +80,7 @@ public class BasicRestfulClient implements RestfulClient {
 
 	@Override
 	public boolean save(Object model) {
+		Preconditions.checkPersistenceForModify(model);
 		if (mContext.isDebug())
 		    Log.d(TAG, "Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
@@ -108,6 +114,7 @@ public class BasicRestfulClient implements RestfulClient {
 
 	@Override
 	public boolean delete(Object model) {
+		Preconditions.checkPersistenceForModify(model);
 		if (mContext.isDebug())
 		    Log.d(TAG, "Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
@@ -131,6 +138,7 @@ public class BasicRestfulClient implements RestfulClient {
 
 	@Override
 	public int saveOrUpdate(Object model) {
+		Preconditions.checkPersistenceForModify(model);
 		if (mContext.isDebug())
 		    Log.d(TAG, "Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
@@ -165,9 +173,23 @@ public class BasicRestfulClient implements RestfulClient {
 	}
 
 	@Override
-	public <T> T load(Class<T> type, Serializable id) {
-		// TODO Auto-generated method stub
+	public <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+		// TODO
+		Preconditions.checkPersistenceForLoading(type);
+		if (mContext.isDebug())
+		    Log.d(TAG, "Sending GET request to retrieve entity");
+		T ret = null;
+		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
 		return null;
+	}
+	
+	private HttpParams getHttpParams() {
+		// TODO
+		HttpParams httpParams = new BasicHttpParams();
+		//HttpConnectionParams.setConnectionTimeout(httpParams, Constants.CONNECTION_TIMEOUT);
+		//HttpConnectionParams.setSoTimeout(httpParams, Constants.RESPONSE_TIMEOUT);
+		HttpConnectionParams.setTcpNoDelay(httpParams, true);
+		return httpParams;
 	}
 
 }

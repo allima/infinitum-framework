@@ -21,6 +21,7 @@ package com.clarionmedia.infinitum.rest;
 
 import java.io.Serializable;
 
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.rest.impl.BasicRestfulClient;
 
 /**
@@ -66,15 +67,20 @@ public interface RestfulClient {
 	int saveOrUpdate(Object model);
 
 	/**
-	 * Loads an instance of the given model type which is identified by the
-	 * given ID.
+	 * Returns an instance of the given persistent model {@link Class} as
+	 * identified by the specified primary key or {@code null} if no such entity
+	 * exists.
 	 * 
-	 * @param type
-	 *            the {@link Class} of the model to load
+	 * @param c
+	 *            the {@code Class} of the persistent instance to load
 	 * @param id
-	 *            the ID of the model to load
-	 * @return domain model instance
+	 *            the primary key value of the persistent instance to load
+	 * @return the persistent instance
+	 * @throws InfinitumRuntimeException
+	 *             if the specified {@code Class} is marked transient
+	 * @throws IllegalArgumentException
+	 *             if an invalid primary key is provided
 	 */
-	<T> T load(Class<T> type, Serializable id);
+	<T extends Object> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException;
 
 }
