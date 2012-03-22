@@ -20,12 +20,14 @@
 package com.clarionmedia.infinitum.rest.impl;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -34,6 +36,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -178,16 +181,39 @@ public class BasicRestfulClient implements RestfulClient {
 		Preconditions.checkPersistenceForLoading(type);
 		if (mContext.isDebug())
 		    Log.d(TAG, "Sending GET request to retrieve entity");
-		T ret = null;
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
+		HttpGet httpGet = new HttpGet(mHost + PersistenceResolution.getRestfulResource(type) + "/" + id);
+		httpGet.addHeader("Accept", "application/json");
+		try {
+			HttpResponse response = httpClient.execute(httpGet);
+			StatusLine statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+				HttpEntity entity = response.getEntity();
+				if (entity == null)
+					return null;
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				entity.writeTo(out);
+				out.close();
+				String jsonResponse = out.toString();
+				// TODO
+				return null;
+			}
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 		return null;
 	}
 	
 	private HttpParams getHttpParams() {
-		// TODO
 		HttpParams httpParams = new BasicHttpParams();
-		//HttpConnectionParams.setConnectionTimeout(httpParams, Constants.CONNECTION_TIMEOUT);
-		//HttpConnectionParams.setSoTimeout(httpParams, Constants.RESPONSE_TIMEOUT);
+		HttpConnectionParams.setConnectionTimeout(httpParams, mContext.getConnectionTimeout());
+		HttpConnectionParams.setSoTimeout(httpParams, mContext.getResponseTimeout());
 		HttpConnectionParams.setTcpNoDelay(httpParams, true);
 		return httpParams;
 	}
