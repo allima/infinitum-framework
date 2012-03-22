@@ -26,7 +26,7 @@
 
 <!ELEMENT application (property*)>
 <!ELEMENT sqlite (property+)>
-<!ELEMENT rest (property+)>
+<!ELEMENT rest (property+ , authentication?)>
 <!ELEMENT domain (model*)>
 
 <!ELEMENT property (#PCDATA)>
@@ -37,3 +37,7 @@
 
 <!ELEMENT resource (#PCDATA)>
 <!ATTLIST resource name CDATA #REQUIRED>
+
+<!ELEMENT authentication (property+)>
+<!ATTLIST authentication enabled CDATA #REQUIRED>
+<!ATTLIST authentication strategy CDATA #REQUIRED>

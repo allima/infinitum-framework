@@ -38,6 +38,7 @@ public class InfinitumContextConstants {
 	public static final String REST_ELEMENT = "rest";
 	public static final String DOMAIN_ELEMENT = "domain";
 	public static final String PROPERTY_ELEMENT = "property";
+	public static final String AUTHENTICATION_ELEMENT = "authentication";
 	public static final String MODEL_ELEMENT = "model";
 	
 	// XML attribute names
@@ -51,6 +52,9 @@ public class InfinitumContextConstants {
 	public static final String MODE_ATTRIBUTE = "mode";
 	public static final String RECYCLE_ATTRIBUTE = "recycleCache";
 	public static final String DOMAIN_RESOURCE_ATTRIBUTE = "resource";
+	public static final String STRATEGY_ATTRIBUTE = "strategy";
+	public static final String TOKEN_NAME_ATTRIBUTE = "tokenName";
+	public static final String TOKEN_ATTRIBUTE = "token";
 
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the InfinitumContext!";
@@ -58,5 +62,6 @@ public class InfinitumContextConstants {
 	public static final String CONFIG_PARSE_ERROR_LINE = "Could not parse configuration file at line %d.";
 	public static final String SQLITE_DB_NAME_MISSING = "SQLite database name is missing!";
 	public static final String REST_HOST_MISSING = "REST host is missing!";
+	public static final String AUTH_STRAT_MISSING = "Authentication strategy is missing!";
 
 }

@@ -271,12 +271,33 @@ public class InfinitumContextFactory {
 										String host = config.getText();
 										if (host.trim().equals(""))
 											throw new InfinitumConfigurationException(InfinitumContextConstants.CONFIG_PARSE_ERROR + " " + InfinitumContextConstants.REST_HOST_MISSING);
-										else
-											ret.setRestHost(host);
+										ret.setRestHost(host);
 									}
 									config.next();
 									config.next();
 									event = config.getEventType();
+								}
+								
+								// Parse <authentication> node
+								if (event == XmlPullParser.START_TAG && config.getName().contentEquals(InfinitumContextConstants.AUTHENTICATION_ELEMENT)) {
+									ret.setRestAuthenticated(true);
+									String name = config.getAttributeValue(null, InfinitumContextConstants.STRATEGY_ATTRIBUTE);
+									config.next();
+									if (name.equalsIgnoreCase(InfinitumContextConstants.STRATEGY_ATTRIBUTE)) {
+										String strat = config.getText();
+										if (strat.trim().equals(""))
+											throw new InfinitumConfigurationException(InfinitumContextConstants.CONFIG_PARSE_ERROR + " " + InfinitumContextConstants.AUTH_STRAT_MISSING);
+										ret.setAuthStrategy(strat);
+										}
+									config.next();
+									if (ret.getAuthStrategy() == null)
+										throw new InfinitumConfigurationException(InfinitumContextConstants.CONFIG_PARSE_ERROR + " " + InfinitumContextConstants.AUTH_STRAT_MISSING);
+									// Parse until we reach the end of <authentication>
+									while (event != XmlPullParser.END_DOCUMENT && event != XmlPullParser.END_TAG && !config.getName().contentEquals(InfinitumContextConstants.AUTHENTICATION_ELEMENT)) {
+										
+										// TODO Parse authentication properties
+										
+									}
 								}
 							}
 							config.next();
