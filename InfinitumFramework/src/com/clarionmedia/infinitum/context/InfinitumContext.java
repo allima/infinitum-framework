@@ -65,6 +65,8 @@ public class InfinitumContext {
 	private String mRestHost;
 	private boolean mIsRestAuthenticated;
 	private AuthenticationStrategy mAuthStrategy;
+	private int mConnectionTimeout;
+	private int mResponseTimeout;
 
 	/**
 	 * Constructs a new {@code InfinitumContext}. This constructor should
@@ -331,6 +333,22 @@ public class InfinitumContext {
 
 	public AuthenticationStrategy getAuthStrategy() {
 		return mAuthStrategy;
+	}
+
+	public int getConnectionTimeout() {
+		return mConnectionTimeout;
+	}
+
+	public void setConnectionTimeout(int mConnectionTimeout) {
+		this.mConnectionTimeout = mConnectionTimeout;
+	}
+
+	public int getResponseTimeout() {
+		return mResponseTimeout;
+	}
+
+	public void setResponseTimeout(int mResponseTimeout) {
+		this.mResponseTimeout = mResponseTimeout;
 	}
 
 }
