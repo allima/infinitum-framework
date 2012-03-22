@@ -27,6 +27,8 @@ import android.content.Context;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteSession;
+import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.rest.impl.TokenAuthentication;
 
 /**
  * <p>
@@ -61,6 +63,8 @@ public class InfinitumContext {
 	private boolean mAutocommit;
 	private List<String> mDomainModels;
 	private String mRestHost;
+	private boolean mIsRestAuthenticated;
+	private AuthenticationStrategy mAuthStrategy;
 
 	/**
 	 * Constructs a new {@code InfinitumContext}. This constructor should
@@ -309,6 +313,24 @@ public class InfinitumContext {
 		if (!restHost.endsWith("/"))
 			restHost += '/';
 		mRestHost = restHost;
+	}
+
+	public void setRestAuthenticated(boolean isRestAuthenticated) {
+		mIsRestAuthenticated = isRestAuthenticated;
+	}
+
+	public boolean isRestAuthenticated() {
+		return mIsRestAuthenticated;
+	}
+
+	public void setAuthStrategy(String strategy) {
+		if (strategy.equalsIgnoreCase("token"))
+			mAuthStrategy = new TokenAuthentication();
+		throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
+	}
+
+	public AuthenticationStrategy getAuthStrategy() {
+		return mAuthStrategy;
 	}
 
 }
