@@ -52,6 +52,8 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.rest.RestfulClient;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * <p>
@@ -177,12 +179,14 @@ public class BasicRestfulClient implements RestfulClient {
 
 	@Override
 	public <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
-		// TODO
 		Preconditions.checkPersistenceForLoading(type);
 		if (mContext.isDebug())
 		    Log.d(TAG, "Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
-		HttpGet httpGet = new HttpGet(mHost + PersistenceResolution.getRestfulResource(type) + "/" + id);
+		String uri = mHost + PersistenceResolution.getRestfulResource(type) + "/" + id;
+		if (mContext.isRestAuthenticated())
+			uri += "?" + mContext.getAuthStrategy().getAuthenticationString();
+		HttpGet httpGet = new HttpGet(uri);
 		httpGet.addHeader("Accept", "application/json");
 		try {
 			HttpResponse response = httpClient.execute(httpGet);
@@ -195,14 +199,17 @@ public class BasicRestfulClient implements RestfulClient {
 				entity.writeTo(out);
 				out.close();
 				String jsonResponse = out.toString();
-				// TODO
-				return null;
+				return new Gson().fromJson(jsonResponse, type);
 			}
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (JsonSyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
