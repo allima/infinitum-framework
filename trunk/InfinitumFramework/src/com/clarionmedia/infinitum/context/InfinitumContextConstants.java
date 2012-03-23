@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.context;
 
+
 /**
  * <p>
  * Contains constants used in {@link InfinitumContext},
@@ -30,6 +31,10 @@ package com.clarionmedia.infinitum.context;
  * 
  */
 public class InfinitumContextConstants {
+	
+	// Configuration values
+	public static final String MODE_ANNOTATIONS = "annotations";
+	public static final String MODE_XML = "xml";
 	
 	// XML element names
 	public static final String CONFIG_ELEMENT = "infinitum-configuration";
@@ -62,6 +67,8 @@ public class InfinitumContextConstants {
 	public static final String CONFIG_PARSE_ERROR_LINE = "Could not parse configuration file at line %d.";
 	public static final String SQLITE_DB_NAME_MISSING = "SQLite database name is missing!";
 	public static final String REST_HOST_MISSING = "REST host is missing!";
+	public static final String AUTH_TOKEN_NAME_MISSING = "Authentication token name is missing!";
+	public static final String AUTH_TOKEN_MISSING = "Authentication token is missing!";
 	public static final String AUTH_STRAT_MISSING = "Authentication strategy is missing!";
 
 }

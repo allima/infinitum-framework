@@ -39,5 +39,4 @@
 <!ATTLIST resource name CDATA #REQUIRED>
 
 <!ELEMENT authentication (property+)>
-<!ATTLIST authentication enabled CDATA #REQUIRED>
 <!ATTLIST authentication strategy CDATA #REQUIRED>
