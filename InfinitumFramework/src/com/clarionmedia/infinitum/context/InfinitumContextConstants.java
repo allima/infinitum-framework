@@ -53,6 +53,8 @@ public class InfinitumContextConstants {
 	public static final String DB_GENERATE_SCHEMA_ATTRIBUTE = "generateSchema";
 	public static final String DB_AUTOCOMMIT_ATTRIBUTE = "autocommit";
 	public static final String REST_HOST_ATTRIBUTE = "host";
+	public static final String CONNECTION_TIMEOUT_ATTRIBUTE = "connectionTimeout";
+	public static final String RESPONSE_TIMEOUT_ATTRIBUTE = "responseTimeout";
 	public static final String DEBUG_ATTRIBUTE = "debug";
 	public static final String MODE_ATTRIBUTE = "mode";
 	public static final String RECYCLE_ATTRIBUTE = "recycleCache";
@@ -70,5 +72,6 @@ public class InfinitumContextConstants {
 	public static final String AUTH_TOKEN_NAME_MISSING = "Authentication token name is missing!";
 	public static final String AUTH_TOKEN_MISSING = "Authentication token is missing!";
 	public static final String AUTH_STRAT_MISSING = "Authentication strategy is missing!";
+	public static final String MODEL_RESOURCE_MISSING = "Model resource is missing!";
 
 }
