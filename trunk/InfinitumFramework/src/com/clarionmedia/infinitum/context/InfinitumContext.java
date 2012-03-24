@@ -326,7 +326,7 @@ public class InfinitumContext {
 	}
 
 	public void setAuthStrategy(String strategy) {
-		if (strategy.equalsIgnoreCase("token"))
+		if ("token".equalsIgnoreCase(strategy))
 			mAuthStrategy = new TokenAuthentication();
 		else
 		    throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
