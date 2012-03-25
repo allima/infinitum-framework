@@ -81,6 +81,20 @@ public interface RestfulClient {
 	 * @throws IllegalArgumentException
 	 *             if an invalid primary key is provided
 	 */
-	<T extends Object> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException;
+	<T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException;
+
+	/**
+	 * Registers the given {@link JsonDeserializer} for the given {@link Class}
+	 * type. Registering a {@code JsonDeserializer} for a {@code Class} which
+	 * already has a {@code JsonDeserializer} registered for it will result in
+	 * the previous {@code JsonDeserializer} being overridden.
+	 * 
+	 * @param type
+	 *            the {@code Class} to associate this deserializer with
+	 * @param deserializer
+	 *            the {@code JsonDeserializer} to use when deserializing
+	 *            {@code Objects} of the given type
+	 */
+	<T> void registerJsonDeserializer(Class<T> type, JsonDeserializer<T> deserializer);
 
 }

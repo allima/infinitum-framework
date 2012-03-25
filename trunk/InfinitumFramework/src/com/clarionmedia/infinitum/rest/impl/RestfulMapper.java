@@ -90,7 +90,7 @@ public class RestfulMapper extends ObjectMapper {
 				e.printStackTrace();
 			}
 		}
-		return null;
+		return ret;
 	}
 
 	@Override
@@ -132,7 +132,7 @@ public class RestfulMapper extends ObjectMapper {
 		// Otherwise just use normal reflection...
 		else
 			val = field.get(model);
-		String fieldName = PersistenceResolution.getFieldColumnName(field);
+		String fieldName = PersistenceResolution.getResourceFieldName(field);
 		resolveType(field.getType()).mapObjectToField(val, fieldName, map.getNameValuePairs());
 	}
 

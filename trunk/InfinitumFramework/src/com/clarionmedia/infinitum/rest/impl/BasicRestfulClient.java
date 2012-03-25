@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -51,6 +53,7 @@ import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.rest.JsonDeserializer;
 import com.clarionmedia.infinitum.rest.RestfulClient;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -71,6 +74,7 @@ public class BasicRestfulClient implements RestfulClient {
 	protected final String mHost;
 	protected  final InfinitumContext mContext;
 	protected RestfulMapper mMapper;
+	protected Map<Class<?>, JsonDeserializer<?>> mJsonDeserializers;
 	
 	/**
 	 * Constructs a new {@code BasicRestfulClient}. You must call
@@ -81,6 +85,7 @@ public class BasicRestfulClient implements RestfulClient {
 		mContext = InfinitumContextFactory.getInfinitumContext();
 		mHost = mContext.getRestHost();
 		mMapper = new RestfulMapper();
+		mJsonDeserializers = new HashMap<Class<?>, JsonDeserializer<?>>();
 	}
 
 	@Override
@@ -177,6 +182,7 @@ public class BasicRestfulClient implements RestfulClient {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		Preconditions.checkPersistenceForLoading(type);
@@ -199,6 +205,8 @@ public class BasicRestfulClient implements RestfulClient {
 				entity.writeTo(out);
 				out.close();
 				String jsonResponse = out.toString();
+				if (mJsonDeserializers.containsKey(type))
+					return (T) mJsonDeserializers.get(type).deserializeObject(jsonResponse);
 				return new Gson().fromJson(jsonResponse, type);
 			}
 		} catch (ClientProtocolException e) {
@@ -215,6 +223,11 @@ public class BasicRestfulClient implements RestfulClient {
 			return null;
 		}
 		return null;
+	}
+	
+	@Override
+	public <T> void registerJsonDeserializer(Class<T> type, JsonDeserializer<T> deserializer) {
+		mJsonDeserializers.put(type, deserializer);
 	}
 	
 	private HttpParams getHttpParams() {
