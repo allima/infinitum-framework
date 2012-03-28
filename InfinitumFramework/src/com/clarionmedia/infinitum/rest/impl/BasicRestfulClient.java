@@ -53,6 +53,7 @@ import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
 import com.clarionmedia.infinitum.rest.RestfulClient;
 import com.google.gson.Gson;
@@ -228,6 +229,17 @@ public class BasicRestfulClient implements RestfulClient {
 	@Override
 	public <T> void registerJsonDeserializer(Class<T> type, JsonDeserializer<T> deserializer) {
 		mJsonDeserializers.put(type, deserializer);
+	}
+	
+	@Override
+	public <T> void registerTypeAdapter(Class<T> type,
+			RestfulTypeAdapter<T> adapter) {
+		mMapper.registerTypeAdapter(type, adapter);
+	}
+	
+	@Override
+	public Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters() {
+		return mMapper.getRegisteredTypeAdapters();
 	}
 	
 	private HttpParams getHttpParams() {

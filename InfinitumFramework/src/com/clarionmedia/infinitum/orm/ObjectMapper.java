@@ -80,7 +80,7 @@ public abstract class ObjectMapper {
 	
 	/**
 	 * Returns a {@link Map} containing all {@link TypeAdapter} instances
-	 * registered with this {@code Session} and the {@link Class} instances in
+	 * registered with this {@code ObjectMapper} and the {@link Class} instances in
 	 * which they are registered for.
 	 * 
 	 * @return {@code Map<Class<?>, TypeAdapter<?>>

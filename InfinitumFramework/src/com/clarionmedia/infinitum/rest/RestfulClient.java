@@ -20,9 +20,13 @@
 package com.clarionmedia.infinitum.rest;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.Map;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.impl.BasicRestfulClient;
+import com.clarionmedia.infinitum.rest.impl.RestfulTypeAdapter;
 
 /**
  * <p>
@@ -81,7 +85,8 @@ public interface RestfulClient {
 	 * @throws IllegalArgumentException
 	 *             if an invalid primary key is provided
 	 */
-	<T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException;
+	<T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException,
+			IllegalArgumentException;
 
 	/**
 	 * Registers the given {@link JsonDeserializer} for the given {@link Class}
@@ -95,6 +100,32 @@ public interface RestfulClient {
 	 *            the {@code JsonDeserializer} to use when deserializing
 	 *            {@code Objects} of the given type
 	 */
-	<T> void registerJsonDeserializer(Class<T> type, JsonDeserializer<T> deserializer);
+	<T> void registerJsonDeserializer(Class<T> type,
+			JsonDeserializer<T> deserializer);
+
+	/**
+	 * Registers the given {@link RestfulTypeAdapter} for the specified
+	 * {@link Class} with this {@code RestfulClient} instance. The
+	 * {@code RestfulTypeAdapter} allows a {@link Field} of this type to be
+	 * mapped to a resource field in a web service. Registering a
+	 * {@code RestfulTypeAdapter} for a {@code Class} which already has a
+	 * {@code RestfulTypeAdapter} registered for it will result in the previous
+	 * {@code RestfulTypeAdapter} being overridden.
+	 * 
+	 * @param type
+	 *            the {@code Class} this {@code RestfulTypeAdapter} is for
+	 * @param adapter
+	 *            the {@code RestfulTypeAdapter} to register
+	 */
+	<T> void registerTypeAdapter(Class<T> type, RestfulTypeAdapter<T> adapter);
+
+	/**
+	 * Returns a {@link Map} containing all {@link TypeAdapter} instances
+	 * registered with this {@code RestfulClient} and the {@link Class}
+	 * instances in which they are registered for.
+	 * 
+	 * @return {@code Map<Class<?>, TypeAdapter<?>>
+	 */
+	Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
 
 }
