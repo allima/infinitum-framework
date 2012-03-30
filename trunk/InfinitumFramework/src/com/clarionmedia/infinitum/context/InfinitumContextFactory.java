@@ -186,6 +186,7 @@ public class InfinitumContextFactory {
 	private void configureRest(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
 		parser.next();
 		while (!parser.getName().equalsIgnoreCase(InfinitumContextConstants.REST_ELEMENT)) {
+			ctx.setRestfulContext(new RestfulContext());
 			if (parser.getEventType() == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(InfinitumContextConstants.PROPERTY_ELEMENT)) {
 				String name = parser.getAttributeValue(null, InfinitumContextConstants.NAME_ATTRIBUTE);
 				parser.next();
@@ -193,18 +194,20 @@ public class InfinitumContextFactory {
 				if (InfinitumContextConstants.REST_HOST_ATTRIBUTE.equalsIgnoreCase(name)) {
 					if ("".equalsIgnoreCase(value))
 						throw new InfinitumConfigurationException(InfinitumContextConstants.REST_HOST_MISSING);
-					ctx.setRestHost(value.trim());
+					ctx.getRestfulContext().setRestHost(value.trim());
 				} else if (InfinitumContextConstants.CONNECTION_TIMEOUT_ATTRIBUTE.equalsIgnoreCase(name)) {
-					ctx.setConnectionTimeout(Integer.parseInt(value));
+					ctx.getRestfulContext().setConnectionTimeout(Integer.parseInt(value));
 				} else if (InfinitumContextConstants.RESPONSE_TIMEOUT_ATTRIBUTE.equalsIgnoreCase(name)) {
-					ctx.setResponseTimeout(Integer.parseInt(value));
+					ctx.getRestfulContext().setResponseTimeout(Integer.parseInt(value));
+				} else if (InfinitumContextConstants.RESTFUL_CLIENT_ATTRIBUTE.equalsIgnoreCase(name)) {
+					ctx.getRestfulContext().setClient(value);
 				}
 			} else if (parser.getEventType() == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(InfinitumContextConstants.AUTHENTICATION_ELEMENT)) {
-				ctx.setRestAuthenticated(true);
+				ctx.getRestfulContext().setRestAuthenticated(true);
 				String strategy = parser.getAttributeValue(null, InfinitumContextConstants.STRATEGY_ATTRIBUTE);
-				ctx.setAuthStrategy(strategy);
+				ctx.getRestfulContext().setAuthStrategy(strategy);
 				TokenAuthentication token = null;
-				AuthenticationStrategy strat = ctx.getAuthStrategy();
+				AuthenticationStrategy strat = ctx.getRestfulContext().getAuthStrategy();
 				if (strat == null)
 					throw new InfinitumConfigurationException(InfinitumContextConstants.AUTH_STRAT_MISSING);
 				if (strat.getClass() == TokenAuthentication.class)
@@ -234,7 +237,7 @@ public class InfinitumContextFactory {
 			}
 			parser.next();
 		}
-		if (ctx.getRestHost() == null)
+		if (ctx.getRestfulContext().getRestHost() == null)
 			throw new InfinitumConfigurationException(InfinitumContextConstants.REST_HOST_MISSING);
 	}
 	

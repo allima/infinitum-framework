@@ -451,7 +451,7 @@ public class PersistenceResolution {
 	 *            the model entity to compute the hash for
 	 * @return hash code for the model
 	 */
-	public static <T> int computeModelHash(T model) {
+	public static int computeModelHash(Object model) {
 		final int PRIME = 31;
 		int hash = 7;
 		hash *= PRIME + model.getClass().hashCode();

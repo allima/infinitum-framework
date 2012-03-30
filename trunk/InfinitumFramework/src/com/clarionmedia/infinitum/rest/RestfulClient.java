@@ -51,7 +51,7 @@ public interface RestfulClient {
 	boolean save(Object model);
 
 	/**
-	 * Makes an HTTP reques to the web service to delete the given model.
+	 * Makes an HTTP request to the web service to delete the given model.
 	 * 
 	 * @param model
 	 *            the model to delete
