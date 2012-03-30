@@ -83,7 +83,7 @@ public class BasicRestfulClient implements RestfulClient {
 	 * before invoking this constructor.
 	 */
 	public BasicRestfulClient() {
-		mContext = InfinitumContextFactory.getInfinitumContext();
+		mContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mHost = mContext.getRestHost();
 		mMapper = new RestfulMapper();
 		mJsonDeserializers = new HashMap<Class<?>, JsonDeserializer<?>>();

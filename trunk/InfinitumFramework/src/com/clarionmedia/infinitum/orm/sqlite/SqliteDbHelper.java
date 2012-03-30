@@ -59,10 +59,10 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	 *            the {@code SqliteMapper} to use for {@link Object} mapping
 	 */
 	public SqliteDbHelper(Context context, SqliteMapper mapper) {
-		super(context, InfinitumContextFactory.getInfinitumContext()
-				.getSqliteDbName(), null, InfinitumContextFactory
+		super(context, InfinitumContextFactory.getInstance().getInfinitumContext()
+				.getSqliteDbName(), null, InfinitumContextFactory.getInstance()
 				.getInfinitumContext().getSqliteDbVersion());
-		mInfinitumContext = InfinitumContextFactory.getInfinitumContext();
+		mInfinitumContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mSqlBuilder = new SqliteBuilder(mapper);
 	}
 
