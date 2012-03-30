@@ -45,20 +45,23 @@ import com.clarionmedia.infinitum.rest.impl.TokenAuthentication;
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
-public abstract class InfinitumContextFactory {
+public class InfinitumContextFactory {
 
+	private static InfinitumContextFactory sContextFactory;
 	private static InfinitumContext sInfinitumContext;
-	private static boolean sConfigured;
 	private static Context sContext;
-
+	
+	private InfinitumContextFactory() {}
+	
 	/**
-	 * Indicates whether or not the {@code InfinitumContext} has been
-	 * configured.
+	 * Retrieves an {@code InfinitumContextFactory} instance.
 	 * 
-	 * @return {@code true} if it has been configured, {@code false} if not
+	 * @return {@code InfinitumContextFactory}
 	 */
-	public static boolean isConfigured() {
-		return sConfigured;
+	public static InfinitumContextFactory getInstance() {
+		if (sContextFactory == null)
+			sContextFactory = new InfinitumContextFactory();
+		return sContextFactory;
 	}
 
 	/**
@@ -75,12 +78,11 @@ public abstract class InfinitumContextFactory {
 	 *             if the configuration file could not be found or if the file
 	 *             could not be parsed
 	 */
-	public static InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException {
+	public InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException {
 		sContext = context;
 		Resources resources = sContext.getResources();
 		XmlResourceParser config = resources.getXml(configId);
 		sInfinitumContext = configureFromXml(config);
-		sConfigured = sInfinitumContext == null ? false : true;
 		return sInfinitumContext;
 	}
 
@@ -94,13 +96,13 @@ public abstract class InfinitumContextFactory {
 	 * @throws InfinitumConfigurationException
 	 *             if {@code configure} was not called
 	 */
-	public static InfinitumContext getInfinitumContext() throws InfinitumConfigurationException {
-		if (!sConfigured || sInfinitumContext == null)
+	public InfinitumContext getInfinitumContext() throws InfinitumConfigurationException {
+		if (sInfinitumContext == null)
 			throw new InfinitumConfigurationException(InfinitumContextConstants.CONFIG_NOT_CALLED);
 		return sInfinitumContext;
 	}
 	
-	private static InfinitumContext configureFromXml(XmlResourceParser parser) throws InfinitumConfigurationException {
+	private InfinitumContext configureFromXml(XmlResourceParser parser) throws InfinitumConfigurationException {
 		InfinitumContext ret = new InfinitumContext();
 		try {
 			int eventType = parser.getEventType();
@@ -131,7 +133,7 @@ public abstract class InfinitumContextFactory {
 		return ret;
 	}
 	
-	private static void configureApplication(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
+	private void configureApplication(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
 		parser.next();
 		while (!parser.getName().equalsIgnoreCase(InfinitumContextConstants.APPLICATION_ELEMENT)) {
 			if (parser.getEventType() == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(InfinitumContextConstants.PROPERTY_ELEMENT)) {
@@ -155,7 +157,7 @@ public abstract class InfinitumContextFactory {
 		}
 	}
 	
-	private static void configureSqlite(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
+	private void configureSqlite(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
 		ctx.setHasSqliteDb(true);
 		parser.next();
 		while (!parser.getName().equalsIgnoreCase(InfinitumContextConstants.SQLITE_ELEMENT)) {
@@ -181,7 +183,7 @@ public abstract class InfinitumContextFactory {
 			throw new InfinitumConfigurationException(InfinitumContextConstants.SQLITE_DB_NAME_MISSING);
 	}
 	
-	private static void configureRest(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
+	private void configureRest(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
 		parser.next();
 		while (!parser.getName().equalsIgnoreCase(InfinitumContextConstants.REST_ELEMENT)) {
 			if (parser.getEventType() == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(InfinitumContextConstants.PROPERTY_ELEMENT)) {
@@ -236,7 +238,7 @@ public abstract class InfinitumContextFactory {
 			throw new InfinitumConfigurationException(InfinitumContextConstants.REST_HOST_MISSING);
 	}
 	
-	private static void configureDomain(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
+	private void configureDomain(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
 		parser.next();
 		while (!parser.getName().equalsIgnoreCase(InfinitumContextConstants.DOMAIN_ELEMENT)) {
 			if (parser.getEventType() == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(InfinitumContextConstants.MODEL_ELEMENT)) {

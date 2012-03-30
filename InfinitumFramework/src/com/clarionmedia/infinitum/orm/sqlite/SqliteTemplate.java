@@ -90,7 +90,7 @@ public class SqliteTemplate implements SqliteOperations {
 	 */
 	public SqliteTemplate(SqliteSession session) {
 		mSession = session;
-		mInfinitumContext = InfinitumContextFactory.getInfinitumContext();
+		mInfinitumContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mIsAutocommit = mInfinitumContext.isAutocommit();
 		mMapper = new SqliteMapper();
 		mSqlBuilder = new SqliteBuilder(mMapper);

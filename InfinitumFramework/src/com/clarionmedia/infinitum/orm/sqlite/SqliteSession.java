@@ -67,7 +67,7 @@ public class SqliteSession implements Session {
 	 */
 	public SqliteSession(Context context) {
 		mContext = context;
-		mInfinitumContext = InfinitumContextFactory.getInfinitumContext();
+		mInfinitumContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = DEFAULT_CACHE_SIZE;
@@ -85,7 +85,7 @@ public class SqliteSession implements Session {
 	 */
 	public SqliteSession(Context context, int cacheSize) {
 		mContext = context;
-		mInfinitumContext = InfinitumContextFactory.getInfinitumContext();
+		mInfinitumContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = cacheSize;
