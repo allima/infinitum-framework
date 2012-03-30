@@ -38,7 +38,6 @@ public class RestfulContext {
 	private AuthenticationStrategy mAuthStrategy;
 	private int mConnectionTimeout;
 	private int mResponseTimeout;
-	private String mClient;
 	
 	public String getRestHost() {
 		return mRestHost;
@@ -83,14 +82,6 @@ public class RestfulContext {
 
 	public void setResponseTimeout(int mResponseTimeout) {
 		this.mResponseTimeout = mResponseTimeout;
-	}
-
-	public String getClient() {
-		return mClient;
-	}
-
-	public void setClient(String client) {
-		mClient = client;
 	}
 
 }

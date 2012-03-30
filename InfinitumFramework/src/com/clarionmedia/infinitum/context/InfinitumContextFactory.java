@@ -199,8 +199,6 @@ public class InfinitumContextFactory {
 					ctx.getRestfulContext().setConnectionTimeout(Integer.parseInt(value));
 				} else if (InfinitumContextConstants.RESPONSE_TIMEOUT_ATTRIBUTE.equalsIgnoreCase(name)) {
 					ctx.getRestfulContext().setResponseTimeout(Integer.parseInt(value));
-				} else if (InfinitumContextConstants.RESTFUL_CLIENT_ATTRIBUTE.equalsIgnoreCase(name)) {
-					ctx.getRestfulContext().setClient(value);
 				}
 			} else if (parser.getEventType() == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(InfinitumContextConstants.AUTHENTICATION_ELEMENT)) {
 				ctx.getRestfulContext().setRestAuthenticated(true);

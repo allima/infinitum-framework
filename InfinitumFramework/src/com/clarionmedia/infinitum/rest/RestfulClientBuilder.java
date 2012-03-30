@@ -32,14 +32,14 @@ import com.clarionmedia.infinitum.rest.impl.RestfulTypeAdapter;
  * @author Tyler Treat
  * @version 1.0 03/28/12
  */
-public interface RestfulClientBuilder {
+public interface RestfulClientBuilder<T extends RestfulClient> {
 
 	/**
 	 * Builds a configured {@link RestfulClient} instance.
 	 * 
 	 * @return {@code RestfulClient}
 	 */
-	RestfulClient build();
+	T build();
 
 	/**
 	 * Registers a {@link JsonDeserializer} for the given {@link Class} type.
@@ -53,8 +53,7 @@ public interface RestfulClientBuilder {
 	 * @param deserializer
 	 *            the {@code JsonDeserializer} to register
 	 */
-	<T> void registerJsonDeserializer(Class<T> type,
-			JsonDeserializer<T> deserializer);
+	<E> void registerJsonDeserializer(Class<E> type, JsonDeserializer<E> deserializer);
 
 	/**
 	 * Registers the given {@link RestfulTypeAdapter} for the specified
@@ -70,7 +69,7 @@ public interface RestfulClientBuilder {
 	 * @param adapter
 	 *            the {@code RestfulTypeAdapter} to register
 	 */
-	<T> void registerTypeAdapter(Class<T> type, RestfulTypeAdapter<T> adapter);
+	<E> void registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter);
 
 	/**
 	 * Removes any current configurations for the {@link RestfulClient}.
