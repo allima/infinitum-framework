@@ -27,8 +27,6 @@ import android.content.Context;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteSession;
-import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
-import com.clarionmedia.infinitum.rest.impl.TokenAuthentication;
 
 /**
  * <p>
@@ -62,11 +60,7 @@ public class InfinitumContext {
 	private boolean mIsSchemaGenerated;
 	private boolean mAutocommit;
 	private List<String> mDomainModels;
-	private String mRestHost;
-	private boolean mIsRestAuthenticated;
-	private AuthenticationStrategy mAuthStrategy;
-	private int mConnectionTimeout;
-	private int mResponseTimeout;
+	private RestfulContext mRestContext;
 
 	/**
 	 * Constructs a new {@code InfinitumContext}. This constructor should
@@ -307,49 +301,12 @@ public class InfinitumContext {
 		return mAutocommit;
 	}
 
-	public String getRestHost() {
-		return mRestHost;
+	public RestfulContext getRestfulContext() {
+		return mRestContext;
 	}
 
-	public void setRestHost(String restHost) {
-		if (!restHost.endsWith("/"))
-			restHost += '/';
-		mRestHost = restHost;
-	}
-
-	public void setRestAuthenticated(boolean isRestAuthenticated) {
-		mIsRestAuthenticated = isRestAuthenticated;
-	}
-
-	public boolean isRestAuthenticated() {
-		return mIsRestAuthenticated;
-	}
-
-	public void setAuthStrategy(String strategy) {
-		if ("token".equalsIgnoreCase(strategy))
-			mAuthStrategy = new TokenAuthentication();
-		else
-		    throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
-	}
-
-	public AuthenticationStrategy getAuthStrategy() {
-		return mAuthStrategy;
-	}
-
-	public int getConnectionTimeout() {
-		return mConnectionTimeout;
-	}
-
-	public void setConnectionTimeout(int mConnectionTimeout) {
-		this.mConnectionTimeout = mConnectionTimeout;
-	}
-
-	public int getResponseTimeout() {
-		return mResponseTimeout;
-	}
-
-	public void setResponseTimeout(int mResponseTimeout) {
-		this.mResponseTimeout = mResponseTimeout;
+	public void setRestfulContext(RestfulContext restContext) {
+		mRestContext = restContext;
 	}
 
 }

@@ -84,7 +84,7 @@ public class BasicRestfulClient implements RestfulClient {
 	 */
 	public BasicRestfulClient() {
 		mContext = InfinitumContextFactory.getInstance().getInfinitumContext();
-		mHost = mContext.getRestHost();
+		mHost = mContext.getRestfulContext().getRestHost();
 		mMapper = new RestfulMapper();
 		mJsonDeserializers = new HashMap<Class<?>, JsonDeserializer<?>>();
 	}
@@ -191,8 +191,8 @@ public class BasicRestfulClient implements RestfulClient {
 		    Log.d(TAG, "Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
 		String uri = mHost + PersistenceResolution.getRestfulResource(type) + "/" + id;
-		if (mContext.isRestAuthenticated())
-			uri += "?" + mContext.getAuthStrategy().getAuthenticationString();
+		if (mContext.getRestfulContext().isRestAuthenticated())
+			uri += "?" + mContext.getRestfulContext().getAuthStrategy().getAuthenticationString();
 		HttpGet httpGet = new HttpGet(uri);
 		httpGet.addHeader("Accept", "application/json");
 		try {
@@ -244,8 +244,8 @@ public class BasicRestfulClient implements RestfulClient {
 	
 	private HttpParams getHttpParams() {
 		HttpParams httpParams = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParams, mContext.getConnectionTimeout());
-		HttpConnectionParams.setSoTimeout(httpParams, mContext.getResponseTimeout());
+		HttpConnectionParams.setConnectionTimeout(httpParams, mContext.getRestfulContext().getConnectionTimeout());
+		HttpConnectionParams.setSoTimeout(httpParams, mContext.getRestfulContext().getResponseTimeout());
 		HttpConnectionParams.setTcpNoDelay(httpParams, true);
 		return httpParams;
 	}
