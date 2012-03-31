@@ -19,10 +19,14 @@
 
 package com.clarionmedia.infinitum.rest;
 
+import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
 
 /**
  * <p>
- * Describes how web-service requests are authenticated.
+ * Describes how web service requests are authenticated. This should be
+ * implemented for specific web service authentication strategies. If using
+ * token or shared-secret authentication, {@link SharedSecretAuthentication}
+ * should be used.
  * </p>
  * 
  * @author Tyler Treat
@@ -30,6 +34,13 @@ package com.clarionmedia.infinitum.rest;
  */
 public interface AuthenticationStrategy {
 
+	/**
+	 * Retrieves the authentication {@link String} for this
+	 * {@code AuthenticationStrategy}. The authentication {@code String} is the
+	 * value used to authenticate web service requests.
+	 * 
+	 * @return
+	 */
 	String getAuthenticationString();
 
 }

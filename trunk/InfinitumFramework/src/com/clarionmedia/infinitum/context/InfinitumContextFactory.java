@@ -30,7 +30,7 @@ import android.content.res.XmlResourceParser;
 import com.clarionmedia.infinitum.context.InfinitumContext.ConfigurationMode;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
-import com.clarionmedia.infinitum.rest.impl.TokenAuthentication;
+import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
 
 /**
  * <p>
@@ -204,12 +204,12 @@ public class InfinitumContextFactory {
 				ctx.getRestfulContext().setRestAuthenticated(true);
 				String strategy = parser.getAttributeValue(null, InfinitumContextConstants.STRATEGY_ATTRIBUTE);
 				ctx.getRestfulContext().setAuthStrategy(strategy);
-				TokenAuthentication token = null;
+				SharedSecretAuthentication token = null;
 				AuthenticationStrategy strat = ctx.getRestfulContext().getAuthStrategy();
 				if (strat == null)
 					throw new InfinitumConfigurationException(InfinitumContextConstants.AUTH_STRAT_MISSING);
-				if (strat.getClass() == TokenAuthentication.class)
-					token = (TokenAuthentication) strat;
+				if (strat.getClass() == SharedSecretAuthentication.class)
+					token = (SharedSecretAuthentication) strat;
 				parser.next();
 				while (!parser.getName().equalsIgnoreCase(InfinitumContextConstants.AUTHENTICATION_ELEMENT)) {
 					if (parser.getEventType() == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(InfinitumContextConstants.PROPERTY_ELEMENT)) {
