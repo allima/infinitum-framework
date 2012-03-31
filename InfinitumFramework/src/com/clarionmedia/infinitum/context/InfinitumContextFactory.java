@@ -184,9 +184,9 @@ public class InfinitumContextFactory {
 	}
 	
 	private void configureRest(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException, IOException {
+		ctx.setRestfulContext(new RestfulContext());
 		parser.next();
 		while (!parser.getName().equalsIgnoreCase(InfinitumContextConstants.REST_ELEMENT)) {
-			ctx.setRestfulContext(new RestfulContext());
 			if (parser.getEventType() == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(InfinitumContextConstants.PROPERTY_ELEMENT)) {
 				String name = parser.getAttributeValue(null, InfinitumContextConstants.NAME_ATTRIBUTE);
 				parser.next();

@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.sqlite;
+package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -39,6 +39,7 @@ import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 
 /**
  * <p>

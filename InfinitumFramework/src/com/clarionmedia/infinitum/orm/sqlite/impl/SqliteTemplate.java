@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.sqlite;
+package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -51,6 +51,9 @@ import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationTyp
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**

@@ -47,6 +47,15 @@ public class RestfulClientFactory<T extends RestfulClient> implements RestfulCli
 	 */
 	public RestfulClientFactory(Class<T> type) {
 		mType = type;
+		try {
+			mRestClient = mType.newInstance();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
