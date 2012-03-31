@@ -26,7 +26,7 @@ import android.content.Context;
 
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.orm.Session;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteSession;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 
 /**
  * <p>

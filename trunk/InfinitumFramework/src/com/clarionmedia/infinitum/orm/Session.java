@@ -33,7 +33,7 @@ import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteSession;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 
 /**
  * <p>

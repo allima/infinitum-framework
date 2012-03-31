@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.orm.sqlite;
+package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -43,6 +43,8 @@ import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactory;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 import com.google.dexmaker.stock.ProxyBuilder;
 
 /**

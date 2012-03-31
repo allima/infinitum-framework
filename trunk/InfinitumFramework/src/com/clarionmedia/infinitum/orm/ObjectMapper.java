@@ -33,7 +33,7 @@ import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteMapper;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
 
 /**
  * <p>

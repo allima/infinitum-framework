@@ -28,6 +28,7 @@ import android.database.SQLException;
 import com.clarionmedia.infinitum.orm.DatastoreOperations;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteTemplate;
 
 /**
  * <p>

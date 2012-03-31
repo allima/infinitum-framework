@@ -27,7 +27,7 @@ import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteDbHelper;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteDbHelper;
 
 /**
  * <p>

@@ -27,6 +27,7 @@ import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
