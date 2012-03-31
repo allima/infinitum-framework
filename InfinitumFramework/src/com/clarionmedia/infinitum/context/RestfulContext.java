@@ -21,7 +21,7 @@ package com.clarionmedia.infinitum.context;
 
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
-import com.clarionmedia.infinitum.rest.impl.TokenAuthentication;
+import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
 
 /**
  * <p>
@@ -59,7 +59,7 @@ public class RestfulContext {
 
 	public void setAuthStrategy(String strategy) {
 		if ("token".equalsIgnoreCase(strategy))
-			mAuthStrategy = new TokenAuthentication();
+			mAuthStrategy = new SharedSecretAuthentication();
 		else
 		    throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
 	}

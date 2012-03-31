@@ -26,25 +26,34 @@ import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 
 /**
  * <p>
- * Used for token-based authentication.
+ * Used for token-based/shared-secret authentication.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/21/12
  */
-public class TokenAuthentication implements AuthenticationStrategy {
-	
+public class SharedSecretAuthentication implements AuthenticationStrategy {
+
 	private static final String ENCODING = "UTF-8";
-	
+
 	private String mTokenName;
 	private String mToken;
 	private TokenGenerator mGenerator;
-	
+
 	@Override
 	public String getAuthenticationString() {
 		return mTokenName + "=" + mToken;
 	}
 
+	/**
+	 * Sets the token key name. The authentication {@code String}
+	 * {@code SharedSecretAuthentication} generates, appears as
+	 * {@code tokenName=token}, where {@code tokenName} is the token key name
+	 * provided to this method and {@code token} is the shared secret.
+	 * 
+	 * @param tokenName
+	 *            the token name to use for authentication
+	 */
 	public void setTokenName(String tokenName) {
 		try {
 			mTokenName = URLEncoder.encode(tokenName, ENCODING);
@@ -54,10 +63,24 @@ public class TokenAuthentication implements AuthenticationStrategy {
 		}
 	}
 
+	/**
+	 * Returns the token key name.
+	 * 
+	 * @return token name
+	 */
 	public String getTokenName() {
 		return mTokenName;
 	}
 
+	/**
+	 * Sets the token value. The authentication {@code String}
+	 * {@code SharedSecretAuthentication} generates, appears as
+	 * {@code tokenName=token}, where {@code tokenName} is the token key name
+	 * and {@code token} is the shared secret provided to this method.
+	 * 
+	 * @param token
+	 *            the shared secret to use for authentication
+	 */
 	public void setToken(String token) {
 		try {
 			mToken = URLEncoder.encode(token, ENCODING);
@@ -67,22 +90,58 @@ public class TokenAuthentication implements AuthenticationStrategy {
 		}
 	}
 
+	/**
+	 * Returns the token value. This is either the value provided to
+	 * {@link SharedSecretAuthentication#setToken(String)} or the value
+	 * generated from the {@link TokenGenerator} if one has been provided.
+	 * 
+	 * @return shared secret
+	 */
 	public String getToken() {
 		if (mGenerator != null)
 			return mGenerator.generateToken();
 		return mToken;
 	}
-	
+
+	/**
+	 * Registers a {@link TokenGenerator} for this
+	 * {@code SharedSecretAuthentication} strategy. The {@code TokenGenerator}
+	 * is responsible for creating shared secrets.
+	 * 
+	 * @param generator
+	 *            the {@code TokenGenerator} to register
+	 */
 	public void setTokenGenerator(TokenGenerator generator) {
 		mGenerator = generator;
 	}
-	
+
+	/**
+	 * Removes any registered {@link TokenGenerator} from this
+	 * {@code SharedSecretAuthentication} strategy.
+	 */
 	public void clearTokenGenerator() {
 		mGenerator = null;
 	}
-	
+
+	/**
+	 * <p>
+	 * {@code TokenGenerator} is responsible for generating shared secret
+	 * tokens. Provide an implementation of this if an unchanging shared secret
+	 * is undesirable.
+	 * </p>
+	 * 
+	 * @author Tyler Treat
+	 * @version 1.0 03/21/12
+	 */
 	public interface TokenGenerator {
+
+		/**
+		 * Creates a new shared secret token.
+		 * 
+		 * @return authentication token
+		 */
 		String generateToken();
+
 	}
 
 }
