@@ -1,6 +1,7 @@
 #summary Infinitum user guide.
 
-= User Guide =
+*Contents*
+<wiki:toc max_depth="3" />
 
 == Introduction ==
 
