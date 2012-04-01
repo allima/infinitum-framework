@@ -21,6 +21,8 @@ package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.lang.reflect.Field;
 
+import com.clarionmedia.infinitum.orm.annotation.ManyToOne;
+import com.clarionmedia.infinitum.orm.annotation.OneToOne;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
@@ -102,10 +104,18 @@ public class BinaryExpression extends Criterion {
 		if (lowerCase)
 			query.append(')');
 		query.append(' ').append(mOperator).append(' ');
-		if (criteria.getObjectMapper().isTextColumn(f))
-			query.append("'").append(mValue.toString()).append("'");
-		else
-			query.append(mValue.toString());
+		if (f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToOne.class)) {
+			Object pk = PersistenceResolution.getPrimaryKey(mValue);
+			if (criteria.getObjectMapper().isTextColumn(f))
+				query.append("'").append(pk).append("'");
+			else
+				query.append(pk);
+		} else {
+			if (criteria.getObjectMapper().isTextColumn(f))
+				query.append("'").append(mValue).append("'");
+			else
+				query.append(mValue);
+		}
 		return query.toString();
 	}
 
