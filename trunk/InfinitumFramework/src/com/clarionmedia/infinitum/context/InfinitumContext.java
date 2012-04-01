@@ -72,6 +72,7 @@ public class InfinitumContext {
 		mDomainModels = new ArrayList<String>();
 		mIsSchemaGenerated = true;
 		mAutocommit = true;
+		mRecycleCache = true;
 	}
 
 	/**
