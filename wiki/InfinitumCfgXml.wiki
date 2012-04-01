@@ -1,4 +1,5 @@
 #summary Describes the infinitum.cfg.xml configuration file.
+#labels Explained
 
 *Contents*
 <wiki:toc max_depth="3" />
