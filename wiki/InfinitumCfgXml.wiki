@@ -17,7 +17,7 @@ The object-relational mapping mode indicates how the Infinitum ORM will be confi
 
 The Infinitum ORM makes use of a session cache such that persistent entities are attached to a session, allowing for speedier retrieval and minimizing database queries. The cache size can be configured, but in sessions where many objects are retrieved, it can become full. The cache can be configured to recycle automatically when this occurs (note that it can also be manually recycled) by enabling the recycle cache property. It _will_ recycle automatically if not explicitly declared to do so, so this property need be included only if it is to be disabled.
 
-*Application Configuration Example*
+=== Application Configuration Example ===
 
 {{{
 <application>
@@ -31,7 +31,7 @@ The Infinitum ORM makes use of a session cache such that persistent entities are
 
 In order to make use of Infinitum's ORM or RESTful client, an application's domain model classes must be declared within `infinitum.cfg.xml`. A model class is declared simply by identifying its package-qualified name.
 
-*Domain Configuration Example*
+=== Domain Configuration Example ===
 
 {{{
 <domain>
@@ -45,7 +45,7 @@ In order to make use of Infinitum's ORM or RESTful client, an application's doma
 
 If SQLite is being used as a datastore, a database name and version number _must_ be provided. Optionally, a property indicating if the framework should create the database schema automatically and a property for indicating if autocommit is enabled can be provided as well. Both of these are enabled by default.
 
-*SQLite Configuration Example*
+=== SQLite Configuration Example ===
 
 {{{
 <sqlite>
@@ -64,7 +64,7 @@ Connection and response timeouts indicate the time, in milliseconds, the client 
 
 If a web service uses some type of authentication, an authentication strategy can be registered. For example, if using a shared secret, a "token" strategy can be declared, indicating the name of the shared secret and the token itself (a token generator can also be used if an unchanging token is undesirable).
 
-*RESTful Configuration Example*
+=== RESTful Configuration Example ===
 
 {{{
 <rest>
