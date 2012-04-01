@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Describes the infinitum.cfg.xml configuration file.
 
 = infinitum.cfg.xml =
 
