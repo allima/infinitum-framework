@@ -1,6 +1,7 @@
 #summary Describes the infinitum.cfg.xml configuration file.
 
-= infinitum.cfg.xml =
+*Contents*
+<wiki:toc max_depth="3" />
 
 Although Infinitum fosters the convention-over-configuration principle, it _does_ require a configuration file, called `infinitum.cfg.xml`, which contains properties that can otherwise not be assumed by the framework. Many of the configuration properties in this file are, in fact, optional and _can_ be resolved by the framework, but there are a few which must be provided.
 
