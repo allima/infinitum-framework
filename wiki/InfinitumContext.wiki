@@ -18,11 +18,11 @@ Application-wide context information, which is read from the InfinitumCfgXml fil
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContext ctx = InfinitumContextFactory.getInstance().getInfinitumContext(); // throws InfinitumConfigurationException
+    InfinitumContext ctx = InfinitumContextFactory.getInstance().getInfinitumContext(); 
 }
 }}}
 
-The above example will throw a runtime exception because `configure` has not been called on the `InfinitumContextFactory`. The corrected code is as follows:
+The above example will throw an `InfinitumConfigurationException` because `configure` has not been called on the `InfinitumContextFactory`. The corrected code is as follows:
 
 {{{
 @Override
