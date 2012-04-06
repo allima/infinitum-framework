@@ -34,7 +34,7 @@ public void onCreate(Bundle savedInstanceState) {
 }
 }}}
 
-`InfinitumContextFactory`'s `configure` method takes a `Context` and resource ID as arguments. The latter is the resource ID for `infinitum.cfg.xml`. Because `configure` returns an `InfinitumContext` instance, the above code can be made more concise:
+`InfinitumContextFactory`'s `configure` method takes a `Context` and resource ID as arguments. The latter is the resource ID for `infinitum.cfg.xml`, meaning this file should be placed in /res/xml. Because `configure` returns an `InfinitumContext` instance, the above code can be made more concise:
 
 {{{
 @Override
