@@ -15,3 +15,7 @@ This user guide is designed to provide explanation for some of the various frame
   * InfinitumCfgXml: XML framework configuration file
   * InfinitumContext: stores framework configuration data read from `infinitum.cfg.xml` and creates `Session`s.
   * InfinitumContextFactory: access point for retrieving `InfinitumContext` instances
+
+== ORM ==
+
+  * [Session]: Infinitum persistence service.
