@@ -19,7 +19,7 @@
 
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
-import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 
 /**
@@ -47,7 +47,7 @@ public class LogicalExpression extends Criterion {
 	}
 
 	@Override
-	public String toSql(CriteriaQuery criteria) throws InvalidCriteriaException {
+	public String toSql(Criteria<?> criteria) throws InvalidCriteriaException {
 		return new StringBuilder("(").append(mLhs.toSql(criteria)).append(' ').append(mOperator).append(' ')
 				.append(mRhs.toSql(criteria)).append(')').toString();
 	}

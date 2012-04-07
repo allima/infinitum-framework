@@ -24,7 +24,6 @@ import java.util.Collection;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 
 /**
@@ -39,22 +38,13 @@ import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 public interface DatastoreOperations {
 
 	/**
-	 * Constructs a new {@link GenCriteria} for the given entity {@link Class}.
-	 * 
-	 * @param entityClass
-	 *            the {@code Class} to create the {@code GenCriteria} for
-	 * @return new {@code GenCriteria}
-	 */
-	<T> GenCriteria<T> createGenericCriteria(Class<T> entityClass);
-
-	/**
 	 * Constructs a new {@link Criteria} for the given entity {@link Class}.
 	 * 
 	 * @param entityClass
 	 *            the {@code Class} to create the {@code Criteria} for
 	 * @return new {@code Criteria}
 	 */
-	Criteria createCriteria(Class<?> entityClass);
+	<T> Criteria<T> createCriteria(Class<T> entityClass);
 
 	/**
 	 * Persists the given {@link Object} to the database. This method is

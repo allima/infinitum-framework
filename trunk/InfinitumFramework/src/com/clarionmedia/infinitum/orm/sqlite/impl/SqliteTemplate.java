@@ -41,7 +41,6 @@ import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
@@ -61,7 +60,7 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  * An implementation of {@link SqliteOperations}. This class is designed to
  * provide implementations of core CRUD operations for interacting with a SQLite
  * database and act as a factory for constructing {@link Criteria} and
- * {@link GenCriteria} queries.
+ * {@link Criteria} queries.
  * </p>
  * 
  * @author Tyler Treat
@@ -101,13 +100,8 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	@Override
-	public <T> GenCriteria<T> createGenericCriteria(Class<T> entityClass) {
-		return new SqliteGenCriteria<T>(mSession, entityClass, mSqlBuilder, mMapper);
-	}
-
-	@Override
-	public Criteria createCriteria(Class<?> entityClass) {
-		return new SqliteCriteria(mSession, entityClass, mSqlBuilder, mMapper);
+	public <T> Criteria<T> createCriteria(Class<T> entityClass) {
+		return new SqliteCriteria<T>(mSession, entityClass, mSqlBuilder, mMapper);
 	}
 
 	@Override

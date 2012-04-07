@@ -19,7 +19,7 @@
 
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
-import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
@@ -43,7 +43,7 @@ public class NotExpression extends Criterion {
 	}
 
 	@Override
-	public String toSql(CriteriaQuery criteria) throws InvalidCriteriaException {
+	public String toSql(Criteria<?> criteria) throws InvalidCriteriaException {
 		return new StringBuilder(SqlConstants.NEGATION).append(" (").append(mExpression.toSql(criteria)).append(')')
 				.toString();
 	}

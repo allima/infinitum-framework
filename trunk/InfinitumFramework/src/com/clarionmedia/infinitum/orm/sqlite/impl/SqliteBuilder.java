@@ -29,7 +29,7 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
-import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
@@ -103,7 +103,7 @@ public class SqliteBuilder implements SqlBuilder {
 	}
 
 	@Override
-	public String createQuery(CriteriaQuery criteria) {
+	public String createQuery(Criteria<?> criteria) {
 		Class<?> c = criteria.getEntityClass();
 		StringBuilder query = new StringBuilder(SqlConstants.SELECT_ALL_FROM)
 				.append(PersistenceResolution.getModelTableName(c));

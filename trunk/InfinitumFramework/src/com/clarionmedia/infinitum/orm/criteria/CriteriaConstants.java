@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.orm.criteria;
 
 /**
  * <p>
- * Contains constants for the {@link GenCriteria} API.
+ * Contains constants for the {@link Criteria} API.
  * </p>
  * 
  * @author Tyler Treat

@@ -35,7 +35,6 @@ import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
@@ -134,12 +133,7 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public <T> GenCriteria<T> createGenericCriteria(Class<T> entityClass) {
-		return mSqlite.createGenericCriteria(entityClass);
-	}
-
-	@Override
-	public Criteria createCriteria(Class<?> entityClass) {
+	public <T> Criteria<T> createCriteria(Class<T> entityClass) {
 		return mSqlite.createCriteria(entityClass);
 	}
 
