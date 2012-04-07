@@ -153,3 +153,30 @@ session.open();
 Foo foo = session.createCriteria(Foo.class).add(Conditions.eq("mId", 42)).unique();
 session.close();
 }}}
+
+== Registering `TypeAdapters` ==
+
+In order to provide ORM support for unknown data types, Infinitum uses what's called a TypeAdapter. A `TypeAdapter` can be registered with a `Session` for a certain class, allowing fields of that class to be mapped to a database table.  Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. The example below, although slightly contrived, shows how a [http://joda-time.sourceforge.net/ JodaTime] `DateTime` object might be mapped to a SQLite column and vice versa using a `TypeAdapter`.
+
+=== `TypeAdapter` Example ===
+
+{{{
+// Store DateTimes as strings
+session.registerTypeAdapter(DateTime.class, new SqliteTypeAdapter<DateTime>(SqliteDataType.TEXT) {
+    @Override
+    public void mapToObject(ResultSet result, int index, Field field, Object model) throws IllegalArgumentException, IllegalAccessException {
+        field.set(model, result.getString(index));
+    }
+    @Override
+    public void mapToColumn(DateTime value, String column, ContentValues values) {
+	String dateStr = value.getYear() + "-" + value.getMonthOfYear() + "-" + value.getDayOfWeek();
+	values.put(column, dateStr);
+    }
+    @Override
+    public void mapObjectToColumn(Object value, String column, ContentValues values) {
+        DateTime dt = (DateTime) value;
+	String dateStr = dt.getYear() + "-" + dt.getMonthOfYear() + "-" + dt.getDayOfWeek();
+	values.put(column, dateStr);
+    }
+});
+}}}
