@@ -1,4 +1,5 @@
 #summary Describes the Session.
+#labels Explained
 
 *Contents*
 <wiki:toc max_depth="3" />
@@ -72,3 +73,60 @@ session.close();
 }}}
 
 Transactions can be nested. When the outer transaction is ended all of the work done in that transaction and all of the nested transactions will be committed or rolled back.
+
+== Basic CRUD Operations ==
+
+`Session` provides methods to easily save, update, or delete domain objects or collections of domain objects. These methods are exemplified below.
+
+=== Persisting Domain Objects ===
+
+{{{
+// Save a single domain object
+session.open();
+session.save(new Foo());
+session.close();
+
+// Save a collection of domain objects
+List<Foo> foos = getFooList();
+session.open();
+session.saveAll(foos);
+session.close();
+}}}
+
+=== Updating Domain Objects ===
+
+{{{
+// Update a single domain object
+Foo foo = getFoo();
+session.open();
+session.update(foo);
+session.close();
+
+// Save or update a single domain object
+Foo foo = getFoo();
+session.open();
+session.saveOrUpdate(foo);
+session.close();
+
+// Save or update a collection of domain objects
+List<Foo> foos = getFooList();
+session.open();
+session.saveOrUpdateAll(foos);
+session.close();
+}}}
+
+=== Deleting Domain Objects ===
+
+{{{
+// Delete a single domain object
+Foo foo = getFoo();
+session.open();
+session.delete(foo);
+session.close();
+
+// Delete a collection of domain objects
+List<Foo> foos = getFooList();
+session.open();
+session.deleteAll(foos);
+session.close();
+}}}
