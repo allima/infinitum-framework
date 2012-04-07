@@ -76,7 +76,7 @@ Transactions can be nested. When the outer transaction is ended all of the work 
 
 == Basic CRUD Operations ==
 
-`Session` provides methods to easily save, update, or delete domain objects or collections of domain objects. These methods are exemplified below.
+`Session` provides methods to easily save, update, or delete domain objects or collections of domain objects, making database persistence transparent. These methods are exemplified below.
 
 === Persisting Domain Objects ===
 
@@ -128,5 +128,28 @@ session.close();
 List<Foo> foos = getFooList();
 session.open();
 session.deleteAll(foos);
+session.close();
+}}}
+
+=== Loading Domain Objects ===
+
+{{{
+// Load a single domain object by its ID
+session.open();
+Foo foo = session.load(Foo.class, 42L);
+session.close();
+}}}
+
+The `Criteria` API can be used to execute more advanced queries.
+
+== Criteria Queries ==
+
+Further supporting the notion of persistence transparency, `Session` provides access to a [Criteria] API which is used to construct object-oriented database queries, removing the need for SQL. `Criteria` queries are used to query for a particular persistent class, and they allow for compile-time type checking, which means no casting is necessary. The code below details how to create a `Criteria` and execute a simple query for a domain object `Foo` by one of its fields `mId`.
+
+=== Criteria Query Example ===
+
+{{{
+session.open();
+Foo foo = session.createCriteria(Foo.class).add(Conditions.eq("mId", 42)).unique();
 session.close();
 }}}
