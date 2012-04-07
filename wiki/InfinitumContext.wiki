@@ -1,4 +1,4 @@
-#summary Describes the InfinitumContext object.
+#summary Describes the InfinitumContext.
 #labels Explained
 
 *Contents*
