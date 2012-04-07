@@ -13,5 +13,5 @@ This user guide is designed to provide explanation for some of the various frame
 == Configuration ==
 
   * InfinitumCfgXml: XML framework configuration file
-  * InfinitumContext: stores framework configuration data read from `infinitum.cfg.xml`
+  * InfinitumContext: stores framework configuration data read from `infinitum.cfg.xml` and creates `Session`s.
   * InfinitumContextFactory: access point for retrieving `InfinitumContext` instances
