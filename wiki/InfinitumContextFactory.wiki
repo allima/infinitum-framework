@@ -1,0 +1,24 @@
+#summary Describes the InfinitumContextFactory.
+#labels Explained
+
+*Contents*
+<wiki:toc max_depth="3" />
+
+== Introduction ==
+
+`InfinitumContextFactory` is used to configure Infinitum and to retrieve an instance of InfinitumContext. Before a context can be retrieved, `InfinitumContextFactory`'s `configure` method must be invoked by passing in a `Context` and a resource ID for InfinitumCfgXml. If a call is made to get an `InfinitumContext` before `configure` has been invoked, an `InfinitumConfigurationException` will be thrown.
+
+`InfinitumContextFactory` may not be instantiated directly, but rather is accessed as a singleton by invoking its static method `getInstance()`.
+
+== Acquiring an `InfinitumContext` ==
+
+The following code snippet illustrates how Infinitum is configured and how an instance of `InfinitumContext` is retrieved.
+
+{{{
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+    InfinitumContext ctx = InfinitumContextFactory.getInstance().configure(this, R.xml.infinitum);
+}
+}}}
