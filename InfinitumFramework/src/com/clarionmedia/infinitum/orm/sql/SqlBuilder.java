@@ -21,9 +21,9 @@ package com.clarionmedia.infinitum.orm.sql;
 
 import java.io.Serializable;
 
+import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
-import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
@@ -77,13 +77,13 @@ public interface SqlBuilder {
 			throws ModelConfigurationException;
 
 	/**
-	 * Generates a SQL query {@link String} from the given {@link GenCriteria}.
+	 * Generates a SQL query {@link String} from the given {@link Criteria}.
 	 * 
 	 * @param criteria
 	 *            the {@code Criteria} to build the SQL query from
 	 * @return SQL query
 	 */
-	String createQuery(CriteriaQuery criteria);
+	String createQuery(Criteria<?> criteria);
 
 	/**
 	 * Generates a SQL query {@link String} from the given

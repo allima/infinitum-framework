@@ -30,7 +30,6 @@ import android.database.SQLException;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
@@ -40,7 +39,7 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
  * Represents the lifecycle of an Infinitum persistence service and acts as an
  * interface to a configured application datastore. All database interaction
  * goes through the {@code Session}, which also provides an API for creating
- * {@link Criteria} and {@link GenCriteria} instances. {@code Session} instances
+ * {@link Criteria} and {@link Criteria} instances. {@code Session} instances
  * should be acquired from an {@link InfinitumContext} by calling
  * {@link InfinitumContext#getSession(Context, InfinitumContext.DataSource)} .
  * </p>
@@ -272,24 +271,14 @@ public interface Session {
 	void execute(String sql) throws SQLGrammarException;
 
 	/**
-	 * Creates a new {@link GenCriteria} instance for the given persistent
+	 * Creates a new {@link Criteria} instance for the given persistent
 	 * entity {@link Class}.
 	 * 
 	 * @param entityClass
 	 *            the persistent {@code Class} being queried for
 	 * @return {@code Criteria} for entityClass
 	 */
-	<T> GenCriteria<T> createGenericCriteria(Class<T> entityClass);
-
-	/**
-	 * Creates a new {@link GenCriteria} instance for the given persistent
-	 * entity {@link Class}.
-	 * 
-	 * @param entityClass
-	 *            the persistent {@code Class} being queried for
-	 * @return {@code Criteria} for entityClass
-	 */
-	Criteria createCriteria(Class<?> entityClass);
+	<T> Criteria<T> createCriteria(Class<T> entityClass);
 
 	/**
 	 * Registers the given {@link TypeAdapter} for the specified {@link Class}

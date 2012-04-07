@@ -20,15 +20,13 @@
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.io.Serializable;
-
-import com.clarionmedia.infinitum.orm.criteria.CriteriaQuery;
-import com.clarionmedia.infinitum.orm.criteria.GenCriteria;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 
 /**
  * <p>
  * This class represents a query criterion to refine the results of a
- * {@link GenCriteria} query.
+ * {@link Criteria} query.
  * </p>
  * 
  * @author Tyler Treat
@@ -54,12 +52,12 @@ public abstract class Criterion implements Serializable {
 	 * Retrieves the SQL fragment for the {@code Criterion} as a {@link String}.
 	 * 
 	 * @param criteria
-	 *            the {@link GenCriteria} this {@code Criterion} belongs to
+	 *            the {@link Criteria} this {@code Criterion} belongs to
 	 * @return SQL {@code String}
 	 * @throws InvalidCriteriaException
 	 *             if there was a problem creating the {@code Criteria} instance
 	 */
-	public abstract String toSql(CriteriaQuery criteria) throws InvalidCriteriaException;
+	public abstract String toSql(Criteria<?> criteria) throws InvalidCriteriaException;
 
 	/**
 	 * Returns the name of the {@link Field} this {@code Criterion} is being

@@ -21,35 +21,62 @@ package com.clarionmedia.infinitum.orm.criteria;
 
 import java.util.List;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 
 /**
  * <p>
  * This interface represents a query for a particular persistent class.
  * {@code Criteria} queries consist of {@link Criterion}, which act as
- * restrictions on a query. For {@code Criteria's} generic counterpart, see
- * {@link GenCriteria}.
+ * restrictions on a query.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/17/12
  */
-public interface Criteria extends CriteriaQuery {
+public interface Criteria<T> {
 
-	@Override
+	/**
+	 * Returns the {@code Criteria} query in SQL form.
+	 * 
+	 * @return SQL {@link String} for this {@code Criteria}
+	 */
 	String toSql();
 
-	@Override
+	/**
+	 * Returns the {@link Class} associated with this {@code Criteria}.
+	 * 
+	 * @return {@code Criteria } entity {@code Class}
+	 */
 	Class<?> getEntityClass();
 
-	@Override
+	/**
+	 * Returns the {@link List} of {@link Criterion} for this {@code Criteria}.
+	 * 
+	 * @return {@code List} of {@code Criterion}
+	 */
 	List<Criterion> getCriterion();
 
-	@Override
+	/**
+	 * Returns the result set limit for this {@code Criteria}.
+	 * 
+	 * @return result set limit
+	 */
 	int getLimit();
 
-	@Override
+	/**
+	 * Returns the offset value for this {@code Criteria}.
+	 * 
+	 * @return offset value
+	 */
 	int getOffset();
+
+	/**
+	 * Returns the {@link ObjectMapper} associated with this {@code Criteria}.
+	 * 
+	 * @return {@code ObjectMapper}
+	 */
+	ObjectMapper getObjectMapper();
 
 	/**
 	 * Adds a {@link Criterion} to filter retrieved query results.
@@ -58,7 +85,7 @@ public interface Criteria extends CriteriaQuery {
 	 *            the {@code Criterion} to apply to the {@link Criteria} query
 	 * @return this {@code Criteria} to allow for method chaining
 	 */
-	Criteria add(Criterion criterion);
+	Criteria<T> add(Criterion criterion);
 
 	/**
 	 * Limits the number of query results.
@@ -67,7 +94,7 @@ public interface Criteria extends CriteriaQuery {
 	 *            max number of entities to retrieve
 	 * @return this {@code Criteria} to allow for method chaining
 	 */
-	Criteria limit(int limit);
+	Criteria<T> limit(int limit);
 
 	/**
 	 * Offsets the result set by the given amount.
@@ -76,14 +103,14 @@ public interface Criteria extends CriteriaQuery {
 	 *            amount to offset results
 	 * @return this {@code Criteria} to allow for method chaining
 	 */
-	Criteria offset(int offset);
+	Criteria<T> offset(int offset);
 
 	/**
 	 * Retrieves the query results as a {@link List}.
 	 * 
 	 * @return query results in {@code List} form
 	 */
-	List<Object> toList();
+	List<T> toList();
 
 	/**
 	 * Retrieves a unique query result for the {@code Criteria} query.
@@ -92,6 +119,6 @@ public interface Criteria extends CriteriaQuery {
 	 * @throws InfinitumRuntimeException
 	 *             if there was not a unique result for the query
 	 */
-	Object unique() throws InfinitumRuntimeException;
+	T unique() throws InfinitumRuntimeException;
 
 }

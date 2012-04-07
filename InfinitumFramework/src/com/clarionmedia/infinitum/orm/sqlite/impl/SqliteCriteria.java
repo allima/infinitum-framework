@@ -26,23 +26,23 @@ import java.util.List;
 import android.database.Cursor;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
+import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 
 /**
  * <p>
- * Implementation of {@link Criteria} for SQLite database queries.
+ * Implementation of {@link Criteria}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/17/12
  */
-public class SqliteCriteria implements Criteria {
+public class SqliteCriteria<T> implements Criteria<T> {
 
-	private Class<?> mEntityClass;
+	private Class<T> mEntityClass;
 	private SqliteSession mSession;
 	private SqliteModelFactoryImpl mModelFactory;
 	private List<Criterion> mCriterion;
@@ -51,23 +51,26 @@ public class SqliteCriteria implements Criteria {
 	private SqlBuilder mSqlBuilder;
 
 	/**
-	 * Constructs a new {@code CriteriaImpl} with the given entity {@link Class}
-	 * .
+	 * Constructs a new {@code SqliteGenCriteria}.
 	 * 
-	 * @param entityClass
-	 *            the {@code Class} to create {@code SqliteCriteria} for
 	 * @param session
-	 *            the {@link SqliteSession} this {@code Criteria} is attached to
+	 *            the {@link SqliteSession} this {@code SqliteGenCriteria} is
+	 *            attached to
+	 * @param entityClass
+	 *            the {@code Class} to create {@code SqliteGenCriteria} for
 	 * @param sqlBuilder
 	 *            {@link SqlBuilder} for generating SQL statements
+	 * @param mapper
+	 *            the {@link SqliteMapper} to use for {@link Object} mapping
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public SqliteCriteria(SqliteSession session, Class<?> entityClass, SqlBuilder sqlBuilder, SqliteMapper mapper) throws InfinitumRuntimeException {
+	public SqliteCriteria(SqliteSession session, Class<T> entityClass, SqlBuilder sqlBuilder, SqliteMapper mapper)
+	        throws InfinitumRuntimeException {
 		if (!PersistenceResolution.isPersistent(entityClass))
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA, entityClass.getName()));
-		mEntityClass = entityClass;
 		mSession = session;
+		mEntityClass = entityClass;
 		mModelFactory = new SqliteModelFactoryImpl(session, mapper);
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
@@ -79,7 +82,7 @@ public class SqliteCriteria implements Criteria {
 	}
 
 	@Override
-	public Class<?> getEntityClass() {
+	public Class<T> getEntityClass() {
 		return mEntityClass;
 	}
 
@@ -99,26 +102,26 @@ public class SqliteCriteria implements Criteria {
 	}
 
 	@Override
-	public Criteria add(Criterion criterion) {
+	public Criteria<T> add(Criterion criterion) {
 		mCriterion.add(criterion);
 		return this;
 	}
 
 	@Override
-	public Criteria limit(int limit) {
+	public Criteria<T> limit(int limit) {
 		mLimit = limit;
 		return this;
 	}
 
 	@Override
-	public Criteria offset(int offset) {
+	public Criteria<T> offset(int offset) {
 		mOffset = offset;
 		return this;
 	}
 
 	@Override
-	public List<Object> toList() {
-		List<Object> ret = new LinkedList<Object>();
+	public List<T> toList() {
+		List<T> ret = new LinkedList<T>();
 		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
 		if (result.getCount() == 0) {
 			result.close();
@@ -137,7 +140,7 @@ public class SqliteCriteria implements Criteria {
 	}
 
 	@Override
-	public Object unique() throws InfinitumRuntimeException {
+	public T unique() throws InfinitumRuntimeException {
 		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
 		if (result.getCount() > 1)
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT, mEntityClass.getName(), result.getCount()));
