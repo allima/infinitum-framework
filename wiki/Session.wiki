@@ -4,7 +4,7 @@
 *Contents*
 <wiki:toc max_depth="3" />
 
-== Introduction ==
+= Introduction =
 
 A `Session` represents the lifecycle of an Infinitum persistence service and acts as an interface to a configured application datastore. All database interaction should go through the `Session`, which also provides an API for creating [Criteria] and GenCriteria instances.
 
@@ -12,7 +12,7 @@ A `Session` represents the lifecycle of an Infinitum persistence service and act
 
 In order to keep track of transient and persistent entities, `Session` implements a `Session` cache. This cache can be configured to recycle automatically in order to reclaim memory in InfinitumCfgXml. The cache can also be explicitly recycled by invoking `recycleCache()` on the `Session`. Additionally, the cache size can be modified by calling `setCacheSize(int)`.
 
-== Acquiring a `Session` ==
+= Acquiring a `Session` =
 
 The code below shows how a SQLite `Session` is acquired.
 
@@ -28,7 +28,7 @@ public void onCreate(Bundle savedInstanceState) {
 }
 }}}
 
-== Runtime Configuration ==
+= Runtime Configuration =
 
 A `Session`'s configuration is pulled from an application's `InfinitumContext`; however, its configuration may also be modified at runtime. For example, autocommit may be enabled or the cache size may be altered.
 
@@ -37,11 +37,11 @@ session.setAutocommit(true);
 session.setCacheSize(500);
 }}}
 
-== Autocommit- and Transaction- based Sessions ==
+= Autocommit- and Transaction- based Sessions =
 
 An Infinitum `Session` can be configured to be in one of two modes: autocommit or transactional. In either case, `open()` must be invoked before database operations are made and `close()` invoked when a `Session` should be released. The difference between the two lies in how transactions are committed. With autocommit, transactions are committed implicitly as soon as they are executed. A transactional `Session` relies on transactions to handle commits explicitly, meaning a transaction must be opened within a `Session` and then explicitly committed. This method also allows for transactions to be rolled back. An example of both strategies is given below. Note that autocommit can be enabled or disabled in `infinitum.cfg.xml`, but is explicitly set in the examples to better illustrate what's going on.
 
-=== Autocommit Example ===
+== Autocommit Example ==
 
 {{{
 session.setAutocommit(true);
@@ -50,7 +50,7 @@ session.save(new Foo()); // Foo is persisted
 session.close();
 }}}
 
-=== Transactional Example ===
+== Transactional Example ==
 
 {{{
 session.setAutocommit(false);
@@ -74,11 +74,11 @@ session.close();
 
 Transactions can be nested. When the outer transaction is ended all of the work done in that transaction and all of the nested transactions will be committed or rolled back.
 
-== Basic CRUD Operations ==
+= Basic CRUD Operations =
 
 `Session` provides methods to easily save, update, or delete domain objects or collections of domain objects, making database persistence transparent. These methods are exemplified below.
 
-=== Persisting Domain Objects ===
+== Persisting Domain Objects ==
 
 {{{
 // Save a single domain object
@@ -93,7 +93,7 @@ session.saveAll(foos);
 session.close();
 }}}
 
-=== Updating Domain Objects ===
+== Updating Domain Objects ==
 
 {{{
 // Update a single domain object
@@ -115,7 +115,7 @@ session.saveOrUpdateAll(foos);
 session.close();
 }}}
 
-=== Deleting Domain Objects ===
+== Deleting Domain Objects ==
 
 {{{
 // Delete a single domain object
@@ -131,7 +131,7 @@ session.deleteAll(foos);
 session.close();
 }}}
 
-=== Loading Domain Objects ===
+== Loading Domain Objects ==
 
 {{{
 // Load a single domain object by its ID
@@ -142,11 +142,11 @@ session.close();
 
 The `Criteria` API can be used to execute more advanced queries.
 
-== Criteria Queries ==
+= Criteria Queries =
 
 Further supporting the notion of persistence transparency, `Session` provides access to a [Criteria] API which is used to construct object-oriented database queries, removing the need for SQL. `Criteria` queries are used to query for a particular persistent class, and they allow for compile-time type checking, which means no casting is necessary. The code below details how to create a `Criteria` and execute a simple query for a domain object `Foo` by one of its fields `mId`.
 
-=== Criteria Query Example ===
+== Criteria Query Example ==
 
 {{{
 session.open();
@@ -154,11 +154,11 @@ Foo foo = session.createCriteria(Foo.class).add(Conditions.eq("mId", 42)).unique
 session.close();
 }}}
 
-== Registering `TypeAdapters` ==
+= Registering `TypeAdapters` =
 
 In order to provide ORM support for unknown data types, Infinitum uses what's called a TypeAdapter. A `TypeAdapter` can be registered with a `Session` for a certain class, allowing fields of that class to be mapped to a database table.  Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. The example below, although slightly contrived, shows how a [http://joda-time.sourceforge.net/ JodaTime] `DateTime` object might be mapped to a SQLite column and vice versa using a `TypeAdapter`.
 
-=== `TypeAdapter` Example ===
+== `TypeAdapter` Example ==
 
 {{{
 // Store DateTimes as strings
