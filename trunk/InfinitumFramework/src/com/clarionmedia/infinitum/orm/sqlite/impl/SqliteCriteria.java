@@ -120,7 +120,7 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	}
 
 	@Override
-	public List<T> toList() {
+	public List<T> list() {
 		List<T> ret = new LinkedList<T>();
 		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
 		if (result.getCount() == 0) {

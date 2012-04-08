@@ -110,7 +110,7 @@ public interface Criteria<T> {
 	 * 
 	 * @return query results in {@code List} form
 	 */
-	List<T> toList();
+	List<T> list();
 
 	/**
 	 * Retrieves a unique query result for the {@code Criteria} query.
