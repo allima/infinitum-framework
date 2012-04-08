@@ -4,12 +4,12 @@
 *Contents*
 <wiki:toc max_depth="3" />
 
-== Introduction ==
+= Introduction =
 
 Application-wide context information, which is read from the InfinitumCfgXml file, is stored in a container called `InfinitumContext`. Since the information stored in `InfinitumContext` is initialized from the configuration file, this object should not be instantiated directly. Rather, it should be obtained through the InfinitumContextFactory.
 
 
-== Configuration ==
+= Configuration =
 
 `InfinitumContext` is also configured in `InfinitumContextFactory` in addition to being obtained from it. Invoking the `configure` method in `InfinitumContextFactory` is critical and must be done before any attempts are made to access the context. The following code snippet illustrates this notion:
 
@@ -45,7 +45,7 @@ public void onCreate(Bundle savedInstanceState) {
 }
 }}}
 
-== Using `InfinitumContext` ==
+= Using `InfinitumContext` =
 
 `InfinitumContext` can be used to evaluate application-configuration settings at runtime. More important, it is used to acquire a [Session], Infinitum's datastore persistence service. The code snippet below shows how a SQLite `Session` is acquired.
 
