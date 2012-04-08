@@ -34,8 +34,6 @@ Of course, _no_ conditions can be added to a `Criteria` if querying for all reco
 session.createCriteria(Foo.class);
 }}}
 
-The `Criteria` interface allows for custom restriction implementations as well.
-
 = Executing Queries =
 
 Once a `Criteria` query has been constructed and the conditions have been added, it's time to execute it for a result. There are essentially two ways in which query results are retrieved, as a unique result or as a list.
