@@ -12,11 +12,13 @@ This user guide is designed to provide explanation for some of the various frame
 
 == Configuration ==
 
-  * InfinitumCfgXml: XML framework configuration file
+  * InfinitumCfgXml: XML framework configuration file.
   * InfinitumContext: stores framework configuration data read from `infinitum.cfg.xml` and creates `Session`s.
-  * InfinitumContextFactory: access point for retrieving `InfinitumContext` instances
+  * InfinitumContextFactory: access point for retrieving `InfinitumContext` instances.
 
 == ORM ==
 
   * [Session]: Infinitum persistence service.
   * [Criteria]: object-oriented database queries.
+  * [Criterion]: `Criteria` query restrictions.
+  * [Conditions]: provides static factory methods for creating `Criterion`.
