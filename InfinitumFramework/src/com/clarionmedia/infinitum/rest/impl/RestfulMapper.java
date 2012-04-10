@@ -34,6 +34,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
 
 /**
  * <p>

@@ -26,7 +26,6 @@ import java.util.Map;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.impl.BasicRestfulClient;
-import com.clarionmedia.infinitum.rest.impl.RestfulTypeAdapter;
 
 /**
  * <p>

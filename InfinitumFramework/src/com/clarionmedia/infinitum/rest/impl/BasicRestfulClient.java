@@ -56,6 +56,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
 import com.clarionmedia.infinitum.rest.RestfulClient;
+import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
