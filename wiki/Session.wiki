@@ -169,13 +169,13 @@ session.registerTypeAdapter(DateTime.class, new SqliteTypeAdapter<DateTime>(Sqli
     }
     @Override
     public void mapToColumn(DateTime value, String column, ContentValues values) {
-	String dateStr = value.getYear() + "-" + value.getMonthOfYear() + "-" + value.getDayOfWeek();
+	String dateStr = value.getYear() + "-" + value.getMonthOfYear() + "-" + value.getDayOfMonth();
 	values.put(column, dateStr);
     }
     @Override
     public void mapObjectToColumn(Object value, String column, ContentValues values) {
         DateTime dt = (DateTime) value;
-	String dateStr = dt.getYear() + "-" + dt.getMonthOfYear() + "-" + dt.getDayOfWeek();
+	String dateStr = dt.getYear() + "-" + dt.getMonthOfYear() + "-" + dt.getDayOfMonth();
 	values.put(column, dateStr);
     }
 });
