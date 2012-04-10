@@ -6,19 +6,19 @@
 *Contents*
 <wiki:toc max_depth="3" />
 
-== Introduction ==
+= Introduction =
 
 Infinitum is a lightweight, extensible framework enabling Android developers to quickly and efficiently create rich, domain-driven applications while facilitating the convention-over-configuration paradigm. Infinitum's core components include an ORM and a RESTful web service client.
 
 This user guide is designed to provide explanation for some of the various framework features and, perhaps more important, how to use them.
 
-== Configuration ==
+= Configuration =
 
   * InfinitumCfgXml: XML framework configuration file.
   * InfinitumContext: stores framework configuration data read from `infinitum.cfg.xml` and creates `Session`s.
   * InfinitumContextFactory: access point for retrieving `InfinitumContext` instances.
 
-== ORM ==
+= ORM =
 
   * [Session]: Infinitum persistence service.
   * [Criteria]: object-oriented database queries.
