@@ -20,7 +20,6 @@
 package com.clarionmedia.infinitum.rest;
 
 import java.lang.reflect.Field;
-import com.clarionmedia.infinitum.rest.impl.RestfulTypeAdapter;
 
 /**
  * <p>

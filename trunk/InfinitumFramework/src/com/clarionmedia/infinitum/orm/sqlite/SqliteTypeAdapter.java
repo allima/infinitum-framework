@@ -26,7 +26,8 @@ import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 
 /**
  * <p>
- * Facilitates the mapping of Java data types to columns in a SQLite database.
+ * Facilitates the mapping of Java data types to columns in a SQLite database
+ * and vice versa.
  * </p>
  * 
  * @author Tyler Treat
@@ -58,8 +59,7 @@ public abstract class SqliteTypeAdapter<T> implements TypeAdapter<T> {
 	 *            the {@link ContentValues} containing the data mappings for the
 	 *            entire row
 	 */
-	public abstract void mapToColumn(T value, String column,
-			ContentValues values);
+	public abstract void mapToColumn(T value, String column, ContentValues values);
 
 	/**
 	 * Maps the given {@link Object} value to the given column.
@@ -72,8 +72,7 @@ public abstract class SqliteTypeAdapter<T> implements TypeAdapter<T> {
 	 *            the {@link ContentValues} containing the data mappings for the
 	 *            entire row
 	 */
-	public abstract void mapObjectToColumn(Object value, String column,
-			ContentValues values);
+	public abstract void mapObjectToColumn(Object value, String column, ContentValues values);
 
 	/**
 	 * Sets the {@link SqliteDataType} for this {@code SqliteTypeAdapter}. This

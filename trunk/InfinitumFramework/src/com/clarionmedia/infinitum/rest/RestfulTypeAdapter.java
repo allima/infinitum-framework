@@ -1,4 +1,4 @@
-package com.clarionmedia.infinitum.rest.impl;
+package com.clarionmedia.infinitum.rest;
 
 import java.util.List;
 

@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
 import com.clarionmedia.infinitum.rest.RestfulClient;
 import com.clarionmedia.infinitum.rest.RestfulClientBuilder;
+import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
 
 /**
  * <p>
