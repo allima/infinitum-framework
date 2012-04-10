@@ -156,7 +156,7 @@ session.close();
 
 = Registering `TypeAdapters` =
 
-In order to provide ORM support for unknown data types, Infinitum uses what's called a TypeAdapter. A `TypeAdapter` can be registered with a `Session` for a certain class, allowing fields of that class to be mapped to a database table.  Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. The example below, although slightly contrived, shows how a [http://joda-time.sourceforge.net/ JodaTime] `DateTime` object might be mapped to a SQLite column and vice versa using a `TypeAdapter`.
+In order to provide ORM support for unknown data types, Infinitum uses what's called a TypeAdapter. A `TypeAdapter` can be registered with a `Session` for a certain class, allowing fields of that class to be mapped to a database table or web service model.  Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. The example below, although slightly contrived, shows how a [http://joda-time.sourceforge.net/ JodaTime] `DateTime` object might be mapped to a SQLite column and vice versa using a `TypeAdapter`.
 
 == `TypeAdapter` Example ==
 
