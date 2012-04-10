@@ -28,11 +28,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
@@ -58,6 +58,7 @@ public class SqliteSession implements Session {
 	private InfinitumContext mInfinitumContext;
 	private Map<Integer, Object> mSessionCache;
 	private int mCacheSize;
+	private Logger mLogger;
 
 	/**
 	 * Creates a new {@code SqliteSession} with the given {@link Context}.
@@ -67,6 +68,7 @@ public class SqliteSession implements Session {
 	 */
 	public SqliteSession(Context context) {
 		mContext = context;
+		mLogger = Logger.getInstance(TAG);
 		mInfinitumContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
@@ -96,10 +98,10 @@ public class SqliteSession implements Session {
 		try {
 			mSqlite.open();
 			if (mInfinitumContext.isDebug())
-				Log.d(TAG, "Session opened");
+				mLogger.debug("Session opened");
 		} catch (SQLException e) {
 			if (mInfinitumContext.isDebug())
-				Log.e(TAG, "Session not opened", e);
+				mLogger.error("Session not opened", e);
 			throw e;
 		}
 	}
@@ -109,7 +111,7 @@ public class SqliteSession implements Session {
 		mSqlite.close();
 		mSessionCache.clear();
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Session closed");
+			mLogger.debug("Session closed");
 	}
 
 	@Override

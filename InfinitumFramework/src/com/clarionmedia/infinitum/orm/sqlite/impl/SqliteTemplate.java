@@ -31,7 +31,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.util.Log;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
@@ -39,6 +38,7 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.Primitives;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
@@ -81,6 +81,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected boolean mIsOpen;
 	protected Stack<Boolean> mTransactionStack;
 	protected boolean mIsAutocommit;
+	private Logger mLogger;
 
 	/**
 	 * Constructs a new {@code SqliteTemplate} attached to the given
@@ -92,6 +93,7 @@ public class SqliteTemplate implements SqliteOperations {
 	 */
 	public SqliteTemplate(SqliteSession session) {
 		mSession = session;
+		mLogger = Logger.getInstance(TAG);
 		mInfinitumContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mIsAutocommit = mInfinitumContext.isAutocommit();
 		mMapper = new SqliteMapper();
@@ -130,7 +132,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mSqliteDb.beginTransaction();
 		mTransactionStack.push(true);
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Transaction started");
+			mLogger.debug("Transaction started");
 	}
 
 	@Override
@@ -141,7 +143,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mSqliteDb.endTransaction();
 		mTransactionStack.pop();
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Transaction committed");
+			mLogger.debug("Transaction committed");
 	}
 
 	@Override
@@ -151,7 +153,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mSqliteDb.endTransaction();
 		mTransactionStack.pop();
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Transaction rolled back");
+			mLogger.debug("Transaction rolled back");
 	}
 	
 	@Override
@@ -196,9 +198,9 @@ public class SqliteTemplate implements SqliteOperations {
 			deleteRelationships(model);
 		if (mInfinitumContext.isDebug()) {
 			if (result == 1)
-				Log.d(TAG, model.getClass().getSimpleName() + " model deleted");
+				mLogger.debug(model.getClass().getSimpleName() + " model deleted");
 			else
-				Log.d(TAG, model.getClass().getSimpleName() + " model was not deleted");
+				mLogger.debug(model.getClass().getSimpleName() + " model was not deleted");
 		}
 		return result == 1;
 	}
@@ -215,12 +217,12 @@ public class SqliteTemplate implements SqliteOperations {
 	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Saving or updating " + models.size() + " models");
+			mLogger.debug("Saving or updating " + models.size() + " models");
 		for (Object o : models) {
 			saveOrUpdate(o);
 		}
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Models saved or updated");
+			mLogger.debug("Models saved or updated");
 	}
 
 	@Override
@@ -228,13 +230,13 @@ public class SqliteTemplate implements SqliteOperations {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		int count = 0;
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Saving " + models.size() + " models");
+			mLogger.debug("Saving " + models.size() + " models");
 		for (Object o : models) {
 			if (save(o) > 0)
 				count++;
 		}
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, count + " models saved");
+			mLogger.debug(count + " models saved");
 		return count;
 	}
 
@@ -243,13 +245,13 @@ public class SqliteTemplate implements SqliteOperations {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		int count = 0;
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Deleting " + models.size() + " models");
+			mLogger.debug("Deleting " + models.size() + " models");
 		for (Object o : models) {
 			if (delete(o))
 				count++;
 		}
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, count + " models deleted");
+			mLogger.debug(count + " models deleted");
 		return count;
 	}
 
@@ -276,7 +278,7 @@ public class SqliteTemplate implements SqliteOperations {
 			cursor.close();
 		}
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, c.getSimpleName() + " model loaded");
+			mLogger.debug(c.getSimpleName() + " model loaded");
 		return ret;
 	}
 
@@ -284,7 +286,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public void execute(String sql) throws SQLGrammarException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Executing SQL: " + sql);
+			mLogger.debug("Executing SQL: " + sql);
 		try {
 			mSqliteDb.execSQL(sql);
 		} catch (SQLiteException e) {
@@ -297,7 +299,7 @@ public class SqliteTemplate implements SqliteOperations {
 		if (!force)
 		    Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Executing SQL: " + sql);
+			mLogger.debug("Executing SQL: " + sql);
 		Cursor ret = null;
 		try {
 			ret = mSqliteDb.rawQuery(sql, null);
@@ -361,7 +363,7 @@ public class SqliteTemplate implements SqliteOperations {
 		long ret = mSqliteDb.insert(tableName, null, values);
 		if (ret <= 0) {
 			if (mInfinitumContext.isDebug())
-				Log.d(TAG, model.getClass().getSimpleName() + " model was not saved");
+				mLogger.debug(model.getClass().getSimpleName() + " model was not saved");
 			return ret;
 		}
 		Field f = PersistenceResolution.getPrimaryKeyField(model.getClass());
@@ -378,7 +380,7 @@ public class SqliteTemplate implements SqliteOperations {
 		if (ret > 0 && PersistenceResolution.isCascading(model.getClass())) {
 			processRelationships(map, objectMap, model);
 			if (mInfinitumContext.isDebug())
-				Log.d(TAG, model.getClass().getSimpleName() + " model saved");
+				mLogger.debug(model.getClass().getSimpleName() + " model saved");
 		}
 		return ret;
 	}
@@ -398,13 +400,13 @@ public class SqliteTemplate implements SqliteOperations {
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (ret <= 0) {
 			if (mInfinitumContext.isDebug())
-				Log.d(TAG, model.getClass().getSimpleName() + " model was not updated");
+				mLogger.debug(model.getClass().getSimpleName() + " model was not updated");
 			return false;
 		}
 		if (PersistenceResolution.isCascading(model.getClass()))
 			processRelationships(map, objectMap, model);
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, model.getClass().getSimpleName() + " model updated");
+			mLogger.debug(model.getClass().getSimpleName() + " model updated");
 		return true;
 	}
 
@@ -566,9 +568,9 @@ public class SqliteTemplate implements SqliteOperations {
 			}
 			if (mInfinitumContext.isDebug()) {
 				if (result)
-					Log.d(TAG, first.getSimpleName() + "-" + second.getSimpleName() + " relationship saved");
+					mLogger.debug(first.getSimpleName() + "-" + second.getSimpleName() + " relationship saved");
 				else
-					Log.e(TAG, first.getSimpleName() + "-" + second.getSimpleName() + " relationship was not saved");
+					mLogger.error(first.getSimpleName() + "-" + second.getSimpleName() + " relationship was not saved");
 			}
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block

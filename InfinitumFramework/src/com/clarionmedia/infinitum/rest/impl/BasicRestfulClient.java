@@ -46,12 +46,11 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import android.util.Log;
-
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
@@ -77,6 +76,7 @@ public class BasicRestfulClient implements RestfulClient {
 	protected  final InfinitumContext mContext;
 	protected RestfulMapper mMapper;
 	protected Map<Class<?>, JsonDeserializer<?>> mJsonDeserializers;
+	protected Logger mLogger;
 	
 	/**
 	 * Constructs a new {@code BasicRestfulClient}. You must call
@@ -84,6 +84,7 @@ public class BasicRestfulClient implements RestfulClient {
 	 * before invoking this constructor.
 	 */
 	public BasicRestfulClient() {
+		mLogger = Logger.getInstance(TAG);
 		mContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mHost = mContext.getRestfulContext().getRestHost();
 		mMapper = new RestfulMapper();
@@ -94,7 +95,7 @@ public class BasicRestfulClient implements RestfulClient {
 	public boolean save(Object model) {
 		Preconditions.checkPersistenceForModify(model);
 		if (mContext.isDebug())
-		    Log.d(TAG, "Sending POST request to save entity");
+		    mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		HttpPost httpPost = new HttpPost(mHost + PersistenceResolution.getRestfulResource(model.getClass()));
 		RestfulModelMap map = mMapper.mapModel(model);
@@ -128,7 +129,7 @@ public class BasicRestfulClient implements RestfulClient {
 	public boolean delete(Object model) {
 		Preconditions.checkPersistenceForModify(model);
 		if (mContext.isDebug())
-		    Log.d(TAG, "Sending DELETE request to delete entity");
+		    mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		Object pk = PersistenceResolution.getPrimaryKey(model);
 		HttpDelete httpDelete = new HttpDelete(mHost + PersistenceResolution.getRestfulResource(model.getClass()) + "/" + pk.toString());
@@ -152,7 +153,7 @@ public class BasicRestfulClient implements RestfulClient {
 	public int saveOrUpdate(Object model) {
 		Preconditions.checkPersistenceForModify(model);
 		if (mContext.isDebug())
-		    Log.d(TAG, "Sending PUT request to save or update entity");
+		    mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		HttpPut httpPut = new HttpPut(mHost + PersistenceResolution.getRestfulResource(model.getClass()));
 		RestfulModelMap map = mMapper.mapModel(model);
@@ -189,7 +190,7 @@ public class BasicRestfulClient implements RestfulClient {
 	public <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		Preconditions.checkPersistenceForLoading(type);
 		if (mContext.isDebug())
-		    Log.d(TAG, "Sending GET request to retrieve entity");
+		    mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
 		String uri = mHost + PersistenceResolution.getRestfulResource(type) + "/" + id;
 		if (mContext.getRestfulContext().isRestAuthenticated())
