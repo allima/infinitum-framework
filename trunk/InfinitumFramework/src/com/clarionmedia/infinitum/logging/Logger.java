@@ -19,6 +19,8 @@
 
 package com.clarionmedia.infinitum.logging;
 
+import com.clarionmedia.infinitum.logging.impl.LoggerImpl;
+
 /**
  * <p>
  * Prints log messages to Logcat but adheres to environment configuration.
@@ -27,7 +29,18 @@ package com.clarionmedia.infinitum.logging;
  * @author Tyler Treat
  * @version 1.0 04/10/12
  */
-public interface Logger {
+public abstract class Logger {
+
+	/**
+	 * Retrieves a new {@code Logger} instance.
+	 * 
+	 * @param tag
+	 *            the tag to assign to the {@code Logger}
+	 * @return {@code Logger} instance
+	 */
+	public static Logger getInstance(String tag) {
+		return new LoggerImpl(tag);
+	}
 
 	/**
 	 * Prints a log message at the DEBUG level.
@@ -35,7 +48,7 @@ public interface Logger {
 	 * @param msg
 	 *            the message to log
 	 */
-	void debug(String msg);
+	public abstract void debug(String msg);
 
 	/**
 	 * Prints a log message at the DEBUG level.
@@ -45,7 +58,7 @@ public interface Logger {
 	 * @param tr
 	 *            the {@link Throwable} to log
 	 */
-	void debug(String msg, Throwable tr);
+	public abstract void debug(String msg, Throwable tr);
 
 	/**
 	 * Prints a log message at the ERROR level.
@@ -53,7 +66,7 @@ public interface Logger {
 	 * @param msg
 	 *            the message to log
 	 */
-	void error(String msg);
+	public abstract void error(String msg);
 
 	/**
 	 * Prints a log message at the ERROR level.
@@ -63,7 +76,7 @@ public interface Logger {
 	 * @param tr
 	 *            the {@link Throwable} to log
 	 */
-	void error(String msg, Throwable tr);
+	public abstract void error(String msg, Throwable tr);
 
 	/**
 	 * Prints a log message at the INFO level.
@@ -71,7 +84,7 @@ public interface Logger {
 	 * @param msg
 	 *            the message to log
 	 */
-	void info(String msg);
+	public abstract void info(String msg);
 
 	/**
 	 * Prints a log message at the INFO level.
@@ -81,7 +94,7 @@ public interface Logger {
 	 * @param tr
 	 *            the {@link Throwable} to log
 	 */
-	void info(String msg, Throwable tr);
+	public abstract void info(String msg, Throwable tr);
 
 	/**
 	 * Prints a log message at the VERBOSE level.
@@ -89,7 +102,7 @@ public interface Logger {
 	 * @param msg
 	 *            the message to log
 	 */
-	void verbose(String msg);
+	public abstract void verbose(String msg);
 
 	/**
 	 * Prints a log message at the VERBOSE level.
@@ -99,7 +112,7 @@ public interface Logger {
 	 * @param tr
 	 *            the {@link Throwable} to log
 	 */
-	void verbose(String msg, Throwable tr);
+	public abstract void verbose(String msg, Throwable tr);
 
 	/**
 	 * Prints a log message at the WARN level.
@@ -107,7 +120,7 @@ public interface Logger {
 	 * @param msg
 	 *            the message to log
 	 */
-	void warn(String msg);
+	public abstract void warn(String msg);
 
 	/**
 	 * Prints a log message at the WARN level.
@@ -117,26 +130,25 @@ public interface Logger {
 	 * @param tr
 	 *            the {@link Throwable} to log
 	 */
-	void warn(String msg, Throwable tr);
+	public abstract void warn(String msg, Throwable tr);
 
 	/**
-	 * What a Terrible Failure. Used to report a condition that should never
-	 * occur.
+	 * Returns the tag assigned to this {@code Logger}. The tag is used to
+	 * identify where a log message originated from. Typically, it is the name
+	 * of the {@link Activity} or class in which the {@code Logger} was called.
 	 * 
-	 * @param msg
-	 *            the message to log
+	 * @return {@code Logger} tag
 	 */
-	void wtf(String msg);
+	public abstract String getTag();
 
 	/**
-	 * What a Terrible Failure. Used to report a condition that should never
-	 * occur.
+	 * Sets the tag assigned to this {@code Logger}. The tag is used to identify
+	 * where a log message originated from. Typically, it is the name of the
+	 * {@link Activity} or class in which the {@code Logger} was called.
 	 * 
-	 * @param msg
-	 *            the message to log
-	 * @param tr
-	 *            the {@link Throwable} to log
+	 * @param tag
+	 *            the tag to assign
 	 */
-	void wtf(String msg, Throwable tr);
+	public abstract void setTag(String tag);
 
 }
