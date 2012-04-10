@@ -39,6 +39,7 @@ public void mapObjectToColumn(Object value, String column, ContentValues values)
 Below is a complete implementation for the `DateTime` `SqliteTypeAdapter`.
 
 {{{
+// Store DateTimes as strings
 TypeAdapter<DateTime> adapter = new SqliteTypeAdapter<DateTime>(SqliteDataType.TEXT) {
     @Override
     public void mapToObject(ResultSet result, int index, Field field, Object model) throws IllegalArgumentException, IllegalAccessException {
@@ -88,6 +89,7 @@ Unlike `SqliteTypeAdapter`, `RestfulTypeAdapter`'s constructor takes no argument
 Below is a complete implementation for the `DateTime` `RestfulTypeAdapter`.
 
 {{{
+// Store DateTimes as strings
 TypeAdapter<DateTime> adapter = new RestfulTypeAdapter<DateTime>() {
     @Override
     public void mapToObject(ResultSet result, int index, Field field, Object model) throws IllegalArgumentException, IllegalAccessException {
@@ -105,4 +107,28 @@ TypeAdapter<DateTime> adapter = new RestfulTypeAdapter<DateTime>() {
         pairs.add(new BasicNameValuePair(field, dateStr));
     }
 };
+}}}
+
+= Registering `TypeAdapters` =
+
+A `TypeAdapter` is registered with a [Session] or a [RestfulClient] for a certain class, allowing fields of that class to be mapped to a database table or web service model.  Registering a TypeAdapter for a class which already has a TypeAdapter registered for it will result in the previous TypeAdapter being overridden. Continuing again with the `TypeAdapter` example for `DateTime`, an example of creating and registering a `SqliteTypeAdapter` with a `Session` is given below.
+
+{{{
+session.registerTypeAdapter(DateTime.class, new SqliteTypeAdapter<DateTime>(SqliteDataType.TEXT) {
+    @Override
+    public void mapToObject(ResultSet result, int index, Field field, Object model) throws IllegalArgumentException, IllegalAccessException {
+        field.set(model, result.getString(index));
+    }
+    @Override
+    public void mapToColumn(DateTime value, String column, ContentValues values) {
+	String dateStr = value.getYear() + "-" + value.getMonthOfYear() + "-" + value.getDayOfMonth();
+	values.put(column, dateStr);
+    }
+    @Override
+    public void mapObjectToColumn(Object value, String column, ContentValues values) {
+        DateTime dt = (DateTime) value;
+	String dateStr = dt.getYear() + "-" + dt.getMonthOfYear() + "-" + dt.getDayOfMonth();
+	values.put(column, dateStr);
+    }
+});
 }}}
