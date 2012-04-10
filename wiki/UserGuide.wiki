@@ -1,6 +1,8 @@
 #summary Infinitum user guide.
 #labels Featured,Explained
 
+*NOTE:* this wiki is a work in progress.
+
 *Contents*
 <wiki:toc max_depth="3" />
 
