@@ -22,10 +22,9 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
-
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
@@ -48,6 +47,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	private SQLiteDatabase mSqliteDb;
 	private InfinitumContext mInfinitumContext;
 	private SqlBuilder mSqlBuilder;
+	private Logger mLogger;
 
 	/**
 	 * Constructs a new {@code SqliteDbHelper} with the given {@link Context}
@@ -62,6 +62,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 		super(context, InfinitumContextFactory.getInstance().getInfinitumContext()
 				.getSqliteDbName(), null, InfinitumContextFactory.getInstance()
 				.getInfinitumContext().getSqliteDbVersion());
+		mLogger = Logger.getInstance(TAG);
 		mInfinitumContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mSqlBuilder = new SqliteBuilder(mapper);
 	}
@@ -90,20 +91,20 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 		if (!mInfinitumContext.isSchemaGenerated())
 			return;
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Creating database tables");
+			mLogger.debug("Creating database tables");
 		try {
 			mSqlBuilder.createTables(this);
 		} catch (ModelConfigurationException e) {
-			Log.e(TAG, OrmConstants.CREATE_TABLES_ERROR, e);
+			mLogger.error(OrmConstants.CREATE_TABLES_ERROR, e);
 		}
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Database tables created successfully");
+			mLogger.debug("Database tables created successfully");
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		if (mInfinitumContext.isDebug())
-			Log.d(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
+			mLogger.debug("Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
 		// TODO: drop tables
 		onCreate(db);
 	}
