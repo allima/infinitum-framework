@@ -6,7 +6,7 @@
 
 = Introduction =
 
-A `Session` represents the lifecycle of an Infinitum persistence service and acts as an interface to a configured application datastore. All database interaction should go through the `Session`, which also provides an API for creating [Criteria] and GenCriteria instances.
+A `Session` represents the lifecycle of an Infinitum persistence service and acts as an interface to a configured application datastore. All database interaction should go through the `Session`, which also provides an API for creating [Criteria] instances.
 
 `Session` instances should be acquired from an InfinitumContext. When a `Session` is acquired, it must be opened before any transactions take place. Subsequently, it should also be closed to close the persistence service and clean up any resources.
 
