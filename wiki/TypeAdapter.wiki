@@ -65,6 +65,44 @@ Infinitum's RESTful client also provides an abstract `TypeAdapter` implementatio
 {{{
 @Override
 public void mapToField(DateTime value, String field, List<NameValuePair> pairs) {
-    pairs.add(new BasicNameValuePair(field, value.getYear() + "-" + value.getMonthOfYear() + "-" + value.getDayOfMonth()));
+    String dateStr = value.getYear() + "-" + value.getMonthOfYear() + "-" + value.getDayOfMonth();
+    pairs.add(new BasicNameValuePair(field, dateStr));
 }
+}}}
+
+The second method, `mapObjectToField`, is the analog to `SqliteTypeAdapter`'s `mapObjectToColumn`. Following suit, it is identical to `mapToField` except for the first parameter. Once again, this object can be safely casted to the specified generic type.
+
+{{{
+@Override
+public void mapObjectToField(Object value, String field, List<NameValuePair> pairs) {
+    DateTime dt = (DateTime) value; // guaranteed safe cast
+    String dateStr = dt.getYear() + "-" + dt.getMonthOfYear() + "-" + dt.getDayOfMonth();
+    pairs.add(new BasicNameValuePair(field, dateStr));
+}
+}}}
+
+Unlike `SqliteTypeAdapter`, `RestfulTypeAdapter`'s constructor takes no arguments.
+
+== Example Implementation ==
+
+Below is a complete implementation for the `DateTime` `RestfulTypeAdapter`.
+
+{{{
+TypeAdapter<DateTime> adapter = new RestfulTypeAdapter<DateTime>() {
+    @Override
+    public void mapToObject(ResultSet result, int index, Field field, Object model) throws IllegalArgumentException, IllegalAccessException {
+        field.set(model, result.getString(index));
+    }
+    @Override
+    public void mapToField(DateTime value, String field, List<NameValuePair> pairs) {
+        String dateStr = value.getYear() + "-" + value.getMonthOfYear() + "-" + value.getDayOfMonth();
+        pairs.add(new BasicNameValuePair(field, dateStr));
+    }
+    @Override
+    public void mapObjectToField(Object value, String field, List<NameValuePair> pairs) {
+        DateTime dt = (DateTime) value;
+        String dateStr = dt.getYear() + "-" + dt.getMonthOfYear() + "-" + dt.getDayOfMonth();
+        pairs.add(new BasicNameValuePair(field, dateStr));
+    }
+};
 }}}
