@@ -23,3 +23,16 @@ This user guide is designed to provide explanation for some of the various frame
   * [Criterion]: `Criteria` query restrictions.
   * [Conditions]: provides static factory methods for creating `Criterion`.
   * TypeAdapter: facilitates the mapping of database column values to Java data types and vice versa.
+  * Annotations: provide ORM metadata on domain classes.
+    * [Entity]: indicates the persistence state of a model.
+    * [Persistence]: indicates the persistence mode of a class.
+    * [Table]:  indicates the name of a table an entity is mapped to.
+    * [Column]: indicates the name of a column a field is mapped to.
+    * PrimaryKey: indicates if a field is a primary key.
+    * [Unique]: indicates that the field value must be unique to the table when being persisted to the database.
+    * NotNull: indicates that the field may not contain a null value when being persisted to the database.
+    * [Rest]: indicates the name of a resource field a field is mapped to for a RESTful web service.
+    * ManyToMany: indicates that the annotated field represents a many-to-many relationship with another persistent class.
+    * ManyToOne: indicates that the annotated field represents a many-to-one relationship with another persistent class.
+    * OneToMany: indicates that the annotated field represents a one-to-many relationship with another persistent class.
+    * OneToOne: indicates that the annotated field represents a one-to-one relationship with another persistent class.
