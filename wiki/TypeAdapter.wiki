@@ -1,4 +1,5 @@
 #summary Describes the TypeAdapter.
+#labels Explained
 
 *Contents*
 <wiki:toc max_depth="3" />
@@ -111,7 +112,7 @@ TypeAdapter<DateTime> adapter = new RestfulTypeAdapter<DateTime>() {
 
 = Registering `TypeAdapters` =
 
-A `TypeAdapter` is registered with a [Session] or a [RestfulClient] for a certain class, allowing fields of that class to be mapped to a database table or web service model.  Registering a TypeAdapter for a class which already has a TypeAdapter registered for it will result in the previous TypeAdapter being overridden. Continuing again with the `TypeAdapter` example for `DateTime`, an example of creating and registering a `SqliteTypeAdapter` with a `Session` is given below.
+A `TypeAdapter` is registered with a [Session] or a [RestfulClient] for a certain class, allowing fields of that class to be mapped to a database table or web service model.  Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. Continuing again with the `TypeAdapter` example for `DateTime`, an example of creating and registering a `SqliteTypeAdapter` with a `Session` is given below.
 
 {{{
 session.registerTypeAdapter(DateTime.class, new SqliteTypeAdapter<DateTime>(SqliteDataType.TEXT) {
