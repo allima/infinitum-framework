@@ -59,4 +59,4 @@ Metadata can come in two forms: XML map files and annotations. XML map files pro
 
 = RESTful Client =
 
-The Infinitum RESTful client provides an API for communicating with a RESTful web service using objects.
+The Infinitum RESTful client provides an extensible API for communicating with a RESTful web service using objects.
