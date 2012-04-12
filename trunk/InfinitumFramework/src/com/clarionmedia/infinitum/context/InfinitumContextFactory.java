@@ -83,6 +83,7 @@ public class InfinitumContextFactory {
 		Resources resources = sContext.getResources();
 		XmlResourceParser config = resources.getXml(configId);
 		sInfinitumContext = configureFromXml(config);
+		sInfinitumContext.setContext(context);
 		return sInfinitumContext;
 	}
 
