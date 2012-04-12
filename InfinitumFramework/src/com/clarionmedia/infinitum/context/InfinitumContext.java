@@ -61,6 +61,7 @@ public class InfinitumContext {
 	private boolean mAutocommit;
 	private List<String> mDomainModels;
 	private RestfulContext mRestContext;
+	private Context mContext;
 
 	/**
 	 * Constructs a new {@code InfinitumContext}. This constructor should
@@ -78,19 +79,17 @@ public class InfinitumContext {
 	/**
 	 * Retrieves a new {@link Session} instance for the configured data source.
 	 * 
-	 * @param context
-	 *            the {@link Context} of the {@code Session}
 	 * @param source
 	 *            the {@link DataSource} to target
 	 * @return new {@code Session} instance
 	 * @throws InfinitumConfigurationException
 	 *             if the specified {@code DataSource} was not configured
 	 */
-	public Session getSession(Context context, DataSource source)
+	public Session getSession(DataSource source)
 			throws InfinitumConfigurationException {
 		switch (source) {
 		case Sqlite:
-			return new SqliteSession(context);
+			return new SqliteSession(mContext);
 		default:
 			throw new InfinitumConfigurationException(
 					"Data source not configured.");
@@ -308,6 +307,14 @@ public class InfinitumContext {
 
 	public void setRestfulContext(RestfulContext restContext) {
 		mRestContext = restContext;
+	}
+
+	public void setContext(Context context) {
+		mContext = context;
+	}
+
+	public Context getContext() {
+		return mContext;
 	}
 
 }
