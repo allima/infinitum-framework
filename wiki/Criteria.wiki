@@ -40,6 +40,10 @@ Once a `Criteria` query has been constructed and the conditions have been added,
 
 If a query is to retrieve a unique result, `Criteria`'s `unique()` method should be invoked. This will return a single, unique query result or `null` if no such record exists. If there is no unique record, i.e. there are multiple results, an `InfinitumRuntimeException` will be thrown.
 
+{{{
+Foo foo = criteria.add(Conditions.eq("mId", 42)).unique();
+}}}
+
 To retrieve _all_ results, invoke `Criteria`'s `list()` method, which will return all query results as a list. This can be refined, however, by using `limit` and `offset`. For example, the following code will limit the query's result set to 10 records.
 
 {{{
