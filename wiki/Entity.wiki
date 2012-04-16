@@ -1,0 +1,16 @@
+#summary Describes the Entity annotation.
+
+*Contents*
+<wiki:toc max_depth="3" />
+
+= Introduction =
+
+The `Entity` annotation is used to indicate the persistence state of a model class. The annotation can be omitted and a model class will be persistent by default, but if properties need to be explicitly defined, then it should be applied.
+
+= Annotation Attributes =
+
+`Entity` has a number of attributes which are used to specify various entity properties.
+
+*mode:* indicates the entity's persistence mode, persistent or transient. By default, this attribute is set to persistent.
+
+*cascade:* indicates if the entity has cascading enabled. If it is, when its state is changed in the database, any entities related to it will also be updated.
