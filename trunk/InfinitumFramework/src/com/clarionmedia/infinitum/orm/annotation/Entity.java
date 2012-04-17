@@ -71,7 +71,7 @@ public @interface Entity {
 
 	/**
 	 * Indicates if the entity has lazy loading enabled. If it is, related
-	 * entities will only be loaded when accessed.
+	 * entities will be dynamically loaded when accessed.
 	 * 
 	 * @return {@code true} if lazy loading is enabled, {@code false} if not
 	 */
@@ -82,5 +82,5 @@ public @interface Entity {
 	 * 
 	 * @return RESTful resource name
 	 */
-	String resource();
+	String resource() default "";
 }

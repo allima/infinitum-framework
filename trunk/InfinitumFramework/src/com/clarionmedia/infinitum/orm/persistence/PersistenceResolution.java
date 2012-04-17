@@ -676,6 +676,8 @@ public class PersistenceResolution {
 		} else {
 			Entity entity = c.getAnnotation(Entity.class);
 			ret = entity.resource();
+			if (ret.equals(""))
+				ret = c.getSimpleName().toLowerCase();
 		}
 		sRestResourceCache.put(c, ret);
 		return ret;
