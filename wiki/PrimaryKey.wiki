@@ -27,6 +27,7 @@ public abstract class AbstractBase {
     public void setPk(long pk) {
         mPk = pk;
     }
+
 }
 
 public class Foo extends AbstractBase {
