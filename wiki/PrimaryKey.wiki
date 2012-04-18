@@ -10,7 +10,7 @@ The `PrimaryKey` annotation indicates if an entity class's field is a primary ke
 
 Currently, Infinitum does not support composite or compound keys. More specifically, only _one_ `PrimaryKey` annotation may exist per model class. That said, a compound key can effectively be achieved by designating the "primary key" columns as unique using the [Unique] annotation.
 
-= PrimaryKey Example =
+= `PrimaryKey` Example =
 
 As was hinted at earlier, Infinitum will search the entire class hierarchy for a `PrimaryKey`. If class `AbstractBase` has a field `mPk` marked as a primary key and class `Foo` extends `AbstractBase`, `Foo`'s primary key is `mPk`. This notion is illustrated in the example below.
 
