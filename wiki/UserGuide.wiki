@@ -42,6 +42,7 @@ Metadata can come in two forms: XML map files and annotations. XML map files pro
 
   * [Entity]: indicates the persistence state of a model.
   * [Table]:  indicates the name of a table an entity is mapped to.
+  * [Persistence]: indicates the persistence state of a field.
   * [Column]: indicates the name of a column a field is mapped to.
   * PrimaryKey: indicates if a field is a primary key.
   * [Unique]: indicates that the field value must be unique to the table when being persisted to the database.
