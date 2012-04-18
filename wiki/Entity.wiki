@@ -32,7 +32,7 @@ public class Foobar {
 
 *resource*: indicates the RESTful resource name for this entity, i.e. in mywebservice.com/*resourceFoo*, resourceFoo would be the resource name. If the resource name is not specified, the lowercase form of the class name will be used.
 
-= Entity Example =
+= `Entity` Example =
 
 It's important to point out that the `Entity` annotation is completely optional. If it is not specified for a model class, the default attribute values, described above, will be used. However, in the event that you need to specify a different resource name or disable cascading or lazy loading, the `Entity` annotation will need to be defined with these values. Below is an example model class which uses the `Entity` annotation to disable cascading and lazy loading. Notice that since the `resource` attribute is not present, the RESTful resource associated with this class will be "foo".
 
