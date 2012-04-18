@@ -29,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
@@ -40,6 +39,7 @@ import com.clarionmedia.infinitum.orm.annotation.ManyToOne;
 import com.clarionmedia.infinitum.orm.annotation.NotNull;
 import com.clarionmedia.infinitum.orm.annotation.OneToMany;
 import com.clarionmedia.infinitum.orm.annotation.OneToOne;
+import com.clarionmedia.infinitum.orm.annotation.Persistence;
 import com.clarionmedia.infinitum.orm.annotation.PrimaryKey;
 import com.clarionmedia.infinitum.orm.annotation.Rest;
 import com.clarionmedia.infinitum.orm.annotation.Table;
@@ -196,9 +196,9 @@ public class PersistenceResolution {
 		for (Field f : fields) {
 			if (Modifier.isStatic(f.getModifiers()) || TypeResolution.isDomainProxy(f.getDeclaringClass()))
 				continue;
-			Entity e = f.getAnnotation(Entity.class);
+			Persistence persistence = f.getAnnotation(Persistence.class);
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
-			if ((e == null || e.mode() == PersistenceMode.Persistent) || pk != null)
+			if ((persistence == null || persistence.value() == PersistenceMode.Persistent) || pk != null)
 				ret.add(f);
 		}
 		sPersistenceCache.put(c, ret);
@@ -697,9 +697,9 @@ public class PersistenceResolution {
 	public static String getResourceFieldName(Field f) throws IllegalArgumentException {
 		if (!isPersistent(f.getDeclaringClass()) || !TypeResolution.isDomainModel(f.getDeclaringClass()))
 			throw new IllegalArgumentException();
-		if (f.isAnnotationPresent(Entity.class)) {
-			Entity e = f.getAnnotation(Entity.class);
-			if (e.mode() == PersistenceMode.Transient)
+		if (f.isAnnotationPresent(Persistence.class)) {
+			Persistence p = f.getAnnotation(Persistence.class);
+			if (p.value() == PersistenceMode.Transient)
 				throw new IllegalArgumentException();
 		}
 		if (sRestFieldCache.containsKey(f))
