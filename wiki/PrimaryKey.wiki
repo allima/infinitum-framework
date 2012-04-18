@@ -1,0 +1,9 @@
+#summary Describes the PrimaryKey annotation.
+#labels Explained
+
+*Contents*
+<wiki:toc max_depth="3" />
+
+= Introduction =
+
+The `PrimaryKey` annotation indicates if an entity class's field is a primary key, meaning the value is unique to all other entity instances. If the annotation is missing from the class hierarchy, Infinitum will look for a field called `mId` or `id` to use as the primary key.
