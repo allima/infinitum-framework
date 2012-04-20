@@ -20,7 +20,7 @@ The `ManyToOne` annotation is used to define a many-to-one relationship between 
 
 = `ManyToOne` Example =
 
-The code below shows how a many-to-one relationship is established between the two classes `Manager` and `Department` using the `ManyToOne` annotation. Let's assume that a `Manager` can manage one `Department` and a `Department` can be managed by multiple `Manager`s.
+The code below shows how a many-to-one relationship is established between the two classes `Manager` and `Department` using the `ManyToOne` and `OneToMany` annotations. Let's assume that a `Manager` can manage one `Department` and a `Department` can be managed by multiple `Manager`s.
 
 {{{
 public class Manager extends Employee {
