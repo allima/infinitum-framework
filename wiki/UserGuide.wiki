@@ -65,3 +65,9 @@ The Infinitum RESTful client provides an extensible API for communicating with a
   * RestfulClientBuilder: provides methods for configuring and constructing new `RestfulClient` instances.
   * AuthenticationStrategy: describes how web service requests should be authenticated.
   * JsonDeserializer: tells Infinitum how to deserialize specific JSON into domain model instances.
+
+= Logging =
+
+In addition to its ORM and RESTful services, Infinitum offers an extremely lightweight logging framework which wraps Android's Logcat. This logging framework allows log statements to be made within application code but only asserted in debug environments. This means that logging code does not need any conditional statements or be removed altogether when preparing an application for release.
+
+  * [Logger]: prints log messages to Logcat but adheres to environment configuration.
