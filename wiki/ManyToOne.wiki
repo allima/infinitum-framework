@@ -6,7 +6,7 @@
 
 = Introduction =
 
-The `ManyToOne` annotation is used to define a many-to-one relationship between two domain entities. The annotation is placed in each class which make up the relationship on the field which models it. For example, if class `Foo` has a many-to-one relationship with class `Bar`, `Foo` will contain a `Bar` field and `Bar` will contain a collection of `Foo`. The annotation would then be placed on each of these fields in the respective classes.
+The `ManyToOne` annotation is used to define a many-to-one relationship between two domain entities. The annotation is placed in the "many" side of the relationship on the field which models it. Conversely, a OneToMany annotation is placed in the "one" side of the relationship. For example, if class `Foo` has a many-to-one relationship with class `Bar`, `Foo` will contain a `Bar` field and `Bar` will contain a collection of `Foo`. The `ManyToOne` annotation would then be placed on the field in `Foo` and the `OneToMany` annotation on the field in `Bar`.
 
 = Annotation Attributes =
 
@@ -36,7 +36,7 @@ public class Department {
 
     private String mName;
 
-    @ManyToOne(name="managedBy", className="com.example.domain.Manager", column="dept")
+    @OneToMany(name="managedBy", className="com.example.domain.Manager", column="dept")
     private List<Manager> mManagers;
 
     // ...
