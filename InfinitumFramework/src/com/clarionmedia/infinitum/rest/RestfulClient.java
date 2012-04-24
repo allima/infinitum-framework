@@ -23,14 +23,16 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Map;
 
+import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.impl.BasicRestfulClient;
 
 /**
  * <p>
- * This interface provides an API for communicating with a RESTful web service
- * using objects. Infinitum provides an implementation called
+ * This abstract class provides an API for communicating with a RESTful web
+ * service using objects. Infinitum provides an implementation called
  * {@link BasicRestfulClient}, which can be extended or re-implemented for
  * specific business needs.
  * </p>
@@ -38,7 +40,22 @@ import com.clarionmedia.infinitum.rest.impl.BasicRestfulClient;
  * @author Tyler Treat
  * @version 1.0 02/27/12
  */
-public interface RestfulClient {
+public abstract class RestfulClient {
+
+	protected InfinitumContext mContext;
+	protected String mHost;
+	protected boolean mIsAuthenticated;
+	protected AuthenticationStrategy mAuthStrategy;
+
+	/**
+	 * Prepares this {@code RestfulClient} for use.
+	 */
+	public void prepare() {
+		mContext = InfinitumContextFactory.getInstance().getInfinitumContext();
+		mHost = mContext.getRestfulContext().getRestHost();
+		mIsAuthenticated = mContext.getRestfulContext().isRestAuthenticated();
+		mAuthStrategy = mContext.getRestfulContext().getAuthStrategy();
+	}
 
 	/**
 	 * Makes an HTTP request to the web service to save the given model.
@@ -47,7 +64,7 @@ public interface RestfulClient {
 	 *            the model to save
 	 * @return {@code true} if the save succeeded, {@code false} if not
 	 */
-	boolean save(Object model);
+	public abstract boolean save(Object model);
 
 	/**
 	 * Makes an HTTP request to the web service to delete the given model.
@@ -56,7 +73,7 @@ public interface RestfulClient {
 	 *            the model to delete
 	 * @return {@code true} if the delete succeeded, {@code false} if not
 	 */
-	boolean delete(Object model);
+	public abstract boolean delete(Object model);
 
 	/**
 	 * Makes an HTTP request to the web service to update the given model or
@@ -67,7 +84,7 @@ public interface RestfulClient {
 	 * @return 0 if the model was updated, 1 if the model was saved, or -1 if
 	 *         the operation failed
 	 */
-	int saveOrUpdate(Object model);
+	public abstract int saveOrUpdate(Object model);
 
 	/**
 	 * Returns an instance of the given persistent model {@link Class} as
@@ -84,8 +101,7 @@ public interface RestfulClient {
 	 * @throws IllegalArgumentException
 	 *             if an invalid primary key is provided
 	 */
-	<T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException,
-			IllegalArgumentException;
+	public abstract <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException;
 
 	/**
 	 * Registers the given {@link JsonDeserializer} for the given {@link Class}
@@ -99,8 +115,7 @@ public interface RestfulClient {
 	 *            the {@code JsonDeserializer} to use when deserializing
 	 *            {@code Objects} of the given type
 	 */
-	<T> void registerJsonDeserializer(Class<T> type,
-			JsonDeserializer<T> deserializer);
+	public abstract <T> void registerJsonDeserializer(Class<T> type, JsonDeserializer<T> deserializer);
 
 	/**
 	 * Registers the given {@link RestfulTypeAdapter} for the specified
@@ -116,7 +131,7 @@ public interface RestfulClient {
 	 * @param adapter
 	 *            the {@code RestfulTypeAdapter} to register
 	 */
-	<T> void registerTypeAdapter(Class<T> type, RestfulTypeAdapter<T> adapter);
+	public abstract <T> void registerTypeAdapter(Class<T> type, RestfulTypeAdapter<T> adapter);
 
 	/**
 	 * Returns a {@link Map} containing all {@link TypeAdapter} instances
@@ -125,6 +140,6 @@ public interface RestfulClient {
 	 * 
 	 * @return {@code Map<Class<?>, TypeAdapter<?>>
 	 */
-	Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
+	public abstract Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
 
 }

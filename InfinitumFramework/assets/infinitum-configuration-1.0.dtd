@@ -22,12 +22,14 @@
  
 -->
 
-<!ELEMENT infinitum-configuration (application? , sqlite? , rest? , domain?)>
+<!ELEMENT infinitum-configuration (application? , sqlite? , rest? , domain? , beans?)>
 
 <!ELEMENT application (property*)>
 <!ELEMENT sqlite (property+)>
-<!ELEMENT rest (property+ , authentication?)>
 <!ELEMENT domain (model*)>
+<!ELEMENT beans (bean*)>
+<!ELEMENT rest (property+ , authentication?)>
+<!ATTLIST rest ref CDATA #REQUIRED>
 
 <!ELEMENT property (#PCDATA)>
 <!ATTLIST property name CDATA #REQUIRED>
@@ -35,8 +37,14 @@
 <!ELEMENT model (#PCDATA)>
 <!ATTLIST model resource CDATA #REQUIRED>
 
+<!ELEMENT bean (property*)>
+<!ATTLIST bean id CDATA #REQUIRED>
+<!ATTLIST bean class CDATA #REQUIRED>
+
 <!ELEMENT resource (#PCDATA)>
 <!ATTLIST resource name CDATA #REQUIRED>
 
-<!ELEMENT authentication (property+)>
-<!ATTLIST authentication strategy CDATA #REQUIRED>
+<!ELEMENT authentication (property*)>
+<!ATTLIST authentication strategy CDATA #IMPLIED>
+<!ATTLIST authentication ref CDATA #IMPLIED>
+<!ATTLIST authentication enabled CDATA #REQUIRED>

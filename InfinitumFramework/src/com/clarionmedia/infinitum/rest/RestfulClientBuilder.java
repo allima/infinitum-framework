@@ -31,14 +31,14 @@ import java.lang.reflect.Field;
  * @author Tyler Treat
  * @version 1.0 03/28/12
  */
-public interface RestfulClientBuilder<T extends RestfulClient> {
+public interface RestfulClientBuilder {
 
 	/**
 	 * Builds a configured {@link RestfulClient} instance.
 	 * 
 	 * @return {@code RestfulClient}
 	 */
-	T build();
+	RestfulClient build();
 
 	/**
 	 * Registers a {@link JsonDeserializer} for the given {@link Class} type.
@@ -51,8 +51,9 @@ public interface RestfulClientBuilder<T extends RestfulClient> {
 	 *            the {@code Class} associated with this deserializer
 	 * @param deserializer
 	 *            the {@code JsonDeserializer} to register
+	 * @return {@code RestfulClientBuilder} to allow for method chaining
 	 */
-	<E> void registerJsonDeserializer(Class<E> type, JsonDeserializer<E> deserializer);
+	<E> RestfulClientBuilder registerJsonDeserializer(Class<E> type, JsonDeserializer<E> deserializer);
 
 	/**
 	 * Registers the given {@link RestfulTypeAdapter} for the specified
@@ -67,12 +68,15 @@ public interface RestfulClientBuilder<T extends RestfulClient> {
 	 *            the {@code Class} this {@code RestfulTypeAdapter} is for
 	 * @param adapter
 	 *            the {@code RestfulTypeAdapter} to register
+	 * @return {@code RestfulClientBuilder} to allow for method chaining
 	 */
-	<E> void registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter);
+	<E> RestfulClientBuilder registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter);
 
 	/**
 	 * Removes any current configurations for the {@link RestfulClient}.
+	 * 
+	 * @return {@code RestfulClientBuilder} to allow for method chaining
 	 */
-	void clearConfiguration();
+	RestfulClientBuilder clearConfiguration();
 
 }

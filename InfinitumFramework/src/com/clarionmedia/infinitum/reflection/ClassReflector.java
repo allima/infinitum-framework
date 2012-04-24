@@ -22,6 +22,10 @@ package com.clarionmedia.infinitum.reflection;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
@@ -55,16 +59,14 @@ public class ClassReflector {
 				name = name.substring(1);
 		}
 		try {
-			Method getter = object.getClass().getMethod(
-					StringUtil.getterName(name));
+			Method getter = object.getClass().getMethod(StringUtil.getterName(name));
 			return getter.invoke(object);
 		} catch (SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
-			throw new ModelConfigurationException("Field '" + field.getName()
-					+ "' in model '" + object.getClass().getName()
-					+ "' does not have an associated getter method.");
+			throw new ModelConfigurationException("Field '" + field.getName() + "' in model '"
+					+ object.getClass().getName() + "' does not have an associated getter method.");
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -93,6 +95,44 @@ public class ClassReflector {
 		if (TypeResolution.isDomainProxy(object.getClass()))
 			return object.getClass().isInstance(object);
 		return false;
+	}
+
+	/**
+	 * Retrieves all {@code Fields} for the given {@link Class}.
+	 * 
+	 * @param c
+	 *            the {@code Class} to get {@code Fields} for
+	 * @return {@link List} of {@code Fields}
+	 */
+	public static List<Field> getAllFields(Class<?> c) {
+		return getAllFieldsRec(c, new LinkedList<Field>());
+	}
+
+	/**
+	 * Retrieves the {@link Field} with the given name for the given
+	 * {@link Class}.
+	 * 
+	 * @param c
+	 *            the {@code Class} to retrieve the {@code Field} from
+	 * @param name
+	 *            the name of the {@code Field}
+	 * @return {@code Field} with the given name or {@code null} if it does not
+	 *         exist
+	 */
+	public static Field getField(Class<?> c, String name) {
+		for (Field f : getAllFields(c)) {
+			if (f.getName().equals(name))
+				return f;
+		}
+		return null;
+	}
+
+	private static List<Field> getAllFieldsRec(Class<?> c, List<Field> fields) {
+		Class<?> superClass = c.getSuperclass();
+		if (superClass != null)
+			getAllFieldsRec(superClass, fields);
+		fields.addAll(Arrays.asList(c.getDeclaredFields()));
+		return fields;
 	}
 
 }

@@ -19,8 +19,8 @@
 
 package com.clarionmedia.infinitum.rest.impl;
 
-import java.lang.reflect.Field;
-
+import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
 import com.clarionmedia.infinitum.rest.RestfulClient;
 import com.clarionmedia.infinitum.rest.RestfulClientBuilder;
@@ -35,86 +35,41 @@ import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
  * @author Tyler Treat
  * @version 1.0 03/28/12
  */
-public class RestfulClientFactory<T extends RestfulClient> implements RestfulClientBuilder<T> {
+public class RestfulClientFactory implements RestfulClientBuilder {
 
-	private Class<T> mType;
-	private T mRestClient;
+	private RestfulClient mRestClient;
 
 	/**
-	 * Constructs a new {@code RestfulClientFactory} for the given type.
-	 * 
-	 * @param type
-	 *            the type of the {@link RestfulClient} to build
+	 * Constructs a new {@code RestfulClientFactory}.
 	 */
-	public RestfulClientFactory(Class<T> type) {
-		mType = type;
-		try {
-			mRestClient = mType.newInstance();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public RestfulClientFactory() {
+		clearConfiguration();
 	}
 
-	/**
-	 * Builds a configured {@link RestfulClient} instance.
-	 * 
-	 * @return {@code RestfulClient}
-	 */
-	public T build() {
+	@Override
+	public RestfulClient build() {
 		return mRestClient;
 	}
 
-	/**
-	 * Registers a {@link JsonDeserializer} for the given {@link Class} type.
-	 * This deserializer will be used to deserialize any objects of the given
-	 * type. Registering a {@code JsonDeserializer} for a {@code Class} which
-	 * already has a {@code JsonDeserializer} registered for it will result in
-	 * the previous {@code JsonDeserializer} being overridden.
-	 * 
-	 * @param type
-	 *            the {@code Class} associated with this deserializer
-	 * @param deserializer
-	 *            the {@code JsonDeserializer} to register
-	 */
-	public <E> void registerJsonDeserializer(Class<E> type, JsonDeserializer<E> deserializer) {
+	@Override
+	public <E> RestfulClientBuilder registerJsonDeserializer(Class<E> type, JsonDeserializer<E> deserializer) {
 		mRestClient.registerJsonDeserializer(type, deserializer);
+		return this;
 	}
 
-	/**
-	 * Registers the given {@link RestfulTypeAdapter} for the specified
-	 * {@link Class} with this {@code RestfulClientBuilder} instance. The
-	 * {@code RestfulTypeAdapter} allows a {@link Field} of this type to be
-	 * mapped to a resource field in a web service. Registering a
-	 * {@code RestfulTypeAdapter} for a {@code Class} which already has a
-	 * {@code RestfulTypeAdapter} registered for it will result in the previous
-	 * {@code RestfulTypeAdapter} being overridden.
-	 * 
-	 * @param type
-	 *            the {@code Class} this {@code RestfulTypeAdapter} is for
-	 * @param adapter
-	 *            the {@code RestfulTypeAdapter} to register
-	 */
-	public <E> void registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter) {
+	@Override
+	public <E> RestfulClientBuilder registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter) {
 		mRestClient.registerTypeAdapter(type, adapter);
+		return this;
 	}
 
-	/**
-	 * Removes any current configurations for the {@link RestfulClient}.
-	 */
-	public void clearConfiguration() {
-		try {
-			mRestClient = mType.newInstance();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	@Override
+	public RestfulClientBuilder clearConfiguration() {
+		InfinitumContext ctx = InfinitumContextFactory.getInstance().getInfinitumContext();
+		String client = ctx.getRestfulContext().getClientBean();
+		mRestClient = (RestfulClient) ctx.getBean(client);
+		mRestClient.prepare();
+		return this;
 	}
 
 }

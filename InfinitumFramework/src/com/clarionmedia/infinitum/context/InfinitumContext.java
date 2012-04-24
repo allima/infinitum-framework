@@ -62,6 +62,7 @@ public class InfinitumContext {
 	private List<String> mDomainModels;
 	private RestfulContext mRestContext;
 	private Context mContext;
+	private BeanContainer mBeanContainer;
 
 	/**
 	 * Constructs a new {@code InfinitumContext}. This constructor should
@@ -315,6 +316,18 @@ public class InfinitumContext {
 
 	public Context getContext() {
 		return mContext;
+	}
+
+	public BeanContainer getBeanContainer() {
+		return mBeanContainer;
+	}
+
+	public void setBeanContainer(BeanContainer beanContainer) {
+		mBeanContainer = beanContainer;
+	}
+	
+	public Object getBean(String name) {
+		return mBeanContainer.loadBean(name);
 	}
 
 }

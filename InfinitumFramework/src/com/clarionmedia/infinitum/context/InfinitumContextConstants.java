@@ -45,6 +45,8 @@ public class InfinitumContextConstants {
 	public static final String PROPERTY_ELEMENT = "property";
 	public static final String AUTHENTICATION_ELEMENT = "authentication";
 	public static final String MODEL_ELEMENT = "model";
+	public static final String BEANS_ELEMENT = "beans";
+	public static final String BEAN_ELEMENT = "bean";
 	
 	// XML attribute names
 	public static final String NAME_ATTRIBUTE = "name";
@@ -60,8 +62,12 @@ public class InfinitumContextConstants {
 	public static final String RECYCLE_ATTRIBUTE = "recycleCache";
 	public static final String DOMAIN_RESOURCE_ATTRIBUTE = "resource";
 	public static final String STRATEGY_ATTRIBUTE = "strategy";
+	public static final String ENABLED_ATTRIBUTE = "enabled";
 	public static final String TOKEN_NAME_ATTRIBUTE = "tokenName";
 	public static final String TOKEN_ATTRIBUTE = "token";
+	public static final String REF_ATTRIBUTE = "ref";
+	public static final String ID_ATTRIBUTE = "id";
+	public static final String CLASS_ATTRIBUTE = "class";
 
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the InfinitumContext!";
@@ -73,5 +79,9 @@ public class InfinitumContextConstants {
 	public static final String AUTH_TOKEN_MISSING = "Authentication token is missing!";
 	public static final String AUTH_STRAT_MISSING = "Authentication strategy is missing!";
 	public static final String MODEL_RESOURCE_MISSING = "Model resource is missing!";
+	public static final String BEAN_ID_MISSING_LINE = "Bean is missing ID at line %d.";
+	public static final String BEAN_CLASS_MISSING_LINE = "Bean is missing class at line %d.";
+	public static final String REST_CLIENT_BEAN_MISSING = "REST client bean is missing!";
+	public static final String REST_CLIENT_BEAN_UNRESOLVED = "REST client bean could not be resolved.";
 
 }

@@ -22,13 +22,12 @@ package com.clarionmedia.infinitum.orm.persistence;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
@@ -192,7 +191,7 @@ public class PersistenceResolution {
 		if (sPersistenceCache.containsKey(c))
 			return sPersistenceCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
-		List<Field> fields = getAllFields(c);
+		List<Field> fields = ClassReflector.getAllFields(c);
 		for (Field f : fields) {
 			if (Modifier.isStatic(f.getModifiers()) || TypeResolution.isDomainProxy(f.getDeclaringClass()))
 				continue;
@@ -722,18 +721,6 @@ public class PersistenceResolution {
 				return f;
 		}
 		return null;
-	}
-
-	private static List<Field> getAllFields(Class<?> c) {
-		return getAllFieldsRec(c, new LinkedList<Field>());
-	}
-
-	private static List<Field> getAllFieldsRec(Class<?> c, List<Field> fields) {
-		Class<?> superClass = c.getSuperclass();
-		if (superClass != null)
-			getAllFieldsRec(superClass, fields);
-		fields.addAll(Arrays.asList(c.getDeclaredFields()));
-		return fields;
 	}
 
 }
