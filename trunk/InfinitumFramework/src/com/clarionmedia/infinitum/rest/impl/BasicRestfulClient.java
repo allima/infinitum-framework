@@ -46,7 +46,6 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
@@ -67,13 +66,11 @@ import com.google.gson.JsonSyntaxException;
  * @author Tyler Treat
  * @version 1.0 03/21/12
  */
-public class BasicRestfulClient implements RestfulClient {
+public class BasicRestfulClient extends RestfulClient {
 	
 	private static final String TAG = "BasicRestfulClient";
 	private static final String ENCODING = "UTF-8";
 	
-	protected final String mHost;
-	protected  final InfinitumContext mContext;
 	protected RestfulMapper mMapper;
 	protected Map<Class<?>, JsonDeserializer<?>> mJsonDeserializers;
 	protected Logger mLogger;
@@ -85,8 +82,6 @@ public class BasicRestfulClient implements RestfulClient {
 	 */
 	public BasicRestfulClient() {
 		mLogger = Logger.getInstance(TAG);
-		mContext = InfinitumContextFactory.getInstance().getInfinitumContext();
-		mHost = mContext.getRestfulContext().getRestHost();
 		mMapper = new RestfulMapper();
 		mJsonDeserializers = new HashMap<Class<?>, JsonDeserializer<?>>();
 	}
@@ -97,7 +92,10 @@ public class BasicRestfulClient implements RestfulClient {
 		if (mContext.isDebug())
 		    mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		HttpPost httpPost = new HttpPost(mHost + PersistenceResolution.getRestfulResource(model.getClass()));
+		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass());
+		if (mIsAuthenticated)
+			uri += '?' + mAuthStrategy.getAuthenticationString();
+		HttpPost httpPost = new HttpPost(uri);
 		RestfulModelMap map = mMapper.mapModel(model);
 		List<NameValuePair> pairs = map.getNameValuePairs();
 		try {
@@ -132,7 +130,10 @@ public class BasicRestfulClient implements RestfulClient {
 		    mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		Object pk = PersistenceResolution.getPrimaryKey(model);
-		HttpDelete httpDelete = new HttpDelete(mHost + PersistenceResolution.getRestfulResource(model.getClass()) + "/" + pk.toString());
+		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass()) + "/" + pk.toString();
+		if (mIsAuthenticated)
+			uri += '?' + mAuthStrategy.getAuthenticationString();
+		HttpDelete httpDelete = new HttpDelete(uri);
 		HttpResponse response;
 		try {
 			response = httpClient.execute(httpDelete);
@@ -155,7 +156,10 @@ public class BasicRestfulClient implements RestfulClient {
 		if (mContext.isDebug())
 		    mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		HttpPut httpPut = new HttpPut(mHost + PersistenceResolution.getRestfulResource(model.getClass()));
+		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass());
+		if (mIsAuthenticated)
+			uri += '?' + mAuthStrategy.getAuthenticationString();
+		HttpPut httpPut = new HttpPut(uri);
 		RestfulModelMap map = mMapper.mapModel(model);
 		List<NameValuePair> pairs = map.getNameValuePairs();
 		try {
@@ -193,8 +197,8 @@ public class BasicRestfulClient implements RestfulClient {
 		    mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
 		String uri = mHost + PersistenceResolution.getRestfulResource(type) + "/" + id;
-		if (mContext.getRestfulContext().isRestAuthenticated())
-			uri += "?" + mContext.getRestfulContext().getAuthStrategy().getAuthenticationString();
+		if (mIsAuthenticated)
+			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpGet httpGet = new HttpGet(uri);
 		httpGet.addHeader("Accept", "application/json");
 		try {

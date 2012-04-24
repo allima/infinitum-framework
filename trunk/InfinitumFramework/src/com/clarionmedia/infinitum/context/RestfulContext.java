@@ -38,6 +38,7 @@ public class RestfulContext {
 	private AuthenticationStrategy mAuthStrategy;
 	private int mConnectionTimeout;
 	private int mResponseTimeout;
+	private String mClientBean;
 	
 	public String getRestHost() {
 		return mRestHost;
@@ -63,6 +64,10 @@ public class RestfulContext {
 		else
 		    throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
 	}
+	
+	public <T extends AuthenticationStrategy> void setAuthStrategy(T strategy) {
+		mAuthStrategy = strategy;
+	}
 
 	public AuthenticationStrategy getAuthStrategy() {
 		return mAuthStrategy;
@@ -82,6 +87,14 @@ public class RestfulContext {
 
 	public void setResponseTimeout(int mResponseTimeout) {
 		this.mResponseTimeout = mResponseTimeout;
+	}
+
+	public String getClientBean() {
+		return mClientBean;
+	}
+
+	public void setClientBean(String clientBean) {
+		mClientBean = clientBean;
 	}
 
 }
