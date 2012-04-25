@@ -57,3 +57,9 @@ public void onCreate(Bundle savedInstanceState) {
     Session session = InfinitumContextFactory.getInstance().configure(this, R.xml.infinitum).getSession(DataSource.Sqlite);
 }
 }}}
+
+`InfinitumContext` also acts as a service locator, allowing configured beans to be retrieved. The code below shows how a `service` bean, configured to use the implementation `MyService`, might be retrieved using `InfinitumContext`.
+
+{{{
+MyService service = InfinitumContextFactory.getInstance().getInfinitumContext().getBean("service");
+}}}
