@@ -107,7 +107,7 @@ Infinitum supports the notion of beans for injecting custom implementations for 
 
 Beans are defined in `infinitum.cfg.xml`. Beans themselves can be injected with basic properties, such as `int`, `long`, `double`, `float`, and `String` fields.
 
-== Beans Configuration Example ==
+== Bean Configuration Example ==
 
 Take, for example, an `AuthenticationStrategy` implementation called `MyTokenAuthenticator`, which has two fields, `token` and `tokenName`, both of type `String`. Let's say we want to use this authenticator in our `RestfulClient`. It's a rather contrived example, considering SharedSecretAuthentication provides identical functionality, but it illustrates the use of beans and bean properties. First, we must define the bean:
 
