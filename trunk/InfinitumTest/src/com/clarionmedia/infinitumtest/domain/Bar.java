@@ -1,6 +1,6 @@
 package com.clarionmedia.infinitumtest.domain;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.clarionmedia.infinitum.orm.annotation.OneToMany;
@@ -13,7 +13,7 @@ public class Bar extends AbstractBase {
 	private List<Foo> mFoos;
 	
 	public Bar() {
-		mFoos = new ArrayList<Foo>();
+		mFoos = new LinkedList<Foo>();
 	}
 
 	public void setFoos(List<Foo> mFoos) {

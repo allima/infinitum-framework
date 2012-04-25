@@ -19,8 +19,11 @@
 
 package com.clarionmedia.infinitumtest.domain;
 
+import com.google.gson.annotations.SerializedName;
+
 public abstract class AbstractBase {
 
+	@SerializedName("id")
 	protected long mId;
 
 	public long getId() {

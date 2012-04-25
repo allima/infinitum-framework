@@ -19,14 +19,16 @@
 
 package com.clarionmedia.infinitumtest.domain;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.annotation.ManyToOne;
+import com.google.gson.annotations.SerializedName;
 
 public class Foo extends AbstractBase {
 
+	@SerializedName("foo")
 	private String mFoo;
 	
 	@ManyToOne(className = "com.clarionmedia.infinitumtest.domain.Bar", name = "foo-bar", column = "bar")
@@ -36,12 +38,12 @@ public class Foo extends AbstractBase {
 	private List<TestModel> mRelated;
 
 	public Foo() {
-		setRelated(new ArrayList<TestModel>());
+		setRelated(new LinkedList<TestModel>());
 	}
 
 	public Foo(String foo) {
 		mFoo = foo;
-		setRelated(new ArrayList<TestModel>());
+		setRelated(new LinkedList<TestModel>());
 	}
 
 	public String getFoo() {
