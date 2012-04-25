@@ -6,15 +6,31 @@
 <infinitum-configuration>
 
     <application>
-        <property name="debug">true</property>
-        <property name="mode">annotations</property>
-        <property name="recycleCache">true</property>
+        <property name="debug">true</property> <!-- [true | false] -->
+        <property name="mode">annotations</property> <!-- [annotations | xml] -->
+        <property name="recycleCache">true</property> <!-- [true | false] -->
     </application>
     
     <sqlite>
-        <property name="dbName">test</property>
+        <property name="dbName">test</property> 
         <property name="dbVersion">2</property>
+        <property name="generateSchema">true</property> <!-- [true | false] -->
+        <property name="autocommit">true</property> <!-- [true | false] -->
     </sqlite>
+    
+    <rest ref="restClient">
+        <property name="host">http://ec2-174-129-207-209.compute-1.amazonaws.com/infinitum</property>
+        <property name="connectionTimeout">5000</property>
+        <property name="responseTimeout">5000</property>
+        <authentication ref="tokenAuthentication" enabled="true" />
+        
+        <!--
+        <authentication strategy="token" enabled="true">
+            <property name="tokenName">token</property>
+            <property name="token">e489e8383c0ae2b7fe4dcf178330b4ac</property>
+        </authentication>
+        -->
+    </rest>
     
     <domain>
         <model resource="com.clarionmedia.infinitumtest.domain.TestModel" />
@@ -23,5 +39,13 @@
         <model resource="com.clarionmedia.infinitumtest.domain.SideA" />
         <model resource="com.clarionmedia.infinitumtest.domain.SideB" />
     </domain>
+    
+    <beans>
+        <bean id="restClient" class="com.clarionmedia.infinitum.rest.impl.BasicRestfulClient" />
+        <bean id="tokenAuthentication" class="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication">
+            <property name="mTokenName">token</property>
+            <property name="mToken">e489e8383c0ae2b7fe4dcf178330b4ac</property>
+        </bean>
+    </beans>
 
 </infinitum-configuration>

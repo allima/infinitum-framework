@@ -1,9 +1,7 @@
 package com.clarionmedia.infinitumtest.domain;
 
-import com.clarionmedia.infinitum.orm.annotation.Entity;
 import com.clarionmedia.infinitum.orm.annotation.OneToOne;
 
-@Entity(lazy = true)
 public class SideA extends AbstractBase {
 	
 	private String mName = "hello";
