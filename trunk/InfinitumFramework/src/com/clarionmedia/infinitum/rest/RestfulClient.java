@@ -48,9 +48,10 @@ public abstract class RestfulClient {
 	protected AuthenticationStrategy mAuthStrategy;
 
 	/**
-	 * Prepares this {@code RestfulClient} for use.
+	 * Prepares this {@code RestfulClient} for use. This must be called before
+	 * using it.
 	 */
-	public void prepare() {
+	public final void prepare() {
 		mContext = InfinitumContextFactory.getInstance().getInfinitumContext();
 		mHost = mContext.getRestfulContext().getRestHost();
 		mIsAuthenticated = mContext.getRestfulContext().isRestAuthenticated();

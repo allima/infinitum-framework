@@ -47,4 +47,5 @@
 <!ELEMENT authentication (property*)>
 <!ATTLIST authentication strategy CDATA #IMPLIED>
 <!ATTLIST authentication ref CDATA #IMPLIED>
-<!ATTLIST authentication enabled CDATA #REQUIRED>
+<!ATTLIST authentication enabled CDATA #IMPLIED>
+<!ATTLIST authentication generator CDATA #IMPLIED>

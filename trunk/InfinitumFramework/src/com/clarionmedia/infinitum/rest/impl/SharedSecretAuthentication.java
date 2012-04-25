@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.rest.TokenGenerator;
 
 /**
  * <p>
@@ -42,7 +43,7 @@ public class SharedSecretAuthentication implements AuthenticationStrategy {
 
 	@Override
 	public String getAuthenticationString() {
-		return mTokenName + "=" + mToken;
+		return mTokenName + "=" + getToken();
 	}
 
 	/**
@@ -121,27 +122,6 @@ public class SharedSecretAuthentication implements AuthenticationStrategy {
 	 */
 	public void clearTokenGenerator() {
 		mGenerator = null;
-	}
-
-	/**
-	 * <p>
-	 * {@code TokenGenerator} is responsible for generating shared secret
-	 * tokens. Provide an implementation of this if an unchanging shared secret
-	 * is undesirable.
-	 * </p>
-	 * 
-	 * @author Tyler Treat
-	 * @version 1.0 03/21/12
-	 */
-	public interface TokenGenerator {
-
-		/**
-		 * Creates a new shared secret token.
-		 * 
-		 * @return authentication token
-		 */
-		String generateToken();
-
 	}
 
 }

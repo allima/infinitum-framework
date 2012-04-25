@@ -68,6 +68,7 @@ public class InfinitumContextConstants {
 	public static final String REF_ATTRIBUTE = "ref";
 	public static final String ID_ATTRIBUTE = "id";
 	public static final String CLASS_ATTRIBUTE = "class";
+	public static final String GENERATOR_ATTRIBUTE = "generator";
 
 	// Error messages
 	public static final String CONFIG_NOT_CALLED = "You must call configure before accessing the InfinitumContext!";

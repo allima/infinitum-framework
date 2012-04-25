@@ -37,9 +37,10 @@ public interface AuthenticationStrategy {
 	/**
 	 * Retrieves the authentication {@link String} for this
 	 * {@code AuthenticationStrategy}. The authentication {@code String} is the
-	 * value used to authenticate web service requests.
+	 * value used to authenticate web service requests and is typically appended
+	 * to the request URL.
 	 * 
-	 * @return
+	 * @return authentication {@code String}
 	 */
 	String getAuthenticationString();
 

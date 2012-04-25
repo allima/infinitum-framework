@@ -67,7 +67,10 @@ public class RestfulClientFactory implements RestfulClientBuilder {
 	public RestfulClientBuilder clearConfiguration() {
 		InfinitumContext ctx = InfinitumContextFactory.getInstance().getInfinitumContext();
 		String client = ctx.getRestfulContext().getClientBean();
-		mRestClient = (RestfulClient) ctx.getBean(client);
+		if (client == null)
+			mRestClient = new BasicRestfulClient();
+		else
+		    mRestClient = (RestfulClient) ctx.getBean(client);
 		mRestClient.prepare();
 		return this;
 	}
