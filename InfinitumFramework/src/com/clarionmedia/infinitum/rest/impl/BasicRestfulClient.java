@@ -89,8 +89,7 @@ public class BasicRestfulClient extends RestfulClient {
 	@Override
 	public boolean save(Object model) {
 		Preconditions.checkPersistenceForModify(model);
-		if (mContext.isDebug())
-		    mLogger.debug("Sending POST request to save entity");
+		mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass());
 		if (mIsAuthenticated)
@@ -105,7 +104,7 @@ public class BasicRestfulClient extends RestfulClient {
 		    StringBuilder s = new StringBuilder();
 		    String ln;
 			while ((ln = reader.readLine()) != null)
-				s = s.append(ln);
+				s.append(ln);
 			// TODO Check response?
 			return true;
 		} catch (UnsupportedEncodingException e) {
@@ -126,8 +125,7 @@ public class BasicRestfulClient extends RestfulClient {
 	@Override
 	public boolean delete(Object model) {
 		Preconditions.checkPersistenceForModify(model);
-		if (mContext.isDebug())
-		    mLogger.debug("Sending DELETE request to delete entity");
+		mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		Object pk = PersistenceResolution.getPrimaryKey(model);
 		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass()) + "/" + pk.toString();
@@ -153,8 +151,7 @@ public class BasicRestfulClient extends RestfulClient {
 	@Override
 	public int saveOrUpdate(Object model) {
 		Preconditions.checkPersistenceForModify(model);
-		if (mContext.isDebug())
-		    mLogger.debug("Sending PUT request to save or update entity");
+		mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass());
 		if (mIsAuthenticated)
@@ -193,8 +190,7 @@ public class BasicRestfulClient extends RestfulClient {
 	@Override
 	public <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		Preconditions.checkPersistenceForLoading(type);
-		if (mContext.isDebug())
-		    mLogger.debug("Sending GET request to retrieve entity");
+		mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
 		String uri = mHost + PersistenceResolution.getRestfulResource(type) + "/" + id;
 		if (mIsAuthenticated)

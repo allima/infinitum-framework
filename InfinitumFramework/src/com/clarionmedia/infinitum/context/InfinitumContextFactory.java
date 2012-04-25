@@ -32,6 +32,7 @@ import android.content.res.XmlResourceParser;
 import com.clarionmedia.infinitum.context.InfinitumContext.ConfigurationMode;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.rest.TokenGenerator;
 import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
 
 /**
@@ -252,9 +253,7 @@ public class InfinitumContextFactory {
 			IOException {
 		RestfulContext restCtx = new RestfulContext();
 		String clientBean = parser.getAttributeValue(null, InfinitumContextConstants.REF_ATTRIBUTE);
-		if (clientBean == null)
-			throw new InfinitumConfigurationException(InfinitumContextConstants.REST_CLIENT_BEAN_MISSING);
-		if (!ctx.getBeanContainer().beanExists(clientBean))
+		if (clientBean != null && !ctx.getBeanContainer().beanExists(clientBean))
 			throw new InfinitumConfigurationException(InfinitumContextConstants.REST_CLIENT_BEAN_UNRESOLVED);
 		restCtx.setClientBean(clientBean);
 		ctx.setRestfulContext(restCtx);
@@ -282,9 +281,14 @@ public class InfinitumContextFactory {
 				else
 					ctx.getRestfulContext().setRestAuthenticated(Boolean.parseBoolean(enabled));
 				String strategy = parser.getAttributeValue(null, InfinitumContextConstants.STRATEGY_ATTRIBUTE);
-				if (strategy != null)
+				if (strategy != null) {
 					ctx.getRestfulContext().setAuthStrategy(strategy);
-				else {
+					String generator = parser.getAttributeValue(null, InfinitumContextConstants.GENERATOR_ATTRIBUTE);
+					if (generator != null && "token".equalsIgnoreCase(strategy)) {
+						SharedSecretAuthentication auth = (SharedSecretAuthentication) ctx.getRestfulContext().getAuthStrategy();
+						auth.setTokenGenerator((TokenGenerator) ctx.getBean(generator));
+					}
+				} else {
 					String beanRef = parser.getAttributeValue(null, InfinitumContextConstants.REF_ATTRIBUTE);
 					ctx.getRestfulContext().setAuthStrategy(
 							(AuthenticationStrategy) ctx.getBeanContainer().loadBean(beanRef));

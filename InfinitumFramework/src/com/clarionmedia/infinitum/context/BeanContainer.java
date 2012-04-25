@@ -31,7 +31,8 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
- * Stores beans that have been configured in {@code infinitum.cfg.xml}.
+ * Stores beans that have been configured in {@code infinitum.cfg.xml}. The
+ * {@code BeanContainer} acts as a service locator for {@link InfinitumContext}.
  * </p>
  * 
  * @author Tyler Treat
@@ -42,8 +43,8 @@ public class BeanContainer {
 	private Map<String, Pair<String, Map<String, String>>> mBeanMap = new HashMap<String, Pair<String, Map<String, String>>>();
 
 	/**
-	 * Retrieves an instance of the bean with the given name. The name is configured
-	 * in {@code infinitum.cfg.xml}.
+	 * Retrieves an instance of the bean with the given name. The name is
+	 * configured in {@code infinitum.cfg.xml}.
 	 * 
 	 * @param name
 	 *            the name of the bean to retrieve

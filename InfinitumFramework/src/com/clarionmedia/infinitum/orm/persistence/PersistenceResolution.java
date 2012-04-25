@@ -706,6 +706,8 @@ public class PersistenceResolution {
 		String ret;
 		if (!f.isAnnotationPresent(Rest.class)) {
 			ret = f.getName().toLowerCase();
+			if (ret.startsWith("m"))
+				ret = ret.substring(1);
 		} else {
 			Rest rest = f.getAnnotation(Rest.class);
 			ret = rest.value();
