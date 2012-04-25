@@ -79,6 +79,28 @@ If a web service uses some type of authentication, an authentication strategy ca
 </rest>
 }}}
 
+By default, Infinitum's RestfulClientFactory will use BasicRestfulClient as its RESTful client implementation. However, alternative implementations can be used by providing a bean, which will then be injected into the `RestfulClientFactory`. In a similar manner, alternative `AuthenticationStrategy` implementations can be used by providing a bean also. Both of these notions are illustrated in the example below.
+
+{{{
+<rest ref="restClient">
+    <property name="host">http://localhost:80/mywebservice</property>
+    <property name="connectionTimeout">5000</property>
+    <property name="responseTimeout">5000</property>
+    <authentication ref="customAuthenticator" enabled="true" />
+</rest>
+}}}
+
+The bean `restClient` will be used as the `RestfulClient`, while the `customAuthenticator` bean will be used as the client's `AuthenticationStrategy`. These beans would be defined as follows:
+
+{{{
+<bean id="restClient"
+    class="com.clarionmedia.infinitumapp.service.MyRestfulClient" />
+<bean id="customAuthenticator"
+    class="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
+}}}
+
+`MyRestfulClient` must extend the RestfulClient abstract class, and `MyAuthenticator` must implement the AuthenticationStrategy interface.
+
 = Putting It All Together =
 
 All of the components discussed above are used to compose the `infinitum.cfg.xml` configuration file. An example of one such configuration file is seen below.
