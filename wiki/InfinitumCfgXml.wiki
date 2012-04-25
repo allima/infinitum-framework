@@ -101,6 +101,36 @@ The bean `restClient` will be used as the `RestfulClient`, while the `customAuth
 
 `MyRestfulClient` must extend the RestfulClient abstract class, and `MyAuthenticator` must implement the AuthenticationStrategy interface.
 
+= Bean Configuration =
+
+Infinitum supports the notion of beans for injecting custom implementations for some of its different services at runtime, as was outlined briefly in the RESTful Configuration section above. For example, implementations of `RestfulClient` and `AuthenticationStrategy` can be provided.
+
+Beans are defined in `infinitum.cfg.xml`. Beans themselves can be injected with basic properties, such as `int`, `long`, `double`, `float`, and `String` fields.
+
+== Beans Configuration Example ==
+
+Take, for example, an `AuthenticationStrategy` implementation called `MyTokenAuthenticator`, which has two fields, `token` and `tokenName`, both of type `String`. Let's say we want to use this authenticator in our `RestfulClient`. It's a rather contrived example, considering SharedSecretAuthentication provides identical functionality, but it illustrates the use of beans and bean properties. First, we must define the bean:
+
+{{{
+<beans>
+    <bean id="tokenAuthenticator" class="com.clarionmedia.infinitumapp.service.MyTokenAuthenticator">
+        <property name="tokenName">myToken</property>
+        <property name="token">e489e8383c0ae2b7</property>
+    </bean>
+</beans>
+}}}
+
+The properties `tokenName` and `token` will be injected into the `MyTokenAuthenticator` bean. Now, with the bean configured, we can reference it in our RESTful configuration using the `ref` attribute.
+
+{{{
+<rest>
+    <property name="host">http://localhost:80/mywebservice</property>
+    <authentication ref="tokenAuthenticator" />
+</rest>
+}}}
+
+Our `RestClient` will now be injected with `MyTokenAuthenticator`.
+
 = Putting It All Together =
 
 All of the components discussed above are used to compose the `infinitum.cfg.xml` configuration file. An example of one such configuration file is seen below.
@@ -132,15 +162,17 @@ All of the components discussed above are used to compose the `infinitum.cfg.xml
         <property name="autocommit">false</property> <!-- [true | false] -->
     </sqlite>
     
-    <rest>
+    <rest ref="restClient">
         <property name="host">http://localhost:80/mywebservice</property>
         <property name="connectionTimeout">5000</property>
         <property name="responseTimeout">5000</property>
-        <authentication strategy="token">
-            <property name="tokenName">token</property>
-            <property name="token">52b353fb27267973cebb5e8566e0415d</property>
-        </authentication>
+        <authentication ref="authenticator" />
     </rest>
+
+    <beans>
+        <bean id="restClient" class="com.clarionmedia.infinitumapp.service.MyRestfulClient" />
+        <bean id="authenticator" class="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
+    </beans>
 
 </infinitum-configuration>
 }}}
