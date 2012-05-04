@@ -163,16 +163,23 @@ public class InfinitumContextFactory {
 									throw new InfinitumConfigurationException(String.format(
 											InfinitumContextConstants.BEAN_CLASS_MISSING_LINE, parser.getLineNumber()));
 								eventType = parser.next();
-								Map<String, String> args = new HashMap<String, String>();
+								Map<String, Object> args = new HashMap<String, Object>();
 								while (!parser.getName().equalsIgnoreCase(InfinitumContextConstants.BEAN_ELEMENT)) {
 									if (parser.getEventType() == XmlPullParser.START_TAG
 											&& parser.getName().equalsIgnoreCase(
 													InfinitumContextConstants.PROPERTY_ELEMENT)) {
 										String prop = parser.getAttributeValue(null,
 												InfinitumContextConstants.NAME_ATTRIBUTE);
-										parser.next();
-										String value = parser.getText();
-										args.put(prop, value);
+										String ref = parser.getAttributeValue(null,
+												InfinitumContextConstants.REF_ATTRIBUTE);
+										Object val;
+										if (ref == null) {
+										    parser.next();
+										    val = parser.getText();
+										} else {
+											val = container.loadBean(ref);
+										}
+										args.put(prop, val);
 									}
 									parser.next();
 								}
