@@ -40,7 +40,7 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  */
 public class BeanContainer {
 
-	private Map<String, Pair<String, Map<String, String>>> mBeanMap = new HashMap<String, Pair<String, Map<String, String>>>();
+	private Map<String, Pair<String, Map<String, Object>>> mBeanMap = new HashMap<String, Pair<String, Map<String, Object>>>();
 
 	/**
 	 * Retrieves an instance of the bean with the given name. The name is
@@ -53,7 +53,7 @@ public class BeanContainer {
 	 *             if the bean does not exist or could not be constructed
 	 */
 	public Object loadBean(String name) throws InfinitumConfigurationException {
-		Pair<String, Map<String, String>> pair = mBeanMap.get(name);
+		Pair<String, Map<String, Object>> pair = mBeanMap.get(name);
 		if (pair == null)
 			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved");
 		String beanClass = pair.getFirst();
@@ -73,15 +73,18 @@ public class BeanContainer {
 		} catch (InstantiationException e) {
 			throw new InfinitumConfigurationException("Bean '" + name + "' could not be constructed");
 		}
-		Map<String, String> params = pair.getSecond();
-		for (Entry<String, String> e : params.entrySet()) {
+		Map<String, Object> params = pair.getSecond();
+		for (Entry<String, Object> e : params.entrySet()) {
 			try {
 				Field f = ClassReflector.getField(c, e.getKey());
 				if (f == null)
 					continue;
 				f.setAccessible(true);
 				Class<?> type = Primitives.unwrap(f.getType());
-				String argStr = e.getValue();
+				Object val = e.getValue();
+				String argStr = null;
+				if (val.getClass() == String.class)
+					argStr = (String) val;
 				Object arg = null;
 				if (type == int.class)
 					arg = Integer.parseInt(argStr);
@@ -93,8 +96,8 @@ public class BeanContainer {
 					arg = Long.parseLong(argStr);
 				else if (type == char.class)
 					arg = argStr.charAt(0);
-				else if (type == String.class)
-					arg = argStr;
+				else
+					arg = val;
 				f.set(bean, arg);
 			} catch (SecurityException e1) {
 				// TODO Auto-generated catch block
@@ -132,8 +135,10 @@ public class BeanContainer {
 	 * @param args
 	 *            a {@link Map} of parameter names and their arguments
 	 */
-	public void registerBean(String name, String beanClass, Map<String, String> args) {
-		Pair<String, Map<String, String>> pair = new Pair<String, Map<String, String>>(beanClass, args);
+	public void registerBean(String name, String beanClass, Map<String, Object> args) {
+		// args: Map<argName, argValue>
+		Pair<String, Map<String, Object>> pair = new Pair<String, Map<String, Object>>(beanClass, args);
+		// pair: Pair<bean, beanArgsMap>
 		mBeanMap.put(name, pair);
 	}
 

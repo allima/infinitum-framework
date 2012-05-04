@@ -33,6 +33,7 @@
 
 <!ELEMENT property (#PCDATA)>
 <!ATTLIST property name CDATA #REQUIRED>
+<!ATTLIST property ref CDATA #IMPLIED>
 
 <!ELEMENT model (#PCDATA)>
 <!ATTLIST model resource CDATA #REQUIRED>
