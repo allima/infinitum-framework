@@ -31,6 +31,7 @@ import com.clarionmedia.infinitum.rest.JsonDeserializer;
 import com.clarionmedia.infinitum.rest.impl.BasicRestfulClient;
 import com.clarionmedia.infinitum.rest.impl.RestfulClientFactory;
 import com.clarionmedia.infinitumtest.domain.Bar;
+import com.clarionmedia.infinitumtest.service.MyService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -68,6 +69,9 @@ public class TestActivity extends Activity {
 			}
 		}).build();
 		Bar b = rest.load(Bar.class, 1L);
+		
+		MyService service = (MyService) InfinitumContextFactory.getInstance().getInfinitumContext().getBean("myService");
+		service.getClass();
 	}
 
 }
