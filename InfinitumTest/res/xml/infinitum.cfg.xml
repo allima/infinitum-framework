@@ -42,9 +42,15 @@
     
     <beans>
         <bean id="restClient" class="com.clarionmedia.infinitum.rest.impl.BasicRestfulClient" />
+        <bean id="tokenGenerator" class="com.clarionmedia.infinitumtest.service.MyTokenGenerator" />
         <bean id="tokenAuthentication" class="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication">
             <property name="mTokenName">token</property>
             <property name="mToken">e489e8383c0ae2b7fe4dcf178330b4ac</property>
+            <property name="mGenerator" ref="tokenGenerator" />
+        </bean>
+        <bean id="myDao" class="com.clarionmedia.infinitumtest.dao.impl.MyDaoImpl" />
+        <bean id="myService" class="com.clarionmedia.infinitumtest.service.impl.MyServiceImpl">
+            <property name="mDao" ref="myDao" />
         </bean>
     </beans>
 
