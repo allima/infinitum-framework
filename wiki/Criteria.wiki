@@ -55,3 +55,5 @@ A result offset can also be added as such:
 {{{
 List<Foo> foos = criteria.add(Conditions.like("mBar", "hello%")).limit(10).offset(5).list();
 }}}
+
+The `count()` method can be used to retrieve the number of results for a query, which is analogous to `SELECT count(*)` in SQL.
