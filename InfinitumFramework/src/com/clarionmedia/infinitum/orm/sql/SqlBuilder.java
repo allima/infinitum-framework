@@ -57,8 +57,7 @@ public interface SqlBuilder {
 	 *             if domain classes have not been properly configured in
 	 *             {@code infinitum.cfg.xml}
 	 */
-	int createTables(SqliteDbHelper dbHelper)
-			throws ModelConfigurationException;
+	int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException;
 
 	/**
 	 * Generates the create table SQL statement for the specified
@@ -73,8 +72,7 @@ public interface SqlBuilder {
 	 * @return create table SQL statement
 	 * @throws ModelConfigurationException
 	 */
-	String createModelTableString(Class<?> c)
-			throws ModelConfigurationException;
+	String createModelTableString(Class<?> c) throws ModelConfigurationException;
 
 	/**
 	 * Generates a SQL query {@link String} from the given {@link Criteria}.
@@ -84,6 +82,16 @@ public interface SqlBuilder {
 	 * @return SQL query
 	 */
 	String createQuery(Criteria<?> criteria);
+
+	/**
+	 * Generates a SQL query {@link String} from the given {@link Criteria} for
+	 * counting records.
+	 * 
+	 * @param criteria
+	 *            the {@code Criteria} to build the SQL query from
+	 * @return SQL query
+	 */
+	String createCountQuery(Criteria<?> criteria);
 
 	/**
 	 * Generates a SQL query {@link String} from the given
@@ -113,8 +121,7 @@ public interface SqlBuilder {
 	 *             if the direction {@code Class} is not a part of the given
 	 *             {@code ManyToManyRelationship}
 	 */
-	String createManyToManyJoinQuery(ManyToManyRelationship rel,
-			Serializable id, Class<?> direction)
+	String createManyToManyJoinQuery(ManyToManyRelationship rel, Serializable id, Class<?> direction)
 			throws InfinitumRuntimeException;
 
 	/**
@@ -138,8 +145,7 @@ public interface SqlBuilder {
 	 *            the model containing the relationship
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	StringBuilder createInitialStaleRelationshipQuery(
-			ManyToManyRelationship rel, Object model);
+	StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model);
 
 	/**
 	 * Generates a {@link StringBuilder} consisting of the initial segment of a
@@ -151,8 +157,7 @@ public interface SqlBuilder {
 	 *            the model containing the relationship
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel,
-			Object model);
+	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel, Object model);
 
 	/**
 	 * Adds the given {@code Object's} primary key to the specified query. This

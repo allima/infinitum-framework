@@ -121,4 +121,11 @@ public interface Criteria<T> {
 	 */
 	T unique() throws InfinitumRuntimeException;
 
+	/**
+	 * Retrieves the number of results for the {@code Criteria} query.
+	 * 
+	 * @return number of results for the query
+	 */
+	long count();
+
 }

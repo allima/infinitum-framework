@@ -19,6 +19,8 @@
 
 package com.clarionmedia.infinitum.reflection;
 
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+
 /**
  * <p>
  * This class provides static reflection methods for working with packages
@@ -46,7 +48,7 @@ public class PackageReflector {
 		try {
 			c = Class.forName(className);
 		} catch (ClassNotFoundException e) {
-			return null;
+			throw new InfinitumRuntimeException("Class '" + className + "' could not be resolved.");
 		}
 		return c;
 	}
