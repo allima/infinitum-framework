@@ -57,3 +57,7 @@ List<Foo> foos = criteria.add(Conditions.like("mBar", "hello%")).limit(10).offse
 }}}
 
 The `count()` method can be used to retrieve the number of results for a query, which is analogous to `SELECT count(*)` in SQL.
+
+{{{
+long records = criteria.add(Conditions.like("mBar", "hello%")).count();
+}}}
