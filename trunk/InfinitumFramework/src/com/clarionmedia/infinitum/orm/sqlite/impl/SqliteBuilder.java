@@ -121,6 +121,26 @@ public class SqliteBuilder implements SqlBuilder {
 					.append(criteria.getOffset());
 		return query.toString();
 	}
+	
+	@Override
+	public String createCountQuery(Criteria<?> criteria) {
+		Class<?> c = criteria.getEntityClass();
+		StringBuilder query = new StringBuilder(SqlConstants.SELECT_COUNT_FROM)
+				.append(PersistenceResolution.getModelTableName(c));
+		String prefix = " WHERE ";
+		for (Criterion criterion : criteria.getCriterion()) {
+			query.append(prefix);
+			prefix = ' ' + SqlConstants.AND + ' ';
+			query.append(criterion.toSql(criteria));
+		}
+		if (criteria.getLimit() > 0)
+			query.append(' ').append(SqlConstants.LIMIT).append(' ')
+					.append(criteria.getLimit());
+		if (criteria.getOffset() > 0)
+			query.append(' ').append(SqlConstants.OFFSET).append(' ')
+					.append(criteria.getOffset());
+		return query.toString();
+	}
 
 	@Override
 	public String createManyToManyJoinQuery(ManyToManyRelationship rel,

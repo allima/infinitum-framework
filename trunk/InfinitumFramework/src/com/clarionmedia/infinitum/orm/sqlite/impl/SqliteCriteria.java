@@ -147,12 +147,23 @@ public class SqliteCriteria<T> implements Criteria<T> {
 		else if (result.getCount() == 0)
 			return null;
 		result.moveToFirst();
-		return mModelFactory.createFromCursor(result, mEntityClass);
+		T ret = mModelFactory.createFromCursor(result, mEntityClass);
+		result.close();
+		return ret;
 	}
 
 	@Override
 	public SqliteMapper getObjectMapper() {
 		return mSession.getSqliteMapper();
+	}
+
+	@Override
+	public long count() {
+		Cursor result = mSession.executeForResult(mSqlBuilder.createCountQuery(this), true);
+		result.moveToFirst();
+		long ret = result.getLong(0);
+		result.close();
+		return ret;
 	}
 
 }
