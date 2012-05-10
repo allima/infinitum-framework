@@ -19,9 +19,10 @@
 
 package com.clarionmedia.infinitum.internal;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
 /**
  * <p>
@@ -47,26 +48,29 @@ public class Preconditions {
 	}
 
 	/**
-	 * Verifies that the given model is persistent and can be saved,
-	 * updated, or deleted.
+	 * Verifies that the given model is persistent and can be saved, updated, or
+	 * deleted.
 	 * 
 	 * @param model
 	 *            model to check persistence for
 	 */
 	public static void checkPersistenceForModify(Object model) {
-		if (!PersistenceResolution.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_MODIFY_TRANSIENT, model.getClass().getName()));
+		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		if (!policy.isPersistent(model.getClass()))
+			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_MODIFY_TRANSIENT, model.getClass()
+					.getName()));
 	}
-	
+
 	/**
-	 * Verifies that the given model {@link Class} is persistent
-	 * and can be loaded.
+	 * Verifies that the given model {@link Class} is persistent and can be
+	 * loaded.
 	 * 
 	 * @param c
 	 *            {@code Class} to check persistence for
 	 */
 	public static void checkPersistenceForLoading(Class<?> c) {
-		if (!PersistenceResolution.isPersistent(c))
+		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		if (!policy.isPersistent(c))
 			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
 	}
 

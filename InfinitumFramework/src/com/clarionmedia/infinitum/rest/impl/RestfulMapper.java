@@ -24,13 +24,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.RestfulTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
@@ -46,10 +47,12 @@ import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
  * @version 1.0 03/21/12
  */
 public class RestfulMapper extends ObjectMapper {
-	
+
 	private Map<Class<?>, RestfulTypeAdapter<?>> mTypeAdapters;
-	
+	private PersistencePolicy mPolicy;
+
 	public RestfulMapper() {
+		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 		mTypeAdapters = new HashMap<Class<?>, RestfulTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, RestfulTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, RestfulTypeAdapters.BYTE);
@@ -67,17 +70,17 @@ public class RestfulMapper extends ObjectMapper {
 	@Override
 	public RestfulModelMap mapModel(Object model) throws InvalidMappingException, ModelConfigurationException {
 		// We do not map transient classes!
-		if (!PersistenceResolution.isPersistent(model.getClass()))
-		    return null;
-		RestfulModelMap  ret = new RestfulModelMap(model);
-		for (Field f : PersistenceResolution.getPersistentFields(model.getClass())) {
+		if (!mPolicy.isPersistent(model.getClass()))
+			return null;
+		RestfulModelMap ret = new RestfulModelMap(model);
+		for (Field f : mPolicy.getPersistentFields(model.getClass())) {
 			// Don't map primary keys if they are autoincrementing
-			if (PersistenceResolution.isFieldPrimaryKey(f) && PersistenceResolution.isPrimaryKeyAutoIncrement(f))
-			    continue;
+			if (mPolicy.isFieldPrimaryKey(f) && mPolicy.isPrimaryKeyAutoIncrement(f))
+				continue;
 			try {
 				f.setAccessible(true);
 				// Map relationships
-				if (PersistenceResolution.isRelationship(f)) {
+				if (mPolicy.isRelationship(f)) {
 					mapRelationship(ret, model, f);
 					continue;
 				}
@@ -97,8 +100,8 @@ public class RestfulMapper extends ObjectMapper {
 	@Override
 	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
 		try {
-		    RestfulTypeAdapter<T> restfulAdapter = (RestfulTypeAdapter<T>) adapter;
-		    mTypeAdapters.put(type, restfulAdapter);
+			RestfulTypeAdapter<T> restfulAdapter = (RestfulTypeAdapter<T>) adapter;
+			mTypeAdapters.put(type, restfulAdapter);
 		} catch (ClassCastException e) {
 			// Ignore TypeAdapters that are not RestfulTypeAdapters
 		}
@@ -114,7 +117,7 @@ public class RestfulMapper extends ObjectMapper {
 	public <T> RestfulTypeAdapter<T> resolveType(Class<T> type) throws InvalidMappingException {
 		type = Primitives.unwrap(type);
 		if (mTypeAdapters.containsKey(type))
-		    return (RestfulTypeAdapter<T>) mTypeAdapters.get(type);
+			return (RestfulTypeAdapter<T>) mTypeAdapters.get(type);
 		throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, type.getSimpleName()));
 	}
 
@@ -123,9 +126,10 @@ public class RestfulMapper extends ObjectMapper {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+
 	// Map Field value to NameValuePair
-	private void mapField(RestfulModelMap map, Object model, Field field) throws InvalidMappingException, IllegalArgumentException, IllegalAccessException {
+	private void mapField(RestfulModelMap map, Object model, Field field) throws InvalidMappingException,
+			IllegalArgumentException, IllegalAccessException {
 		Object val = null;
 		// We need to use the Field's getter if model is a proxy
 		if (TypeResolution.isDomainProxy(model.getClass()))
@@ -133,7 +137,7 @@ public class RestfulMapper extends ObjectMapper {
 		// Otherwise just use normal reflection...
 		else
 			val = field.get(model);
-		String fieldName = PersistenceResolution.getResourceFieldName(field);
+		String fieldName = mPolicy.getResourceFieldName(field);
 		resolveType(field.getType()).mapObjectToField(val, fieldName, map.getNameValuePairs());
 	}
 

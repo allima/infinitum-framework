@@ -25,11 +25,12 @@ import java.util.List;
 
 import android.database.Cursor;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 
 /**
@@ -67,7 +68,8 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	 */
 	public SqliteCriteria(SqliteSession session, Class<T> entityClass, SqlBuilder sqlBuilder, SqliteMapper mapper)
 	        throws InfinitumRuntimeException {
-		if (!PersistenceResolution.isPersistent(entityClass))
+		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		if (!policy.isPersistent(entityClass))
 			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA, entityClass.getName()));
 		mSession = session;
 		mEntityClass = entityClass;

@@ -21,8 +21,9 @@ package com.clarionmedia.infinitum.orm.relationship;
 
 import java.lang.reflect.Field;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
@@ -38,6 +39,7 @@ public class ManyToManyRelationship extends ModelRelationship {
 	private String mTableName;
 	private String mFirstFieldName;
 	private String mSecondFieldName;
+	private PersistencePolicy mPolicy;
 
 	public ManyToManyRelationship(Field f) {
 		ManyToMany mtm = f.getAnnotation(ManyToMany.class);
@@ -48,6 +50,7 @@ public class ManyToManyRelationship extends ModelRelationship {
 		mSecondFieldName = mtm.foreignField();
 		mRelationType = RelationType.ManyToMany;
 		mName = mtm.name();
+		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 	}
 
 	public String getTableName() {
@@ -63,7 +66,7 @@ public class ManyToManyRelationship extends ModelRelationship {
 	}
 
 	public Field getFirstField() {
-		return PersistenceResolution.findPersistentField(mFirst, mFirstFieldName);
+		return mPolicy.findPersistentField(mFirst, mFirstFieldName);
 	}
 
 	public void setFirstFieldName(String firstField) {
@@ -75,7 +78,7 @@ public class ManyToManyRelationship extends ModelRelationship {
 	}
 
 	public Field getSecondField() {
-		return PersistenceResolution.findPersistentField(mSecond, mSecondFieldName);
+		return mPolicy.findPersistentField(mSecond, mSecondFieldName);
 	}
 
 	public void setSecondFieldName(String secondField) {
