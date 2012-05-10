@@ -23,14 +23,14 @@ package com.clarionmedia.infinitum.context;
 /**
  * <p>
  * Contains constants used in {@link InfinitumContext},
- * {@link InfinitumContextFactory}, and other supporting classes.
+ * {@link ContextFactory}, and other supporting classes.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/12/12
  * 
  */
-public class InfinitumContextConstants {
+public class ContextConstants {
 	
 	// Configuration values
 	public static final String MODE_ANNOTATIONS = "annotations";
