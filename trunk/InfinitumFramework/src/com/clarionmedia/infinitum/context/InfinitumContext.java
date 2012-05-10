@@ -32,7 +32,7 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
  * <p>
  * Acts as a container for application-wide context information. This should not
  * be instantiated directly but rather obtained through the
- * {@link InfinitumContextFactory}, which creates an instance of this from
+ * {@link ContextFactory}, which creates an instance of this from
  * {@code infinitum.cfg.xml}.
  * </p>
  * 
@@ -66,7 +66,7 @@ public class InfinitumContext {
 
 	/**
 	 * Constructs a new {@code InfinitumContext}. This constructor should
-	 * not be called outside of {@link InfinitumContextFactory} as it is
+	 * not be called outside of {@link ContextFactory} as it is
 	 * generated from {@code infinitum.cfg.xml}.
 	 */
 	public InfinitumContext() {

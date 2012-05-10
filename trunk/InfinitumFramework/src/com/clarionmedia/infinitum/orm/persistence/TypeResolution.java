@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.orm.persistence;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
-import com.clarionmedia.infinitum.context.InfinitumContextFactory;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 
 /**
@@ -69,7 +69,7 @@ public class TypeResolution {
 	 * @return {@code true} if it is a domain model, {@code false} if not
 	 */
 	public static boolean isDomainModel(Class<?> c) {
-		for (String s : InfinitumContextFactory.getInstance().getInfinitumContext().getDomainModels()) {
+		for (String s : ContextFactory.getInstance().getContext().getDomainModels()) {
 			if (c.getName().equalsIgnoreCase(s))
 				return true;
 		}
@@ -84,7 +84,7 @@ public class TypeResolution {
 	 * @return {@code true} if it is a domain proxy, {@code false} if not
 	 */
 	public static boolean isDomainProxy(Class<?> c) {
-		for (String s : InfinitumContextFactory.getInstance().getInfinitumContext().getDomainModels()) {
+		for (String s : ContextFactory.getInstance().getContext().getDomainModels()) {
 			String name = s;
 			if (name.contains("."))
 				name = name.substring(name.lastIndexOf('.') + 1);

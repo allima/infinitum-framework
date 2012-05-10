@@ -38,3 +38,5 @@
 <!ATTLIST property name #REQUIRED>
 <!ATTLIST property column #IMPLIED>
 <!ATTLIST property type #REQUIRED>
+<!ATTLIST property not-null #IMPLIED>
+<!ATTLIST property unique #IMPLIED>
