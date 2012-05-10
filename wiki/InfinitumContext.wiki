@@ -6,42 +6,42 @@
 
 = Introduction =
 
-Application-wide context information, which is read from the InfinitumCfgXml file, is stored in a container called `InfinitumContext`. Since the information stored in `InfinitumContext` is initialized from the configuration file, this object should not be instantiated directly. Rather, it should be obtained through the InfinitumContextFactory.
+Application-wide context information, which is read from the InfinitumCfgXml file, is stored in a container called `InfinitumContext`. Since the information stored in `InfinitumContext` is initialized from the configuration file, this object should not be instantiated directly. Rather, it should be obtained through the ContextFactory.
 
 
 = Configuration =
 
-`InfinitumContext` is also configured in `InfinitumContextFactory` in addition to being obtained from it. Invoking the `configure` method in `InfinitumContextFactory` is critical and must be done before any attempts are made to access the context. The following code snippet illustrates this notion:
+`InfinitumContext` is also configured in `ContextFactory` in addition to being obtained from it. Invoking the `configure` method in `ContextFactory` is critical and must be done before any attempts are made to access the context. The following code snippet illustrates this notion:
 
 {{{
 @Override
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContext ctx = InfinitumContextFactory.getInstance().getInfinitumContext(); 
+    InfinitumContext ctx = ContextFactory.getInstance().getInfinitumContext(); 
 }
 }}}
 
-The above example will throw an `InfinitumConfigurationException` because `configure` has not been called on the `InfinitumContextFactory`. The corrected code is as follows:
+The above example will throw an `InfinitumConfigurationException` because `configure` has not been called on the `ContextFactory`. The corrected code is as follows:
 
 {{{
 @Override
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContextFactory.getInstance().configure(this, R.xml.infinitum);
-    InfinitumContext ctx = InfinitumContextFactory.getInstance().getInfinitumContext();
+    ContextFactory.getInstance().configure(this, R.xml.infinitum);
+    InfinitumContext ctx = ContextFactory.getInstance().getInfinitumContext();
 }
 }}}
 
-`InfinitumContextFactory`'s `configure` method takes a `Context` and resource ID as arguments. The latter is the resource ID for `infinitum.cfg.xml`, meaning this file should be placed in /res/xml. Because `configure` returns an `InfinitumContext` instance, the above code can be made more concise:
+`ContextFactory`'s `configure` method takes a `Context` and resource ID as arguments. The latter is the resource ID for `infinitum.cfg.xml`, meaning this file should be placed in /res/xml. Because `configure` returns an `InfinitumContext` instance, the above code can be made more concise:
 
 {{{
 @Override
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContext ctx = InfinitumContextFactory.getInstance().configure(this, R.xml.infinitum);
+    InfinitumContext ctx = ContextFactory.getInstance().configure(this, R.xml.infinitum);
 }
 }}}
 
@@ -54,12 +54,12 @@ public void onCreate(Bundle savedInstanceState) {
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    Session session = InfinitumContextFactory.getInstance().configure(this, R.xml.infinitum).getSession(DataSource.Sqlite);
+    Session session = ContextFactory.getInstance().configure(this, R.xml.infinitum).getSession(DataSource.Sqlite);
 }
 }}}
 
 `InfinitumContext` also acts as a service locator, allowing configured beans to be retrieved. The code below shows how a `service` bean, configured to use the implementation `MyService`, might be retrieved using `InfinitumContext`.
 
 {{{
-MyService service = InfinitumContextFactory.getInstance().getInfinitumContext().getBean("service");
+MyService service = ContextFactory.getInstance().getInfinitumContext().getBean("service");
 }}}
