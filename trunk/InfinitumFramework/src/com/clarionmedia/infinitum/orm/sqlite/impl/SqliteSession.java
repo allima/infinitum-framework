@@ -23,12 +23,10 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -36,7 +34,7 @@ import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 
@@ -58,6 +56,7 @@ public class SqliteSession implements Session {
 	private InfinitumContext mInfinitumContext;
 	private Map<Integer, Object> mSessionCache;
 	private int mCacheSize;
+	private PersistencePolicy mPolicy;
 	private Logger mLogger;
 
 	/**
@@ -73,6 +72,7 @@ public class SqliteSession implements Session {
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = DEFAULT_CACHE_SIZE;
+		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy(); 
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class SqliteSession implements Session {
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
 		reconcileCache();
-		int hash = PersistenceResolution.computeModelHash(model);
+		int hash = mPolicy.computeModelHash(model);
 		// Update session cache
 		if (mSessionCache.containsKey(hash))
 			mSessionCache.put(hash, model);
@@ -151,7 +151,7 @@ public class SqliteSession implements Session {
 
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
-		int hash = PersistenceResolution.computeModelHash(model);
+		int hash = mPolicy.computeModelHash(model);
 		// Update session cache
 		if (mSessionCache.containsKey(hash))
 			mSessionCache.put(hash, model);
@@ -160,7 +160,7 @@ public class SqliteSession implements Session {
 
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
-		int hash = PersistenceResolution.computeModelHash(model);
+		int hash = mPolicy.computeModelHash(model);
 		// Remove from session cache
 		if (mSessionCache.containsKey(hash))
 			mSessionCache.remove(hash);
@@ -170,7 +170,7 @@ public class SqliteSession implements Session {
 	@Override
 	public long saveOrUpdate(Object model) throws InfinitumRuntimeException {
 		reconcileCache();
-		int hash = PersistenceResolution.computeModelHash(model);
+		int hash = mPolicy.computeModelHash(model);
 		// Update session cache
 		if (mSessionCache.containsKey(hash))
 			mSessionCache.put(hash, model);
@@ -182,7 +182,7 @@ public class SqliteSession implements Session {
 			throws InfinitumRuntimeException {
 		reconcileCache();
 		for (Object model : models) {
-			int hash = PersistenceResolution.computeModelHash(model);
+			int hash = mPolicy.computeModelHash(model);
 			// Update session cache
 			if (mSessionCache.containsKey(hash))
 				mSessionCache.put(hash, model);
@@ -195,7 +195,7 @@ public class SqliteSession implements Session {
 			throws InfinitumRuntimeException {
 		reconcileCache();
 		for (Object model : models) {
-			int hash = PersistenceResolution.computeModelHash(model);
+			int hash = mPolicy.computeModelHash(model);
 			// Update session cache
 			if (mSessionCache.containsKey(hash))
 				mSessionCache.put(hash, model);
@@ -207,7 +207,7 @@ public class SqliteSession implements Session {
 	public int deleteAll(Collection<? extends Object> models)
 			throws InfinitumRuntimeException {
 		for (Object model : models) {
-			int hash = PersistenceResolution.computeModelHash(model);
+			int hash = mPolicy.computeModelHash(model);
 			// Remove from session cache
 			if (mSessionCache.containsKey(hash))
 				mSessionCache.remove(hash);

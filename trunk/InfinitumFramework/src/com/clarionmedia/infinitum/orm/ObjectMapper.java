@@ -22,10 +22,11 @@ package com.clarionmedia.infinitum.orm;
 import java.lang.reflect.Field;
 import java.util.Map;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
@@ -34,6 +35,7 @@ import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
+import com.clarionmedia.infinitum.rest.impl.RestfulMapper;
 
 /**
  * <p>
@@ -119,8 +121,9 @@ public abstract class ObjectMapper {
 	@SuppressWarnings("unchecked")
 	protected void mapRelationship(ModelMap map, Object model, Field f) {
 		try {
-			if (PersistenceResolution.isRelationship(f)) {
-				ModelRelationship rel = PersistenceResolution.getRelationship(f);
+			PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+			if (policy.isRelationship(f)) {
+				ModelRelationship rel = policy.getRelationship(f);
 				Object related;
 				switch (rel.getRelationType()) {
 				case ManyToMany:

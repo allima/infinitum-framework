@@ -26,6 +26,9 @@ import android.content.Context;
 
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.orm.Session;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
+import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;
+import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 
 /**
@@ -42,7 +45,7 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 public class InfinitumContext {
 
 	public static enum ConfigurationMode {
-		XML, Annotation
+		Xml, Annotation
 	}
 
 	public static enum DataSource {
@@ -50,6 +53,8 @@ public class InfinitumContext {
 	}
 
 	private static final ConfigurationMode DEFAULT_MODE = ConfigurationMode.Annotation;
+	
+	private static PersistencePolicy sPersistencePolicy;
 
 	private boolean mIsDebug;
 	private ConfigurationMode mConfigMode;
@@ -65,9 +70,9 @@ public class InfinitumContext {
 	private BeanContainer mBeanContainer;
 
 	/**
-	 * Constructs a new {@code InfinitumContext}. This constructor should
-	 * not be called outside of {@link ContextFactory} as it is
-	 * generated from {@code infinitum.cfg.xml}.
+	 * Constructs a new {@code InfinitumContext}. This constructor should not be
+	 * called outside of {@link ContextFactory} as it is generated from
+	 * {@code infinitum.cfg.xml}.
 	 */
 	public InfinitumContext() {
 		mConfigMode = DEFAULT_MODE;
@@ -86,14 +91,12 @@ public class InfinitumContext {
 	 * @throws InfinitumConfigurationException
 	 *             if the specified {@code DataSource} was not configured
 	 */
-	public Session getSession(DataSource source)
-			throws InfinitumConfigurationException {
+	public Session getSession(DataSource source) throws InfinitumConfigurationException {
 		switch (source) {
 		case Sqlite:
 			return new SqliteSession(mContext);
 		default:
-			throw new InfinitumConfigurationException(
-					"Data source not configured.");
+			throw new InfinitumConfigurationException("Data source not configured.");
 		}
 	}
 
@@ -128,8 +131,8 @@ public class InfinitumContext {
 
 	/**
 	 * Returns the <code>ConfigurationMode</code> value of this
-	 * {@code InfinitumContext}, indicating which style of configuration
-	 * this application is using, XML- or annotation-based. An XML configuration
+	 * {@code InfinitumContext}, indicating which style of configuration this
+	 * application is using, XML- or annotation-based. An XML configuration
 	 * means that domain model mappings are provided through XML mapping files,
 	 * while an annotation configuration means that mappings and other
 	 * properties are provided in source code using Java annotations.
@@ -173,9 +176,9 @@ public class InfinitumContext {
 	}
 
 	/**
-	 * Sets the value indicating if this {@code InfinitumContext} has a
-	 * SQLite database configured or not. This will be set to <code>true</code>
-	 * if <code>infinitum.cfg.xml</code> has a properly configured
+	 * Sets the value indicating if this {@code InfinitumContext} has a SQLite
+	 * database configured or not. This will be set to <code>true</code> if
+	 * <code>infinitum.cfg.xml</code> has a properly configured
 	 * <code>sqlite</code> element.
 	 * 
 	 * @param hasSqliteDb
@@ -187,12 +190,11 @@ public class InfinitumContext {
 	}
 
 	/**
-	 * Returns the name of the SQLite database for this
-	 * {@code InfinitumContext}. This is the name used to construct the
-	 * database and subsequently open it.
+	 * Returns the name of the SQLite database for this {@code InfinitumContext}
+	 * . This is the name used to construct the database and subsequently open
+	 * it.
 	 * 
-	 * @return the name of the SQLite database for this
-	 *         {@code InfinitumContext}
+	 * @return the name of the SQLite database for this {@code InfinitumContext}
 	 */
 	public String getSqliteDbName() {
 		return mSqliteDbName;
@@ -200,8 +202,8 @@ public class InfinitumContext {
 
 	/**
 	 * Sets the value of the SQLite database name for this
-	 * {@code InfinitumContext}. The SQLite database name can be
-	 * specified in <code>infinitum.cfg.xml</code> with
+	 * {@code InfinitumContext}. The SQLite database name can be specified in
+	 * <code>infinitum.cfg.xml</code> with
 	 * <code>&lt;property name="dbName"&gt;MyDB&lt;/property&gt;</code> in the
 	 * <code>sqlite</code> element.
 	 * 
@@ -224,8 +226,8 @@ public class InfinitumContext {
 
 	/**
 	 * Sets the version for the SQLite database for this
-	 * {@code InfinitumContext}. The SQLite database version can be
-	 * specified in <code>infinitum.cfg.xml</code> with
+	 * {@code InfinitumContext}. The SQLite database version can be specified in
+	 * <code>infinitum.cfg.xml</code> with
 	 * <code>&lt;property name="dbVersion"&gt;2&lt;/property&gt;</code> in the
 	 * <code>sqlite</code> element.
 	 * 
@@ -238,8 +240,8 @@ public class InfinitumContext {
 
 	/**
 	 * Returns a <code>List</code> of all fully-qualified domain model classes
-	 * registered with this {@code InfinitumContext}. Domain models are
-	 * defined as being persistent entities.
+	 * registered with this {@code InfinitumContext}. Domain models are defined
+	 * as being persistent entities.
 	 * 
 	 * @return a <code>List</code> of all registered domain model classes
 	 */
@@ -249,8 +251,8 @@ public class InfinitumContext {
 
 	/**
 	 * Adds the specified domain model class to the entire collection of domain
-	 * models registered with this {@code InfinitumContext}. Domain
-	 * models are defined in <code>infinitum.cfg.xml</code> using
+	 * models registered with this {@code InfinitumContext}. Domain models are
+	 * defined in <code>infinitum.cfg.xml</code> using
 	 * <code>&lt;model resource="com.foo.domain.MyModel" /&gt;</code> in the
 	 * <code>domain</code> element.
 	 * 
@@ -325,9 +327,22 @@ public class InfinitumContext {
 	public void setBeanContainer(BeanContainer beanContainer) {
 		mBeanContainer = beanContainer;
 	}
-	
+
 	public Object getBean(String name) {
 		return mBeanContainer.loadBean(name);
 	}
 
+	public PersistencePolicy getPersistencePolicy() {
+		if (sPersistencePolicy == null) {
+			switch (mConfigMode) {
+			case Annotation:
+				sPersistencePolicy = new AnnotationPersistencePolicy();
+				break;
+			case Xml:
+				sPersistencePolicy = new XmlPersistencePolicy();
+				break;
+			}
+		}
+		return sPersistencePolicy;
+	}
 }

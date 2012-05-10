@@ -22,9 +22,10 @@ package com.clarionmedia.infinitum.orm.sqlite;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
@@ -60,10 +61,11 @@ public class SqliteUtil {
 	 *             if there is an error generating the SQL
 	 */
 	public static String getWhereClause(Object model, SqliteMapper mapper) throws InfinitumRuntimeException {
-		Field pk = PersistenceResolution.getPrimaryKeyField(model.getClass());
+		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		Field pk = policy.getPrimaryKeyField(model.getClass());
 		StringBuilder sb = new StringBuilder();
 		pk.setAccessible(true);
-		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
+		sb.append(policy.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = mapper.getSqliteDataType(pk);
 		Object pkVal = null;
 		if (TypeResolution.isDomainProxy(model.getClass())) {
@@ -107,11 +109,12 @@ public class SqliteUtil {
 	 *             key type and the type of the given primary key
 	 */
 	public static String getWhereClause(Class<?> c, Serializable id, SqliteMapper mapper) throws IllegalArgumentException {
-		Field pk = PersistenceResolution.getPrimaryKeyField(c);
+		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		Field pk = policy.getPrimaryKeyField(c);
 		if (!TypeResolution.isValidPrimaryKey(pk, id))
 			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(), c.getName()));
 		StringBuilder sb = new StringBuilder();
-		sb.append(PersistenceResolution.getFieldColumnName(pk)).append(" = ");
+		sb.append(policy.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = mapper.getSqliteDataType(pk);
 		if (t == SqliteDataType.TEXT)
 			sb.append("'").append(id).append("'");

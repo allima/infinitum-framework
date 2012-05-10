@@ -26,15 +26,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
-
 import android.content.Context;
 import android.database.Cursor;
-
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.LazilyLoadedObject;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.relationship.ForeignKeyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
@@ -63,6 +62,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private SqlBuilder mSqlBuilder;
 	private SqliteSession mSession;
 	private SqliteMapper mMapper;
+	private PersistencePolicy mPolicy;
 
 	/**
 	 * Constructs a {@code SqliteModelFactoryImpl} with the given
@@ -76,6 +76,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		mSqlBuilder = new SqliteBuilder(mapper);
 		mSession = session;
 		mMapper = mapper;
+		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 	}
 
 	@Override
@@ -113,12 +114,12 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		} catch (InvocationTargetException e) {
 			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		}
-		List<Field> fields = PersistenceResolution.getPersistentFields(modelClass);
+		List<Field> fields = mPolicy.getPersistentFields(modelClass);
 		for (Field f : fields) {
 			f.setAccessible(true);
-			if (!PersistenceResolution.isRelationship(f)) {
+			if (!mPolicy.isRelationship(f)) {
 				SqliteTypeAdapter<?> resolver = mMapper.resolveType(f.getType());
-				int index = result.getColumnIndex(PersistenceResolution.getFieldColumnName(f));
+				int index = result.getColumnIndex(mPolicy.getFieldColumnName(f));
 				try {
 					resolver.mapToObject(result, index, f, ret);
 				} catch (IllegalArgumentException e) {
@@ -129,7 +130,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 				}
 			}
 		}
-		int objHash = PersistenceResolution.computeModelHash(ret);
+		int objHash = mPolicy.computeModelHash(ret);
 		if (mSession.getSessionCache().containsKey(objHash))
 			return (T) mSession.getSessionCache().get(objHash);
 		mSession.getSessionCache().put(objHash, ret);
@@ -139,29 +140,29 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 
 	private <T> void loadRelationships(T model) throws ModelConfigurationException, InfinitumRuntimeException {
 		// TODO Relationships should be lazily loaded
-		for (Field f : PersistenceResolution.getPersistentFields(model.getClass())) {
+		for (Field f : mPolicy.getPersistentFields(model.getClass())) {
 			f.setAccessible(true);
-			if (!PersistenceResolution.isRelationship(f))
+			if (!mPolicy.isRelationship(f))
 				continue;
-			ModelRelationship rel = PersistenceResolution.getRelationship(f);
+			ModelRelationship rel = mPolicy.getRelationship(f);
 			switch (rel.getRelationType()) {
 			case ManyToMany:
 				loadManyToMany((ManyToManyRelationship) rel, f, model);
 				break;
 			case ManyToOne:
-				if (PersistenceResolution.isLazy(model.getClass()))
+				if (mPolicy.isLazy(model.getClass()))
 					lazilyLoadManyToOne((ManyToOneRelationship) rel, f, model);
 				else
 					loadManyToOne((ManyToOneRelationship) rel, f, model);
 				break;
 			case OneToMany:
-				if (PersistenceResolution.isLazy(model.getClass()))
+				if (mPolicy.isLazy(model.getClass()))
 					lazilyLoadOneToMany((OneToManyRelationship) rel, f, model);
 				else
 					loadOneToMany((OneToManyRelationship) rel, f, model);
 				break;
 			case OneToOne:
-				if (PersistenceResolution.isLazy(model.getClass()))
+				if (mPolicy.isLazy(model.getClass()))
 					lazilyLoadOneToOne((OneToOneRelationship) rel, f, model);
 				else
 					loadOneToOne((OneToOneRelationship) rel, f, model);
@@ -232,10 +233,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private <T> void lazilyLoadOneToMany(final OneToManyRelationship rel,
 			Field f, T model) {
 		final StringBuilder sql = new StringBuilder("SELECT * FROM ")
-				.append(PersistenceResolution.getModelTableName(rel.getManyType())).append(" WHERE ")
+				.append(mPolicy.getModelTableName(rel.getManyType())).append(" WHERE ")
 				.append(rel.getColumn()).append(" = ");
-		Object pk = PersistenceResolution.getPrimaryKey(model);
-		switch (mMapper.getSqliteDataType(PersistenceResolution.getPrimaryKeyField(model.getClass()))) {
+		Object pk = mPolicy.getPrimaryKey(model);
+		switch (mMapper.getSqliteDataType(mPolicy.getPrimaryKeyField(model.getClass()))) {
 		case TEXT:
 			sql.append("'").append(pk).append("'");
 			break;
@@ -270,10 +271,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 
 	private <T> void loadOneToMany(OneToManyRelationship rel, Field f, T model) {
 		StringBuilder sql = new StringBuilder("SELECT * FROM ")
-				.append(PersistenceResolution.getModelTableName(rel.getManyType())).append(" WHERE ")
+				.append(mPolicy.getModelTableName(rel.getManyType())).append(" WHERE ")
 				.append(rel.getColumn()).append(" = ");
-		Object pk = PersistenceResolution.getPrimaryKey(model);
-		switch (mMapper.getSqliteDataType(PersistenceResolution.getPrimaryKeyField(model.getClass()))) {
+		Object pk = mPolicy.getPrimaryKey(model);
+		switch (mMapper.getSqliteDataType(mPolicy.getPrimaryKeyField(model.getClass()))) {
 		case TEXT:
 			sql.append("'").append(pk).append("'");
 			break;
@@ -364,7 +365,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		try {
 			// TODO Add reflexive M:M support
 			Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
-			Field pk = PersistenceResolution.getPrimaryKeyField(model.getClass());
+			Field pk = mPolicy.getPrimaryKeyField(model.getClass());
 			String sql = mSqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(model), direction);
 			SqliteResult result = (SqliteResult) mExecutor.execute(sql);
 			@SuppressWarnings("unchecked")
@@ -383,9 +384,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private String getEntityQuery(Object model, Class<?> c, Field f,
 			ForeignKeyRelationship rel) {
 		StringBuilder sql = new StringBuilder("SELECT * FROM ")
-				.append(PersistenceResolution.getModelTableName(c))
+				.append(mPolicy.getModelTableName(c))
 				.append(" WHERE ")
-				.append(PersistenceResolution.getFieldColumnName(PersistenceResolution.getPrimaryKeyField(c))).append(" = ");
+				.append(mPolicy.getFieldColumnName(mPolicy.getPrimaryKeyField(c))).append(" = ");
 		switch (mMapper.getSqliteDataType(f)) {
 		case TEXT:
 			sql.append("'").append(getForeignKey(model, f, rel)).append("'");
@@ -400,11 +401,11 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		StringBuilder q = new StringBuilder("SELECT ")
 				.append(rel.getColumn())
 				.append(" FROM ")
-				.append(PersistenceResolution.getModelTableName(model.getClass()))
+				.append(mPolicy.getModelTableName(model.getClass()))
 				.append(" WHERE ")
-				.append(PersistenceResolution.getFieldColumnName(PersistenceResolution.getPrimaryKeyField(model.getClass())))
+				.append(mPolicy.getFieldColumnName(mPolicy.getPrimaryKeyField(model.getClass())))
 				.append(" = ");
-		Object pk = PersistenceResolution.getPrimaryKey(model);
+		Object pk = mPolicy.getPrimaryKey(model);
 		switch (mMapper.getSqliteDataType(f)) {
 		case TEXT:
 			q.append("'").append(pk).append("'");

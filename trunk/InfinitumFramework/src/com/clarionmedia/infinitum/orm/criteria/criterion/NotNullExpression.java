@@ -21,10 +21,11 @@ package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.lang.reflect.Field;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 
 /**
@@ -55,15 +56,16 @@ public class NotNullExpression extends Criterion {
 		StringBuilder query = new StringBuilder();
 		Class<?> c = criteria.getEntityClass();
 		Field f = null;
+		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 		try {
-			f = PersistenceResolution.findPersistentField(c, mFieldName);
+			f = policy.findPersistentField(c, mFieldName);
 			if (f == null)
 				throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 			f.setAccessible(true);
 		} catch (SecurityException e) {
 			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
 		}
-		String colName = PersistenceResolution.getFieldColumnName(f);
+		String colName = policy.getFieldColumnName(f);
 		query.append(colName).append(' ').append(SqlConstants.IS_NOT_NULL);
 		return query.toString();
 	}

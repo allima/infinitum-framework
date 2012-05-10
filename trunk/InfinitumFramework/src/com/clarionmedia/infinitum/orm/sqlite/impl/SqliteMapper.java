@@ -26,13 +26,14 @@ import java.util.Map;
 
 import android.content.ContentValues;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.SqliteTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
@@ -51,8 +52,10 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
 public class SqliteMapper extends ObjectMapper {
 
 	private Map<Class<?>, SqliteTypeAdapter<?>> mTypeAdapters;
-	
+	private PersistencePolicy mPolicy;
+
 	public SqliteMapper() {
+		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 		mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, SqliteTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, SqliteTypeAdapters.BYTE);
@@ -70,18 +73,18 @@ public class SqliteMapper extends ObjectMapper {
 	@Override
 	public SqliteModelMap mapModel(Object model) throws InvalidMappingException, ModelConfigurationException {
 		// We do not map transient classes!
-		if (!PersistenceResolution.isPersistent(model.getClass()))
+		if (!mPolicy.isPersistent(model.getClass()))
 			return null;
 		SqliteModelMap ret = new SqliteModelMap(model);
 		ContentValues values = new ContentValues();
-		for (Field f : PersistenceResolution.getPersistentFields(model.getClass())) {
+		for (Field f : mPolicy.getPersistentFields(model.getClass())) {
 			// Don't map primary keys if they are autoincrementing
-			if (PersistenceResolution.isFieldPrimaryKey(f) && PersistenceResolution.isPrimaryKeyAutoIncrement(f))
+			if (mPolicy.isFieldPrimaryKey(f) && mPolicy.isPrimaryKeyAutoIncrement(f))
 				continue;
 			try {
 				f.setAccessible(true);
 				// Map relationships
-				if (PersistenceResolution.isRelationship(f)) {
+				if (mPolicy.isRelationship(f)) {
 					mapRelationship(ret, model, f);
 					continue;
 				}
@@ -98,7 +101,7 @@ public class SqliteMapper extends ObjectMapper {
 		ret.setContentValues(values);
 		return ret;
 	}
-	
+
 	/**
 	 * Retrieves a {@link SqliteTypeAdapter} for the given {@link Class}.
 	 * 
@@ -114,15 +117,15 @@ public class SqliteMapper extends ObjectMapper {
 	public <T> SqliteTypeAdapter<T> resolveType(Class<T> type) throws InvalidMappingException {
 		type = Primitives.unwrap(type);
 		if (mTypeAdapters.containsKey(type))
-		    return (SqliteTypeAdapter<T>) mTypeAdapters.get(type);
+			return (SqliteTypeAdapter<T>) mTypeAdapters.get(type);
 		throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, type.getSimpleName()));
 	}
-	
+
 	@Override
 	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
 		try {
-		    SqliteTypeAdapter<T> sqliteAdapter = (SqliteTypeAdapter<T>) adapter;
-		    mTypeAdapters.put(type, sqliteAdapter);
+			SqliteTypeAdapter<T> sqliteAdapter = (SqliteTypeAdapter<T>) adapter;
+			mTypeAdapters.put(type, sqliteAdapter);
 		} catch (ClassCastException e) {
 			// Ignore TypeAdapters that are not SqliteTypeAdapters
 		}
@@ -132,12 +135,12 @@ public class SqliteMapper extends ObjectMapper {
 	public Map<Class<?>, SqliteTypeAdapter<?>> getRegisteredTypeAdapters() {
 		return mTypeAdapters;
 	}
-	
+
 	@Override
 	public boolean isTextColumn(Field f) {
 		return getSqliteDataType(f) == SqliteDataType.TEXT;
 	}
-	
+
 	/**
 	 * Retrieves the SQLite data type associated with the given
 	 * <code>Field</code>.
@@ -153,12 +156,13 @@ public class SqliteMapper extends ObjectMapper {
 		if (mTypeAdapters.containsKey(c))
 			ret = mTypeAdapters.get(c).getSqliteType();
 		else if (TypeResolution.isDomainModel(c))
-			ret = getSqliteDataType(PersistenceResolution.getPrimaryKeyField(c));
+			ret = getSqliteDataType(mPolicy.getPrimaryKeyField(c));
 		return ret;
 	}
 
 	// Map Field value to ContentValues
-	private void mapField(ContentValues values, Object model, Field field) throws InvalidMappingException, IllegalArgumentException, IllegalAccessException {
+	private void mapField(ContentValues values, Object model, Field field) throws InvalidMappingException,
+			IllegalArgumentException, IllegalAccessException {
 		Object val = null;
 		// We need to use the Field's getter if model is a proxy
 		if (TypeResolution.isDomainProxy(model.getClass()))
@@ -166,8 +170,8 @@ public class SqliteMapper extends ObjectMapper {
 		// Otherwise just use normal reflection...
 		else
 			val = field.get(model);
-		String colName = PersistenceResolution.getFieldColumnName(field);
+		String colName = mPolicy.getFieldColumnName(field);
 		resolveType(field.getType()).mapObjectToColumn(val, colName, values);
 	}
-	
+
 }

@@ -216,7 +216,7 @@ public class ContextFactory {
 					if (ContextConstants.MODE_ANNOTATIONS.equalsIgnoreCase(value))
 						ctx.setConfigurationMode(ConfigurationMode.Annotation);
 					else if (ContextConstants.MODE_XML.equalsIgnoreCase(value))
-						ctx.setConfigurationMode(ConfigurationMode.XML);
+						ctx.setConfigurationMode(ConfigurationMode.Xml);
 					else
 						throw new InfinitumConfigurationException(String.format(
 								ContextConstants.CONFIG_PARSE_ERROR_LINE, parser.getLineNumber()));

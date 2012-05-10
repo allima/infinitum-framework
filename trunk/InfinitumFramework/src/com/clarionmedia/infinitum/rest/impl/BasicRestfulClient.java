@@ -50,7 +50,7 @@ import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.logging.Logger;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceResolution;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
 import com.clarionmedia.infinitum.rest.RestfulClient;
@@ -73,6 +73,7 @@ public class BasicRestfulClient extends RestfulClient {
 	
 	protected RestfulMapper mMapper;
 	protected Map<Class<?>, JsonDeserializer<?>> mJsonDeserializers;
+	protected PersistencePolicy mPolicy;
 	protected Logger mLogger;
 	
 	/**
@@ -84,6 +85,7 @@ public class BasicRestfulClient extends RestfulClient {
 		mLogger = Logger.getInstance(TAG);
 		mMapper = new RestfulMapper();
 		mJsonDeserializers = new HashMap<Class<?>, JsonDeserializer<?>>();
+		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 	}
 
 	@Override
@@ -91,7 +93,7 @@ public class BasicRestfulClient extends RestfulClient {
 		Preconditions.checkPersistenceForModify(model);
 		mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass());
+		String uri = mHost + mPolicy.getRestfulResource(model.getClass());
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPost httpPost = new HttpPost(uri);
@@ -127,8 +129,8 @@ public class BasicRestfulClient extends RestfulClient {
 		Preconditions.checkPersistenceForModify(model);
 		mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		Object pk = PersistenceResolution.getPrimaryKey(model);
-		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass()) + "/" + pk.toString();
+		Object pk = mPolicy.getPrimaryKey(model);
+		String uri = mHost + mPolicy.getRestfulResource(model.getClass()) + "/" + pk.toString();
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpDelete httpDelete = new HttpDelete(uri);
@@ -153,7 +155,7 @@ public class BasicRestfulClient extends RestfulClient {
 		Preconditions.checkPersistenceForModify(model);
 		mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		String uri = mHost + PersistenceResolution.getRestfulResource(model.getClass());
+		String uri = mHost + mPolicy.getRestfulResource(model.getClass());
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPut httpPut = new HttpPut(uri);
@@ -192,7 +194,7 @@ public class BasicRestfulClient extends RestfulClient {
 		Preconditions.checkPersistenceForLoading(type);
 		mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
-		String uri = mHost + PersistenceResolution.getRestfulResource(type) + "/" + id;
+		String uri = mHost + mPolicy.getRestfulResource(type) + "/" + id;
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpGet httpGet = new HttpGet(uri);
