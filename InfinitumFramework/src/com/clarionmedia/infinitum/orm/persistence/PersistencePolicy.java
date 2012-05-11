@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.clarionmedia.infinitum.exception.MapFileException;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.annotation.Unique;
+import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
@@ -112,11 +112,11 @@ public abstract class PersistencePolicy {
 	 *         {@code Class}
 	 * @throws IllegalArgumentException
 	 *             if the given {@code Class} is transient
-	 * @throws MapFileException
+	 * @throws InvalidMapFileException
 	 *             if the map file for the given {@code Class} is invalid
 	 */
 	public abstract String getModelTableName(Class<?> c)
-			throws IllegalArgumentException, MapFileException;
+			throws IllegalArgumentException, InvalidMapFileException;
 
 	/**
 	 * Retrieves a {@code List} of all persistent {@code Fields} for the given

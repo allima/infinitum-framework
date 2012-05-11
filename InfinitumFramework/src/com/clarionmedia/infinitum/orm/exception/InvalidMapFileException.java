@@ -17,9 +17,8 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.exception;
+package com.clarionmedia.infinitum.orm.exception;
 
-import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
 /**
  * <p>
@@ -29,7 +28,7 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
  * @author Tyler Treat
  * @version 1.0 02/15/12
  */
-public class MapFileException extends ModelConfigurationException {
+public class InvalidMapFileException extends ModelConfigurationException {
 
 	private static final long serialVersionUID = -2477796900040902595L;
 
@@ -38,9 +37,9 @@ public class MapFileException extends ModelConfigurationException {
 	 * message.
 	 * 
 	 * @param error
-	 *            the error message for the {@link MapFileException}
+	 *            the error message for the {@link InvalidMapFileException}
 	 */
-	public MapFileException(String error) {
+	public InvalidMapFileException(String error) {
 		super(error);
 	}
 
