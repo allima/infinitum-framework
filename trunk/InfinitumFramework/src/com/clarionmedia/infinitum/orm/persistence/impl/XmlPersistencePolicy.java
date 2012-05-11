@@ -37,7 +37,7 @@ import android.content.res.Resources.NotFoundException;
 import android.content.res.XmlResourceParser;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.exception.MapFileException;
+import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -91,7 +91,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_CLASS)) {
 					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
 					if (name == null)
-						throw new MapFileException("'" + c.getName() + "' map file does not specify class name.");
+						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
 					table = parser.getAttributeValue(null, PersistenceConstants.ATTR_TABLE);
 					if (table == null) {
 						if (name.contains("."))
@@ -111,7 +111,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		throw new MapFileException("'" + c.getName() + "' map file does not specify class name.");
+		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
 	}
 
 	@Override
@@ -134,7 +134,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 					if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
 						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
 						if (name == null)
-						    throw new MapFileException("'" + c.getName() + "' map file does not specify property name.");
+						    throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property name.");
 						if (name.equals(f.getName()))
 							ret.add(f);
 					}
@@ -172,10 +172,10 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
 					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
 					if (name == null)
-						throw new MapFileException("'" + c.getName() + "' map file does not specify primary key name.");
+						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify primary key name.");
 					Field f = ClassReflector.getField(c, name);
 					if (f == null)
-						throw new MapFileException("'" + c.getName() + "' map file specifies a primary key which does not exist.");
+						throw new InvalidMapFileException("'" + c.getName() + "' map file specifies a primary key which does not exist.");
 					f.setAccessible(true);
 					mPrimaryKeyCache.put(c, f);
 					return f;
@@ -194,7 +194,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			mPrimaryKeyCache.put(c, f);
 			return f;
 		}
-		throw new MapFileException("'" + c.getName() + "' map file does not specify primary key.");
+		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify primary key.");
 	}
 
 	@Override
@@ -216,7 +216,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 					if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
 						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
 						if (name == null)
-							throw new MapFileException("'" + c.getName() + "' map file does not specify property name.");
+							throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property name.");
 						if (f.getName().equals(name)) {
 						    String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
 						    if (column == null) {
@@ -233,7 +233,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
 					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
 					if (name == null)
-						throw new MapFileException("'" + c.getName() + "' map file does not specify property name.");
+						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property name.");
 					if (f.getName().equals(name)) {
 					    String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
 					    if (column == null) {
@@ -255,7 +255,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
-		throw new MapFileException("'" + c.getName() + "' map file does not specify property '" + f.getName() + "'.");
+		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property '" + f.getName() + "'.");
 	}
 
 	@Override
