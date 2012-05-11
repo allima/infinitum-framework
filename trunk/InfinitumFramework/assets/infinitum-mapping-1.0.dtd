@@ -27,6 +27,8 @@
 <!ELEMENT class (primary-key+ , property*)
 <!ATTLIST class name CDATA #REQUIRED>
 <!ATTLIST class table CDATA #IMPLIED>
+<!ATTLIST class lazy CDATA #IMPLIED>
+<!ATTLIST class cascade CDATA #IMPLIED>
 
 <!ELEMENT primary-key (#PCDATA)>
 <!ATTLIST primary-key name #REQUIRED>

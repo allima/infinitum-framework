@@ -66,6 +66,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	
 	// This Map caches the table name for each persistent class
 	private Map<Class<?>, String> mTableCache;
+	
+	// This Map caches the cascade value for each persistent class
+	private Map<Class<?>, Boolean> mCascadeCache;
 
 	/**
 	 * Constructs a new {@code XmlPersistencePolicy} with the given
@@ -79,6 +82,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		mContext = context;
 		mResourceCache = new HashMap<Class<?>, Integer>();
 		mTableCache = new HashMap<Class<?>, String>();
+		mCascadeCache = new HashMap<Class<?>, Boolean>();
 	}
 
 	@Override
@@ -241,9 +245,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public String getFieldColumnName(Field f) {
-		Class<?> c = f.getDeclaringClass();
 		if (mColumnCache.containsKey(f))
 			return mColumnCache.get(f);
+		Class<?> c = f.getDeclaringClass();
 		XmlResourceParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
@@ -321,14 +325,84 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public boolean isFieldNullable(Field f) {
-		// TODO Auto-generated method stub
-		return false;
+		if (mFieldNullableCache.containsKey(f))
+			return mFieldNullableCache.get(f);
+		Class<?> c = f.getDeclaringClass();
+		XmlResourceParser parser = loadXmlMapFile(c);
+		try {
+			int code = parser.getEventType();
+			while (code != XmlPullParser.END_DOCUMENT) {
+				if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(
+								PersistenceConstants.ELEMENT_PROPERTY)) {
+					String name = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_NAME);
+					if (name == null)
+						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property name.");
+					if (name.equals(f.getName())) {
+						String notNull = parser.getAttributeValue(null, PersistenceConstants.ATTR_NOT_NULL);
+						if (notNull == null) {
+							mFieldNullableCache.put(f, true);
+							return true;
+						} else {
+							boolean nullable = Boolean.parseBoolean(notNull);
+							mFieldNullableCache.put(f, nullable);
+							return nullable;
+						}
+					}
+				}
+				code = parser.next();
+			}
+		} catch (XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		throw new InvalidMapFileException("'" + c.getName()
+				+ "' map file does not specify the property '" + f.getName() + "'.");
 	}
 
 	@Override
 	public boolean isFieldUnique(Field f) {
-		// TODO Auto-generated method stub
-		return false;
+		if (mFieldUniqueCache.containsKey(f))
+			return mFieldUniqueCache.get(f);
+		Class<?> c = f.getDeclaringClass();
+		XmlResourceParser parser = loadXmlMapFile(c);
+		try {
+			int code = parser.getEventType();
+			while (code != XmlPullParser.END_DOCUMENT) {
+				if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(
+								PersistenceConstants.ELEMENT_PROPERTY)) {
+					String name = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_NAME);
+					if (name == null)
+						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property name.");
+					if (name.equals(f.getName())) {
+						String unique = parser.getAttributeValue(null, PersistenceConstants.ATTR_UNIQUE);
+						if (unique == null) {
+							mFieldUniqueCache.put(f, false);
+							return false;
+						} else {
+							boolean isUnique = Boolean.parseBoolean(unique);
+							mFieldUniqueCache.put(f, isUnique);
+							return isUnique;
+						}
+					}
+				}
+				code = parser.next();
+			}
+		} catch (XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		throw new InvalidMapFileException("'" + c.getName()
+				+ "' map file does not specify the property '" + f.getName() + "'.");
 	}
 
 	@Override
@@ -339,8 +413,45 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public boolean isCascading(Class<?> c) {
-		// TODO Auto-generated method stub
-		return false;
+		if (mCascadeCache.containsKey(c))
+			return mCascadeCache.get(c);
+		if (!isPersistent(c))
+			throw new IllegalArgumentException("Class '" + c.getName()
+					+ "' is transient.");
+		XmlResourceParser parser = loadXmlMapFile(c);
+		try {
+			int code = parser.getEventType();
+			while (code != XmlPullParser.END_DOCUMENT) {
+				if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(
+								PersistenceConstants.ELEMENT_CLASS)) {
+					String name = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_NAME);
+					if (name == null)
+						throw new InvalidMapFileException("'" + c.getName()
+								+ "' map file does not specify class name.");
+					String cascade = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_CASCADE);
+					if (cascade == null) {
+						mCascadeCache.put(c, true);
+						return true;
+					} else {
+						boolean isCascade = Boolean.parseBoolean(cascade);
+						mCascadeCache.put(c, isCascade);
+						return isCascade;
+					}
+				}
+				code = parser.next();
+			}
+		} catch (XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		throw new InvalidMapFileException("'" + c.getName()
+				+ "' map file does not specify class name.");
 	}
 
 	@Override
@@ -363,8 +474,45 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public boolean isLazy(Class<?> c) {
-		// TODO Auto-generated method stub
-		return false;
+		if (mLazyLoadingCache.containsKey(c))
+			return mLazyLoadingCache.get(c);
+		if (!isPersistent(c))
+			throw new IllegalArgumentException("Class '" + c.getName()
+					+ "' is transient.");
+		XmlResourceParser parser = loadXmlMapFile(c);
+		try {
+			int code = parser.getEventType();
+			while (code != XmlPullParser.END_DOCUMENT) {
+				if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(
+								PersistenceConstants.ELEMENT_CLASS)) {
+					String name = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_NAME);
+					if (name == null)
+						throw new InvalidMapFileException("'" + c.getName()
+								+ "' map file does not specify class name.");
+					String lazy = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_LAZY);
+					if (lazy == null) {
+						mLazyLoadingCache.put(c, true);
+						return true;
+					} else {
+						boolean isLazy = Boolean.parseBoolean(lazy);
+						mCascadeCache.put(c, isLazy);
+						return isLazy;
+					}
+				}
+				code = parser.next();
+			}
+		} catch (XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		throw new InvalidMapFileException("'" + c.getName()
+				+ "' map file does not specify class name.");
 	}
 
 	@Override
