@@ -60,9 +60,20 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
 public class XmlPersistencePolicy extends PersistencePolicy {
 
 	private Context mContext;
+	
+	// This Map caches the resource ID for each persistent class's map file
 	private Map<Class<?>, Integer> mResourceCache;
+	
+	// This Map caches the table name for each persistent class
 	private Map<Class<?>, String> mTableCache;
 
+	/**
+	 * Constructs a new {@code XmlPersistencePolicy} with the given
+	 * {@link Context}.
+	 * 
+	 * @param context
+	 *            the {@code Context} to use for this policy
+	 */
 	public XmlPersistencePolicy(Context context) {
 		super();
 		mContext = context;
@@ -88,14 +99,20 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_CLASS)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+				if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(
+								PersistenceConstants.ELEMENT_CLASS)) {
+					String name = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_NAME);
 					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					table = parser.getAttributeValue(null, PersistenceConstants.ATTR_TABLE);
+						throw new InvalidMapFileException("'" + c.getName()
+								+ "' map file does not specify class name.");
+					table = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_TABLE);
 					if (table == null) {
 						if (name.contains("."))
-							table = name.substring(name.lastIndexOf(".") + 1).toLowerCase();
+							table = name.substring(name.lastIndexOf(".") + 1)
+									.toLowerCase();
 						else
 							table = name.toLowerCase();
 					}
@@ -111,17 +128,19 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
+		throw new InvalidMapFileException("'" + c.getName()
+				+ "' map file does not specify class name.");
 	}
 
 	@Override
 	public List<Field> getPersistentFields(Class<?> c) {
 		if (mPersistenceCache.containsKey(c))
-		    return mPersistenceCache.get(c);
+			return mPersistenceCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
 		List<Field> fields = ClassReflector.getAllFields(c);
 		for (Field f : fields) {
-			if (Modifier.isStatic(f.getModifiers()) || TypeResolution.isDomainProxy(f.getDeclaringClass()))
+			if (Modifier.isStatic(f.getModifiers())
+					|| TypeResolution.isDomainProxy(f.getDeclaringClass()))
 				continue;
 			if (isFieldPrimaryKey(f)) {
 				ret.add(f);
@@ -131,10 +150,16 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			try {
 				int code = parser.getEventType();
 				while (code != XmlPullParser.END_DOCUMENT) {
-					if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+					if (code == XmlPullParser.START_TAG
+							&& parser.getName().equalsIgnoreCase(
+									PersistenceConstants.ELEMENT_PROPERTY)) {
+						String name = parser.getAttributeValue(null,
+								PersistenceConstants.ATTR_NAME);
 						if (name == null)
-						    throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property name.");
+							throw new InvalidMapFileException(
+									"'"
+											+ c.getName()
+											+ "' map file does not specify property name.");
 						if (name.equals(f.getName()))
 							ret.add(f);
 					}
@@ -146,7 +171,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} 
+			}
 		}
 		mPersistenceCache.put(c, ret);
 		return ret;
@@ -159,7 +184,8 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
+	public Field getPrimaryKeyField(Class<?> c)
+			throws ModelConfigurationException {
 		if (mPrimaryKeyCache.containsKey(c))
 			return mPrimaryKeyCache.get(c);
 		if (!isPersistent(c))
@@ -169,13 +195,22 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+				if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(
+								PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
+					String name = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_NAME);
 					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify primary key name.");
+						throw new InvalidMapFileException(
+								"'"
+										+ c.getName()
+										+ "' map file does not specify primary key name.");
 					Field f = ClassReflector.getField(c, name);
 					if (f == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file specifies a primary key which does not exist.");
+						throw new InvalidMapFileException(
+								"'"
+										+ c.getName()
+										+ "' map file specifies a primary key which does not exist.");
 					f.setAccessible(true);
 					mPrimaryKeyCache.put(c, f);
 					return f;
@@ -188,13 +223,14 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
+		}
 		if (c.getSuperclass() != null) {
 			Field f = getPrimaryKeyField(c.getSuperclass());
 			mPrimaryKeyCache.put(c, f);
 			return f;
 		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify primary key.");
+		throw new InvalidMapFileException("'" + c.getName()
+				+ "' map file does not specify primary key.");
 	}
 
 	@Override
@@ -213,37 +249,49 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (isFieldPrimaryKey(f)) {
-					if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+					if (code == XmlPullParser.START_TAG
+							&& parser.getName().equalsIgnoreCase(
+									PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
+						String name = parser.getAttributeValue(null,
+								PersistenceConstants.ATTR_NAME);
 						if (name == null)
-							throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property name.");
+							throw new InvalidMapFileException(
+									"'"
+											+ c.getName()
+											+ "' map file does not specify property name.");
 						if (f.getName().equals(name)) {
-						    String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
-						    if (column == null) {
-						    	if (name.startsWith("m") && name.length() > 1)
-						    		column = name.substring(1).toLowerCase();
-						    	else
-						    		column = name.toLowerCase();
-						    }
-						    mColumnCache.put(f, column);
-						    return column;
+							String column = parser.getAttributeValue(null,
+									PersistenceConstants.ATTR_COLUMN);
+							if (column == null) {
+								if (name.startsWith("m") && name.length() > 1)
+									column = name.substring(1).toLowerCase();
+								else
+									column = name.toLowerCase();
+							}
+							mColumnCache.put(f, column);
+							return column;
 						}
 					}
 				}
-				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+				if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(
+								PersistenceConstants.ELEMENT_PROPERTY)) {
+					String name = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_NAME);
 					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property name.");
+						throw new InvalidMapFileException("'" + c.getName()
+								+ "' map file does not specify property name.");
 					if (f.getName().equals(name)) {
-					    String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
-					    if (column == null) {
-					    	if (name.startsWith("m") && name.length() > 1)
-					    		column = name.substring(1).toLowerCase();
-					    	else
-					    		column = name.toLowerCase();
-					    }
-					    mColumnCache.put(f, column);
-					    return column;
+						String column = parser.getAttributeValue(null,
+								PersistenceConstants.ATTR_COLUMN);
+						if (column == null) {
+							if (name.startsWith("m") && name.length() > 1)
+								column = name.substring(1).toLowerCase();
+							else
+								column = name.toLowerCase();
+						}
+						mColumnCache.put(f, column);
+						return column;
 					}
 				}
 				code = parser.next();
@@ -254,8 +302,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property '" + f.getName() + "'.");
+		}
+		throw new InvalidMapFileException("'" + c.getName()
+				+ "' map file does not specify property '" + f.getName() + "'.");
 	}
 
 	@Override
@@ -290,12 +339,6 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public boolean isCascading(Class<?> c) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isPKNullOrZero(Object model) {
 		// TODO Auto-generated method stub
 		return false;
 	}
