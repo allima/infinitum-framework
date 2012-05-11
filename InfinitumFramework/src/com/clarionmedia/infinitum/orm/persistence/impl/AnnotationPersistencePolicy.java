@@ -266,7 +266,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 		Column c = f.getAnnotation(Column.class);
 		if (c == null) {
 			String name = f.getName();
-			if (name.startsWith("m"))
+			if (name.startsWith("m") && name.length() > 1)
 				ret = name.substring(1).toLowerCase();
 			else
 				ret = name.toLowerCase();
@@ -411,41 +411,6 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 			return true;
 		Entity entity = c.getAnnotation(Entity.class);
 		return entity.cascade();
-	}
-
-	/**
-	 * Indicates if the primary key {@link Field} for the given model is 0 or
-	 * {@code null}.
-	 * 
-	 * @param model
-	 *            the model to check the primary key value for
-	 * @return {@code true} if it is 0 or {@code null}, false if not
-	 */
-	@Override
-	public boolean isPKNullOrZero(Object model) {
-		Field f = getPrimaryKeyField(model.getClass());
-		f.setAccessible(true);
-		Object pk = null;
-		try {
-			pk = f.get(model);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (pk == null)
-			return true;
-		if (pk instanceof Integer)
-			return (((Integer) pk) == 0);
-		else if (pk instanceof Long)
-			return (((Long) pk) == 0);
-		else if (pk instanceof Float)
-			return (((Float) pk) == 0);
-		else if (pk instanceof Double)
-			return (((Double) pk) == 0);
-		return false;
 	}
 
 	/**
@@ -607,7 +572,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 		String ret;
 		if (!f.isAnnotationPresent(Rest.class)) {
 			ret = f.getName().toLowerCase();
-			if (ret.startsWith("m"))
+			if (ret.startsWith("m") && ret.length() > 1)
 				ret = ret.substring(1);
 		} else {
 			Rest rest = f.getAnnotation(Rest.class);

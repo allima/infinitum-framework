@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.annotation.Unique;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
@@ -38,7 +37,7 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  * <p>
  * Provides a runtime resolution policy for model persistence based on the
  * Infinitum configuration. There are two types of persistence policies:
- * annotations and XML.
+ * annotation and XML.
  * </p>
  * <p>
  * Domain classes should be individually registered in {@code infinitum.cfg.xml}
@@ -157,8 +156,7 @@ public abstract class PersistencePolicy {
 
 	/**
 	 * Retrieves a {@code List} of all unique {@code Fields} for the given
-	 * {@code Class}. {@code Fields} can be marked unique using the
-	 * {@link Unique} annotation.
+	 * {@code Class}.
 	 * 
 	 * @param c
 	 *            the {@code Class} to retrieve unique {@code Fields} for
@@ -244,17 +242,7 @@ public abstract class PersistencePolicy {
 	 * @return {@code true} if it is cascading, {@code false} if not
 	 */
 	public abstract boolean isCascading(Class<?> c);
-
-	/**
-	 * Indicates if the primary key {@link Field} for the given model is 0 or
-	 * {@code null}.
-	 * 
-	 * @param model
-	 *            the model to check the primary key value for
-	 * @return {@code true} if it is 0 or {@code null}, false if not
-	 */
-	public abstract boolean isPKNullOrZero(Object model);
-
+	
 	/**
 	 * Indicates if the given persistent {@link Field} is part of an entity
 	 * relationship, either many-to-many, many-to-one, one-to-many, or
@@ -389,9 +377,43 @@ public abstract class PersistencePolicy {
 		}
 		return ret;
 	}
+	
+	/**
+	 * Indicates if the primary key {@link Field} for the given model is 0 or
+	 * {@code null}.
+	 * 
+	 * @param model
+	 *            the model to check the primary key value for
+	 * @return {@code true} if it is 0 or {@code null}, false if not
+	 */
+	public boolean isPKNullOrZero(Object model) {
+		Field f = getPrimaryKeyField(model.getClass());
+		f.setAccessible(true);
+		Object pk = null;
+		try {
+			pk = f.get(model);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (pk == null)
+			return true;
+		if (pk instanceof Integer)
+			return (((Integer) pk) == 0);
+		else if (pk instanceof Long)
+			return (((Long) pk) == 0);
+		else if (pk instanceof Float)
+			return (((Float) pk) == 0);
+		else if (pk instanceof Double)
+			return (((Double) pk) == 0);
+		return false;
+	}
 
 	/**
-	 * Retrurns the many-to-many relationship cache.
+	 * Returns the many-to-many relationship cache.
 	 * 
 	 * @return many-to-many cache
 	 */
