@@ -339,7 +339,7 @@ public class InfinitumContext {
 				sPersistencePolicy = new AnnotationPersistencePolicy();
 				break;
 			case Xml:
-				sPersistencePolicy = new XmlPersistencePolicy();
+				sPersistencePolicy = new XmlPersistencePolicy(mContext);
 				break;
 			}
 		}

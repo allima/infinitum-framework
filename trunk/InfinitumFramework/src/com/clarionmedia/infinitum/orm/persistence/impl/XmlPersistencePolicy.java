@@ -19,22 +19,39 @@
 
 package com.clarionmedia.infinitum.orm.persistence.impl;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import android.content.Context;
+import android.content.res.Resources;
+import android.content.res.Resources.NotFoundException;
+import android.content.res.XmlResourceParser;
+
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.exception.MapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.persistence.PersistenceConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
  * This class provides runtime resolution for model persistence through XML map
  * files ({@code imf.xml}). Each persistent entity should have an
- * {@code imf.xml} file associated with it and placed in assets/xml. If an
- * entity has no such file, it is marked as transient.
+ * {@code imf.xml} file associated with it and placed in res/xml. If an entity
+ * has no such file, it is marked as transient.
  * </p>
  * 
  * @author Tyler Treat
@@ -42,22 +59,97 @@ import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
  */
 public class XmlPersistencePolicy extends PersistencePolicy {
 
+	private Context mContext;
+	private Map<Class<?>, Integer> mResourceCache;
+	private Map<Class<?>, String> mTableCache;
+
+	public XmlPersistencePolicy(Context context) {
+		super();
+		mContext = context;
+		mResourceCache = new HashMap<Class<?>, Integer>();
+		mTableCache = new HashMap<Class<?>, String>();
+	}
+
 	@Override
 	public boolean isPersistent(Class<?> c) {
-		// TODO Auto-generated method stub
-		return false;
+		XmlResourceParser parser = loadXmlMapFile(c);
+		return parser != null;
 	}
 
 	@Override
 	public String getModelTableName(Class<?> c) throws IllegalArgumentException {
-		// TODO Auto-generated method stub
-		return null;
+		if (mTableCache.containsKey(c))
+			return mTableCache.get(c);
+		String table;
+		if (!isPersistent(c))
+			throw new IllegalArgumentException("Class '" + c.getName()
+					+ "' is transient.");
+		XmlResourceParser parser = loadXmlMapFile(c);
+		try {
+			int code = parser.getEventType();
+			while (code != XmlPullParser.END_DOCUMENT) {
+				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_CLASS)) {
+					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+					if (name == null)
+						throw new MapFileException("'" + c.getName() + "' map file does not specify class name.");
+					table = parser.getAttributeValue(null, PersistenceConstants.ATTR_TABLE);
+					if (table == null) {
+						if (name.contains("."))
+							table = name.substring(name.lastIndexOf(".") + 1).toLowerCase();
+						else
+							table = name.toLowerCase();
+					}
+					mTableCache.put(c, table);
+					return table;
+				}
+				code = parser.next();
+			}
+		} catch (XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		throw new MapFileException("'" + c.getName() + "' map file does not specify class name.");
 	}
 
 	@Override
 	public List<Field> getPersistentFields(Class<?> c) {
-		// TODO Auto-generated method stub
-		return null;
+		if (mPersistenceCache.containsKey(c))
+		    return mPersistenceCache.get(c);
+		List<Field> ret = new ArrayList<Field>();
+		List<Field> fields = ClassReflector.getAllFields(c);
+		for (Field f : fields) {
+			if (Modifier.isStatic(f.getModifiers()) || TypeResolution.isDomainProxy(f.getDeclaringClass()))
+				continue;
+			if (isFieldPrimaryKey(f)) {
+				ret.add(f);
+				continue;
+			}
+			XmlResourceParser parser = loadXmlMapFile(c);
+			try {
+				int code = parser.getEventType();
+				while (code != XmlPullParser.END_DOCUMENT) {
+					if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
+						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						if (name == null)
+						    throw new MapFileException("'" + c.getName() + "' map file does not specify property name.");
+						if (name.equals(f.getName()))
+							ret.add(f);
+					}
+					code = parser.next();
+				}
+			} catch (XmlPullParserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
+		}
+		mPersistenceCache.put(c, ret);
+		return ret;
 	}
 
 	@Override
@@ -68,8 +160,41 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
-		// TODO Auto-generated method stub
-		return null;
+		if (mPrimaryKeyCache.containsKey(c))
+			return mPrimaryKeyCache.get(c);
+		if (!isPersistent(c))
+			throw new IllegalArgumentException("Class '" + c.getName()
+					+ "' is transient.");
+		XmlResourceParser parser = loadXmlMapFile(c);
+		try {
+			int code = parser.getEventType();
+			while (code != XmlPullParser.END_DOCUMENT) {
+				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
+					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+					if (name == null)
+						throw new MapFileException("'" + c.getName() + "' map file does not specify primary key name.");
+					Field f = ClassReflector.getField(c, name);
+					if (f == null)
+						throw new MapFileException("'" + c.getName() + "' map file specifies a primary key which does not exist.");
+					f.setAccessible(true);
+					mPrimaryKeyCache.put(c, f);
+					return f;
+				}
+				code = parser.next();
+			}
+		} catch (XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		if (c.getSuperclass() != null) {
+			Field f = getPrimaryKeyField(c.getSuperclass());
+			mPrimaryKeyCache.put(c, f);
+			return f;
+		}
+		throw new MapFileException("'" + c.getName() + "' map file does not specify primary key.");
 	}
 
 	@Override
@@ -80,18 +205,67 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public String getFieldColumnName(Field f) {
-		// TODO Auto-generated method stub
-		return null;
+		Class<?> c = f.getDeclaringClass();
+		if (mColumnCache.containsKey(f))
+			return mColumnCache.get(f);
+		XmlResourceParser parser = loadXmlMapFile(c);
+		try {
+			int code = parser.getEventType();
+			while (code != XmlPullParser.END_DOCUMENT) {
+				if (isFieldPrimaryKey(f)) {
+					if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
+						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						if (name == null)
+							throw new MapFileException("'" + c.getName() + "' map file does not specify property name.");
+						if (f.getName().equals(name)) {
+						    String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
+						    if (column == null) {
+						    	if (name.startsWith("m") && name.length() > 1)
+						    		column = name.substring(1).toLowerCase();
+						    	else
+						    		column = name.toLowerCase();
+						    }
+						    mColumnCache.put(f, column);
+						    return column;
+						}
+					}
+				}
+				if (code == XmlPullParser.START_TAG && parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
+					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+					if (name == null)
+						throw new MapFileException("'" + c.getName() + "' map file does not specify property name.");
+					if (f.getName().equals(name)) {
+					    String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
+					    if (column == null) {
+					    	if (name.startsWith("m") && name.length() > 1)
+					    		column = name.substring(1).toLowerCase();
+					    	else
+					    		column = name.toLowerCase();
+					    }
+					    mColumnCache.put(f, column);
+					    return column;
+					}
+				}
+				code = parser.next();
+			}
+		} catch (XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		throw new MapFileException("'" + c.getName() + "' map file does not specify property '" + f.getName() + "'.");
 	}
 
 	@Override
 	public boolean isFieldPrimaryKey(Field f) {
-		// TODO Auto-generated method stub
-		return false;
+		return f.equals(getPrimaryKeyField(f.getDeclaringClass()));
 	}
 
 	@Override
-	public boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException {
+	public boolean isPrimaryKeyAutoIncrement(Field f)
+			throws InfinitumRuntimeException {
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -151,7 +325,8 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getRestfulResource(Class<?> c) throws IllegalArgumentException {
+	public String getRestfulResource(Class<?> c)
+			throws IllegalArgumentException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -160,6 +335,21 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	public String getResourceFieldName(Field f) throws IllegalArgumentException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	private XmlResourceParser loadXmlMapFile(Class<?> c) {
+		Resources res = mContext.getResources();
+		if (!mResourceCache.containsKey(c)) {
+			String fileName = c.getSimpleName().toLowerCase();
+			int id = res.getIdentifier(fileName, "xml",
+					mContext.getPackageName());
+			mResourceCache.put(c, id);
+		}
+		try {
+			return res.getXml(mResourceCache.get(c));
+		} catch (NotFoundException e) {
+			return null;
+		}
 	}
 
 }

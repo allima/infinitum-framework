@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.clarionmedia.infinitum.exception.MapFileException;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.annotation.Unique;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -111,8 +112,11 @@ public abstract class PersistencePolicy {
 	 *         {@code Class}
 	 * @throws IllegalArgumentException
 	 *             if the given {@code Class} is transient
+	 * @throws MapFileException
+	 *             if the map file for the given {@code Class} is invalid
 	 */
-	public abstract String getModelTableName(Class<?> c) throws IllegalArgumentException;
+	public abstract String getModelTableName(Class<?> c)
+			throws IllegalArgumentException, MapFileException;
 
 	/**
 	 * Retrieves a {@code List} of all persistent {@code Fields} for the given
@@ -148,7 +152,8 @@ public abstract class PersistencePolicy {
 	 * @throws ModelConfigurationException
 	 *             if multiple primary keys are declared in {@code c}
 	 */
-	public abstract Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException;
+	public abstract Field getPrimaryKeyField(Class<?> c)
+			throws ModelConfigurationException;
 
 	/**
 	 * Retrieves a {@code List} of all unique {@code Fields} for the given
@@ -196,7 +201,8 @@ public abstract class PersistencePolicy {
 	 *             if an explicit primary key that is set to autoincrement is
 	 *             not of type int or long
 	 */
-	public abstract boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException;
+	public abstract boolean isPrimaryKeyAutoIncrement(Field f)
+			throws InfinitumRuntimeException;
 
 	/**
 	 * Checks if the specified {@code Field's} associated column is nullable.
@@ -227,7 +233,8 @@ public abstract class PersistencePolicy {
 	 *            the {@code Class} to get relationships for
 	 * @return {@code Set} of all many-to-many relationships
 	 */
-	public abstract Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c);
+	public abstract Set<ManyToManyRelationship> getManyToManyRelationships(
+			Class<?> c);
 
 	/**
 	 * Indicates if the given persistent {@link Class} has cascading enabled.
@@ -283,7 +290,8 @@ public abstract class PersistencePolicy {
 	 *            for
 	 * @return {@code Field} pertaining to the relationship or {@code null}
 	 */
-	public abstract Field findRelationshipField(Class<?> c, ModelRelationship rel);
+	public abstract Field findRelationshipField(Class<?> c,
+			ModelRelationship rel);
 
 	/**
 	 * Indicates if the given persistent {@link Class} has lazy loading enabled
@@ -306,7 +314,8 @@ public abstract class PersistencePolicy {
 	 *             if the given {@code Class} is not a domain model or
 	 *             persistent
 	 */
-	public abstract String getRestfulResource(Class<?> c) throws IllegalArgumentException;
+	public abstract String getRestfulResource(Class<?> c)
+			throws IllegalArgumentException;
 
 	/**
 	 * Retrieves the RESTful resource field name for the given persistent
@@ -319,7 +328,8 @@ public abstract class PersistencePolicy {
 	 *             if the containing {@link Class} of the given {@code Field} is
 	 *             transient or if the {@code Field} itself is marked transient
 	 */
-	public abstract String getResourceFieldName(Field f) throws IllegalArgumentException;
+	public abstract String getResourceFieldName(Field f)
+			throws IllegalArgumentException;
 
 	/**
 	 * Calculates a hash code for the specified persistent model based on its
@@ -392,7 +402,8 @@ public abstract class PersistencePolicy {
 	protected Field findPrimaryKeyField(Class<?> c) {
 		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
-			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
+			if (f.getName().equals("mId") || f.getName().equals("mID")
+					|| f.getName().equalsIgnoreCase("id"))
 				return f;
 		}
 		return null;
