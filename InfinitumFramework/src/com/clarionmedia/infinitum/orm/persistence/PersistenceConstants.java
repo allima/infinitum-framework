@@ -37,5 +37,9 @@ public class PersistenceConstants {
 	public static final String ATTR_TABLE = "table";
 	public static final String ATTR_TYPE = "type";
 	public static final String ATTR_COLUMN = "column";
+	public static final String ATTR_NOT_NULL = "not-null";
+	public static final String ATTR_UNIQUE = "unique";
+	public static final String ATTR_CASCADE = "cascade";
+	public static final String ATTR_LAZY = "lazy";
 
 }
