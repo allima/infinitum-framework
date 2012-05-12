@@ -37,14 +37,18 @@ public class OneToManyRelationship extends ModelRelationship {
 	private String mColumn;
 	private Class<?> mOneType;
 	private Class<?> mManyType;
+	
+	public OneToManyRelationship() {
+		mRelationType = RelationType.OneToMany;
+	}
 
 	public OneToManyRelationship(Field f) {
+		this();
 		OneToMany otm = f.getAnnotation(OneToMany.class);
 		mFirst = f.getDeclaringClass();
 		setOneType(mFirst);
 		mSecond = PackageReflector.getClass(otm.className());
 		setManyType(mSecond);
-		mRelationType = RelationType.OneToMany;
 		mName = otm.name();
 		mColumn = otm.column();
 	}

@@ -77,7 +77,7 @@ public class SqliteBuilder implements SqlBuilder {
 			}
 			mPolicy.getManyToManyRelationships(c);
 		}
-		for (ManyToManyRelationship r : mPolicy.getManyToManyCache()) {
+		for (ManyToManyRelationship r : mPolicy.getManyToManyCache().values()) {
 			String sql = createManyToManyTableString(r);
 			if (sql != null) {
 				db.execSQL(sql);

@@ -24,11 +24,12 @@
 
 <!ELEMENT infinitum-mapping (class+)>
 
-<!ELEMENT class (primary-key+ , property*)
+<!ELEMENT class (primary-key+ , property*, many-to-many* , many-to-one*, one-to-many* , one-to-one*)
 <!ATTLIST class name CDATA #REQUIRED>
 <!ATTLIST class table CDATA #IMPLIED>
 <!ATTLIST class lazy CDATA #IMPLIED>
 <!ATTLIST class cascade CDATA #IMPLIED>
+<!ATTLIST class rest CDATA #IMPLIED>
 
 <!ELEMENT primary-key (#PCDATA)>
 <!ATTLIST primary-key name #REQUIRED>
@@ -42,3 +43,30 @@
 <!ATTLIST property type #REQUIRED>
 <!ATTLIST property not-null #IMPLIED>
 <!ATTLIST property unique #IMPLIED>
+<!ATTLIST property rest #IMPLIED>
+
+<!ELEMENT many-to-many (#PCDATA)>
+<!ATTLIST many-to-many name #REQUIRED>
+<!ATTLIST many-to-many field #REQUIRED>
+<!ATTLIST many-to-many class #REQUIRED>
+<!ATTLIST many-to-many foreign-field #REQUIRED>
+<!ATTLIST many-to-many key-field #REQUIRED>
+<!ATTLIST many-to-many table #REQUIRED>
+
+<!ELEMENT many-to-one (#PCDATA)>
+<!ATTLIST many-to-one name #REQUIRED>
+<!ATTLIST many-to-one field #REQUIRED>
+<!ATTLIST many-to-one class #REQUIRED>
+<!ATTLIST many-to-one column #REQUIRED>
+
+<!ELEMENT one-to-many (#PCDATA)>
+<!ATTLIST one-to-many name #REQUIRED>
+<!ATTLIST one-to-many field #REQUIRED>
+<!ATTLIST one-to-many class #REQUIRED>
+<!ATTLIST one-to-many column #REQUIRED>
+
+<!ELEMENT one-to-one (#PCDATA)>
+<!ATTLIST one-to-one name #REQUIRED>
+<!ATTLIST one-to-one field #REQUIRED>
+<!ATTLIST one-to-one class #REQUIRED>
+<!ATTLIST one-to-one column #REQUIRED>

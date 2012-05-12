@@ -22,6 +22,7 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
 
 /**
@@ -51,8 +52,21 @@ public class SqliteExecutor implements SqlExecutor {
 	}
 
 	@Override
-	public SqliteResult execute(String sql) {
+	public SqliteResult execute(String sql) throws InfinitumRuntimeException {
+		if (!mDb.isOpen())
+			throw new InfinitumRuntimeException("The attached session was closed.");
 		return new SqliteResult(mDb.rawQuery(sql, null));
+	}
+
+	@Override
+	public long count(String sql) throws InfinitumRuntimeException {
+		if (!mDb.isOpen())
+			throw new InfinitumRuntimeException("The attached session was closed.");
+		SqliteResult res = new SqliteResult(mDb.rawQuery(sql, null));
+		res.getCursor().moveToFirst();
+		long ret = res.getLong(0);
+		res.close();
+		return ret;
 	}
 
 }

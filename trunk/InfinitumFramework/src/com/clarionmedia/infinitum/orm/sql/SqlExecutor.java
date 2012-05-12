@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.orm.sql;
 
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.ResultSet;
 
 /**
@@ -37,7 +38,20 @@ public interface SqlExecutor {
 	 * @param sql
 	 *            the SQL to execute
 	 * @return the result of the query
+	 * @throws InfinitumRuntimeException
+	 *             if the associated {@link Session} has already been closed
 	 */
-	ResultSet execute(String sql);
+	ResultSet execute(String sql) throws InfinitumRuntimeException;
+
+	/**
+	 * Executes the given SQL count query and returns the result.
+	 * 
+	 * @param sql
+	 *            the SQL to execute
+	 * @return the number of rows
+	 * @throws InfinitumRuntimeException
+	 *             if the associated {@link Session} has already been closed
+	 */
+	long count(String sql) throws InfinitumRuntimeException;
 
 }

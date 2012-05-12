@@ -40,17 +40,21 @@ public class ManyToManyRelationship extends ModelRelationship {
 	private String mFirstFieldName;
 	private String mSecondFieldName;
 	private PersistencePolicy mPolicy;
+	
+	public ManyToManyRelationship() {
+		mRelationType = RelationType.ManyToMany;
+		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+	}
 
 	public ManyToManyRelationship(Field f) {
+		this();
 		ManyToMany mtm = f.getAnnotation(ManyToMany.class);
-		mTableName = mtm.tableName();
+		mTableName = mtm.table();
 		mFirst = f.getDeclaringClass();
 		mSecond = PackageReflector.getClass(mtm.className());
 		mFirstFieldName = mtm.keyField();
 		mSecondFieldName = mtm.foreignField();
-		mRelationType = RelationType.ManyToMany;
 		mName = mtm.name();
-		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 	}
 
 	public String getTableName() {

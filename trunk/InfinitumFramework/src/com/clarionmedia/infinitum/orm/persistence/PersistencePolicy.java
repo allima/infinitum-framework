@@ -20,8 +20,8 @@
 package com.clarionmedia.infinitum.orm.persistence;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +30,10 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
@@ -65,8 +68,17 @@ public abstract class PersistencePolicy {
 	// This Map caches the uniqueness of Fields
 	protected Map<Field, Boolean> mFieldUniqueCache;
 
-	// This Set caches the many-to-many relationships
-	protected Set<ManyToManyRelationship> mManyToManyCache;
+	// This Map caches the many-to-many relationships
+	protected Map<Field, ManyToManyRelationship> mManyToManyCache;
+	
+	// This Map caches the many-to-one relationships
+	protected Map<Field, ManyToOneRelationship> mManyToOneCache;
+	
+	// This Map caches the one-to-many relationships
+	protected Map<Field, OneToManyRelationship> mOneToManyCache;
+	
+	// This Map caches the one-to-one relationships
+	protected Map<Field, OneToOneRelationship> mOneToOneCache;
 
 	// This Map caches the lazy-loading status for each persistent class
 	protected Map<Class<?>, Boolean> mLazyLoadingCache;
@@ -86,7 +98,10 @@ public abstract class PersistencePolicy {
 		mPrimaryKeyCache = new HashMap<Class<?>, Field>();
 		mFieldNullableCache = new HashMap<Field, Boolean>();
 		mFieldUniqueCache = new HashMap<Field, Boolean>();
-		mManyToManyCache = new HashSet<ManyToManyRelationship>();
+		mManyToManyCache = new HashMap<Field, ManyToManyRelationship>();
+		mManyToOneCache = new HashMap<Field, ManyToOneRelationship>();
+		mOneToManyCache = new HashMap<Field, OneToManyRelationship>();
+		mOneToOneCache = new HashMap<Field, OneToOneRelationship>();
 		mLazyLoadingCache = new HashMap<Class<?>, Boolean>();
 		mRestResourceCache = new HashMap<Class<?>, String>();
 		mRestFieldCache = new HashMap<Field, String>();
@@ -114,8 +129,7 @@ public abstract class PersistencePolicy {
 	 * @throws InvalidMapFileException
 	 *             if the map file for the given {@code Class} is invalid
 	 */
-	public abstract String getModelTableName(Class<?> c)
-			throws IllegalArgumentException, InvalidMapFileException;
+	public abstract String getModelTableName(Class<?> c) throws IllegalArgumentException, InvalidMapFileException;
 
 	/**
 	 * Retrieves a {@code List} of all persistent {@code Fields} for the given
@@ -130,18 +144,6 @@ public abstract class PersistencePolicy {
 	public abstract List<Field> getPersistentFields(Class<?> c);
 
 	/**
-	 * Finds the persistent {@link Field} for the given {@link Class} which has
-	 * the specified name. Returns {@code null} if no such {@code Field} exists.
-	 * 
-	 * @param c
-	 *            the {@code Class} containing the {@code Field}
-	 * @param name
-	 *            the name of the {@code Field} to retrieve
-	 * @return {@code Field} with specified name
-	 */
-	public abstract Field findPersistentField(Class<?> c, String name);
-
-	/**
 	 * Retrieves the primary key {@code Field} for the given {@code Class}.
 	 * 
 	 * @param c
@@ -151,19 +153,7 @@ public abstract class PersistencePolicy {
 	 * @throws ModelConfigurationException
 	 *             if multiple primary keys are declared in {@code c}
 	 */
-	public abstract Field getPrimaryKeyField(Class<?> c)
-			throws ModelConfigurationException;
-
-	/**
-	 * Retrieves a {@code List} of all unique {@code Fields} for the given
-	 * {@code Class}.
-	 * 
-	 * @param c
-	 *            the {@code Class} to retrieve unique {@code Fields} for
-	 * @return {@code List} of all unique {@code Fields} for the specified
-	 *         {@code Class}
-	 */
-	public abstract List<Field> getUniqueFields(Class<?> c);
+	public abstract Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException;
 
 	/**
 	 * Retrieves the name of the database column the specified {@code Field}
@@ -199,8 +189,7 @@ public abstract class PersistencePolicy {
 	 *             if an explicit primary key that is set to autoincrement is
 	 *             not of type int or long
 	 */
-	public abstract boolean isPrimaryKeyAutoIncrement(Field f)
-			throws InfinitumRuntimeException;
+	public abstract boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException;
 
 	/**
 	 * Checks if the specified {@code Field's} associated column is nullable.
@@ -231,8 +220,7 @@ public abstract class PersistencePolicy {
 	 *            the {@code Class} to get relationships for
 	 * @return {@code Set} of all many-to-many relationships
 	 */
-	public abstract Set<ManyToManyRelationship> getManyToManyRelationships(
-			Class<?> c);
+	public abstract Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c);
 
 	/**
 	 * Indicates if the given persistent {@link Class} has cascading enabled.
@@ -242,7 +230,7 @@ public abstract class PersistencePolicy {
 	 * @return {@code true} if it is cascading, {@code false} if not
 	 */
 	public abstract boolean isCascading(Class<?> c);
-	
+
 	/**
 	 * Indicates if the given persistent {@link Field} is part of an entity
 	 * relationship, either many-to-many, many-to-one, one-to-many, or
@@ -278,8 +266,7 @@ public abstract class PersistencePolicy {
 	 *            for
 	 * @return {@code Field} pertaining to the relationship or {@code null}
 	 */
-	public abstract Field findRelationshipField(Class<?> c,
-			ModelRelationship rel);
+	public abstract Field findRelationshipField(Class<?> c, ModelRelationship rel);
 
 	/**
 	 * Indicates if the given persistent {@link Class} has lazy loading enabled
@@ -302,8 +289,7 @@ public abstract class PersistencePolicy {
 	 *             if the given {@code Class} is not a domain model or
 	 *             persistent
 	 */
-	public abstract String getRestfulResource(Class<?> c)
-			throws IllegalArgumentException;
+	public abstract String getRestfulResource(Class<?> c) throws IllegalArgumentException;
 
 	/**
 	 * Retrieves the RESTful resource field name for the given persistent
@@ -316,8 +302,55 @@ public abstract class PersistencePolicy {
 	 *             if the containing {@link Class} of the given {@code Field} is
 	 *             transient or if the {@code Field} itself is marked transient
 	 */
-	public abstract String getResourceFieldName(Field f)
-			throws IllegalArgumentException;
+	public abstract String getResourceFieldName(Field f) throws IllegalArgumentException;
+
+	/**
+	 * Finds the persistent {@link Field} for the given {@link Class} which has
+	 * the specified name. Returns {@code null} if no such {@code Field} exists.
+	 * 
+	 * @param c
+	 *            the {@code Class} containing the {@code Field}
+	 * @param name
+	 *            the name of the {@code Field} to retrieve
+	 * @return {@code Field} with specified name
+	 */
+	public Field findPersistentField(Class<?> c, String name) {
+		List<Field> fields = getPersistentFields(c);
+		for (Field f : fields) {
+			if (f.getName().equalsIgnoreCase(name)) {
+				f.setAccessible(true);
+				return f;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Retrieves a {@code List} of all unique {@code Fields} for the given
+	 * {@code Class}.
+	 * 
+	 * @param c
+	 *            the {@code Class} to retrieve unique {@code Fields} for
+	 * @return {@code List} of all unique {@code Fields} for the specified
+	 *         {@code Class}
+	 */
+	public List<Field> getUniqueFields(Class<?> c) {
+		if (!isPersistent(c))
+			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
+		List<Field> ret = new ArrayList<Field>();
+		List<Field> fields = getPersistentFields(c);
+		for (Field f : fields) {
+			if (mFieldUniqueCache.containsKey(f) && mFieldUniqueCache.get(f))
+				ret.add(f);
+			else {
+				boolean unique = isFieldUnique(f);
+				mFieldUniqueCache.put(f, unique);
+				if (unique)
+					ret.add(f);
+			}
+		}
+		return ret;
+	}
 
 	/**
 	 * Calculates a hash code for the specified persistent model based on its
@@ -377,7 +410,7 @@ public abstract class PersistencePolicy {
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * Indicates if the primary key {@link Field} for the given model is 0 or
 	 * {@code null}.
@@ -417,15 +450,14 @@ public abstract class PersistencePolicy {
 	 * 
 	 * @return many-to-many cache
 	 */
-	public Set<ManyToManyRelationship> getManyToManyCache() {
+	public Map<Field, ManyToManyRelationship> getManyToManyCache() {
 		return mManyToManyCache;
 	}
 
 	protected Field findPrimaryKeyField(Class<?> c) {
 		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
-			if (f.getName().equals("mId") || f.getName().equals("mID")
-					|| f.getName().equalsIgnoreCase("id"))
+			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
 				return f;
 		}
 		return null;

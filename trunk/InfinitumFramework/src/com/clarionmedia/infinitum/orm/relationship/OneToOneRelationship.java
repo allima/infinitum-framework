@@ -33,12 +33,16 @@ import com.clarionmedia.infinitum.reflection.PackageReflector;
  * @version 1.0 03/03/12
  */
 public class OneToOneRelationship extends ForeignKeyRelationship {
+	
+	public OneToOneRelationship() {
+		mRelationType = RelationType.OneToOne;
+	}
 
 	public OneToOneRelationship(Field f) {
+		this();
 		OneToOne oto = f.getAnnotation(OneToOne.class);
 		mFirst = f.getDeclaringClass();
 		mSecond = PackageReflector.getClass(oto.className());
-		mRelationType = RelationType.OneToOne;
 		mName = oto.name();
 		setColumn(oto.column());
 		
