@@ -91,7 +91,7 @@ public class SqliteTemplate implements SqliteOperations {
 	 *            attached to
 	 */
 	public SqliteTemplate(SqliteSession session) {
-		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy(); 
+		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 		mSession = session;
 		mLogger = Logger.getInstance(TAG);
 		mInfinitumContext = ContextFactory.getInstance().getContext();
@@ -124,7 +124,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public boolean isOpen() {
 		return mIsOpen;
 	}
-	
+
 	@Override
 	public void beginTransaction() {
 		if (mIsAutocommit)
@@ -155,17 +155,17 @@ public class SqliteTemplate implements SqliteOperations {
 		if (mInfinitumContext.isDebug())
 			mLogger.debug("Transaction rolled back");
 	}
-	
+
 	@Override
 	public boolean isTransactionOpen() {
 		return mTransactionStack.size() > 0;
 	}
-	
+
 	@Override
 	public void setAutocommit(boolean autocommit) {
 		mIsAutocommit = autocommit;
 	}
-	
+
 	@Override
 	public boolean isAutocommit() {
 		return mIsAutocommit;
@@ -259,11 +259,10 @@ public class SqliteTemplate implements SqliteOperations {
 	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		Preconditions.checkPersistenceForLoading(c);
 		if (!TypeResolution.isValidPrimaryKey(mPolicy.getPrimaryKeyField(c), id))
-			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(), c.getName()));
-		Cursor cursor = mSqliteDb.query(
-				mPolicy.getModelTableName(c), null,
-				SqliteUtil.getWhereClause(c, id, mMapper), null, null, null,
-				null, "1");
+			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
+					c.getName()));
+		Cursor cursor = mSqliteDb.query(mPolicy.getModelTableName(c), null, SqliteUtil.getWhereClause(c, id, mMapper),
+				null, null, null, null, "1");
 		if (cursor.getCount() == 0) {
 			cursor.close();
 			return null;
@@ -297,7 +296,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public Cursor executeForResult(String sql, boolean force) throws SQLGrammarException {
 		if (!force)
-		    Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
+			Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		if (mInfinitumContext.isDebug())
 			mLogger.debug("Executing SQL: " + sql);
 		Cursor ret = null;
@@ -308,16 +307,16 @@ public class SqliteTemplate implements SqliteOperations {
 		}
 		return ret;
 	}
-	
-	//private Cursor executeQueryForResult(String sql) {
-		
-	//}
+
+	// private Cursor executeQueryForResult(String sql) {
+
+	// }
 
 	@Override
 	public <T> void registerTypeAdapter(Class<T> type, SqliteTypeAdapter<T> adapter) {
 		mMapper.registerTypeAdapter(type, (SqliteTypeAdapter<T>) adapter);
 	}
-	
+
 	@Override
 	public Map<Class<?>, SqliteTypeAdapter<?>> getRegisteredTypeAdapters() {
 		return mMapper.getRegisteredTypeAdapters();
@@ -332,10 +331,10 @@ public class SqliteTemplate implements SqliteOperations {
 	public SqliteMapper getSqliteMapper() {
 		return mMapper;
 	}
-	
+
 	/**
-	 * Returns the {@link SQLiteDatabase} instance attached to
-	 * this {@code SqliteTemplate}.
+	 * Returns the {@link SQLiteDatabase} instance attached to this
+	 * {@code SqliteTemplate}.
 	 * 
 	 * @return {@code SQLiteDatabase} instance
 	 */
@@ -437,23 +436,25 @@ public class SqliteTemplate implements SqliteOperations {
 				}
 			}
 			staleQuery.append(')');
-			mSqliteDb.execSQL(staleQuery.toString());
+			if (!staleQuery.toString().contains("NOT IN ()"))
+				mSqliteDb.execSQL(staleQuery.toString());
 		}
 	}
 
-	private void processOneToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, ContentValues values) {
+	private void processOneToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap,
+			ContentValues values) {
 		for (Pair<OneToOneRelationship, Object> p : map.getOneToOneRelationships()) {
 			Object o = p.getSecond();
 			if (ClassReflector.isNull(o))
 				continue;
 			long id = saveOrUpdateRec(o, objectMap);
 			if (id > 0) {
-				values.put(mPolicy.getFieldColumnName(
-						mPolicy.findRelationshipField(model.getClass(), p.getFirst())), id);
+				values.put(mPolicy.getFieldColumnName(mPolicy.findRelationshipField(model.getClass(), p.getFirst())),
+						id);
 			} else if (id == 0) {
 				Object pk = mPolicy.getPrimaryKey(p.getSecond());
-				values.put(mPolicy.getFieldColumnName(
-						mPolicy.findRelationshipField(model.getClass(), p.getFirst())), (Long) pk);
+				values.put(mPolicy.getFieldColumnName(mPolicy.findRelationshipField(model.getClass(), p.getFirst())),
+						(Long) pk);
 			}
 		}
 	}
@@ -561,8 +562,7 @@ public class SqliteTemplate implements SqliteOperations {
 			}
 			boolean result = false;
 			try {
-				result = mSqliteDb.insertOrThrow(mtm.getTableName(), null,
-						relData) > 0;
+				result = mSqliteDb.insertOrThrow(mtm.getTableName(), null, relData) > 0;
 			} catch (SQLException e) {
 				return;
 			}

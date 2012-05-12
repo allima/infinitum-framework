@@ -52,7 +52,7 @@ public @interface ManyToMany {
 	 * 
 	 * @return table name where relationships are stored
 	 */
-	String tableName();
+	String table();
 
 	/**
 	 * Returns the name of the {@link Field} identifying this {@code Class's}

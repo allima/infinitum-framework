@@ -32,6 +32,10 @@ public class PersistenceConstants {
 	public static final String ELEMENT_CLASS = "class";
 	public static final String ELEMENT_PRIMARY_KEY = "primary-key";
 	public static final String ELEMENT_PROPERTY = "property";
+	public static final String ELEMENT_MTM = "many-to-many";
+	public static final String ELEMENT_MTO = "many-to-one";
+	public static final String ELEMENT_OTM = "one-to-many";
+	public static final String ELEMENT_OTO = "one-to-one";
 	
 	public static final String ATTR_NAME = "name";
 	public static final String ATTR_TABLE = "table";
@@ -41,5 +45,11 @@ public class PersistenceConstants {
 	public static final String ATTR_UNIQUE = "unique";
 	public static final String ATTR_CASCADE = "cascade";
 	public static final String ATTR_LAZY = "lazy";
+	public static final String ATTR_AUTOINCREMENT = "autoincrement";
+	public static final String ATTR_REST = "rest";
+	public static final String ATTR_FIELD = "field";
+	public static final String ATTR_CLASS = "class";
+	public static final String ATTR_FOREIGN_FIELD = "foreign-field";
+	public static final String ATTR_KEY_FIELD = "key-field";
 
 }

@@ -332,6 +332,10 @@ public class SqliteSession implements Session {
 		return mSqlite.getSqliteMapper();
 	}
 
+	/**
+	 * Returns the {@link SQLiteDatabase} associated with this {@code SqliteSession}.
+	 * @return {@code SQLiteDatabase}
+	 */
 	public SQLiteDatabase getDatabase() {
 		return mSqlite.getDatabase();
 	}
