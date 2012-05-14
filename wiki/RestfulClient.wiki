@@ -1,0 +1,103 @@
+#summary Describes the RestfulClient interface
+#labels Explained
+
+*Contents*
+<wiki:toc max_depth="3" />
+
+= Introduction =
+
+The `RestfulClient` interface provides an API for communicating with a RESTful web service using domain objects. Infinitum provides an implementation called BasicRestfulClient, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulClient` implementation can be specified in InfinitumCfgXml by referencing a bean which implements the `RestfulClient` interface. This implementation is then acquired from the RestfulClientBuilder.
+
+{{{
+<rest ref="restClient">
+...
+</rest>
+
+<beans>
+    <bean id="restClient" class="com.example.rest.MyRestfulClient" />
+</beans>
+}}}
+
+If no implementation is referenced in the configuration, `RestfulClientBuilder` will use Infinitum's `BasicRestfulClient`.
+
+= Acquiring a `RestfulClient` =
+
+Although a `RestfulClient` implementation can be instantiated directly, it's typically recommended that you use the `RestfulClientBuilder` (implemented by RestfulClientFactory), which handles dependency resolution and allows the `RestfulClient` to be configured before it is returned.
+
+{{{
+RestfulClient rest = new RestfulClientFactory().build();
+}}}
+
+Based on the example configuration in the section above which uses the `MyRestfulClient` implementation, the `RestfulClient` returned from the `RestfulClientFactory` can be safely casted to `MyRestfulClient`.
+
+{{{
+MyRestfulClient rest = (MyRestfulClient) new RestfulClientFactory().build();
+}}}
+
+= Configuring a `RestfulClient` =
+
+`RestfulClientBuilder` provides methods for configuring a `RestfulClient` before it is retrieved using the `build()` method. JsonDeserializer and RestfulTypeAdapter implementations can be registered with a `RestfulClient` through the `RestfulClientBuilder`. 
+
+{{{
+RestfulClient rest = new RestfulClientFactory().registerJsonDeserializer(Foo.class, new JsonDeserializer<Foo>() {
+    @Override
+    public Bar deserializeObject(String json) {
+        // deserialization logic
+    }
+    @Override
+    public List<Foo> deserializeObjects(String json) {
+        // deserialization logic
+    }
+}).registerTypeAdapter(DateTime.class, new RestfulTypeAdapter<DateTime>() {
+    @Override
+    public void mapToObject(ResultSet result, int index, Field field, Object model) throws IllegalArgumentException, IllegalAccessException {
+        // mapping logic
+    }
+    @Override
+    public void mapToField(DateTime value, String field, List<NameValuePair> pairs) {
+        // mapping logic			
+    }
+    @Override
+    public void mapObjectToField(Object value, String field, List<NameValuePair> pairs) {
+        // mapping logic		
+    }
+}).build();
+}}}
+
+= Using a `RestfulClient` =
+
+Once a `RestfulClient` has been configured and acquired, using it is quite trivial. The `RestfulClient` interface provides basic CRUD web service operations.
+
+== Persisting Domain Objects ==
+
+{{{
+// Save a single domain object
+rest.save(new Foo());
+}}}
+
+== Updating Domain Objects ==
+
+{{{
+// Update a single domain object
+Foo foo = getFoo();
+rest.update(foo);
+
+// Save or update a single domain object
+Foo foo = getFoo();
+rest.saveOrUpdate(foo);
+}}}
+
+== Deleting Domain Objects ==
+
+{{{
+// Delete a single domain object
+Foo foo = getFoo();
+rest.delete(foo);
+}}}
+
+== Loading Domain Objects ==
+
+{{{
+// Load a single domain object by its ID
+Foo foo = rest.load(Foo.class, 42L);
+}}}
