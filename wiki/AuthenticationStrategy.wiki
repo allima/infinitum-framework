@@ -1,0 +1,39 @@
+#summary Describes the AuthenticationStrategy
+#labels Explained
+
+*Contents*
+<wiki:toc max_depth="3" />
+
+= Introduction =
+
+In order to support communication with web services which require some sort of request authentication, Infinitum provides the `AuthenticationStrategy`. `AuthenticationStrategy` describes how web service requests are authenticated. This interface should be implemented for specific web service authentication strategies. If a web service uses token or shared-secret authentication, SharedSecretAuthentication should be used.
+
+`AuthenticationStrategy` has but a single method which must be implemented, `getAuthenticationString()`, which returns the string used to authenticate web service requests and is typically appended to the request URL.
+
+= Specifying an `AuthenticationStrategy` =
+
+An `AuthenticationStrategy` can be specified for a RestfulClient in InfinitumCfgXml using one of two ways. One of Infinitum's built-in strategies, such as `SharedSecretAuthentication`, can be specified using the following:
+
+{{{
+<rest>
+    <property name="host">http://localhost:80/mywebservice</property>
+    <authentication strategy="token" enabled="true">
+        <property name="tokenName">token</property>
+        <property name="token">e489e8383c0ae2b7fe4dcf178330b4ac</property>
+    </authentication>
+</rest>
+}}}
+
+This indicates to the framework that `SharedSecretAuthentication` should be used with the given token name and token code.
+
+In order to specify an alternate `AuthenticationStrategy` implementation, a bean is referenced.
+
+{{{
+<rest>
+    <property name="host">http://localhost:80/mywebservice</property>
+    <authentication ref="myAuthentication" enabled="true" />
+</rest>
+<beans>
+    <bean id="myAuthentication" class="com.example.rest.MyAuthentication" />
+</beans>
+}}}
