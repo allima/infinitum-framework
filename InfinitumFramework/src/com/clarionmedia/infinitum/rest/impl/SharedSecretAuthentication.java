@@ -27,7 +27,9 @@ import com.clarionmedia.infinitum.rest.TokenGenerator;
 
 /**
  * <p>
- * Used for token-based/shared-secret authentication.
+ * Used for token-based/shared-secret authentication. A {@link TokenGenerator}
+ * can be supplied to this class in order to implement a token-generation
+ * policy.
  * </p>
  * 
  * @author Tyler Treat

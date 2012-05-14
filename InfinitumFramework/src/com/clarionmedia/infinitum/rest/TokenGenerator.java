@@ -1,10 +1,13 @@
 package com.clarionmedia.infinitum.rest;
 
+import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
+
 /**
  * <p>
  * {@code TokenGenerator} is responsible for generating shared secret tokens.
  * Provide an implementation of this if an unchanging shared secret is
- * undesirable.
+ * undesirable. A {@code TokenGenerator} can be injected into a
+ * {@link SharedSecretAuthentication} bean.
  * </p>
  * 
  * @author Tyler Treat
