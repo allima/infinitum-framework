@@ -1,4 +1,4 @@
-#summary Describes the RestfulClient abstract class
+#summary Describes the RestfulClient
 #labels Explained
 
 *Contents*
