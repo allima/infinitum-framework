@@ -6,7 +6,7 @@
 
 = Introduction =
 
-The `RestfulClient` interface provides an API for communicating with a RESTful web service using domain objects. Infinitum provides an implementation called BasicRestfulClient, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulClient` implementation can be specified in InfinitumCfgXml by referencing a bean which implements the `RestfulClient` interface. This implementation is then acquired from the RestfulClientBuilder.
+The `RestfulClient` interface provides an API for communicating with a RESTful web service using domain objects. Infinitum provides an implementation called `BasicRestfulClient`, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulClient` implementation can be specified in InfinitumCfgXml by referencing a bean which implements the `RestfulClient` interface. This implementation is then acquired from the RestfulClientBuilder.
 
 {{{
 <rest ref="restClient">
@@ -22,7 +22,7 @@ If no implementation is referenced in the configuration, `RestfulClientBuilder` 
 
 = Acquiring a `RestfulClient` =
 
-Although a `RestfulClient` implementation can be instantiated directly, it's typically recommended that you use the `RestfulClientBuilder` (implemented by RestfulClientFactory), which handles dependency resolution and allows the `RestfulClient` to be configured before it is returned.
+Although a `RestfulClient` implementation can be instantiated directly, it's typically recommended that you use the `RestfulClientBuilder` (implemented by `RestfulClientFactory`), which handles dependency resolution and allows the `RestfulClient` to be configured before it is returned.
 
 {{{
 RestfulClient rest = new RestfulClientFactory().build();
