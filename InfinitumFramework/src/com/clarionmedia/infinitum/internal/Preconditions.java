@@ -19,9 +19,18 @@
 
 package com.clarionmedia.infinitum.internal;
 
+import java.io.IOException;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import android.content.res.XmlResourceParser;
+
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
+import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
+import com.clarionmedia.infinitum.orm.persistence.PersistenceConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
 /**
@@ -44,7 +53,8 @@ public class Preconditions {
 	 */
 	public static void checkForTransaction(boolean autocommit, boolean txOpen) {
 		if (!autocommit && !txOpen)
-			throw new InfinitumRuntimeException("Autocommit is disabled, but there is no open transaction.");
+			throw new InfinitumRuntimeException(
+					"Autocommit is disabled, but there is no open transaction.");
 	}
 
 	/**
@@ -55,10 +65,12 @@ public class Preconditions {
 	 *            model to check persistence for
 	 */
 	public static void checkPersistenceForModify(Object model) {
-		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		PersistencePolicy policy = ContextFactory.getInstance().getContext()
+				.getPersistencePolicy();
 		if (!policy.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_MODIFY_TRANSIENT, model.getClass()
-					.getName()));
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_MODIFY_TRANSIENT, model.getClass()
+							.getName()));
 	}
 
 	/**
@@ -69,9 +81,49 @@ public class Preconditions {
 	 *            {@code Class} to check persistence for
 	 */
 	public static void checkPersistenceForLoading(Class<?> c) {
-		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		PersistencePolicy policy = ContextFactory.getInstance().getContext()
+				.getPersistencePolicy();
 		if (!policy.isPersistent(c))
-			throw new InfinitumRuntimeException(String.format(OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
+			throw new InfinitumRuntimeException(String.format(
+					OrmConstants.CANNOT_LOAD_TRANSIENT, c.getName()));
+	}
+
+	/**
+	 * Verifies that the map file referenced by the given
+	 * {@link XmlResourceParser} references the given {@link Class}.
+	 * 
+	 * @param c
+	 *            the {@code Class} to check for
+	 * @param parser
+	 *            the {@code XmlResourceParser} reading the XML file
+	 */
+	public static void checkMapFileClass(Class<?> c, XmlResourceParser parser) {
+		try {
+			int code = parser.getEventType();
+			while (code != XmlPullParser.END_DOCUMENT) {
+				if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(
+								PersistenceConstants.ELEMENT_CLASS)) {
+					String name = parser.getAttributeValue(null,
+							PersistenceConstants.ATTR_NAME);
+					if (name == null)
+						throw new InvalidMapFileException("'" + c.getName()
+								+ "' map file does not specify class name.");
+					if (!name.equalsIgnoreCase(c.getName()))
+						throw new InvalidMapFileException("'" + c.getName()
+								+ "' map file references the wrong class.");
+					else
+						break;
+				}
+				code = parser.next();
+			}
+		} catch (XmlPullParserException e) {
+			throw new InvalidMapFileException(
+					"Unable to parse XML map file for '" + c.getName() + "'.");
+		} catch (IOException e) {
+			throw new InvalidMapFileException(
+					"Unable to parse XML map file for '" + c.getName() + "'.");
+		}
 	}
 
 }

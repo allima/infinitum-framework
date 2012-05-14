@@ -16,7 +16,7 @@
  You should have received a copy of the GNU Lesser General Public License
  along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>. 
  
- <!DOCTYPE infinitum-configuration PUBLIC
+ <!DOCTYPE infinitum-mapping PUBLIC
 	"-//Infinitum/Infinitum Mapping DTD 1.0//EN"
 	"http://www.clarionmedia.com/infinitum/dtd/infinitum-mapping-1.0.dtd">
  
