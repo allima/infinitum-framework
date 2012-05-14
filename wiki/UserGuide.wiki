@@ -64,9 +64,10 @@ The Infinitum RESTful client provides an extensible API for communicating with a
   * RestfulClient: provides an interface for communicating with a RESTful web service.
   * RestfulClientBuilder: provides methods for configuring and constructing new `RestfulClient` instances.
   * AuthenticationStrategy: describes how web service requests should be authenticated.
+  * SharedSecretAuthentication: used for token-based/shared-secret authentication.
   * TokenGenerator: generates shared-secret tokens.
   * JsonDeserializer: tells Infinitum how to deserialize specific JSON into domain model instances.
-  * [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulTypeAdapter RestfulTypeAdapter]: facilitates the mapping of Java data types to RESTful web service resource fields
+  * [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulTypeAdapter RestfulTypeAdapter]: facilitates the mapping of Java data types to RESTful web service resource fields.
 
 = Logging =
 
