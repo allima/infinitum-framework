@@ -139,7 +139,7 @@ public abstract class RestfulClient {
 	 * registered with this {@code RestfulClient} and the {@link Class}
 	 * instances in which they are registered for.
 	 * 
-	 * @return {@code Map<Class<?>, TypeAdapter<?>>
+	 * @return {@code Map<Class<?>, TypeAdapter<?>>
 	 */
 	public abstract Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
 
