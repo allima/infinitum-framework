@@ -1,4 +1,4 @@
-#summary Describes the RestfulClient interface
+#summary Describes the RestfulClient abstract class
 #labels Explained
 
 *Contents*
@@ -6,7 +6,7 @@
 
 = Introduction =
 
-The `RestfulClient` interface provides an API for communicating with a RESTful web service using domain objects. Infinitum provides an implementation called `BasicRestfulClient`, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulClient` implementation can be specified in InfinitumCfgXml by referencing a bean which implements the `RestfulClient` interface. This implementation is then acquired from the RestfulClientBuilder.
+The `RestfulClient` abstract class provides an API for communicating with a RESTful web service using domain objects. Infinitum provides an implementation called `BasicRestfulClient`, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulClient` implementation can be specified in InfinitumCfgXml by referencing a bean which extends `RestfulClient`. This implementation is then acquired from the RestfulClientBuilder.
 
 {{{
 <rest ref="restClient">
@@ -66,7 +66,7 @@ RestfulClient rest = new RestfulClientFactory().registerJsonDeserializer(Foo.cla
 
 = Using a `RestfulClient` =
 
-Once a `RestfulClient` has been configured and acquired, using it is quite trivial. The `RestfulClient` interface provides basic CRUD web service operations.
+Once a `RestfulClient` has been configured and acquired, using it is quite trivial. `RestfulClient` provides basic CRUD web service operations.
 
 == Persisting Domain Objects ==
 
