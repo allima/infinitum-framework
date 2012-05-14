@@ -38,6 +38,7 @@ import android.content.res.XmlResourceParser;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
+import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceConstants;
@@ -271,12 +272,8 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 						if (f.getName().equals(name)) {
 							String column = parser.getAttributeValue(null,
 									PersistenceConstants.ATTR_COLUMN);
-							if (column == null) {
-								if (name.startsWith("m") && name.length() > 1)
-									column = name.substring(1).toLowerCase();
-								else
-									column = name.toLowerCase();
-							}
+							if (column == null)
+								column = StringUtil.formatFieldName(name);
 							mColumnCache.put(f, column);
 							return column;
 						}
@@ -293,12 +290,8 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 					if (f.getName().equals(name)) {
 						String column = parser.getAttributeValue(null,
 								PersistenceConstants.ATTR_COLUMN);
-						if (column == null) {
-							if (name.startsWith("m") && name.length() > 1)
-								column = name.substring(1).toLowerCase();
-							else
-								column = name.toLowerCase();
-						}
+						if (column == null)
+							column = StringUtil.formatFieldName(name);
 						mColumnCache.put(f, column);
 						return column;
 					}

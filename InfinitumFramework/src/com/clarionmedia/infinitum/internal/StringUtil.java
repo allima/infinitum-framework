@@ -57,4 +57,20 @@ public class StringUtil {
 		return Character.toUpperCase(string.charAt(0)) + string.substring(1);
 	}
 
+	/**
+	 * Returns the formatted field name by removing the 'm' prefix found in
+	 * Android naming conventions and putting the name to lowercase.
+	 * 
+	 * @param name
+	 *            the field name to format
+	 * @return the formatted name
+	 */
+	public static String formatFieldName(String name) {
+		if (!name.startsWith("m") || name.length() <= 1)
+			return name.toLowerCase();
+		if (Character.isUpperCase(name.charAt(1)))
+			return name.substring(1).toLowerCase();
+		return name.toLowerCase();
+	}
+
 }

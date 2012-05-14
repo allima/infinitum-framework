@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
@@ -146,11 +147,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 		String ret;
 		Column c = f.getAnnotation(Column.class);
 		if (c == null) {
-			String name = f.getName();
-			if (name.startsWith("m") && name.length() > 1)
-				ret = name.substring(1).toLowerCase();
-			else
-				ret = name.toLowerCase();
+			ret = StringUtil.formatFieldName(f.getName());
 			if (f.isAnnotationPresent(ManyToOne.class))
 				ret = new ManyToOneRelationship(f).getColumn();
 			else if (f.isAnnotationPresent(OneToOne.class))
@@ -339,9 +336,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 			return mRestFieldCache.get(f);
 		String ret;
 		if (!f.isAnnotationPresent(Rest.class)) {
-			ret = f.getName().toLowerCase();
-			if (ret.startsWith("m") && ret.length() > 1)
-				ret = ret.substring(1);
+			ret = StringUtil.formatFieldName(f.getName());
 		} else {
 			Rest rest = f.getAnnotation(Rest.class);
 			ret = rest.value();
