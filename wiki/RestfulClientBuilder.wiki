@@ -1,0 +1,71 @@
+#summary Describes the RestfulClientBuilder
+#labels Explained
+
+*Contents*
+<wiki:toc max_depth="3" />
+
+= Introduction =
+
+Under normal circumstances, it's not advisable to directly instantiate RestfulClient instances but rather use a factory class. Infinitum provides a `RestfulClient` factory interface as well as a backing implementation in order to minimize implementation dependencies in application code. This means that `RestfulClient` types can be specified in InfinitumCfgXml and injected into the factory class.
+
+{{{
+<rest ref="restClient">
+...
+</rest>
+
+<beans>
+    <bean id="restClient" class="com.example.rest.MyRestfulClient" />
+</beans>
+}}}
+
+The factory interface is the `RestfulClientBuilder`. The implementation that the framework provides is called `RestfulClientFactory`, and it allows for `RestfulClient` instances to be configured and constructed.
+
+= Acquiring a `RestfulClient` =
+
+The `RestfulClientBuilder` interface specifies a `build()` method, which returns a `RestfulClient` instance.
+
+{{{
+RestfulClient rest = new RestfulClientFactory().build();
+}}}
+
+Based on the example configuration in the section above which uses the `MyRestfulClient` implementation, the `RestfulClient` returned from the `RestfulClientFactory` can be safely casted to `MyRestfulClient`.
+
+{{{
+MyRestfulClient rest = (MyRestfulClient) new RestfulClientFactory().build();
+}}}
+
+= Configuring a `RestfulClient` =
+
+`RestfulClientBuilder` provides methods for configuring a `RestfulClient` before it is retrieved using the `build()` method. JsonDeserializer and [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulTypeAdapter RestfulTypeAdapter] implementations can be registered with a `RestfulClient` through the `RestfulClientBuilder`. 
+
+{{{
+RestfulClient rest = new RestfulClientFactory().registerJsonDeserializer(Foo.class, new JsonDeserializer<Foo>() {
+    @Override
+    public Bar deserializeObject(String json) {
+        // deserialization logic
+    }
+    @Override
+    public List<Foo> deserializeObjects(String json) {
+        // deserialization logic
+    }
+}).registerTypeAdapter(DateTime.class, new RestfulTypeAdapter<DateTime>() {
+    @Override
+    public void mapToObject(ResultSet result, int index, Field field, Object model) throws IllegalArgumentException, IllegalAccessException {
+        // mapping logic
+    }
+    @Override
+    public void mapToField(DateTime value, String field, List<NameValuePair> pairs) {
+        // mapping logic			
+    }
+    @Override
+    public void mapObjectToField(Object value, String field, List<NameValuePair> pairs) {
+        // mapping logic		
+    }
+}).build();
+}}}
+
+Configurations can also be cleared from a `RestfulClientBuilder` using the `clearConfiguration()` method.
+
+{{{
+rest.clearConfiguration();
+}}}
