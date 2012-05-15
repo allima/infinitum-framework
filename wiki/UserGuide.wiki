@@ -74,3 +74,13 @@ The Infinitum RESTful client provides an extensible API for communicating with a
 In addition to its ORM and RESTful services, Infinitum offers an extremely lightweight logging framework which wraps Android's Logcat. This logging framework allows log statements to be made within application code but only asserted in debug environments. This means that logging code does not need any conditional statements or be removed altogether when preparing an application for release.
 
   * [Logger]: prints log messages to Logcat but adheres to environment configuration.
+
+= Getting Started =
+
+Using Infinitum within your application is simple. The framework comes in the form of a JAR file, infinitumframework.jar. As it is still not in a release form, there is no official framework distribution. Thus, the JAR can be acquired from the SVN repository or the source code can be downloaded and then the JAR compiled. It should be placed in your application's libs directory. Alternatively, the Infinitum source can be imported into your workspace and then referenced from the application as an Android library.
+
+Infinitum has two dependencies which must also be included in your application's build path in order to function correctly: [http://code.google.com/p/google-gson/downloads/list Google Gson] and [http://code.google.com/p/dexmaker/downloads/list Dexmaker]. Download these JARs and place them in your application's libs directory.
+
+Once Infinitum reaches a stable release, a distribution that includes the framework and its dependencies will be provided in the Downloads page.
+
+ * [InstallationGuide]: complete guide to getting started with Infinitum.
