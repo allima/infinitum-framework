@@ -22,7 +22,6 @@ package com.clarionmedia.infinitum.orm.relationship;
 import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.orm.annotation.OneToOne;
-import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
  * <p>
@@ -42,7 +41,7 @@ public class OneToOneRelationship extends ForeignKeyRelationship {
 		this();
 		OneToOne oto = f.getAnnotation(OneToOne.class);
 		mFirst = f.getDeclaringClass();
-		mSecond = PackageReflector.getClass(oto.className());
+		mSecond = mPackageReflector.getClass(oto.className());
 		mName = oto.name();
 		setColumn(oto.column());
 		

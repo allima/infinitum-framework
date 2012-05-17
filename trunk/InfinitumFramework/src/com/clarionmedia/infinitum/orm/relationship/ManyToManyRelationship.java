@@ -20,11 +20,9 @@
 package com.clarionmedia.infinitum.orm.relationship;
 
 import java.lang.reflect.Field;
-
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
-import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
  * <p>
@@ -51,7 +49,7 @@ public class ManyToManyRelationship extends ModelRelationship {
 		ManyToMany mtm = f.getAnnotation(ManyToMany.class);
 		mTableName = mtm.table();
 		mFirst = f.getDeclaringClass();
-		mSecond = PackageReflector.getClass(mtm.className());
+		mSecond = mPackageReflector.getClass(mtm.className());
 		mFirstFieldName = mtm.keyField();
 		mSecondFieldName = mtm.foreignField();
 		mName = mtm.name();

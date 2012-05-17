@@ -21,12 +21,10 @@ package com.clarionmedia.infinitum.internal.bind;
 
 import java.lang.reflect.Field;
 import java.util.Date;
-
 import android.content.ContentValues;
-
 import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.orm.ResultSet;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 
 /**

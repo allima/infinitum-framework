@@ -44,13 +44,11 @@ import com.clarionmedia.infinitum.orm.annotation.Table;
 import com.clarionmedia.infinitum.orm.annotation.Unique;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
-import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
@@ -76,12 +74,12 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public String getModelTableName(Class<?> c) throws IllegalArgumentException {
-		if (!isPersistent(c) || !TypeResolution.isDomainModel(c))
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
 		String ret;
 		Table table = c.getAnnotation(Table.class);
 		if (table == null) {
-			if (TypeResolution.isDomainProxy(c)) {
+			if (mTypePolicy.isDomainProxy(c)) {
 				ret = c.getName();
 				ret = ret.substring(0, ret.lastIndexOf("_Proxy")).toLowerCase();
 			} else {
@@ -98,9 +96,9 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 		if (mPersistenceCache.containsKey(c))
 			return mPersistenceCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
-		List<Field> fields = ClassReflector.getAllFields(c);
+		List<Field> fields = mClassReflector.getAllFields(c);
 		for (Field f : fields) {
-			if (Modifier.isStatic(f.getModifiers()) || TypeResolution.isDomainProxy(f.getDeclaringClass()))
+			if (Modifier.isStatic(f.getModifiers()) || mTypePolicy.isDomainProxy(f.getDeclaringClass()))
 				continue;
 			Persistence persistence = f.getAnnotation(Persistence.class);
 			PrimaryKey pk = f.getAnnotation(PrimaryKey.class);
@@ -306,7 +304,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public String getRestfulResource(Class<?> c) throws IllegalArgumentException {
-		if (!isPersistent(c) || !TypeResolution.isDomainModel(c))
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException();
 		if (mRestResourceCache.containsKey(c))
 			return mRestResourceCache.get(c);
@@ -325,7 +323,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public String getResourceFieldName(Field f) throws IllegalArgumentException {
-		if (!isPersistent(f.getDeclaringClass()) || !TypeResolution.isDomainModel(f.getDeclaringClass()))
+		if (!isPersistent(f.getDeclaringClass()) || !mTypePolicy.isDomainModel(f.getDeclaringClass()))
 			throw new IllegalArgumentException();
 		if (f.isAnnotationPresent(Persistence.class)) {
 			Persistence p = f.getAnnotation(Persistence.class);

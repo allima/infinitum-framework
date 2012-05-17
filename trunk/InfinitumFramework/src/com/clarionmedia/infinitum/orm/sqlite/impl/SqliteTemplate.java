@@ -41,7 +41,8 @@ import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
+import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationType;
@@ -52,6 +53,7 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -79,8 +81,11 @@ public class SqliteTemplate implements SqliteOperations {
 	protected boolean mIsOpen;
 	protected Stack<Boolean> mTransactionStack;
 	protected boolean mIsAutocommit;
-	protected PersistencePolicy mPolicy;
-	private Logger mLogger;
+	protected PersistencePolicy mPersistencePolicy;
+	protected TypeResolutionPolicy mTypePolicy;
+	protected SqliteUtil mSqliteUtil;
+	protected ClassReflector mClassReflector;
+	protected Logger mLogger;
 
 	/**
 	 * Constructs a new {@code SqliteTemplate} attached to the given
@@ -91,7 +96,10 @@ public class SqliteTemplate implements SqliteOperations {
 	 *            attached to
 	 */
 	public SqliteTemplate(SqliteSession session) {
-		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		mSqliteUtil = new SqliteUtil();
+		mClassReflector = new DefaultClassReflector();
+		mPersistencePolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mSession = session;
 		mLogger = Logger.getInstance(TAG);
 		mInfinitumContext = ContextFactory.getInstance().getContext();
@@ -191,8 +199,8 @@ public class SqliteTemplate implements SqliteOperations {
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model);
-		String tableName = mPolicy.getModelTableName(model.getClass());
-		String whereClause = SqliteUtil.getWhereClause(model, mMapper);
+		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
+		String whereClause = mSqliteUtil.getWhereClause(model, mMapper);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
 		if (result == 1)
 			deleteRelationships(model);
@@ -258,10 +266,10 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		Preconditions.checkPersistenceForLoading(c);
-		if (!TypeResolution.isValidPrimaryKey(mPolicy.getPrimaryKeyField(c), id))
+		if (!mTypePolicy.isValidPrimaryKey(mPersistencePolicy.getPrimaryKeyField(c), id))
 			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
-		Cursor cursor = mSqliteDb.query(mPolicy.getModelTableName(c), null, SqliteUtil.getWhereClause(c, id, mMapper),
+		Cursor cursor = mSqliteDb.query(mPersistencePolicy.getModelTableName(c), null, mSqliteUtil.getWhereClause(c, id, mMapper),
 				null, null, null, null, "1");
 		if (cursor.getCount() == 0) {
 			cursor.close();
@@ -353,9 +361,9 @@ public class SqliteTemplate implements SqliteOperations {
 	private long saveRec(Object model, Map<Integer, Object> objectMap) {
 		SqliteModelMap map = mMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
-		String tableName = mPolicy.getModelTableName(model.getClass());
-		int objHash = mPolicy.computeModelHash(model);
-		if (objectMap.containsKey(objHash) && !mPolicy.isPKNullOrZero(model))
+		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
+		int objHash = mPersistencePolicy.computeModelHash(model);
+		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return 0;
 		objectMap.put(objHash, model);
 		processOneToOneRelationships(model, map, objectMap, values);
@@ -365,7 +373,7 @@ public class SqliteTemplate implements SqliteOperations {
 				mLogger.debug(model.getClass().getSimpleName() + " model was not saved");
 			return ret;
 		}
-		Field f = mPolicy.getPrimaryKeyField(model.getClass());
+		Field f = mPersistencePolicy.getPrimaryKeyField(model.getClass());
 		f.setAccessible(true);
 		try {
 			f.set(model, ret);
@@ -376,7 +384,7 @@ public class SqliteTemplate implements SqliteOperations {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (ret > 0 && mPolicy.isCascading(model.getClass())) {
+		if (ret > 0 && mPersistencePolicy.isCascading(model.getClass())) {
 			processRelationships(map, objectMap, model);
 			if (mInfinitumContext.isDebug())
 				mLogger.debug(model.getClass().getSimpleName() + " model saved");
@@ -387,10 +395,10 @@ public class SqliteTemplate implements SqliteOperations {
 	private boolean updateRec(Object model, Map<Integer, Object> objectMap) {
 		SqliteModelMap map = mMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
-		String tableName = mPolicy.getModelTableName(model.getClass());
-		String whereClause = SqliteUtil.getWhereClause(model, mMapper);
-		int objHash = mPolicy.computeModelHash(model);
-		if (objectMap.containsKey(objHash) && !mPolicy.isPKNullOrZero(model))
+		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
+		String whereClause = mSqliteUtil.getWhereClause(model, mMapper);
+		int objHash = mPersistencePolicy.computeModelHash(model);
+		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return true;
 		objectMap.put(objHash, model);
 		if (values.size() == 0)
@@ -402,7 +410,7 @@ public class SqliteTemplate implements SqliteOperations {
 				mLogger.debug(model.getClass().getSimpleName() + " model was not updated");
 			return false;
 		}
-		if (mPolicy.isCascading(model.getClass()))
+		if (mPersistencePolicy.isCascading(model.getClass()))
 			processRelationships(map, objectMap, model);
 		if (mInfinitumContext.isDebug())
 			mLogger.debug(model.getClass().getSimpleName() + " model updated");
@@ -422,8 +430,8 @@ public class SqliteTemplate implements SqliteOperations {
 			String prefix = "";
 			for (Object o : p.getSecond()) {
 				boolean success;
-				int oHash = mPolicy.computeModelHash(o);
-				if (objectMap.containsKey(oHash) && !mPolicy.isPKNullOrZero(o)) {
+				int oHash = mPersistencePolicy.computeModelHash(o);
+				if (objectMap.containsKey(oHash) && !mPersistencePolicy.isPKNullOrZero(o)) {
 					mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
 					prefix = ", ";
 					continue;
@@ -445,15 +453,15 @@ public class SqliteTemplate implements SqliteOperations {
 			ContentValues values) {
 		for (Pair<OneToOneRelationship, Object> p : map.getOneToOneRelationships()) {
 			Object o = p.getSecond();
-			if (ClassReflector.isNull(o))
+			if (mClassReflector.isNull(o))
 				continue;
 			long id = saveOrUpdateRec(o, objectMap);
 			if (id > 0) {
-				values.put(mPolicy.getFieldColumnName(mPolicy.findRelationshipField(model.getClass(), p.getFirst())),
+				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(model.getClass(), p.getFirst())),
 						id);
 			} else if (id == 0) {
-				Object pk = mPolicy.getPrimaryKey(p.getSecond());
-				values.put(mPolicy.getFieldColumnName(mPolicy.findRelationshipField(model.getClass(), p.getFirst())),
+				Object pk = mPersistencePolicy.getPrimaryKey(p.getSecond());
+				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(model.getClass(), p.getFirst())),
 						(Long) pk);
 			}
 		}
@@ -464,8 +472,8 @@ public class SqliteTemplate implements SqliteOperations {
 			StringBuilder updateQuery = mSqlBuilder.createInitialUpdateForeignKeyQuery(p.getFirst(), model);
 			String prefix = "";
 			for (Object o : p.getSecond()) {
-				int oHash = mPolicy.computeModelHash(o);
-				if (objectMap.containsKey(oHash) && !mPolicy.isPKNullOrZero(o))
+				int oHash = mPersistencePolicy.computeModelHash(o);
+				if (objectMap.containsKey(oHash) && !mPersistencePolicy.isPKNullOrZero(o))
 					continue;
 				saveOrUpdateRec(o, objectMap);
 				mSqlBuilder.addPrimaryKeyToQuery(o, updateQuery, prefix);
@@ -479,7 +487,7 @@ public class SqliteTemplate implements SqliteOperations {
 	private void processManyToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
 		for (Pair<ManyToOneRelationship, Object> p : map.getManyToOneRelationships()) {
 			Object o = p.getSecond();
-			if (ClassReflector.isNull(o))
+			if (mClassReflector.isNull(o))
 				continue;
 			saveOrUpdateRec(o, objectMap);
 			String update = mSqlBuilder.createUpdateQuery(model, o, p.getFirst().getColumn());
@@ -499,21 +507,21 @@ public class SqliteTemplate implements SqliteOperations {
 			Object fPk;
 			Object sPk;
 			if (model.getClass() == first) {
-				f = mPolicy.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
-				s = mPolicy.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
+				f = mPersistencePolicy.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
+				s = mPersistencePolicy.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
 				fPk = f.get(model);
 				sPk = s.get(related);
 			} else if (model.getClass() == second) {
-				s = mPolicy.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
-				f = mPolicy.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
+				s = mPersistencePolicy.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
+				f = mPersistencePolicy.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
 				fPk = f.get(related);
 				sPk = s.get(model);
 			} else {
 				// TODO
 				throw new InfinitumRuntimeException("");
 			}
-			String fCol = mPolicy.getModelTableName(first) + '_' + mPolicy.getFieldColumnName(f);
-			String sCol = mPolicy.getModelTableName(second) + '_' + mPolicy.getFieldColumnName(s);
+			String fCol = mPersistencePolicy.getModelTableName(first) + '_' + mPersistencePolicy.getFieldColumnName(f);
+			String sCol = mPersistencePolicy.getModelTableName(second) + '_' + mPersistencePolicy.getFieldColumnName(s);
 			switch (mMapper.getSqliteDataType(f)) {
 			case INTEGER:
 				if (Primitives.unwrap(f.getType()) == int.class)

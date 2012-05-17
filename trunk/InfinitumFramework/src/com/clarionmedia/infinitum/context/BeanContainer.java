@@ -28,6 +28,7 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -40,8 +41,14 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  */
 public class BeanContainer {
 
-	private Map<String, Pair<String, Map<String, Object>>> mBeanMap = new HashMap<String, Pair<String, Map<String, Object>>>();
+	private ClassReflector mClassReflector;
+	private Map<String, Pair<String, Map<String, Object>>> mBeanMap;
 
+	public BeanContainer() {
+		mClassReflector = new DefaultClassReflector();
+		mBeanMap = new HashMap<String, Pair<String, Map<String, Object>>>();
+	}
+	
 	/**
 	 * Retrieves an instance of the bean with the given name. The name is
 	 * configured in {@code infinitum.cfg.xml}.
@@ -76,7 +83,7 @@ public class BeanContainer {
 		Map<String, Object> params = pair.getSecond();
 		for (Entry<String, Object> e : params.entrySet()) {
 			try {
-				Field f = ClassReflector.getField(c, e.getKey());
+				Field f = mClassReflector.getField(c, e.getKey());
 				if (f == null)
 					continue;
 				f.setAccessible(true);

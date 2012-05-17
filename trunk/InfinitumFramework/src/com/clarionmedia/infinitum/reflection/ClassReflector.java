@@ -20,27 +20,19 @@
 package com.clarionmedia.infinitum.reflection;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-
-import com.clarionmedia.infinitum.internal.StringUtil;
-import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 
 /**
  * <p>
- * This class provides static reflection methods for working with classes
+ * This interface provides reflection methods for working with classes
  * contained within projects that are using Infinitum.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 03/15/12
+ * @version 1.0 05/17/12
  */
-public class ClassReflector {
-
+public interface ClassReflector {
+	
 	/**
 	 * Retrieves the value of the given {@link Field} for the specified
 	 * {@link Object} by invoking its getter method.
@@ -51,34 +43,7 @@ public class ClassReflector {
 	 *            the {@code Object} to retrieve the value for
 	 * @return {@code Field} value
 	 */
-	public static Object invokeGetter(Field field, Object object) {
-		field.setAccessible(true);
-		String name = field.getName();
-		if (name.startsWith("m") && name.length() > 1) {
-			if (Character.isUpperCase(name.charAt(1)))
-				name = name.substring(1);
-		}
-		try {
-			Method getter = object.getClass().getMethod(StringUtil.getterName(name));
-			return getter.invoke(object);
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			throw new ModelConfigurationException("Field '" + field.getName() + "' in model '"
-					+ object.getClass().getName() + "' does not have an associated getter method.");
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
+	Object invokeGetter(Field field, Object object);
 
 	/**
 	 * Indicates if the given {@link Object} or {@code Object} proxy is
@@ -89,13 +54,7 @@ public class ClassReflector {
 	 * @return {@code true} if {@code object} is {@code null}, {@code false} if
 	 *         not
 	 */
-	public static boolean isNull(Object object) {
-		if (object == null)
-			return true;
-		if (TypeResolution.isDomainProxy(object.getClass()))
-			return object.getClass().isInstance(object);
-		return false;
-	}
+	boolean isNull(Object object);
 
 	/**
 	 * Retrieves all {@code Fields} for the given {@link Class}.
@@ -104,9 +63,7 @@ public class ClassReflector {
 	 *            the {@code Class} to get {@code Fields} for
 	 * @return {@link List} of {@code Fields}
 	 */
-	public static List<Field> getAllFields(Class<?> c) {
-		return getAllFieldsRec(c, new LinkedList<Field>());
-	}
+	List<Field> getAllFields(Class<?> c);
 
 	/**
 	 * Retrieves the {@link Field} with the given name for the given
@@ -119,20 +76,6 @@ public class ClassReflector {
 	 * @return {@code Field} with the given name or {@code null} if it does not
 	 *         exist
 	 */
-	public static Field getField(Class<?> c, String name) {
-		for (Field f : getAllFields(c)) {
-			if (f.getName().equals(name))
-				return f;
-		}
-		return null;
-	}
-
-	private static List<Field> getAllFieldsRec(Class<?> c, List<Field> fields) {
-		Class<?> superClass = c.getSuperclass();
-		if (superClass != null)
-			getAllFieldsRec(superClass, fields);
-		fields.addAll(Arrays.asList(c.getDeclaredFields()));
-		return fields;
-	}
+	Field getField(Class<?> c, String name);
 
 }

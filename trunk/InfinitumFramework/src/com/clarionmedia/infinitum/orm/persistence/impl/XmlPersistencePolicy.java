@@ -43,10 +43,8 @@ import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistenceConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
-import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
@@ -144,10 +142,10 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		if (mPersistenceCache.containsKey(c))
 			return mPersistenceCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
-		List<Field> fields = ClassReflector.getAllFields(c);
+		List<Field> fields = mClassReflector.getAllFields(c);
 		for (Field f : fields) {
 			if (Modifier.isStatic(f.getModifiers())
-					|| TypeResolution.isDomainProxy(f.getDeclaringClass()))
+					|| mTypePolicy.isDomainProxy(f.getDeclaringClass()))
 				continue;
 			if (isFieldPrimaryKey(f)) {
 				ret.add(f);
@@ -214,7 +212,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 								"'"
 										+ c.getName()
 										+ "' map file does not specify primary key name.");
-					Field f = ClassReflector.getField(c, name);
+					Field f = mClassReflector.getField(c, name);
 					if (f == null)
 						throw new InvalidMapFileException(
 								"'"

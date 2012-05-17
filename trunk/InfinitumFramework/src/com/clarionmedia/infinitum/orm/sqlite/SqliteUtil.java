@@ -21,15 +21,16 @@ package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
+import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -41,6 +42,14 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  * @version 1.0 02/15/12
  */
 public class SqliteUtil {
+	
+	private TypeResolutionPolicy mTypePolicy;
+	private ClassReflector mClassReflector;
+	
+	public SqliteUtil() {
+		mTypePolicy = new DefaultTypeResolutionPolicy();
+		mClassReflector = new DefaultClassReflector();
+	}
 
 	/**
 	 * Generates a "where clause" {@link String} used for updating or deleting
@@ -60,7 +69,7 @@ public class SqliteUtil {
 	 * @throws InfinitumRuntimeException
 	 *             if there is an error generating the SQL
 	 */
-	public static String getWhereClause(Object model, SqliteMapper mapper) throws InfinitumRuntimeException {
+	public String getWhereClause(Object model, SqliteMapper mapper) throws InfinitumRuntimeException {
 		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 		Field pk = policy.getPrimaryKeyField(model.getClass());
 		StringBuilder sb = new StringBuilder();
@@ -68,8 +77,8 @@ public class SqliteUtil {
 		sb.append(policy.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = mapper.getSqliteDataType(pk);
 		Object pkVal = null;
-		if (TypeResolution.isDomainProxy(model.getClass())) {
-		    pkVal = ClassReflector.invokeGetter(pk, model);
+		if (mTypePolicy.isDomainProxy(model.getClass())) {
+		    pkVal = mClassReflector.invokeGetter(pk, model);
 		} else {
 			try {
 				pkVal = pk.get(model);
@@ -108,10 +117,10 @@ public class SqliteUtil {
 	 *             if there is a mismatch between the {@code Class}'s primary
 	 *             key type and the type of the given primary key
 	 */
-	public static String getWhereClause(Class<?> c, Serializable id, SqliteMapper mapper) throws IllegalArgumentException {
+	public String getWhereClause(Class<?> c, Serializable id, SqliteMapper mapper) throws IllegalArgumentException {
 		PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
 		Field pk = policy.getPrimaryKeyField(c);
-		if (!TypeResolution.isValidPrimaryKey(pk, id))
+		if (!mTypePolicy.isValidPrimaryKey(pk, id))
 			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(), c.getName()));
 		StringBuilder sb = new StringBuilder();
 		sb.append(policy.getFieldColumnName(pk)).append(" = ");

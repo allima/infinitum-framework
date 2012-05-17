@@ -22,7 +22,6 @@ package com.clarionmedia.infinitum.orm.relationship;
 import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.orm.annotation.OneToMany;
-import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 /**
  * <p>
@@ -47,7 +46,7 @@ public class OneToManyRelationship extends ModelRelationship {
 		OneToMany otm = f.getAnnotation(OneToMany.class);
 		mFirst = f.getDeclaringClass();
 		setOneType(mFirst);
-		mSecond = PackageReflector.getClass(otm.className());
+		mSecond = mPackageReflector.getClass(otm.className());
 		setManyType(mSecond);
 		mName = otm.name();
 		mColumn = otm.column();

@@ -20,9 +20,8 @@
 package com.clarionmedia.infinitum.orm.sqlite;
 
 import android.content.ContentValues;
-
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 
 /**
  * <p>

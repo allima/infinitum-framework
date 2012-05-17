@@ -22,19 +22,16 @@ package com.clarionmedia.infinitum.orm.persistence;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
-import com.clarionmedia.infinitum.internal.Primitives;
-
 /**
  * <p>
- * This class provides runtime resolution of data types for the purpose of
+ * This interface provides runtime resolution of data types for the purpose of
  * persistence in the ORM.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/14/12
+ * @version 1.0 05/17/12
  */
-public class TypeResolution {
+public interface TypeResolutionPolicy {
 
 	// Represent the data types used in SQLite
 	public static enum SqliteDataType {
@@ -52,13 +49,7 @@ public class TypeResolution {
 	 * @return {@code true} if it is a valid primary key value, {@code false} if
 	 *         not
 	 */
-	public static boolean isValidPrimaryKey(Field pkField, Serializable id) {
-		if (id == null)
-			return false;
-		Class<?> pkUnwrapped = Primitives.unwrap(pkField.getType());
-		Class<?> idUnwrapped = Primitives.unwrap(id.getClass());
-		return pkUnwrapped == idUnwrapped;
-	}
+	boolean isValidPrimaryKey(Field pkField, Serializable id);
 
 	/**
 	 * Indicates if the given {@link Class} is a registered domain model for
@@ -68,13 +59,7 @@ public class TypeResolution {
 	 *            the {@code Class} to check
 	 * @return {@code true} if it is a domain model, {@code false} if not
 	 */
-	public static boolean isDomainModel(Class<?> c) {
-		for (String s : ContextFactory.getInstance().getContext().getDomainModels()) {
-			if (c.getName().equalsIgnoreCase(s))
-				return true;
-		}
-		return isDomainProxy(c);
-	}
+	boolean isDomainModel(Class<?> c);
 
 	/**
 	 * Indicates if the given {@link Class} is a proxy for a domain model.
@@ -83,15 +68,6 @@ public class TypeResolution {
 	 *            the {@code Class} to check
 	 * @return {@code true} if it is a domain proxy, {@code false} if not
 	 */
-	public static boolean isDomainProxy(Class<?> c) {
-		for (String s : ContextFactory.getInstance().getContext().getDomainModels()) {
-			String name = s;
-			if (name.contains("."))
-				name = name.substring(name.lastIndexOf('.') + 1);
-			if (c.getName().equalsIgnoreCase(name + "_Proxy"))
-				return true;
-		}
-		return false;
-	}
+	boolean isDomainProxy(Class<?> c);
 
 }
