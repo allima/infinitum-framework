@@ -29,12 +29,14 @@ import java.util.Set;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -88,6 +90,9 @@ public abstract class PersistencePolicy {
 
 	// This Map caches the resource field names for model Fields
 	protected Map<Field, String> mRestFieldCache;
+	
+	protected TypeResolutionPolicy mTypePolicy;
+	protected ClassReflector mClassReflector;
 
 	/**
 	 * Constructs a new {@code PersistencePolicy}.
@@ -105,6 +110,8 @@ public abstract class PersistencePolicy {
 		mLazyLoadingCache = new HashMap<Class<?>, Boolean>();
 		mRestResourceCache = new HashMap<Class<?>, String>();
 		mRestFieldCache = new HashMap<Field, String>();
+		mTypePolicy = new DefaultTypeResolutionPolicy();
+		mClassReflector = new DefaultClassReflector();
 	}
 
 	/**
@@ -394,9 +401,9 @@ public abstract class PersistencePolicy {
 		Object ret = null;
 		Field pkField = getPrimaryKeyField(model.getClass());
 		pkField.setAccessible(true);
-		if (TypeResolution.isDomainProxy(model.getClass())) {
+		if (mTypePolicy.isDomainProxy(model.getClass())) {
 			// Need to invoke getter if it's a proxy
-			ret = ClassReflector.invokeGetter(pkField, model);
+			ret = mClassReflector.invokeGetter(pkField, model);
 		} else {
 			try {
 				ret = pkField.get(model);

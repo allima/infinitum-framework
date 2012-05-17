@@ -35,10 +35,8 @@ import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution.SqliteDataType;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
-import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
@@ -155,7 +153,7 @@ public class SqliteMapper extends ObjectMapper {
 		Class<?> c = Primitives.unwrap(field.getType());
 		if (mTypeAdapters.containsKey(c))
 			ret = mTypeAdapters.get(c).getSqliteType();
-		else if (TypeResolution.isDomainModel(c))
+		else if (mTypePolicy.isDomainModel(c))
 			ret = getSqliteDataType(mPolicy.getPrimaryKeyField(c));
 		return ret;
 	}
@@ -165,8 +163,8 @@ public class SqliteMapper extends ObjectMapper {
 			IllegalArgumentException, IllegalAccessException {
 		Object val = null;
 		// We need to use the Field's getter if model is a proxy
-		if (TypeResolution.isDomainProxy(model.getClass()))
-			val = ClassReflector.invokeGetter(field, model);
+		if (mTypePolicy.isDomainProxy(model.getClass()))
+			val = mClassReflector.invokeGetter(field, model);
 		// Otherwise just use normal reflection...
 		else
 			val = field.get(model);

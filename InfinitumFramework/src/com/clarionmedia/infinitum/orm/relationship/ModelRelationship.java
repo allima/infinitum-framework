@@ -19,6 +19,9 @@
 
 package com.clarionmedia.infinitum.orm.relationship;
 
+import com.clarionmedia.infinitum.reflection.PackageReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
+
 
 /**
  * <p>
@@ -39,6 +42,11 @@ public abstract class ModelRelationship {
 	protected Class<?> mSecond;
 	protected RelationType mRelationType;
 	protected String mName;
+	protected PackageReflector mPackageReflector;
+	
+	public ModelRelationship() {
+		mPackageReflector = new DefaultPackageReflector();
+	}
 
 	public Class<?> getFirstType() {
 		return mFirst;

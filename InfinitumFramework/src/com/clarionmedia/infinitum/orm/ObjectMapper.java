@@ -28,13 +28,16 @@ import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
+import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
+import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 import com.clarionmedia.infinitum.rest.impl.RestfulMapper;
 
 /**
@@ -49,6 +52,14 @@ import com.clarionmedia.infinitum.rest.impl.RestfulMapper;
  * @version 1.0 02/23/12
  */
 public abstract class ObjectMapper {
+	
+	protected TypeResolutionPolicy mTypePolicy;
+	protected ClassReflector mClassReflector;
+	
+	public ObjectMapper() {
+		mTypePolicy = new DefaultTypeResolutionPolicy();
+		mClassReflector = new DefaultClassReflector();
+	}
 
 	/**
 	 * Returns a {@link ModelMap} object containing persistent model data values
@@ -136,7 +147,7 @@ public abstract class ObjectMapper {
 				case ManyToOne:
 					ManyToOneRelationship mto = (ManyToOneRelationship) rel;
 					related = f.get(model);
-					if (related != null && !TypeResolution.isDomainModel(related.getClass()))
+					if (related != null && !mTypePolicy.isDomainModel(related.getClass()))
 						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MO_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
 					map.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(mto, related));
 					break;
@@ -150,7 +161,7 @@ public abstract class ObjectMapper {
 				case OneToOne:
 					OneToOneRelationship oto = (OneToOneRelationship) rel;
 					related = f.get(model);
-					if (related != null && !TypeResolution.isDomainModel(related.getClass()))
+					if (related != null && !mTypePolicy.isDomainModel(related.getClass()))
 						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OO_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
 					map.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(oto, related));
 					break;

@@ -33,8 +33,6 @@ import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolution;
-import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
 
 /**
@@ -132,8 +130,8 @@ public class RestfulMapper extends ObjectMapper {
 			IllegalArgumentException, IllegalAccessException {
 		Object val = null;
 		// We need to use the Field's getter if model is a proxy
-		if (TypeResolution.isDomainProxy(model.getClass()))
-			val = ClassReflector.invokeGetter(field, model);
+		if (mTypePolicy.isDomainProxy(model.getClass()))
+			val = mClassReflector.invokeGetter(field, model);
 		// Otherwise just use normal reflection...
 		else
 			val = field.get(model);
