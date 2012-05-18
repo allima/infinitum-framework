@@ -61,6 +61,7 @@ public class SqlConstants {
 	
 	// SQL fragments
 	public static final String CREATE_TABLE = "CREATE TABLE";
+	public static final String DROP_TABLE = "DROP TABLE IF EXISTS";
 	public static final String SELECT_ALL_FROM = "SELECT * FROM ";
 	public static final String SELECT_COUNT_FROM = "SELECT count(*) FROM ";
 	public static final String ALIASED_SELECT_ALL_FROM = "SELECT %s.* FROM ";

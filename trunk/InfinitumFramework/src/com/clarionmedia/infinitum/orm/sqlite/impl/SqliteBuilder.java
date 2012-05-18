@@ -22,12 +22,13 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
+
 import android.database.sqlite.SQLiteDatabase;
+
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
-import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -89,6 +90,23 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 		return count;
 	}
+	
+	@Override
+	public int dropTables(SqliteDbHelper dbHelper)  {
+		int count = 0;
+		SQLiteDatabase db = dbHelper.getDatabase();
+		for (String m : dbHelper.getInfinitumContext().getDomainModels()) {
+			Class<?> c = mPackageReflector.getClass(m);
+			if (c == null)
+				throw new InfinitumConfigurationException("No such class '" + m + "'.");
+			String sql = dropModelTableString(c);
+			if (sql != null) {
+				db.execSQL(sql);
+				count++;
+			}
+		}
+		return count;
+	}
 
 	@Override
 	public String createModelTableString(Class<?> c) throws ModelConfigurationException {
@@ -100,6 +118,13 @@ public class SqliteBuilder implements SqlBuilder {
 		appendUniqueColumns(c, sb);
 		sb.append(')');
 		return sb.toString();
+	}
+	
+	@Override
+	public String dropModelTableString(Class<?> c) throws ModelConfigurationException {
+		if (!mPersistencePolicy.isPersistent(c))
+			return null;
+		return SqlConstants.DROP_TABLE + ' ' + mPersistencePolicy.getModelTableName(c);
 	}
 
 	@Override
@@ -333,7 +358,8 @@ public class SqliteBuilder implements SqlBuilder {
 
 		String prefix = "";
 		for (Field f : fields) {
-			if (f.isAnnotationPresent(ManyToMany.class))
+			// M:M relationships are stored in a join table
+			if (mPersistencePolicy.isManyToManyRelationship(f))
 				continue;
 			SqliteDataType type = mMapper.getSqliteDataType(f);
 			if (type == null)

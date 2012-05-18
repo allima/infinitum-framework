@@ -57,22 +57,44 @@ public interface SqlBuilder {
 	 *             if domain classes have not been properly configured in
 	 *             {@code infinitum.cfg.xml}
 	 */
-	int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException;
+	int createTables(SqliteDbHelper dbHelper)
+			throws ModelConfigurationException;
+
+	/**
+	 * Drops the model tables from the application's SQLite database and returns
+	 * the number of tables dropped.
+	 * 
+	 * @param dbHelper
+	 *            the {@code SqliteDbHelper} encapsulating the
+	 *            {@code InfinitumContext} for this application
+	 * @return number of tables dropped
+	 */
+	int dropTables(SqliteDbHelper dbHelper);
 
 	/**
 	 * Generates the create table SQL statement for the specified
-	 * <code>Class</code>. If the <code>Class</code> does not contain any
-	 * persistent <code>Fields</code>, a {@link ModelConfigurationException}
-	 * will be thrown. If the <code>Class</code> itself is marked as transient,
-	 * this method will return null.
+	 * <code>Class</code>. If the <code>Class</code> itself is marked as
+	 * transient, this method will return null.
 	 * 
 	 * @param c
 	 *            the <code>Class</code> to generate the create table SQL
 	 *            statement for
 	 * @return create table SQL statement
 	 * @throws ModelConfigurationException
+	 *             if the given {@code Class} does not contain any persistent
+	 *             {@code Fields}
 	 */
-	String createModelTableString(Class<?> c) throws ModelConfigurationException;
+	String createModelTableString(Class<?> c)
+			throws ModelConfigurationException;
+
+	/**
+	 * Generates the drop table SQL statement for the specified {@code Class}.
+	 * 
+	 * @param c
+	 *            the {@code Class} to generate the drop table SQL statement for
+	 * @return drop table SQL statement
+	 */
+	String dropModelTableString(Class<?> c);
 
 	/**
 	 * Generates a SQL query {@link String} from the given {@link Criteria}.
@@ -121,7 +143,8 @@ public interface SqlBuilder {
 	 *             if the direction {@code Class} is not a part of the given
 	 *             {@code ManyToManyRelationship}
 	 */
-	String createManyToManyJoinQuery(ManyToManyRelationship rel, Serializable id, Class<?> direction)
+	String createManyToManyJoinQuery(ManyToManyRelationship rel,
+			Serializable id, Class<?> direction)
 			throws InfinitumRuntimeException;
 
 	/**
@@ -145,7 +168,8 @@ public interface SqlBuilder {
 	 *            the model containing the relationship
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model);
+	StringBuilder createInitialStaleRelationshipQuery(
+			ManyToManyRelationship rel, Object model);
 
 	/**
 	 * Generates a {@link StringBuilder} consisting of the initial segment of a
@@ -157,7 +181,8 @@ public interface SqlBuilder {
 	 *            the model containing the relationship
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel, Object model);
+	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel,
+			Object model);
 
 	/**
 	 * Adds the given {@code Object's} primary key to the specified query. This
