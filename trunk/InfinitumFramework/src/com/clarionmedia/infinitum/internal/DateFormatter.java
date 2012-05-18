@@ -34,7 +34,12 @@ import java.util.Date;
  */
 public class DateFormatter {
 
-	public static final SimpleDateFormat ISO_8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+	/**
+	 * {@link SimpleDateFormat} containing the date pattern for the ISO 8601
+	 * standard.
+	 */
+	public static final SimpleDateFormat ISO_8601_FORMAT = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ssZ");
 
 	/**
 	 * Returns the {@link String} representation of the given {@link Date}.
@@ -45,7 +50,8 @@ public class DateFormatter {
 	 */
 	public static String getDateAsISO8601String(Date date) {
 		String result = ISO_8601_FORMAT.format(date);
-		result = result.substring(0, result.length() - 2) + ":" + result.substring(result.length() - 2);
+		result = result.substring(0, result.length() - 2) + ":"
+				+ result.substring(result.length() - 2);
 		return result;
 	}
 

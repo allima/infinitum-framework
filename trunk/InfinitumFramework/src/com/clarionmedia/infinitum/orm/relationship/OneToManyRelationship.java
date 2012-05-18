@@ -31,7 +31,7 @@ import com.clarionmedia.infinitum.orm.annotation.OneToMany;
  * @author Tyler Treat
  * @version 1.0 03/03/12
  */
-public class OneToManyRelationship extends ModelRelationship {
+public class OneToManyRelationship extends ForeignKeyRelationship {
 	
 	private String mColumn;
 	private Class<?> mOneType;
