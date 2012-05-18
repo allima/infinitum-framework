@@ -20,18 +20,23 @@
 package com.clarionmedia.infinitum.orm.relationship;
 
 /**
+ * <p>
+ * This abstract class represents a relationship which relies on a foreign key
+ * to make the entity association, such as many-to-one, one-to-many, and
+ * one-to-one relationships.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/11/12
  */
 public abstract class ForeignKeyRelationship extends ModelRelationship {
-	
+
 	protected String mColumn;
-	
+
 	public String getColumn() {
 		return mColumn;
 	}
-	
+
 	public void setColumn(String column) {
 		mColumn = column;
 	}

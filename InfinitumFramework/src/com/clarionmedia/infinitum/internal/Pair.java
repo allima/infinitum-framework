@@ -20,7 +20,9 @@
 package com.clarionmedia.infinitum.internal;
 
 /**
- * A generic data structure for holding two related objects.
+ * <p>
+ * A generic, ordered pair data structure for holding two related objects.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/25/12
@@ -30,26 +32,53 @@ public class Pair<F, S> {
 	private F mFirst;
 	private S mSecond;
 
-	public Pair() {
-	}
-
+	/**
+	 * Constructs a new {@code Pair} with the given values.
+	 * 
+	 * @param first
+	 *            the first {@code Pair} value
+	 * @param second
+	 *            the second {@code Pair} value
+	 */
 	public Pair(F first, S second) {
 		setFirst(first);
 		setSecond(second);
 	}
 
+	/**
+	 * Retrieves the first value.
+	 * 
+	 * @return first value
+	 */
 	public F getFirst() {
 		return mFirst;
 	}
 
+	/**
+	 * Sets the first value.
+	 * 
+	 * @param first
+	 *            value to set
+	 */
 	public void setFirst(F first) {
 		mFirst = first;
 	}
 
+	/**
+	 * Retrieves the second value.
+	 * 
+	 * @return second value
+	 */
 	public S getSecond() {
 		return mSecond;
 	}
 
+	/**
+	 * Sets the second value.
+	 * 
+	 * @param second
+	 *            second value to set
+	 */
 	public void setSecond(S second) {
 		mSecond = second;
 	}
