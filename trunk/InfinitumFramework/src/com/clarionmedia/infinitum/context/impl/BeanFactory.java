@@ -17,13 +17,14 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.context;
+package com.clarionmedia.infinitum.context.impl;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.clarionmedia.infinitum.context.BeanService;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
@@ -32,53 +33,50 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
- * Stores beans that have been configured in {@code infinitum.cfg.xml}. The
- * {@code BeanContainer} acts as a service locator for {@link InfinitumContext}.
+ * Implementation of {@link BeanService} for storing beans that have been
+ * configured in {@code infinitum.cfg.xml}. {@code BeanFactory} also acts as a
+ * service locator for {@link ApplicationContext}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 04/23/12
+ * @version 1.0 04/23/12
  */
-public class BeanContainer {
+public class BeanFactory implements BeanService {
 
 	private ClassReflector mClassReflector;
 	private Map<String, Pair<String, Map<String, Object>>> mBeanMap;
 
-	public BeanContainer() {
+	public BeanFactory() {
 		mClassReflector = new DefaultClassReflector();
 		mBeanMap = new HashMap<String, Pair<String, Map<String, Object>>>();
 	}
-	
-	/**
-	 * Retrieves an instance of the bean with the given name. The name is
-	 * configured in {@code infinitum.cfg.xml}.
-	 * 
-	 * @param name
-	 *            the name of the bean to retrieve
-	 * @return an instance of the bean.
-	 * @throws InfinitumConfigurationException
-	 *             if the bean does not exist or could not be constructed
-	 */
+
+	@Override
 	public Object loadBean(String name) throws InfinitumConfigurationException {
 		Pair<String, Map<String, Object>> pair = mBeanMap.get(name);
 		if (pair == null)
-			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved");
+			throw new InfinitumConfigurationException("Bean '" + name
+					+ "' could not be resolved");
 		String beanClass = pair.getFirst();
 		if (beanClass == null)
-			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved");
+			throw new InfinitumConfigurationException("Bean '" + name
+					+ "' could not be resolved");
 		Class<?> c;
 		try {
 			c = Class.forName(beanClass);
 		} catch (ClassNotFoundException e) {
-			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved");
+			throw new InfinitumConfigurationException("Bean '" + name
+					+ "' could not be resolved");
 		}
 		Object bean = null;
 		try {
 			bean = c.newInstance();
 		} catch (IllegalAccessException e) {
-			throw new InfinitumConfigurationException("Bean '" + name + "' could not be constructed");
+			throw new InfinitumConfigurationException("Bean '" + name
+					+ "' could not be constructed");
 		} catch (InstantiationException e) {
-			throw new InfinitumConfigurationException("Bean '" + name + "' could not be constructed");
+			throw new InfinitumConfigurationException("Bean '" + name
+					+ "' could not be constructed");
 		}
 		Map<String, Object> params = pair.getSecond();
 		for (Entry<String, Object> e : params.entrySet()) {
@@ -120,31 +118,17 @@ public class BeanContainer {
 		return bean;
 	}
 
-	/**
-	 * Checks if a bean with the given name exists.
-	 * 
-	 * @param name
-	 *            the name to check
-	 * @return {@code true} if it exists, {@code false} if not
-	 */
+	@Override
 	public boolean beanExists(String name) {
 		return mBeanMap.containsKey(name);
 	}
 
-	/**
-	 * Registers the bean with the given name and class name with the
-	 * {@code BeanContainer}.
-	 * 
-	 * @param name
-	 *            the name of the bean
-	 * @param beanClass
-	 *            the class name of the bean
-	 * @param args
-	 *            a {@link Map} of parameter names and their arguments
-	 */
-	public void registerBean(String name, String beanClass, Map<String, Object> args) {
+	@Override
+	public void registerBean(String name, String beanClass,
+			Map<String, Object> args) {
 		// args: Map<argName, argValue>
-		Pair<String, Map<String, Object>> pair = new Pair<String, Map<String, Object>>(beanClass, args);
+		Pair<String, Map<String, Object>> pair = new Pair<String, Map<String, Object>>(
+				beanClass, args);
 		// pair: Pair<bean, beanArgsMap>
 		mBeanMap.put(name, pair);
 	}

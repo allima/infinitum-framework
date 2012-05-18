@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.context;
+package com.clarionmedia.infinitum.context.impl;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -25,12 +25,18 @@ import java.util.Map;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 
+import com.clarionmedia.infinitum.context.ContextService;
+import com.clarionmedia.infinitum.context.ContextConstants;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContext.ConfigurationMode;
+import com.clarionmedia.infinitum.context.RestfulConfiguration;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.rest.TokenGenerator;
 import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
@@ -48,14 +54,11 @@ import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
-public class ContextFactory {
+public class ContextFactory implements ContextService {
 
 	private static ContextFactory sContextFactory;
 	private static InfinitumContext sInfinitumContext;
 	private static Context sContext;
-
-	private ContextFactory() {
-	}
 
 	/**
 	 * Retrieves an {@code InfinitumContextFactory} instance.
@@ -68,20 +71,7 @@ public class ContextFactory {
 		return sContextFactory;
 	}
 
-	/**
-	 * Configures Infinitum with the specified configuration file. Configuration
-	 * file must be named {@code infinitum.cfg.xml}. This method must be called
-	 * before attempting to retrieve an {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the calling {@code Context}
-	 * @param configId
-	 *            the resource ID for the XML config file
-	 * @return configured {@code InfinitumContext}
-	 * @throws InfinitumConfigurationException
-	 *             if the configuration file could not be found or if the file
-	 *             could not be parsed
-	 */
+	@Override
 	public InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException {
 		sContext = context;
 		sInfinitumContext = configureFromXml(configId);
@@ -89,24 +79,22 @@ public class ContextFactory {
 		return sInfinitumContext;
 	}
 
-	/**
-	 * Retrieves the {@link InfinitumContext} singleton.
-	 * {@link ContextFactory#configure} must be called before using
-	 * this method. Otherwise, an {@link InfinitumConfigurationException} will
-	 * be thrown.
-	 * 
-	 * @return the {@code InfinitumContext} singleton
-	 * @throws InfinitumConfigurationException
-	 *             if {@code configure} was not called
-	 */
+	@Override
 	public InfinitumContext getContext() throws InfinitumConfigurationException {
 		if (sInfinitumContext == null)
 			throw new InfinitumConfigurationException(ContextConstants.CONFIG_NOT_CALLED);
 		return sInfinitumContext;
 	}
+	
+	@Override
+	public PersistencePolicy getPersistencePolicy() {
+		if (sInfinitumContext == null)
+			throw new InfinitumConfigurationException(ContextConstants.CONFIG_NOT_CALLED);
+		return sInfinitumContext.getPersistencePolicy();
+	}
 
 	private InfinitumContext configureFromXml(int configId) throws InfinitumConfigurationException {
-		InfinitumContext ret = new InfinitumContext();
+		InfinitumContext ret = new ApplicationContext();
 		Resources resources = sContext.getResources();
 		XmlResourceParser parser = resources.getXml(configId);
 		ret.setBeanContainer(configureBeans(parser, ret));
@@ -140,8 +128,8 @@ public class ContextFactory {
 		return ret;
 	}
 
-	private BeanContainer configureBeans(XmlResourceParser parser, InfinitumContext ctx) {
-		BeanContainer container = new BeanContainer();
+	private BeanFactory configureBeans(XmlResourceParser parser, InfinitumContext ctx) {
+		BeanFactory container = new BeanFactory();
 		try {
 			int eventType = parser.getEventType();
 			while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -230,7 +218,6 @@ public class ContextFactory {
 
 	private void configureSqlite(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
-		ctx.setHasSqliteDb(true);
 		parser.next();
 		while (!parser.getName().equalsIgnoreCase(ContextConstants.SQLITE_ELEMENT)) {
 			if (parser.getEventType() == XmlPullParser.START_TAG
@@ -258,12 +245,12 @@ public class ContextFactory {
 
 	private void configureRest(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
-		RestfulContext restCtx = new RestfulContext();
+		RestfulConfiguration restCtx = new RestfulContext();
 		String clientBean = parser.getAttributeValue(null, ContextConstants.REF_ATTRIBUTE);
 		if (clientBean != null && !ctx.getBeanContainer().beanExists(clientBean))
 			throw new InfinitumConfigurationException(ContextConstants.REST_CLIENT_BEAN_UNRESOLVED);
 		restCtx.setClientBean(clientBean);
-		ctx.setRestfulContext(restCtx);
+		ctx.setRestfulConfiguration(restCtx);
 		parser.next();
 		while (!parser.getName().equalsIgnoreCase(ContextConstants.REST_ELEMENT)) {
 			if (parser.getEventType() == XmlPullParser.START_TAG
@@ -274,34 +261,34 @@ public class ContextFactory {
 				if (ContextConstants.REST_HOST_ATTRIBUTE.equalsIgnoreCase(name)) {
 					if ("".equalsIgnoreCase(value))
 						throw new InfinitumConfigurationException(ContextConstants.REST_HOST_MISSING);
-					ctx.getRestfulContext().setRestHost(value.trim());
+					ctx.getRestfulConfiguration().setRestHost(value.trim());
 				} else if (ContextConstants.CONNECTION_TIMEOUT_ATTRIBUTE.equalsIgnoreCase(name)) {
-					ctx.getRestfulContext().setConnectionTimeout(Integer.parseInt(value));
+					ctx.getRestfulConfiguration().setConnectionTimeout(Integer.parseInt(value));
 				} else if (ContextConstants.RESPONSE_TIMEOUT_ATTRIBUTE.equalsIgnoreCase(name)) {
-					ctx.getRestfulContext().setResponseTimeout(Integer.parseInt(value));
+					ctx.getRestfulConfiguration().setResponseTimeout(Integer.parseInt(value));
 				}
 			} else if (parser.getEventType() == XmlPullParser.START_TAG
 					&& parser.getName().equalsIgnoreCase(ContextConstants.AUTHENTICATION_ELEMENT)) {
 				String enabled = parser.getAttributeValue(null, ContextConstants.ENABLED_ATTRIBUTE);
 				if (enabled == null)
-					ctx.getRestfulContext().setRestAuthenticated(true);
+					ctx.getRestfulConfiguration().setRestAuthenticated(true);
 				else
-					ctx.getRestfulContext().setRestAuthenticated(Boolean.parseBoolean(enabled));
+					ctx.getRestfulConfiguration().setRestAuthenticated(Boolean.parseBoolean(enabled));
 				String strategy = parser.getAttributeValue(null, ContextConstants.STRATEGY_ATTRIBUTE);
 				if (strategy != null) {
-					ctx.getRestfulContext().setAuthStrategy(strategy);
+					ctx.getRestfulConfiguration().setAuthStrategy(strategy);
 					String generator = parser.getAttributeValue(null, ContextConstants.GENERATOR_ATTRIBUTE);
 					if (generator != null && "token".equalsIgnoreCase(strategy)) {
-						SharedSecretAuthentication auth = (SharedSecretAuthentication) ctx.getRestfulContext().getAuthStrategy();
+						SharedSecretAuthentication auth = (SharedSecretAuthentication) ctx.getRestfulConfiguration().getAuthStrategy();
 						auth.setTokenGenerator((TokenGenerator) ctx.getBean(generator));
 					}
 				} else {
 					String beanRef = parser.getAttributeValue(null, ContextConstants.REF_ATTRIBUTE);
-					ctx.getRestfulContext().setAuthStrategy(
+					ctx.getRestfulConfiguration().setAuthStrategy(
 							(AuthenticationStrategy) ctx.getBeanContainer().loadBean(beanRef));
 				}
 				SharedSecretAuthentication token = null;
-				AuthenticationStrategy strat = ctx.getRestfulContext().getAuthStrategy();
+				AuthenticationStrategy strat = ctx.getRestfulConfiguration().getAuthStrategy();
 				if (strat == null)
 					throw new InfinitumConfigurationException(ContextConstants.AUTH_STRAT_MISSING);
 				if (strat.getClass() == SharedSecretAuthentication.class)
@@ -333,7 +320,7 @@ public class ContextFactory {
 			}
 			parser.next();
 		}
-		if (ctx.getRestfulContext().getRestHost() == null)
+		if (ctx.getRestfulConfiguration().getRestHost() == null)
 			throw new InfinitumConfigurationException(ContextConstants.REST_HOST_MISSING);
 	}
 

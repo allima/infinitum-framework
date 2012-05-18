@@ -25,13 +25,15 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Stack;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Preconditions;
@@ -98,7 +100,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public SqliteTemplate(SqliteSession session) {
 		mSqliteUtil = new SqliteUtil();
 		mClassReflector = new DefaultClassReflector();
-		mPersistencePolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mSession = session;
 		mLogger = Logger.getInstance(TAG);

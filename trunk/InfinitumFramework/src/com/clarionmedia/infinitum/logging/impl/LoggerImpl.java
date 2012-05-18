@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.logging.impl;
 import android.util.Log;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.logging.Logger;
 
 /**

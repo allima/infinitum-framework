@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.orm;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -132,7 +132,7 @@ public abstract class ObjectMapper {
 	@SuppressWarnings("unchecked")
 	protected void mapRelationship(ModelMap map, Object model, Field f) {
 		try {
-			PersistencePolicy policy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+			PersistencePolicy policy = ContextFactory.getInstance().getPersistencePolicy();
 			if (policy.isRelationship(f)) {
 				ModelRelationship rel = policy.getRelationship(f);
 				Object related;

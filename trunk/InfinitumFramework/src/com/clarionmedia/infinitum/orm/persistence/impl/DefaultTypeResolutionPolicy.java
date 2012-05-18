@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.orm.persistence.impl;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 

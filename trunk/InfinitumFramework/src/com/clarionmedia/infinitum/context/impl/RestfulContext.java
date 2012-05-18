@@ -17,82 +17,99 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.context;
+package com.clarionmedia.infinitum.context.impl;
 
+import com.clarionmedia.infinitum.context.RestfulConfiguration;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
 
 /**
  * <p>
- * Container for RESTful web service configuration.
+ * Implementation of {@link RestfulConfiguration} containing RESTful web service
+ * configuration information.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/30/12
  */
-public class RestfulContext {
-	
+public class RestfulContext implements RestfulConfiguration {
+
 	private String mRestHost;
 	private boolean mIsRestAuthenticated;
 	private AuthenticationStrategy mAuthStrategy;
 	private int mConnectionTimeout;
 	private int mResponseTimeout;
 	private String mClientBean;
-	
+
+	@Override
 	public String getRestHost() {
 		return mRestHost;
 	}
 
+	@Override
 	public void setRestHost(String restHost) {
 		if (!restHost.endsWith("/"))
 			restHost += '/';
 		mRestHost = restHost;
 	}
 
+	@Override
 	public void setRestAuthenticated(boolean isRestAuthenticated) {
 		mIsRestAuthenticated = isRestAuthenticated;
 	}
 
+	@Override
 	public boolean isRestAuthenticated() {
 		return mIsRestAuthenticated;
 	}
 
-	public void setAuthStrategy(String strategy) {
+	@Override
+	public void setAuthStrategy(String strategy)
+			throws InfinitumConfigurationException {
 		if ("token".equalsIgnoreCase(strategy))
 			mAuthStrategy = new SharedSecretAuthentication();
 		else
-		    throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
+			throw new InfinitumConfigurationException(
+					"Unrecognized authentication strategy '" + strategy + "'.");
 	}
-	
+
+	@Override
 	public <T extends AuthenticationStrategy> void setAuthStrategy(T strategy) {
 		mAuthStrategy = strategy;
 	}
 
+	@Override
 	public AuthenticationStrategy getAuthStrategy() {
 		return mAuthStrategy;
 	}
 
+	@Override
 	public int getConnectionTimeout() {
 		return mConnectionTimeout;
 	}
 
+	@Override
 	public void setConnectionTimeout(int mConnectionTimeout) {
 		this.mConnectionTimeout = mConnectionTimeout;
 	}
 
+	@Override
 	public int getResponseTimeout() {
 		return mResponseTimeout;
 	}
 
+	@Override
 	public void setResponseTimeout(int mResponseTimeout) {
 		this.mResponseTimeout = mResponseTimeout;
 	}
 
+	@Override
 	public String getClientBean() {
 		return mClientBean;
 	}
 
+	@Override
 	public void setClientBean(String clientBean) {
 		mClientBean = clientBean;
 	}
