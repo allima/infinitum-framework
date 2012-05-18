@@ -249,6 +249,17 @@ public abstract class PersistencePolicy {
 	 *         not
 	 */
 	public abstract boolean isRelationship(Field f);
+	
+	/**
+	 * Indicates if the given persistent {@link Field} is part of a many-to-many
+	 * entity relationship.
+	 * 
+	 * @param f
+	 *           the {@code Field} to check
+	 * @return {@code true} if it is part of a many-to-many relationship, {@code false}
+	 *         if not
+	 */
+	public abstract boolean isManyToManyRelationship(Field f);
 
 	/**
 	 * Retrieves the {@link ModelRelationship} the given {@link Field} is a part

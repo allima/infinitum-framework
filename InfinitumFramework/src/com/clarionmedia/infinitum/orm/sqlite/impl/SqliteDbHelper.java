@@ -34,7 +34,7 @@ import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 /**
  * <p>
  * A helper class to manage database creation and version management. This is an
- * extension of <code>SQLiteOpenHelper</code> that will take care of opening a
+ * extension of {@link SQLiteOpenHelper} that will take care of opening a
  * database, creating it if it does not exist, and upgrading it if necessary.
  * </p>
  * 
@@ -70,9 +70,9 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * Returns an instance of the <code>SQLiteDatabase</code>.
+	 * Returns an instance of the {@link SQLiteDatabase}.
 	 * 
-	 * @return the <code>SQLiteDatabase</code> for this application
+	 * @return the {@code SQLiteDatabase} for this application
 	 */
 	public SQLiteDatabase getDatabase() {
 		return mSqliteDb;
@@ -92,22 +92,21 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 		mSqliteDb = db;
 		if (!mInfinitumContext.isSchemaGenerated())
 			return;
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Creating database tables");
+		mLogger.debug("Creating database tables");
 		try {
 			mSqlBuilder.createTables(this);
 		} catch (ModelConfigurationException e) {
 			mLogger.error(OrmConstants.CREATE_TABLES_ERROR, e);
 		}
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Database tables created successfully");
+		mLogger.debug("Database tables created successfully");
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
-		// TODO: drop tables
+		mLogger.debug("Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
+		mSqliteDb = db;
+		mSqlBuilder.dropTables(this);
+		mLogger.debug("Database tables dropped successfully");
 		onCreate(db);
 	}
 
