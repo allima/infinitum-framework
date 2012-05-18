@@ -46,7 +46,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -85,7 +85,7 @@ public class BasicRestfulClient extends RestfulClient {
 		mLogger = Logger.getInstance(TAG);
 		mMapper = new RestfulMapper();
 		mJsonDeserializers = new HashMap<Class<?>, JsonDeserializer<?>>();
-		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 	}
 
 	@Override
@@ -248,8 +248,8 @@ public class BasicRestfulClient extends RestfulClient {
 	
 	private HttpParams getHttpParams() {
 		HttpParams httpParams = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParams, mContext.getRestfulContext().getConnectionTimeout());
-		HttpConnectionParams.setSoTimeout(httpParams, mContext.getRestfulContext().getResponseTimeout());
+		HttpConnectionParams.setConnectionTimeout(httpParams, mContext.getRestfulConfiguration().getConnectionTimeout());
+		HttpConnectionParams.setSoTimeout(httpParams, mContext.getRestfulConfiguration().getResponseTimeout());
 		HttpConnectionParams.setTcpNoDelay(httpParams, true);
 		return httpParams;
 	}

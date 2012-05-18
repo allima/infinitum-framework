@@ -27,7 +27,7 @@ import java.util.Map;
 import android.content.Context;
 import android.database.SQLException;
 
-import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.impl.ApplicationContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
@@ -40,8 +40,8 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
  * interface to a configured application datastore. All database interaction
  * goes through the {@code Session}, which also provides an API for creating
  * {@link Criteria} and {@link Criteria} instances. {@code Session} instances
- * should be acquired from an {@link InfinitumContext} by calling
- * {@link InfinitumContext#getSession(Context, InfinitumContext.DataSource)} .
+ * should be acquired from an {@link ApplicationContext} by calling
+ * {@link ApplicationContext#getSession(Context, ApplicationContext.DataSource)} .
  * </p>
  * <p>
  * When a {@code Session} is acquired, it must be opened by calling

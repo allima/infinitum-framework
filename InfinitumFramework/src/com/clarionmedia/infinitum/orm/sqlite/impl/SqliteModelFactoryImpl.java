@@ -28,7 +28,8 @@ import java.util.Collection;
 import java.util.List;
 import android.content.Context;
 import android.database.Cursor;
-import com.clarionmedia.infinitum.context.ContextFactory;
+
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.LazilyLoadedObject;
 import com.clarionmedia.infinitum.orm.OrmConstants;
@@ -76,7 +77,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		mSqlBuilder = new SqliteBuilder(mapper);
 		mSession = session;
 		mMapper = mapper;
-		mPolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 	}
 
 	@Override

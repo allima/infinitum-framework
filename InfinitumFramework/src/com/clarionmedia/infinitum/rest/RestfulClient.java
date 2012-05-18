@@ -24,7 +24,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.impl.BasicRestfulClient;
@@ -53,9 +53,9 @@ public abstract class RestfulClient {
 	 */
 	public final void prepare() {
 		mContext = ContextFactory.getInstance().getContext();
-		mHost = mContext.getRestfulContext().getRestHost();
-		mIsAuthenticated = mContext.getRestfulContext().isRestAuthenticated();
-		mAuthStrategy = mContext.getRestfulContext().getAuthStrategy();
+		mHost = mContext.getRestfulConfiguration().getRestHost();
+		mIsAuthenticated = mContext.getRestfulConfiguration().isRestAuthenticated();
+		mAuthStrategy = mContext.getRestfulConfiguration().getAuthStrategy();
 	}
 
 	/**

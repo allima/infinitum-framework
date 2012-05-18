@@ -22,8 +22,10 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ApplicationContext;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -77,7 +79,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * Returns the encapsulated {@link InfinitumContext}.
+	 * Returns the encapsulated {@link ApplicationContext}.
 	 * 
 	 * @return {@code InfinitumContext} instance
 	 */

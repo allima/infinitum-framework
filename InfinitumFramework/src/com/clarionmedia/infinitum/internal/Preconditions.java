@@ -26,7 +26,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.res.XmlResourceParser;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;

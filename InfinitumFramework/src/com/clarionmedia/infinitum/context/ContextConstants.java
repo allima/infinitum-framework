@@ -19,10 +19,13 @@
 
 package com.clarionmedia.infinitum.context;
 
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.ApplicationContext;
+
 
 /**
  * <p>
- * Contains constants used in {@link InfinitumContext},
+ * Contains constants used in {@link ApplicationContext},
  * {@link ContextFactory}, and other supporting classes.
  * </p>
  * 

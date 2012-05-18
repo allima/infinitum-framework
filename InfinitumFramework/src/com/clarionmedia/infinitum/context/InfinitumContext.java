@@ -19,17 +19,12 @@
 
 package com.clarionmedia.infinitum.context;
 
-import java.util.ArrayList;
 import java.util.List;
-
 import android.content.Context;
-
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
-import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 
 /**
  * <p>
@@ -40,46 +35,22 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/11/12
+ * @version 1.0 05/18/12
  */
-public class InfinitumContext {
+public interface InfinitumContext {
 
+	/**
+	 * Represents the entity persistence configuration mode.
+	 */
 	public static enum ConfigurationMode {
 		Xml, Annotation
 	}
 
+	/**
+	 * Represents the configured data source for a {@link Session}.
+	 */
 	public static enum DataSource {
 		Sqlite
-	}
-
-	private static final ConfigurationMode DEFAULT_MODE = ConfigurationMode.Annotation;
-	
-	private static PersistencePolicy sPersistencePolicy;
-
-	private boolean mIsDebug;
-	private ConfigurationMode mConfigMode;
-	private boolean mRecycleCache;
-	private boolean mHasSqliteDb;
-	private String mSqliteDbName;
-	private int mSqliteDbVersion;
-	private boolean mIsSchemaGenerated;
-	private boolean mAutocommit;
-	private List<String> mDomainModels;
-	private RestfulContext mRestContext;
-	private Context mContext;
-	private BeanContainer mBeanContainer;
-
-	/**
-	 * Constructs a new {@code InfinitumContext}. This constructor should not be
-	 * called outside of {@link ContextFactory} as it is generated from
-	 * {@code infinitum.cfg.xml}.
-	 */
-	public InfinitumContext() {
-		mConfigMode = DEFAULT_MODE;
-		mDomainModels = new ArrayList<String>();
-		mIsSchemaGenerated = true;
-		mAutocommit = true;
-		mRecycleCache = true;
 	}
 
 	/**
@@ -91,103 +62,73 @@ public class InfinitumContext {
 	 * @throws InfinitumConfigurationException
 	 *             if the specified {@code DataSource} was not configured
 	 */
-	public Session getSession(DataSource source) throws InfinitumConfigurationException {
-		switch (source) {
-		case Sqlite:
-			return new SqliteSession(mContext);
-		default:
-			throw new InfinitumConfigurationException("Data source not configured.");
-		}
-	}
+	Session getSession(DataSource source)
+			throws InfinitumConfigurationException;
 
 	/**
 	 * Indicates if debug is enabled or not. If it is enabled, Infinitum will
-	 * produce log statements in <code>Logcat</code>, otherwise it will not
-	 * produce any logging.
+	 * produce log statements in {@code Logcat}, otherwise it will not produce
+	 * any logging.
 	 * 
-	 * @return <code>true</code> if debug is on, <code>false</code> if not
+	 * @return {@code true} if debug is on, {@code false} if not
 	 */
-	public boolean isDebug() {
-		return mIsDebug;
-	}
+	boolean isDebug();
 
 	/**
 	 * Sets the debug value indicating if logging is enabled or not. If it is
-	 * enabled, Infinitum will produce log statements in <code>Logcat</code>,
+	 * enabled, Infinitum will produce log statements in {@code Logcat},
 	 * otherwise it will not produce any logging. This should be set to
-	 * <code>false</code> in a production environment. The debug value can be
-	 * enabled in <code>infinitum.cfg.xml</code> with
-	 * <code>&lt;property name="debug"&gt;true&lt;/property&gt;</code> and
-	 * disabled with
-	 * <code>&lt;property name="debug"&gt;false&lt;/property&gt;</code>.
+	 * {@code false} in a production environment. The debug value can be enabled
+	 * in {@code infinitum.cfg.xml} with
+	 * {@code <property name="debug">true</property>} and disabled with
+	 * {@code <property name="debug">false</property>}.
 	 * 
 	 * @param debug
-	 *            <code>true</code> if debug is to be enabled,
-	 *            <code>false</code> if it's to be disabled
+	 *            {@code true} if debug is to be enabled, {@code false} if it's
+	 *            to be disabled
 	 */
-	public void setDebug(boolean debug) {
-		mIsDebug = debug;
-	}
+	void setDebug(boolean debug);
 
 	/**
-	 * Returns the <code>ConfigurationMode</code> value of this
+	 * Returns the {@link ConfigurationMode} value of this
 	 * {@code InfinitumContext}, indicating which style of configuration this
 	 * application is using, XML- or annotation-based. An XML configuration
 	 * means that domain model mappings are provided through XML mapping files,
 	 * while an annotation configuration means that mappings and other
 	 * properties are provided in source code using Java annotations.
 	 * 
-	 * @return <code>ConfigurationMode</code> for this application
+	 * @return {@code ConfigurationMode} for this application
 	 */
-	public ConfigurationMode getConfigurationMode() {
-		return mConfigMode;
-	}
+	ConfigurationMode getConfigurationMode();
 
 	/**
-	 * Sets the <code>ConfigurationMode</code> value for this
+	 * Sets the {@link ConfigurationMode} value for this
 	 * {@code InfinitumContext}. The mode can be set in
-	 * <code>infinitum.cfg.xml</code> with
-	 * <code>&lt;property name="mode"&gt;xml&lt;/property&gt;</code> or
-	 * <code>&lt;property name="mode"&gt;annotations&lt;/property&gt;</code> in
-	 * the <code>application</code> element. An XML configuration means that
-	 * domain model mappings are provided through XML mapping files, while an
-	 * annotation configuration means that mappings and other properties are
-	 * provided in source code using Java annotations. If annotations are used,
-	 * all domain model classes must be stored in the same package. If a mode
-	 * property is not provided in <code>infinitum.cfg.xml</code>, annotations
-	 * will be used by default.
+	 * {@code infinitum.cfg.xml} with
+	 * {@code <property name="mode">xml</property>} or
+	 * {@code <property name="mode">annotations</property>} in the
+	 * {@code application} element. An XML configuration means that domain model
+	 * mappings are provided through XML mapping files, while an annotation
+	 * configuration means that mappings and other properties are provided in
+	 * source code using Java annotations. If annotations are used, all domain
+	 * model classes must be stored in the same package. If a mode property is
+	 * not provided in {@code infinitum.cfg.xml}, annotations will be used by
+	 * default.
 	 * 
 	 * @param mode
+	 *            the {@code ConfigurationMode}
 	 */
-	public void setConfigurationMode(ConfigurationMode mode) {
-		mConfigMode = mode;
-	}
+	void setConfigurationMode(ConfigurationMode mode);
 
 	/**
 	 * Returns true if there is a SQLite database configured or false if not. If
-	 * infinitum.cfg.xml is missing the <code>sqlite</code> element, this will
-	 * be false.
+	 * {@code infinitum.cfg.xml} is missing the {@code sqlite} element, this
+	 * will be false.
 	 * 
-	 * @return <code>true</code> if SQLite database is configured or
-	 *         <code>false</code> if not
+	 * @return {@code true} if a SQLite database is configured or {@code false}
+	 *         if not
 	 */
-	public boolean hasSqliteDb() {
-		return mHasSqliteDb;
-	}
-
-	/**
-	 * Sets the value indicating if this {@code InfinitumContext} has a SQLite
-	 * database configured or not. This will be set to <code>true</code> if
-	 * <code>infinitum.cfg.xml</code> has a properly configured
-	 * <code>sqlite</code> element.
-	 * 
-	 * @param hasSqliteDb
-	 *            <code>true</code> if there is a database, <code>false</code>
-	 *            if not
-	 */
-	public void setHasSqliteDb(boolean hasSqliteDb) {
-		mHasSqliteDb = hasSqliteDb;
-	}
+	boolean hasSqliteDb();
 
 	/**
 	 * Returns the name of the SQLite database for this {@code InfinitumContext}
@@ -196,23 +137,19 @@ public class InfinitumContext {
 	 * 
 	 * @return the name of the SQLite database for this {@code InfinitumContext}
 	 */
-	public String getSqliteDbName() {
-		return mSqliteDbName;
-	}
+	String getSqliteDbName();
 
 	/**
 	 * Sets the value of the SQLite database name for this
 	 * {@code InfinitumContext}. The SQLite database name can be specified in
-	 * <code>infinitum.cfg.xml</code> with
-	 * <code>&lt;property name="dbName"&gt;MyDB&lt;/property&gt;</code> in the
-	 * <code>sqlite</code> element.
+	 * {@code infinitum.cfg.xml} with
+	 * {@code <property name="dbName">MyDB</property>} in the {@code sqlite}
+	 * element.
 	 * 
 	 * @param dbName
 	 *            the name of the SQLite database
 	 */
-	public void setSqliteDbName(String dbName) {
-		mSqliteDbName = dbName;
-	}
+	void setSqliteDbName(String dbName);
 
 	/**
 	 * Returns the version number of the SQLite database for this
@@ -220,62 +157,52 @@ public class InfinitumContext {
 	 * 
 	 * @return the SQLite database version number
 	 */
-	public int getSqliteDbVersion() {
-		return mSqliteDbVersion;
-	}
+	int getSqliteDbVersion();
 
 	/**
 	 * Sets the version for the SQLite database for this
 	 * {@code InfinitumContext}. The SQLite database version can be specified in
-	 * <code>infinitum.cfg.xml</code> with
-	 * <code>&lt;property name="dbVersion"&gt;2&lt;/property&gt;</code> in the
-	 * <code>sqlite</code> element.
+	 * {@code infinitum.cfg.xml} with
+	 * {@code <property name="dbVersion">2</property>} in the {@code sqlite}
+	 * element.
 	 * 
 	 * @param version
 	 *            the version to set for the SQLite database
 	 */
-	public void setSqliteDbVersion(int version) {
-		mSqliteDbVersion = version;
-	}
+	void setSqliteDbVersion(int version);
 
 	/**
-	 * Returns a <code>List</code> of all fully-qualified domain model classes
+	 * Returns a {@link List} of all fully-qualified domain model classes
 	 * registered with this {@code InfinitumContext}. Domain models are defined
 	 * as being persistent entities.
 	 * 
-	 * @return a <code>List</code> of all registered domain model classes
+	 * @return a {@code List} of all registered domain model classes
 	 */
-	public List<String> getDomainModels() {
-		return mDomainModels;
-	}
+	List<String> getDomainModels();
 
 	/**
 	 * Adds the specified domain model class to the entire collection of domain
 	 * models registered with this {@code InfinitumContext}. Domain models are
-	 * defined in <code>infinitum.cfg.xml</code> using
-	 * <code>&lt;model resource="com.foo.domain.MyModel" /&gt;</code> in the
-	 * <code>domain</code> element.
+	 * defined in {@code infinitum.cfg.xml} using
+	 * {@code <model resource="com.foo.domain.MyModel" />} in the {@code domain}
+	 * element.
 	 * 
 	 * @param domainModel
 	 */
-	public void addDomainModel(String domainModel) {
-		mDomainModels.add(domainModel);
-	}
+	void addDomainModel(String domainModel);
 
 	/**
 	 * Sets the value indicating if the {@link Session} cache should be
 	 * automatically recycled. This value can be enabled in
 	 * {@code infinitum.cfg.xml} with
-	 * <code>&lt;property name="recycleCache"&gt;true&lt;/property&gt;</code> in
-	 * the {@code application} element.
+	 * {@code <property name="recycleCache">true</property>} in the
+	 * {@code application} element.
 	 * 
 	 * @param recycleCache
 	 *            {@code true} if the cache should be recycled automatically,
 	 *            {@code false} if not
 	 */
-	public void setCacheRecyclable(boolean recycleCache) {
-		mRecycleCache = recycleCache;
-	}
+	void setCacheRecyclable(boolean recycleCache);
 
 	/**
 	 * Indicates if the {@link Session} cache is configured to be automatically
@@ -284,65 +211,110 @@ public class InfinitumContext {
 	 * @return {@code true} if the cache is set to automatically recycle,
 	 *         {@code false} if not
 	 */
-	public boolean isCacheRecyclable() {
-		return mRecycleCache;
-	}
+	boolean isCacheRecyclable();
 
-	public void setSchemaGenerated(boolean isSchemaGenerated) {
-		mIsSchemaGenerated = isSchemaGenerated;
-	}
+	/**
+	 * Sets the value indicating if the database schema should be generated
+	 * automatically by the framework.
+	 * 
+	 * @param isSchemaGenerated
+	 *            {@code true} if the schema should be generated, {@code false}
+	 *            if not
+	 */
+	void setSchemaGenerated(boolean isSchemaGenerated);
 
-	public boolean isSchemaGenerated() {
-		return mIsSchemaGenerated;
-	}
+	/**
+	 * Indicates if the database schema is configured to be automatically
+	 * generated by the framework.
+	 * 
+	 * @return {@code true} if the schema is set to automatically generate,
+	 *         {@code false} if not
+	 */
+	boolean isSchemaGenerated();
 
-	public void setAutocommit(boolean autocommit) {
-		mAutocommit = autocommit;
-	}
+	/**
+	 * Sets the value indicating if autocommit should be enabled or disabled.
+	 * 
+	 * @param autocommit
+	 *            {@code true} if autocommit should be enabled, {@code false} if
+	 *            not
+	 */
+	void setAutocommit(boolean autocommit);
 
-	public boolean isAutocommit() {
-		return mAutocommit;
-	}
+	/**
+	 * Indicates if autocommit is enabled or disabled.
+	 * 
+	 * @return {@code true} if autocommit is enabled, {@code false} if not
+	 */
+	boolean isAutocommit();
 
-	public RestfulContext getRestfulContext() {
-		return mRestContext;
-	}
+	/**
+	 * Retrieves the {@link RestfulConfiguration} for this
+	 * {@code InfinitumContext}. The {@code RestfulConfiguration} contains
+	 * configuration settings for the RESTful client.
+	 * 
+	 * @return {@code RestfulConfiguration}
+	 */
+	RestfulConfiguration getRestfulConfiguration();
 
-	public void setRestfulContext(RestfulContext restContext) {
-		mRestContext = restContext;
-	}
+	/**
+	 * Sets the {@link RestfulConfiguration} for this {@code InfinitumContext}.
+	 * 
+	 * @param restContext
+	 *            the {@code RestfulConfiguration} to set
+	 */
+	void setRestfulConfiguration(RestfulConfiguration restContext);
 
-	public void setContext(Context context) {
-		mContext = context;
-	}
+	/**
+	 * Retrieves the {@link Context} for this {@code InfinitumContext}, which
+	 * contains application-wide context information.
+	 * 
+	 * @return {@code Context}
+	 */
+	Context getContext();
 
-	public Context getContext() {
-		return mContext;
-	}
+	/**
+	 * Sets the {@link Context} for this {@code InfinitumContext}.
+	 * 
+	 * @param context
+	 *            the {@Context} to set
+	 */
+	void setContext(Context context);
 
-	public BeanContainer getBeanContainer() {
-		return mBeanContainer;
-	}
+	/**
+	 * Retrieves the {@link BeanService} for this {@code InfinitumContext}.
+	 * The {@code BeanContainer} is used to retrieve beans that have been
+	 * configured in {@code infinitum.cfg.xml}.
+	 * 
+	 * @return {@code BeanContainer}
+	 */
+	BeanService getBeanContainer();
 
-	public void setBeanContainer(BeanContainer beanContainer) {
-		mBeanContainer = beanContainer;
-	}
+	/**
+	 * Sets the {@link BeanService} for this {@code InfinitumContext}.
+	 * 
+	 * @param beanContainer
+	 *            the {@code BeanContainer} to set
+	 */
+	void setBeanContainer(BeanService beanContainer);
 
-	public Object getBean(String name) {
-		return mBeanContainer.loadBean(name);
-	}
+	/**
+	 * Retrieves a bean with the given name. Beans are configured in
+	 * {@code infinitum.cfg.xml}.
+	 * 
+	 * @param name
+	 *            the name of the bean to retrieve
+	 * @return a bean instance or {@code null} if no bean has been configured
+	 *         with the given name
+	 */
+	Object getBean(String name);
 
-	public PersistencePolicy getPersistencePolicy() {
-		if (sPersistencePolicy == null) {
-			switch (mConfigMode) {
-			case Annotation:
-				sPersistencePolicy = new AnnotationPersistencePolicy();
-				break;
-			case Xml:
-				sPersistencePolicy = new XmlPersistencePolicy(mContext);
-				break;
-			}
-		}
-		return sPersistencePolicy;
-	}
+	/**
+	 * Retrieves the application {@link PersistencePolicy}, which is configured
+	 * in {@code infinitum.cfg.xml}.
+	 * 
+	 * @return {@code PersistencePolicy} for this application
+	 */
+	PersistencePolicy getPersistencePolicy();
+
 }

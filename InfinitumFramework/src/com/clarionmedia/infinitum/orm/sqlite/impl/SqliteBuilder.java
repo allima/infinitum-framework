@@ -23,8 +23,8 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
 import android.database.sqlite.SQLiteDatabase;
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.annotation.ManyToMany;
@@ -60,7 +60,7 @@ public class SqliteBuilder implements SqlBuilder {
 
 	public SqliteBuilder(SqliteMapper mapper) {
 		mMapper = mapper;
-		mPersistencePolicy = ContextFactory.getInstance().getContext().getPersistencePolicy();
+		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mPackageReflector = new DefaultPackageReflector();
 	}
 
