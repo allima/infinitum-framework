@@ -41,11 +41,11 @@ public interface RestfulClientBuilder {
 	RestfulClient build();
 
 	/**
-	 * Registers a {@link JsonDeserializer} for the given {@link Class} type.
+	 * Registers a {@link Deserializer} for the given {@link Class} type.
 	 * This deserializer will be used to deserialize any objects of the given
-	 * type. Registering a {@code JsonDeserializer} for a {@code Class} which
-	 * already has a {@code JsonDeserializer} registered for it will result in
-	 * the previous {@code JsonDeserializer} being overridden.
+	 * type. Registering a {@code Deserializer} for a {@code Class} which
+	 * already has a {@code Deserializer} registered for it will result in
+	 * the previous {@code Deserializer} being overridden.
 	 * 
 	 * @param type
 	 *            the {@code Class} associated with this deserializer
@@ -53,7 +53,7 @@ public interface RestfulClientBuilder {
 	 *            the {@code JsonDeserializer} to register
 	 * @return {@code RestfulClientBuilder} to allow for method chaining
 	 */
-	<E> RestfulClientBuilder registerJsonDeserializer(Class<E> type, JsonDeserializer<E> deserializer);
+	<E> RestfulClientBuilder registerDeserializer(Class<E> type, Deserializer<E> deserializer);
 
 	/**
 	 * Registers the given {@link RestfulTypeAdapter} for the specified

@@ -36,7 +36,6 @@ import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContext.ConfigurationMode;
 import com.clarionmedia.infinitum.context.RestfulConfiguration;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.rest.TokenGenerator;
@@ -59,15 +58,6 @@ public class ContextFactory implements ContextService {
 	private static ContextFactory sContextFactory;
 	private static InfinitumContext sInfinitumContext;
 	private static Context sContext;
-
-	private Logger mLogger;
-
-	/**
-	 * Constructs a new {@code ContextFactory}.
-	 */
-	private ContextFactory() {
-		mLogger = Logger.getInstance(getClass().getSimpleName());
-	}
 
 	/**
 	 * Retrieves an {@code InfinitumContextFactory} instance.
@@ -185,10 +175,8 @@ public class ContextFactory implements ContextService {
 				eventType = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse configuration", e);
 			return null;
 		} catch (IOException e) {
-			mLogger.error("Unable to parse configuration", e);
 			return null;
 		}
 		return container;
