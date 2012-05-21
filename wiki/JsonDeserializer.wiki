@@ -62,16 +62,16 @@ public class FooDeserializer extends JsonDeserializer<Foo> {
 
 = Registering a `JsonDeserializer` =
 
-`RestfulClient` has a method `registerJsonDeserializer`, which registers a `JsonDeserializer` for a given class.
+`RestfulClient` has a method `registerDeserializer`, which can register a `JsonDeserializer` for a given class.
 
 {{{
-rest.registerJsonDeserializer(Foo.class, new FooDeserializer());
+rest.registerDeserializer(Foo.class, new FooDeserializer());
 }}}
 
 RestfulClientBuilder also has this method, allowing a `RestfulClient` to be fully configured before it's constructed.
 
 {{{
-RestfulClient rest = new RestfulClientFactory().registerJsonDeserializer(Foo.class, new FooDeserializer()).build();
+RestfulClient rest = new RestfulClientFactory().registerDeserializer(Foo.class, new FooDeserializer()).build();
 }}}
 
 Once a `JsonDeserializer` has been registered with a `RestfulClient` for a particular class, its serialization methods will be used to interpret responses from the web service. If no deserializer is registered for a class, the framework will attempt to convert responses to objects using the default Gson implementation.
