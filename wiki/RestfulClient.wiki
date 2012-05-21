@@ -46,7 +46,7 @@ rest.prepare();
 `RestfulClientBuilder` provides methods for configuring a `RestfulClient` before it is retrieved using the `build()` method. JsonDeserializer and [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulTypeAdapter RestfulTypeAdapter] implementations can be registered with a `RestfulClient` through the `RestfulClientBuilder`. 
 
 {{{
-RestfulClient rest = new RestfulClientFactory().registerJsonDeserializer(Foo.class, new JsonDeserializer<Foo>() {
+RestfulClient rest = new RestfulClientFactory().registerDeserializer(Foo.class, new JsonDeserializer<Foo>() {
     @Override
     public Bar deserializeObject(String json) {
         // deserialization logic
@@ -71,7 +71,7 @@ RestfulClient rest = new RestfulClientFactory().registerJsonDeserializer(Foo.cla
 }).build();
 }}}
 
-The methods `registerJsonDeserializer` and `registerTypeAdapter` can also be invoked directly on the `RestfulClient` itself.
+The methods `registerDeserializer` and `registerTypeAdapter` can also be invoked directly on the `RestfulClient` itself.
 
 = Using a `RestfulClient` =
 
