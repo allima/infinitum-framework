@@ -28,18 +28,17 @@ public class MyTokenGenerator implements TokenGenerator {
 	int month = c.get(Calendar.MONTH);
 	int year = Integer.parseInt(Integer.toString(c.get(Calendar.YEAR)).substring(2));
 	String token = (day * 10 + month * 100 + year * 1000) + mUserPassword;
+        StringBuilder ret = new StringBuilder();
 	try {
 	    byte[] bytes = token.getBytes("UTF-8");
 	    MessageDigest md = MessageDigest.getInstance("MD5");
 	    byte[] hash = md.digest(bytes);
-            StringBuilder ret = new StringBuilder();
 	    for (int i = 0; i < hash.length; i++) {
 	        if ((0xff & hash[i]) < 0x10)
 	            ret.append("0" + Integer.toHexString((0xFF & hash[i])));
 	        else
                     ret.append(Integer.toHexString(0xFF & hash[i]));
 	    }
-	    return ret.toString();
 	} catch (UnsupportedEncodingException e) {
 	    // TODO Auto-generated catch block
 	    e.printStackTrace();
@@ -47,7 +46,7 @@ public class MyTokenGenerator implements TokenGenerator {
 	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
-	return null;
+	return ret.toString();
     }
 
 }
