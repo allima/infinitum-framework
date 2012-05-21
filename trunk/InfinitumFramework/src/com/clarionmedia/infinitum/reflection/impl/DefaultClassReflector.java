@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
@@ -34,17 +35,20 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
- * This class provides reflection methods for working with classes
- * contained within projects that are using Infinitum.
+ * This class provides reflection methods for working with classes contained
+ * within projects that are using Infinitum.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/15/12
  */
 public class DefaultClassReflector implements ClassReflector {
-	
+
 	private TypeResolutionPolicy mTypePolicy;
-	
+
+	/**
+	 * Constructs a new {@code DefaultClassReflector}.
+	 */
 	public DefaultClassReflector() {
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 	}
@@ -61,22 +65,21 @@ public class DefaultClassReflector implements ClassReflector {
 			Method getter = object.getClass().getMethod(StringUtil.getterName(name));
 			return getter.invoke(object);
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new InfinitumRuntimeException("Unable to invoke getter for object of type '"
+					+ object.getClass().getName() + "'");
 		} catch (NoSuchMethodException e) {
 			throw new ModelConfigurationException("Field '" + field.getName() + "' in model '"
 					+ object.getClass().getName() + "' does not have an associated getter method.");
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new InfinitumRuntimeException("Unable to invoke getter for object of type '"
+					+ object.getClass().getName() + "' (illegal argument)");
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new InfinitumRuntimeException("Unable to invoke getter for object of type '"
+					+ object.getClass().getName() + "' (illegal access)");
 		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new InfinitumRuntimeException("Unable to invoke getter for object of type '"
+					+ object.getClass().getName() + "'");
 		}
-		return null;
 	}
 
 	@Override

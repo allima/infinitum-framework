@@ -26,9 +26,9 @@ import java.util.Map.Entry;
 
 import com.clarionmedia.infinitum.context.BeanService;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Primitives;
-import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
@@ -43,43 +43,36 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  * @version 1.0 04/23/12
  */
 public class BeanFactory implements BeanService {
-	
+
 	private ClassReflector mClassReflector;
 	private Map<String, Pair<String, Map<String, Object>>> mBeanMap;
-	private Logger mLogger;
 
 	public BeanFactory() {
 		mClassReflector = new DefaultClassReflector();
 		mBeanMap = new HashMap<String, Pair<String, Map<String, Object>>>();
-		mLogger = Logger.getInstance(getClass().getSimpleName());
 	}
 
 	@Override
 	public Object loadBean(String name) throws InfinitumConfigurationException {
 		Pair<String, Map<String, Object>> pair = mBeanMap.get(name);
 		if (pair == null)
-			throw new InfinitumConfigurationException("Bean '" + name
-					+ "' could not be resolved");
+			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved");
 		String beanClass = pair.getFirst();
 		if (beanClass == null)
-			throw new InfinitumConfigurationException("Bean '" + name
-					+ "' could not be resolved");
+			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved");
 		Class<?> c;
 		try {
 			c = Class.forName(beanClass);
 		} catch (ClassNotFoundException e) {
-			throw new InfinitumConfigurationException("Bean '" + name
-					+ "' could not be resolved");
+			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved ('" + beanClass + "' not found)");
 		}
 		Object bean = null;
 		try {
 			bean = c.newInstance();
 		} catch (IllegalAccessException e) {
-			throw new InfinitumConfigurationException("Bean '" + name
-					+ "' could not be constructed");
+			throw new InfinitumConfigurationException("Bean '" + name + "' could not be constructed");
 		} catch (InstantiationException e) {
-			throw new InfinitumConfigurationException("Bean '" + name
-					+ "' could not be constructed");
+			throw new InfinitumConfigurationException("Bean '" + name + "' could not be constructed");
 		}
 		Map<String, Object> params = pair.getSecond();
 		for (Entry<String, Object> e : params.entrySet()) {
@@ -108,11 +101,14 @@ public class BeanFactory implements BeanService {
 					arg = val;
 				f.set(bean, arg);
 			} catch (SecurityException e1) {
-				mLogger.error("Could not set field", e1);
+				throw new InfinitumRuntimeException("Could not set field in object of type '"
+						+ bean.getClass().getName() + "'");
 			} catch (IllegalArgumentException e1) {
-				mLogger.error("Could not set field", e1);
+				throw new InfinitumRuntimeException("Could not set field in object of type '"
+						+ bean.getClass().getName() + "'");
 			} catch (IllegalAccessException e1) {
-				mLogger.error("Could not set field", e1);
+				throw new InfinitumRuntimeException("Could not set field in object of type '"
+						+ bean.getClass().getName() + "'");
 			}
 		}
 		return bean;
@@ -124,11 +120,9 @@ public class BeanFactory implements BeanService {
 	}
 
 	@Override
-	public void registerBean(String name, String beanClass,
-			Map<String, Object> args) {
+	public void registerBean(String name, String beanClass, Map<String, Object> args) {
 		// args: Map<argName, argValue>
-		Pair<String, Map<String, Object>> pair = new Pair<String, Map<String, Object>>(
-				beanClass, args);
+		Pair<String, Map<String, Object>> pair = new Pair<String, Map<String, Object>>(beanClass, args);
 		// pair: Pair<bean, beanArgsMap>
 		mBeanMap.put(name, pair);
 	}

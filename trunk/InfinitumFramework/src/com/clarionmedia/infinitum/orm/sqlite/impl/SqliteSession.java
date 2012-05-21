@@ -235,7 +235,6 @@ public class SqliteSession implements Session {
 			mSqlite.registerTypeAdapter(type, a);
 		} catch (ClassCastException e) {
 			// If adapter is not a SqliteTypeAdapter, ignore it
-			return;
 		}
 	}
 
