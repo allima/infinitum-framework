@@ -271,8 +271,8 @@ public class SqliteTemplate implements SqliteOperations {
 		if (!mTypePolicy.isValidPrimaryKey(mPersistencePolicy.getPrimaryKeyField(c), id))
 			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
 					c.getName()));
-		Cursor cursor = mSqliteDb.query(mPersistencePolicy.getModelTableName(c), null, mSqliteUtil.getWhereClause(c, id, mMapper),
-				null, null, null, null, "1");
+		Cursor cursor = mSqliteDb.query(mPersistencePolicy.getModelTableName(c), null,
+				mSqliteUtil.getWhereClause(c, id, mMapper), null, null, null, null, "1");
 		if (cursor.getCount() == 0) {
 			cursor.close();
 			return null;
@@ -380,11 +380,9 @@ public class SqliteTemplate implements SqliteOperations {
 		try {
 			f.set(model, ret);
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set primary key field for object of type '" + model.getClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set primary key field for object of type '" + model.getClass().getName() + "'", e);
 		}
 		if (ret > 0 && mPersistencePolicy.isCascading(model.getClass())) {
 			processRelationships(map, objectMap, model);
@@ -459,12 +457,12 @@ public class SqliteTemplate implements SqliteOperations {
 				continue;
 			long id = saveOrUpdateRec(o, objectMap);
 			if (id > 0) {
-				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(model.getClass(), p.getFirst())),
-						id);
+				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(
+						model.getClass(), p.getFirst())), id);
 			} else if (id == 0) {
 				Object pk = mPersistencePolicy.getPrimaryKey(p.getSecond());
-				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(model.getClass(), p.getFirst())),
-						(Long) pk);
+				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(
+						model.getClass(), p.getFirst())), (Long) pk);
 			}
 		}
 	}
@@ -519,8 +517,7 @@ public class SqliteTemplate implements SqliteOperations {
 				fPk = f.get(related);
 				sPk = s.get(model);
 			} else {
-				// TODO
-				throw new InfinitumRuntimeException("");
+				throw new InfinitumRuntimeException("Invalid many-to-many relationship");
 			}
 			String fCol = mPersistencePolicy.getModelTableName(first) + '_' + mPersistencePolicy.getFieldColumnName(f);
 			String sCol = mPersistencePolicy.getModelTableName(second) + '_' + mPersistencePolicy.getFieldColumnName(s);
@@ -544,8 +541,7 @@ public class SqliteTemplate implements SqliteOperations {
 				relData.put(fCol, (byte[]) fPk);
 				break;
 			default:
-				// TODO
-				throw new InfinitumRuntimeException("");
+				throw new InfinitumRuntimeException("Invalid relational key type");
 			}
 			switch (mMapper.getSqliteDataType(s)) {
 			case INTEGER:
@@ -567,8 +563,7 @@ public class SqliteTemplate implements SqliteOperations {
 				relData.put(sCol, (byte[]) sPk);
 				break;
 			default:
-				// TODO
-				throw new InfinitumRuntimeException("");
+				throw new InfinitumRuntimeException("Invalid relational key type");
 			}
 			boolean result = false;
 			try {
@@ -576,18 +571,14 @@ public class SqliteTemplate implements SqliteOperations {
 			} catch (SQLException e) {
 				return;
 			}
-			if (mInfinitumContext.isDebug()) {
-				if (result)
-					mLogger.debug(first.getSimpleName() + "-" + second.getSimpleName() + " relationship saved");
-				else
-					mLogger.error(first.getSimpleName() + "-" + second.getSimpleName() + " relationship was not saved");
-			}
+			if (result)
+				mLogger.debug(first.getSimpleName() + "-" + second.getSimpleName() + " relationship saved");
+			else
+				mLogger.error(first.getSimpleName() + "-" + second.getSimpleName() + " relationship was not saved");
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to insert many-to-many relationship", e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to insert many-to-many relationship", e);
 		}
 	}
 

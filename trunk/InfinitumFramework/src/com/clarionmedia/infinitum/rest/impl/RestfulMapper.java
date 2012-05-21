@@ -85,11 +85,9 @@ public class RestfulMapper extends ObjectMapper {
 				// Map Field values
 				mapField(ret, model, f);
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to map field " + f.getName() + " for object of type '" + model.getClass().getName() + "'", e);
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to map field " + f.getName() + " for object of type '" + model.getClass().getName() + "'", e);
 			}
 		}
 		return ret;
@@ -121,8 +119,7 @@ public class RestfulMapper extends ObjectMapper {
 
 	@Override
 	public boolean isTextColumn(Field f) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new UnsupportedOperationException();
 	}
 
 	// Map Field value to NameValuePair

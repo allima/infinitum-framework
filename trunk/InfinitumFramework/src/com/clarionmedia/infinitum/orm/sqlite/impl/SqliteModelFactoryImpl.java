@@ -31,6 +31,7 @@ import android.database.Cursor;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.LazilyLoadedObject;
 import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -64,6 +65,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private SqliteSession mSession;
 	private SqliteMapper mMapper;
 	private PersistencePolicy mPolicy;
+	private Logger mLogger;
 
 	/**
 	 * Constructs a {@code SqliteModelFactoryImpl} with the given
@@ -78,6 +80,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		mSession = session;
 		mMapper = mapper;
 		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
+		mLogger = Logger.getInstance(getClass().getSimpleName());
 	}
 
 	@Override
@@ -126,10 +129,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 				try {
 					resolver.mapToObject(result, index, f, ret);
 				} catch (IllegalArgumentException e) {
-					throw new InfinitumRuntimeException("Could not map '" + f.getType().getSimpleName() + "'");
+					throw new InfinitumRuntimeException("Could not map '" + f.getType().getName() + "'");
 				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					throw new InfinitumRuntimeException("Could not map '" + f.getType().getName() + "'");
 				}
 			}
 		}
@@ -188,26 +190,17 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						result.close();
 						return ret;
 					}
-				}).dexCache(mSession.getContext().getDir("dx", Context.MODE_PRIVATE)).build();
+				}).dexCache(mSession.getContext().getDir(OrmConstants.BYTECODE_DIR, Context.MODE_PRIVATE)).build();
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				throw new InfinitumRuntimeException("Could not build entity proxy");
 			}
 		}
 		try {
 			f.set(model, related);
-		} catch (ModelConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InfinitumRuntimeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		}
 	}
 
@@ -217,18 +210,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		while (result.getCursor().moveToNext())
 			try {
 				f.set(model, createFromResult(result, rel.getSecondType()));
-			} catch (ModelConfigurationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InfinitumRuntimeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 			}
 		result.close();
 	}
@@ -257,17 +242,14 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 					result.close();
 					return collection;
 				}
-			}).dexCache(mSession.getContext().getDir("dx", Context.MODE_PRIVATE)).build();
+			}).dexCache(mSession.getContext().getDir(OrmConstants.BYTECODE_DIR, Context.MODE_PRIVATE)).build();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new InfinitumRuntimeException("Could not build entity proxy");
 		}
 	}
 
@@ -290,11 +272,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 				related.add(createFromResult(result, rel.getManyType()));
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		}
 		result.close();
 	}
@@ -315,26 +295,17 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						result.close();
 						return ret;
 					}
-				}).dexCache(mSession.getContext().getDir("dx", Context.MODE_PRIVATE)).build();
+				}).dexCache(mSession.getContext().getDir(OrmConstants.BYTECODE_DIR, Context.MODE_PRIVATE)).build();
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				throw new InfinitumRuntimeException("Could not build entity proxy");
 			}
 		}
 		try {
 			f.set(model, related);
-		} catch (ModelConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InfinitumRuntimeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		}
 	}
 
@@ -345,18 +316,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		while (result.getCursor().moveToNext())
 			try {
 				f.set(model, createFromResult(result, direction));
-			} catch (ModelConfigurationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InfinitumRuntimeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 			}
 		result.close();
 	}
@@ -376,11 +339,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			result.close();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
-			throw new ModelConfigurationException("Invalid many-to-many relationship specified on " + f.getName()
-					+ " of type '" + f.getType().getSimpleName() + "'.");
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException("Unable to load relationship for model of type '"
-					+ model.getClass().getName() + "'.");
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
 		}
 	}
 

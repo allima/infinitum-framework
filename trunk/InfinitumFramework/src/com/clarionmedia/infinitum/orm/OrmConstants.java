@@ -29,9 +29,15 @@ package com.clarionmedia.infinitum.orm;
  */
 public class OrmConstants {
 
+	/**
+	 * Indicates the persistence state of a class or field.
+	 */
 	public static enum PersistenceMode {
 		Transient, Persistent
 	}
+
+	// General constants
+	public static final String BYTECODE_DIR = "dx";
 
 	// Errors
 	public static final String NO_PERSISTENT_FIELDS = "No persistent fields declared in '%s'.";

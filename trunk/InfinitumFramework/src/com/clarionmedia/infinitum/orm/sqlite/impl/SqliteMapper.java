@@ -89,11 +89,11 @@ public class SqliteMapper extends ObjectMapper {
 				// Map Field values
 				mapField(values, model, f);
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to map field " + f.getName() + " for object of type '"
+						+ model.getClass().getName() + "'", e);
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to map field " + f.getName() + " for object of type '"
+						+ model.getClass().getName() + "'", e);
 			}
 		}
 		ret.setContentValues(values);

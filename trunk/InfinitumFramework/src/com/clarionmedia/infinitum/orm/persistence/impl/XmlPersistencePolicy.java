@@ -133,11 +133,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class.");
 	}
@@ -184,11 +182,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 					code = parser.next();
 				}
 			} catch (XmlPullParserException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 			}
 		}
 		mPersistenceCache.put(c, ret);
@@ -222,11 +218,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		if (c.getSuperclass() != null) {
 			Field f = getPrimaryKeyField(c.getSuperclass());
@@ -280,11 +274,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property '" + f.getName()
 				+ "'.");
@@ -340,11 +332,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify primary key.");
 	}
@@ -385,11 +375,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify the property '"
 				+ f.getName() + "'.");
@@ -431,11 +419,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify the property '"
 				+ f.getName() + "'.");
@@ -491,11 +477,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
 	}
@@ -527,11 +511,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		mRelationshipCheckCache.put(f, false);
 		return false;
@@ -616,11 +598,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
 	}
@@ -653,11 +633,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class.");
 	}
@@ -706,11 +684,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		}
 		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property '" + f.getName()
 				+ "'.");
@@ -779,14 +755,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "' (could not resolve class)", e);
 		}
 		return null;
 	}
@@ -830,14 +803,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "' (could not resolve class)", e);
 		}
 		return null;
 	}
@@ -884,14 +854,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "' (could not resolve class)", e);
 		}
 		return null;
 	}
@@ -935,14 +902,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse map file for '" + c.getName() + "' (could not resolve class)", e);
 		}
 		return null;
 	}

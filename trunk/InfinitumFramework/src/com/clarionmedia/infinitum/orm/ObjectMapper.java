@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.internal.Pair;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -44,21 +45,26 @@ import com.clarionmedia.infinitum.rest.impl.RestfulMapper;
  * <p>
  * {@code ObjectMapper} provides an API for mapping domain objects to database
  * tables and vice versa. For mapping to SQLite databases, see this class's
- * concrete implementation {@link SqliteMapper} and for mapping to a RESTful
- * web service, see the {@link RestfulMapper} implementation.
+ * concrete implementation {@link SqliteMapper} and for mapping to a RESTful web
+ * service, see the {@link RestfulMapper} implementation.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/23/12
  */
 public abstract class ObjectMapper {
-	
+
 	protected TypeResolutionPolicy mTypePolicy;
 	protected ClassReflector mClassReflector;
-	
+	protected Logger mLogger;
+
+	/**
+	 * Constructs a new {@code ObjectMapper}.
+	 */
 	public ObjectMapper() {
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mClassReflector = new DefaultClassReflector();
+		mLogger = Logger.getInstance(getClass().getSimpleName());
 	}
 
 	/**
@@ -90,13 +96,13 @@ public abstract class ObjectMapper {
 	 *            the {@code TypeAdapter} to register
 	 */
 	public abstract <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter);
-	
+
 	/**
 	 * Returns a {@link Map} containing all {@link TypeAdapter} instances
-	 * registered with this {@code ObjectMapper} and the {@link Class} instances in
-	 * which they are registered for.
+	 * registered with this {@code ObjectMapper} and the {@link Class} instances
+	 * in which they are registered for.
 	 * 
-	 * @return {@code Map<Class<?>, TypeAdapter<?>>
+	 * @return {@code Map<Class<?>, TypeAdapter<?>>
 	 */
 	public abstract Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
 
@@ -121,13 +127,16 @@ public abstract class ObjectMapper {
 	 * @return {@code true} if it is a text type, {@code false} if not
 	 */
 	public abstract boolean isTextColumn(Field f);
-	
+
 	/**
 	 * Maps the given relationship {@link Field} to the given {@link ModelMap}.
 	 * 
-	 * @param map the {@code ModelMap} to add the relationship to
-	 * @param model the model containing the relationship
-	 * @param f the relationship {@code Field}
+	 * @param map
+	 *            the {@code ModelMap} to add the relationship to
+	 * @param model
+	 *            the model containing the relationship
+	 * @param f
+	 *            the relationship {@code Field}
 	 */
 	@SuppressWarnings("unchecked")
 	protected void mapRelationship(ModelMap map, Object model, Field f) {
@@ -141,38 +150,44 @@ public abstract class ObjectMapper {
 					ManyToManyRelationship mtm = (ManyToManyRelationship) rel;
 					related = f.get(model);
 					if (!(related instanceof Iterable))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
-					map.addManyToManyRelationship(new Pair<ManyToManyRelationship, Iterable<Object>>(mtm, (Iterable<Object>) related));
+						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP,
+								f.getName(), f.getDeclaringClass().getName()));
+					map.addManyToManyRelationship(new Pair<ManyToManyRelationship, Iterable<Object>>(mtm,
+							(Iterable<Object>) related));
 					break;
 				case ManyToOne:
 					ManyToOneRelationship mto = (ManyToOneRelationship) rel;
 					related = f.get(model);
 					if (related != null && !mTypePolicy.isDomainModel(related.getClass()))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MO_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
+						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MO_RELATIONSHIP,
+								f.getName(), f.getDeclaringClass().getName()));
 					map.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(mto, related));
 					break;
 				case OneToMany:
 					OneToManyRelationship otm = (OneToManyRelationship) rel;
 					related = f.get(model);
 					if (!(related instanceof Iterable))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OM_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
-					map.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(otm, (Iterable<Object>) related));
+						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OM_RELATIONSHIP,
+								f.getName(), f.getDeclaringClass().getName()));
+					map.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(otm,
+							(Iterable<Object>) related));
 					break;
 				case OneToOne:
 					OneToOneRelationship oto = (OneToOneRelationship) rel;
 					related = f.get(model);
 					if (related != null && !mTypePolicy.isDomainModel(related.getClass()))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OO_RELATIONSHIP, f.getName(), f.getDeclaringClass().getName()));
+						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OO_RELATIONSHIP,
+								f.getName(), f.getDeclaringClass().getName()));
 					map.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(oto, related));
 					break;
 				}
 			}
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to map relationship for field " + f.getName() + " in '"
+					+ f.getDeclaringClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to map relationship for field " + f.getName() + " in '"
+					+ f.getDeclaringClass().getName() + "'", e);
 		}
 	}
 
