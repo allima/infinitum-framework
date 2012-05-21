@@ -49,7 +49,7 @@ import com.clarionmedia.infinitum.rest.XmlDeserializer;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 03/21/12
+ * @version 1.0 05/21/12
  */
 public class RestfulXmlClient extends RestfulClient {
 
