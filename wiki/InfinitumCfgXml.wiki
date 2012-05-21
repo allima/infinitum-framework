@@ -79,7 +79,7 @@ If a web service uses some type of authentication, an authentication strategy ca
 </rest>
 }}}
 
-By default, Infinitum's RestfulClientFactory will use BasicRestfulClient as its RESTful client implementation. However, alternative implementations can be used by providing a bean, which will then be injected into the `RestfulClientFactory`. In a similar manner, alternative `AuthenticationStrategy` implementations can be used by providing a bean also. Both of these notions are illustrated in the example below.
+By default, Infinitum's RestfulClientFactory will use RestfulJsonClient as its RESTful client implementation. However, alternative implementations can be used by providing a bean, which will then be injected into the `RestfulClientFactory`. In a similar manner, alternative `AuthenticationStrategy` implementations can be used by providing a bean also. Both of these notions are illustrated in the example below.
 
 {{{
 <rest ref="restClient">
