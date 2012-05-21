@@ -6,7 +6,7 @@
 
 = Introduction =
 
-The `RestfulClient` abstract class provides an API for communicating with a RESTful web service using domain objects. Infinitum provides an implementation called `BasicRestfulClient`, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulClient` implementation can be specified in InfinitumCfgXml by referencing a bean which extends `RestfulClient`. This implementation is then acquired from the RestfulClientBuilder.
+The `RestfulClient` abstract class provides an API for communicating with a RESTful web service using domain objects. Infinitum provides an implementation called `RestfulJsonClient`, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulClient` implementation can be specified in InfinitumCfgXml by referencing a bean which extends `RestfulClient`. This implementation is then acquired from the RestfulClientBuilder.
 
 {{{
 <rest ref="restClient">
@@ -18,7 +18,7 @@ The `RestfulClient` abstract class provides an API for communicating with a REST
 </beans>
 }}}
 
-If no implementation is referenced in the configuration, `RestfulClientBuilder` will use Infinitum's `BasicRestfulClient`.
+If no implementation is referenced in the configuration, `RestfulClientBuilder` will use Infinitum's `RestfulJsonClient`.
 
 = Acquiring a `RestfulClient` =
 
@@ -37,7 +37,7 @@ MyRestfulClient rest = (MyRestfulClient) new RestfulClientFactory().build();
 If instantiating a `RestfulClient` directly, the `prepare()` method must be called before using it.
 
 {{{
-RestfulClient rest = new BasicRestfulClient();
+RestfulClient rest = new RestfulJsonClient();
 rest.prepare();
 }}}
 
