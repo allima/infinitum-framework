@@ -22,6 +22,7 @@ package com.clarionmedia.infinitum.rest.impl;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.rest.TokenGenerator;
 
@@ -61,8 +62,7 @@ public class SharedSecretAuthentication implements AuthenticationStrategy {
 		try {
 			mTokenName = URLEncoder.encode(tokenName, ENCODING);
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new InfinitumRuntimeException("Invalid encoding '" + ENCODING + "'");
 		}
 	}
 
@@ -88,8 +88,7 @@ public class SharedSecretAuthentication implements AuthenticationStrategy {
 		try {
 			mToken = URLEncoder.encode(token, ENCODING);
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new InfinitumRuntimeException("Invalid encoding '" + ENCODING + "'");
 		}
 	}
 

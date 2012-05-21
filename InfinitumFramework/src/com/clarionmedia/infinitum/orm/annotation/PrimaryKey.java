@@ -26,8 +26,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 
-// TODO: will need to require a primary key
-
 /**
  * <p>
  * This annotation indicates if a {@link Field} is a primary key. If the
@@ -56,6 +54,12 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 @Target(ElementType.FIELD)
 public @interface PrimaryKey {
 
+	/**
+	 * Indicates if the primary key is set to autoincrement. This is only valid
+	 * for primary keys which are of type {@code int} or {@code long}.
+	 * 
+	 * @return {@code true} if autoincrement is enabled, {@code false} if not
+	 */
 	boolean autoincrement() default true;
 
 }

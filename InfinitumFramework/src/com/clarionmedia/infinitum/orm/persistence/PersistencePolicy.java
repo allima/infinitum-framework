@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
@@ -72,13 +73,13 @@ public abstract class PersistencePolicy {
 
 	// This Map caches the many-to-many relationships
 	protected Map<Field, ManyToManyRelationship> mManyToManyCache;
-	
+
 	// This Map caches the many-to-one relationships
 	protected Map<Field, ManyToOneRelationship> mManyToOneCache;
-	
+
 	// This Map caches the one-to-many relationships
 	protected Map<Field, OneToManyRelationship> mOneToManyCache;
-	
+
 	// This Map caches the one-to-one relationships
 	protected Map<Field, OneToOneRelationship> mOneToOneCache;
 
@@ -90,9 +91,10 @@ public abstract class PersistencePolicy {
 
 	// This Map caches the resource field names for model Fields
 	protected Map<Field, String> mRestFieldCache;
-	
+
 	protected TypeResolutionPolicy mTypePolicy;
 	protected ClassReflector mClassReflector;
+	protected Logger mLogger;
 
 	/**
 	 * Constructs a new {@code PersistencePolicy}.
@@ -112,6 +114,7 @@ public abstract class PersistencePolicy {
 		mRestFieldCache = new HashMap<Field, String>();
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mClassReflector = new DefaultClassReflector();
+		mLogger = Logger.getInstance(getClass().getSimpleName());
 	}
 
 	/**
@@ -249,15 +252,15 @@ public abstract class PersistencePolicy {
 	 *         not
 	 */
 	public abstract boolean isRelationship(Field f);
-	
+
 	/**
 	 * Indicates if the given persistent {@link Field} is part of a many-to-many
 	 * entity relationship.
 	 * 
 	 * @param f
-	 *           the {@code Field} to check
-	 * @return {@code true} if it is part of a many-to-many relationship, {@code false}
-	 *         if not
+	 *            the {@code Field} to check
+	 * @return {@code true} if it is part of a many-to-many relationship,
+	 *         {@code false} if not
 	 */
 	public abstract boolean isManyToManyRelationship(Field f);
 
@@ -388,12 +391,10 @@ public abstract class PersistencePolicy {
 		try {
 			o = f.get(model);
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to calculate model hash for object of type '" + model.getClass().getName() + "'", e);
 			return 0;
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to calculate model hash for object of type '" + model.getClass().getName() + "'", e);
 			return 0;
 		}
 		if (o != null)
@@ -419,11 +420,11 @@ public abstract class PersistencePolicy {
 			try {
 				ret = pkField.get(model);
 			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'",
+						e);
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'",
+						e);
 			}
 		}
 		return ret;
@@ -444,11 +445,9 @@ public abstract class PersistencePolicy {
 		try {
 			pk = f.get(model);
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'", e);
 		}
 		if (pk == null)
 			return true;

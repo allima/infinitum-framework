@@ -30,12 +30,13 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 
-import com.clarionmedia.infinitum.context.ContextService;
 import com.clarionmedia.infinitum.context.ContextConstants;
+import com.clarionmedia.infinitum.context.ContextService;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContext.ConfigurationMode;
 import com.clarionmedia.infinitum.context.RestfulConfiguration;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.rest.TokenGenerator;
@@ -45,10 +46,9 @@ import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
  * <p>
  * Provides access to an {@link InfinitumContext} singleton. In order for this
  * class to function properly, an {@code infinitum.cfg.xml} file must be created
- * and {@link ContextFactory#configure(Context, int)} must be called
- * using the location of the XML file before accessing the
- * {@code InfinitumContext} or an {@link InfinitumConfigurationException} will
- * be thrown.
+ * and {@link ContextFactory#configure(Context, int)} must be called using the
+ * location of the XML file before accessing the {@code InfinitumContext} or an
+ * {@link InfinitumConfigurationException} will be thrown.
  * </p>
  * 
  * @author Tyler Treat
@@ -59,6 +59,15 @@ public class ContextFactory implements ContextService {
 	private static ContextFactory sContextFactory;
 	private static InfinitumContext sInfinitumContext;
 	private static Context sContext;
+
+	private Logger mLogger;
+
+	/**
+	 * Constructs a new {@code ContextFactory}.
+	 */
+	private ContextFactory() {
+		mLogger = Logger.getInstance(getClass().getSimpleName());
+	}
 
 	/**
 	 * Retrieves an {@code InfinitumContextFactory} instance.
@@ -85,7 +94,7 @@ public class ContextFactory implements ContextService {
 			throw new InfinitumConfigurationException(ContextConstants.CONFIG_NOT_CALLED);
 		return sInfinitumContext;
 	}
-	
+
 	@Override
 	public PersistencePolicy getPersistencePolicy() {
 		if (sInfinitumContext == null)
@@ -142,8 +151,7 @@ public class ContextFactory implements ContextService {
 							if (parser.getEventType() == XmlPullParser.START_TAG
 									&& parser.getName().equalsIgnoreCase(ContextConstants.BEAN_ELEMENT)) {
 								String id = parser.getAttributeValue(null, ContextConstants.ID_ATTRIBUTE);
-								String className = parser.getAttributeValue(null,
-										ContextConstants.CLASS_ATTRIBUTE);
+								String className = parser.getAttributeValue(null, ContextConstants.CLASS_ATTRIBUTE);
 								if (id == null)
 									throw new InfinitumConfigurationException(String.format(
 											ContextConstants.BEAN_ID_MISSING_LINE, parser.getLineNumber()));
@@ -154,16 +162,13 @@ public class ContextFactory implements ContextService {
 								Map<String, Object> args = new HashMap<String, Object>();
 								while (!parser.getName().equalsIgnoreCase(ContextConstants.BEAN_ELEMENT)) {
 									if (parser.getEventType() == XmlPullParser.START_TAG
-											&& parser.getName().equalsIgnoreCase(
-													ContextConstants.PROPERTY_ELEMENT)) {
-										String prop = parser.getAttributeValue(null,
-												ContextConstants.NAME_ATTRIBUTE);
-										String ref = parser.getAttributeValue(null,
-												ContextConstants.REF_ATTRIBUTE);
+											&& parser.getName().equalsIgnoreCase(ContextConstants.PROPERTY_ELEMENT)) {
+										String prop = parser.getAttributeValue(null, ContextConstants.NAME_ATTRIBUTE);
+										String ref = parser.getAttributeValue(null, ContextConstants.REF_ATTRIBUTE);
 										Object val;
 										if (ref == null) {
-										    parser.next();
-										    val = parser.getText();
+											parser.next();
+											val = parser.getText();
 										} else {
 											val = container.loadBean(ref);
 										}
@@ -180,11 +185,11 @@ public class ContextFactory implements ContextService {
 				eventType = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse configuration", e);
+			return null;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			mLogger.error("Unable to parse configuration", e);
+			return null;
 		}
 		return container;
 	}
@@ -279,7 +284,8 @@ public class ContextFactory implements ContextService {
 					ctx.getRestfulConfiguration().setAuthStrategy(strategy);
 					String generator = parser.getAttributeValue(null, ContextConstants.GENERATOR_ATTRIBUTE);
 					if (generator != null && "token".equalsIgnoreCase(strategy)) {
-						SharedSecretAuthentication auth = (SharedSecretAuthentication) ctx.getRestfulConfiguration().getAuthStrategy();
+						SharedSecretAuthentication auth = (SharedSecretAuthentication) ctx.getRestfulConfiguration()
+								.getAuthStrategy();
 						auth.setTokenGenerator((TokenGenerator) ctx.getBean(generator));
 					}
 				} else {
@@ -302,8 +308,7 @@ public class ContextFactory implements ContextService {
 						String value = parser.getText();
 						if (ContextConstants.TOKEN_NAME_ATTRIBUTE.equalsIgnoreCase(name)) {
 							if ("".equalsIgnoreCase(value))
-								throw new InfinitumConfigurationException(
-										ContextConstants.AUTH_TOKEN_NAME_MISSING);
+								throw new InfinitumConfigurationException(ContextConstants.AUTH_TOKEN_NAME_MISSING);
 							token.setTokenName(value);
 						} else if (ContextConstants.TOKEN_ATTRIBUTE.equalsIgnoreCase(name)) {
 							if ("".equalsIgnoreCase(value))
