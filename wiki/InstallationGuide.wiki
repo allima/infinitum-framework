@@ -1,0 +1,44 @@
+#summary Describes the Infinitum installation process
+#labels Explained
+
+*Contents*
+<wiki:toc max_depth="3" />
+
+= Configuring Build Path =
+
+  # Download the latest Infinitum distribution from the [http://code.google.com/p/infinitum-framework/downloads/list Downloads] page.
+  # Extract the JAR files from the zip archive (there are three you need -- infinitum-_version_.jar and the two dependencies in `lib`)  and place them in your application's `libs` directory.
+  # Verify that the JARs have been added to the application's build path (in Eclipse: right-click on the project > Build Path > Configure Build Path)
+Your project can now reference Infinitum Framework APIs.
+
+= Framework Configuration =
+
+Before Infinitum can be used, you must create a configuration file, `infinitum.cfg.xml` and place it in your application's `res/xml` directory. Below is an example template that can be used with minimal configuration. See the InfinitumCfgXml guide for more information on configuring the framework.
+
+{{{
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE infinitum-configuration PUBLIC
+"-//Infinitum/Infinitum Configuration DTD 1.0//EN"
+"http://clarionmedia.com/infinitum/dtd/infinitum-configuration-1.0.dtd">
+
+<infinitum-configuration>
+
+    <application>
+        <property name="debug">true</property>
+    </application>
+    
+    <sqlite>
+        <property name="dbName">myDb</property> 
+        <property name="dbVersion">1</property>
+    </sqlite>
+    
+    <rest>
+        <property name="host">http://localhost/webservice</property>
+    </rest>
+    
+    <domain>
+        <model resource="com.example.domain.Foo" />
+    </domain>
+
+</infinitum-configuration>
+}}}
