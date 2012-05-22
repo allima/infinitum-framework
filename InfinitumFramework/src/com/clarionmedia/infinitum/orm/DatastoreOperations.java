@@ -72,10 +72,10 @@ public interface DatastoreOperations {
 	boolean update(Object model) throws InfinitumRuntimeException;
 
 	/**
-	 * Deletes the given <code>Object</code> from the database if it exists.
+	 * Deletes the given {@link Object} from the database if it exists.
 	 * 
 	 * @param model
-	 *            <code>Object</code> to delete from the database
+	 *            {@code Object} to delete from the database
 	 * @return true if the record was deleted, false otherwise
 	 * @throws InfinitumRuntimeException
 	 *             if the model is marked transient
@@ -83,11 +83,11 @@ public interface DatastoreOperations {
 	boolean delete(Object model) throws InfinitumRuntimeException;
 
 	/**
-	 * Persists the given <code>Object</code> to the database, or, if it already
+	 * Persists the given {@link Object} to the database, or, if it already
 	 * exists, updates the record.
 	 * 
 	 * @param model
-	 *            <code>Object</code> to save or update in the database
+	 *            {@code Object} to save or update in the database
 	 * @return the row ID of the newly inserted row or 0 if the row was updated
 	 * @throws InfinitumRuntimeException
 	 *             if the model is marked transient
@@ -95,41 +95,38 @@ public interface DatastoreOperations {
 	long saveOrUpdate(Object model) throws InfinitumRuntimeException;
 
 	/**
-	 * Persists or updates the entire collection of <code>Objects</code> in the
+	 * Persists or updates the entire collection of {@code Objects} in the
 	 * database.
 	 * 
 	 * @param models
-	 *            <code>Objects</code> to save or update in the database
+	 *            {@code Objects} to save or update in the database
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	void saveOrUpdateAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
-	 * Persists the entire collection of <code>Objects</code> to the database.
+	 * Persists the entire collection of {@code Objects} to the database.
 	 * 
 	 * @param models
-	 *            <code>Objects</code> to persist to the database
+	 *            {@code Objects} to persist to the database
 	 * @return the number of records saved
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	int saveAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
-	 * Deletes the entire collection of <code>Objects</code> from the database
-	 * if they exist.
+	 * Deletes the entire collection of {@code Objects} from the database if
+	 * they exist.
 	 * 
 	 * @param models
-	 *            <code>Objects</code> to delete from the database
+	 *            {@code Objects} to delete from the database
 	 * @return the number of records deleted
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	int deleteAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException;
+	int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
 	 * Returns an instance of the given persistent model {@link Class} as
@@ -146,8 +143,7 @@ public interface DatastoreOperations {
 	 * @throws IllegalArgumentException
 	 *             if an incorrect number of primary keys is provided
 	 */
-	<T extends Object> T load(Class<T> c, Serializable id)
-			throws InfinitumRuntimeException, IllegalArgumentException;
+	<T extends Object> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException;
 
 	/**
 	 * Executes the given SQL non-query on the database, meaning no result is

@@ -34,7 +34,7 @@ public class InfinitumConfigurationException extends InfinitumRuntimeException {
 	private static final long serialVersionUID = -6745750594618266996L;
 
 	/**
-	 * Constructs a new <code>InfinitumConfigurationException</code> with the
+	 * Constructs a new {@code InfinitumConfigurationException} with the
 	 * given error message.
 	 * 
 	 * @param error

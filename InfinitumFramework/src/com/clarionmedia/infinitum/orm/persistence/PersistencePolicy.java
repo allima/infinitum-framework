@@ -151,10 +151,9 @@ public abstract class PersistencePolicy {
 	 * {@code Class}.
 	 * 
 	 * @param c
-	 *            the <code>Class</code> to retrieve persistent
-	 *            <code>Fields</code> for
-	 * @return <code>List</code> of all persistent <code>Fields</code> for the
-	 *         specified <code>Class</code>
+	 *            the {@code Class} to retrieve persistent {@code Fields} for
+	 * @return {@code List} of all persistent {@code Fields} for the specified
+	 *         {@code Class}
 	 */
 	public abstract List<Field> getPersistentFields(Class<?> c);
 

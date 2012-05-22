@@ -25,7 +25,7 @@ import java.util.Date;
 
 /**
  * <p>
- * This class contains methods for formatting <code>Date</code> objects into
+ * This class contains methods for formatting {@link Date} objects into
  * Strings and vice versa.
  * </p>
  * 

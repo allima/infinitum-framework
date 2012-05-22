@@ -44,9 +44,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has a
-	 * value "bar", calling <code>Conditions.eq("foo", "bar")</code> would
-	 * essentially be the equivalent of doing <code>WHERE foo = 'bar'</code> in
-	 * a SQL query.
+	 * value "bar", calling {@code Conditions.eq("foo", "bar")} would
+	 * essentially be the equivalent of doing {@code WHERE foo = 'bar'} in a SQL
+	 * query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -65,9 +65,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has a
-	 * value other than "bar", calling <code>Conditions.ne("foo", "bar")</code>
-	 * would essentially be the equivalent of doing
-	 * <code>WHERE foo <> 'bar'</code> in a SQL query.
+	 * value other than "bar", calling {@code Conditions.ne("foo", "bar")} would
+	 * essentially be the equivalent of doing {@code WHERE foo <> 'bar'} in a
+	 * SQL query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -86,9 +86,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has a
-	 * value greater than 42, calling <code>Conditions.gt("foo", 42)</code>
-	 * would essentially be the equivalent of doing <code>WHERE foo > 42</code>
-	 * in a SQL query.
+	 * value greater than 42, calling {@code Conditions.gt("foo", 42)} would
+	 * essentially be the equivalent of doing {@code WHERE foo > 42} in a SQL
+	 * query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -107,9 +107,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has a
-	 * value less than 42, calling <code>Conditions.lt("foo", 42)</code> would
-	 * essentially be the equivalent of doing <code>WHERE foo < 42</code> in a
-	 * SQL query.
+	 * value less than 42, calling {@code Conditions.lt("foo", 42)} would
+	 * essentially be the equivalent of doing {@code WHERE foo < 42} in a SQL
+	 * query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -129,8 +129,8 @@ public class Conditions {
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has a
 	 * value greater than or equal to 42, calling
-	 * <code>Conditions.gte("foo", 42)</code> would essentially be the
-	 * equivalent of doing <code>WHERE foo >= 42</code> in a SQL query.
+	 * {@code Conditions.gte("foo", 42)} would essentially be the equivalent of
+	 * doing {@code WHERE foo >= 42} in a SQL query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -149,9 +149,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has a
-	 * value less than or equal to 42, calling
-	 * <code>Conditions.lte("foo", 42)</code> would essentially be the
-	 * equivalent of doing <code>WHERE foo <= 42</code> in a SQL query.
+	 * value less than or equal to 42, calling {@code Conditions.lte("foo", 42)}
+	 * would essentially be the equivalent of doing {@code WHERE foo <= 42} in a
+	 * SQL query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -170,10 +170,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has a
-	 * value between 0 and 42, calling
-	 * <code>Conditions.between("foo", 0, 42)</code> would essentially be the
-	 * equivalent of doing <code>WHERE foo BETWEEN 0 and 42</code> in a SQL
-	 * query.
+	 * value between 0 and 42, calling {@code Conditions.between("foo", 0, 42)}
+	 * would essentially be the equivalent of doing
+	 * {@code WHERE foo BETWEEN 0 and 42} in a SQL query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -192,10 +191,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has the
-	 * value 2, 4, 6, or 8, calling
-	 * <code>Conditions.in("foo", new Integer[]{2, 4, 6, 8})</code> would
-	 * essentially be the equivalent of doing
-	 * <code>WHERE foo IN (2, 4, 6, 8)</code> in a SQL query.
+	 * value 2, 4, 6, or 8, calling {@code Conditions.in("foo", new Integer[]
+	 * 2, 4, 6, 8})} would essentially be the equivalent of doing
+	 * {@code WHERE foo IN (2, 4, 6, 8)} in a SQL query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -214,9 +212,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has a
-	 * value containing "bar", calling
-	 * <code>Conditions.like("foo", "%bar%")</code> would essentially be the
-	 * equivalent of doing <code>WHERE foo LIKE '%bar%'</code> in a SQL query.
+	 * value containing "bar", calling {@code Conditions.like("foo", "%bar%")}
+	 * would essentially be the equivalent of doing
+	 * {@code WHERE foo LIKE '%bar%'} in a SQL query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -235,9 +233,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" has the
-	 * value {@code null}, calling <code>Conditions.isNull("foo")</code> would
-	 * essentially be the equivalent of doing <code>WHERE foo IS NULL</code> in
-	 * a SQL query.
+	 * value {@code null}, calling {@code Conditions.isNull("foo")} would
+	 * essentially be the equivalent of doing {@code WHERE foo IS NULL} in a SQL
+	 * query.
 	 * </p>
 	 * 
 	 * @param fieldName
@@ -254,9 +252,9 @@ public class Conditions {
 	 * 
 	 * <p>
 	 * For example, to query for all models whose {@code Field} "foo" does not
-	 * have the value {@code null}, calling
-	 * <code>Conditions.isNotNull("foo")</code> would essentially be the
-	 * equivalent of doing <code>WHERE foo IS NOT NULL</code> in a SQL query.
+	 * have the value {@code null}, calling {@code Conditions.isNotNull("foo")}
+	 * would essentially be the equivalent of doing
+	 * {@code WHERE foo IS NOT NULL} in a SQL query.
 	 * </p>
 	 * 
 	 * @param fieldName

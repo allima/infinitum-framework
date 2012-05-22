@@ -33,8 +33,8 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
  * {@code Field} called {@code mId} or {@code id} to use as the primary key. If
  * such a {@code Field} is found, autoincrement will be enabled for it by
  * default if it is of type {@code int} or {@code long}. If the primary key is
- * assigned to a <code>Field</code> which is not an {@code int} or {@code long}
- * and <code>autoincrement</code> is enabled, a
+ * assigned to a {@code Field} which is not an {@code int} or {@code long}
+ * and {@code autoincrement} is enabled, a
  * {@link ModelConfigurationException} will be thrown at runtime. Any
  * {@code Field} marked as a primary key will inherently be marked as
  * persistent, regardless of any {@link Persistence} annotation that might be

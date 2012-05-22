@@ -50,7 +50,6 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
  */
 public class SqliteSession implements Session {
 
-	private static final String TAG = "SqliteSession";
 	private static final int DEFAULT_CACHE_SIZE = 500;
 
 	private SqliteTemplate mSqlite;
@@ -69,7 +68,7 @@ public class SqliteSession implements Session {
 	 */
 	public SqliteSession(Context context) {
 		mContext = context;
-		mLogger = Logger.getInstance(TAG);
+		mLogger = Logger.getInstance(getClass().getSimpleName());
 		mInfinitumContext = ContextFactory.getInstance().getContext();
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
