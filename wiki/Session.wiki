@@ -136,7 +136,7 @@ session.close();
 {{{
 // Load a single domain object by its ID
 session.open();
-Foo foo = session.load(Foo.class, 42L);
+Foo foo = session.load(Foo.class, 42);
 session.close();
 }}}
 
