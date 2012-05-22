@@ -85,3 +85,4 @@ Infinitum has two dependencies which must also be included in your application's
 Once Infinitum reaches a stable release, a distribution that includes the framework and its dependencies will be provided in the Downloads page.
 
  * [InstallationGuide]: complete guide to getting started with Infinitum.
+ * [https://infinitum-framework.googlecode.com/svn/trunk/InfinitumFramework/doc/index.html Javadoc]: framework Javadoc API documentation
