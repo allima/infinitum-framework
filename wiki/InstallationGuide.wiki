@@ -1,5 +1,5 @@
 #summary Describes the Infinitum installation process
-#labels Explained
+#labels Guide,Explained
 
 *Contents*
 <wiki:toc max_depth="3" />
