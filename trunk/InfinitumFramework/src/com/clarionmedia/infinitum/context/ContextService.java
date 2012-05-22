@@ -34,7 +34,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * @version 1.0 05/18/12
  */
 public interface ContextService {
-	
+
 	/**
 	 * Configures Infinitum with the specified configuration file. Configuration
 	 * file must be named {@code infinitum.cfg.xml}. This method must be called
@@ -53,21 +53,28 @@ public interface ContextService {
 
 	/**
 	 * Retrieves the {@link InfinitumContext} singleton.
-	 * {@link ContextFactory#configure} must be called before using
-	 * this method. Otherwise, an {@link InfinitumConfigurationException} will
-	 * be thrown.
+	 * {@link ContextFactory#configure} must be called before using this method.
+	 * Otherwise, an {@link InfinitumConfigurationException} will be thrown.
 	 * 
 	 * @return the {@code InfinitumContext} singleton
 	 * @throws InfinitumConfigurationException
 	 *             if {@code configure} was not called
 	 */
 	InfinitumContext getContext() throws InfinitumConfigurationException;
-	
+
 	/**
 	 * Retrieves the configured {@link PersistencePolicy}.
 	 * 
 	 * @return {@code PersistencePolicy}
 	 */
 	PersistencePolicy getPersistencePolicy();
+
+	/**
+	 * Retrieves the Android {@link Context} registered with the configured
+	 * {@link InfinitumContext}.
+	 * 
+	 * @return {@code Context}
+	 */
+	Context getAndroidContext();
 
 }

@@ -38,8 +38,8 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.Primitives;
+import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
-import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -88,6 +88,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected SqliteUtil mSqliteUtil;
 	protected ClassReflector mClassReflector;
 	protected Logger mLogger;
+	protected PropertyLoader mPropLoader;
 
 	/**
 	 * Constructs a new {@code SqliteTemplate} attached to the given
@@ -109,6 +110,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mMapper = new SqliteMapper();
 		mSqlBuilder = new SqliteBuilder(mMapper);
 		mTransactionStack = new Stack<Boolean>();
+		mPropLoader = new PropertyLoader(mInfinitumContext.getAndroidContext());
 	}
 
 	@Override
@@ -269,8 +271,8 @@ public class SqliteTemplate implements SqliteOperations {
 	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		Preconditions.checkPersistenceForLoading(c);
 		if (!mTypePolicy.isValidPrimaryKey(mPersistencePolicy.getPrimaryKeyField(c), id))
-			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(),
-					c.getName()));
+			throw new IllegalArgumentException(String.format(mPropLoader.getErrorMessage("INVALID_PK"), id.getClass()
+					.getSimpleName(), c.getName()));
 		Cursor cursor = mSqliteDb.query(mPersistencePolicy.getModelTableName(c), null,
 				mSqliteUtil.getWhereClause(c, id, mMapper), null, null, null, null, "1");
 		if (cursor.getCount() == 0) {
@@ -299,7 +301,7 @@ public class SqliteTemplate implements SqliteOperations {
 		try {
 			mSqliteDb.execSQL(sql);
 		} catch (SQLiteException e) {
-			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL, sql));
+			throw new SQLGrammarException(String.format(mPropLoader.getErrorMessage("BAD_SQL"), sql));
 		}
 	}
 
@@ -313,7 +315,7 @@ public class SqliteTemplate implements SqliteOperations {
 		try {
 			ret = mSqliteDb.rawQuery(sql, null);
 		} catch (SQLiteException e) {
-			throw new SQLGrammarException(String.format(OrmConstants.BAD_SQL, sql));
+			throw new SQLGrammarException(String.format(mPropLoader.getErrorMessage("BAD_SQL"), sql));
 		}
 		return ret;
 	}

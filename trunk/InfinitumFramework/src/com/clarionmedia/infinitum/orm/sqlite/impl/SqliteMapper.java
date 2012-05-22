@@ -30,7 +30,6 @@ import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.SqliteTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
-import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -116,7 +115,8 @@ public class SqliteMapper extends ObjectMapper {
 		type = Primitives.unwrap(type);
 		if (mTypeAdapters.containsKey(type))
 			return (SqliteTypeAdapter<T>) mTypeAdapters.get(type);
-		throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, type.getSimpleName()));
+		throw new InvalidMappingException(String.format(mPropLoader.getErrorMessage("CANNOT_MAP_TYPE"),
+				type.getSimpleName()));
 	}
 
 	@Override

@@ -28,8 +28,8 @@ import android.database.sqlite.SQLiteDatabase;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
-import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -59,6 +59,7 @@ public class SqliteBuilder implements SqlBuilder {
 	private PersistencePolicy mPersistencePolicy;
 	private PackageReflector mPackageReflector;
 	private Logger mLogger;
+	private PropertyLoader mPropLoader;
 
 	/**
 	 * Constructs a new {@code SqliteBuilder}.
@@ -71,6 +72,7 @@ public class SqliteBuilder implements SqlBuilder {
 		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mPackageReflector = new DefaultPackageReflector();
 		mLogger = Logger.getInstance(getClass().getName());
+		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
 
 	@Override
@@ -349,12 +351,12 @@ public class SqliteBuilder implements SqlBuilder {
 				.append(" (");
 		Field first = rel.getFirstField();
 		if (first == null)
-			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirstType()
-					.getName(), rel.getSecondType().getName()));
+			throw new ModelConfigurationException(String.format(mPropLoader.getErrorMessage("MM_RELATIONSHIP_ERROR"),
+					rel.getFirstType().getName(), rel.getSecondType().getName()));
 		Field second = rel.getSecondField();
 		if (second == null)
-			throw new ModelConfigurationException(String.format(OrmConstants.MM_RELATIONSHIP_ERROR, rel.getFirstType()
-					.getName(), rel.getSecondType().getName()));
+			throw new ModelConfigurationException(String.format(mPropLoader.getErrorMessage("MM_RELATIONSHIP_ERROR"),
+					rel.getFirstType().getName(), rel.getSecondType().getName()));
 		String firstCol = mPersistencePolicy.getModelTableName(rel.getFirstType()) + '_'
 				+ mPersistencePolicy.getFieldColumnName(first);
 		String secondCol = mPersistencePolicy.getModelTableName(rel.getSecondType()) + '_'
@@ -371,7 +373,8 @@ public class SqliteBuilder implements SqlBuilder {
 
 		// Throw a runtime exception if there are no persistent fields
 		if (fields.size() == 0)
-			throw new ModelConfigurationException(String.format(OrmConstants.NO_PERSISTENT_FIELDS, c.getName()));
+			throw new ModelConfigurationException(String.format(mPropLoader.getErrorMessage("NO_PERSISTENT_FIELDS"),
+					c.getName()));
 
 		String prefix = "";
 		for (Field f : fields) {

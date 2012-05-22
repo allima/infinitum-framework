@@ -62,8 +62,7 @@ public interface InfinitumContext {
 	 * @throws InfinitumConfigurationException
 	 *             if the specified {@code DataSource} was not configured
 	 */
-	Session getSession(DataSource source)
-			throws InfinitumConfigurationException;
+	Session getSession(DataSource source) throws InfinitumConfigurationException;
 
 	/**
 	 * Indicates if debug is enabled or not. If it is enabled, Infinitum will
@@ -266,12 +265,12 @@ public interface InfinitumContext {
 	void setRestfulConfiguration(RestfulConfiguration restContext);
 
 	/**
-	 * Retrieves the {@link Context} for this {@code InfinitumContext}, which
-	 * contains application-wide context information.
+	 * Retrieves the Android {@link Context} for this {@code InfinitumContext},
+	 * which contains application-wide context information.
 	 * 
 	 * @return {@code Context}
 	 */
-	Context getContext();
+	Context getAndroidContext();
 
 	/**
 	 * Sets the {@link Context} for this {@code InfinitumContext}.
@@ -282,9 +281,9 @@ public interface InfinitumContext {
 	void setContext(Context context);
 
 	/**
-	 * Retrieves the {@link BeanService} for this {@code InfinitumContext}.
-	 * The {@code BeanContainer} is used to retrieve beans that have been
-	 * configured in {@code infinitum.cfg.xml}.
+	 * Retrieves the {@link BeanService} for this {@code InfinitumContext}. The
+	 * {@code BeanContainer} is used to retrieve beans that have been configured
+	 * in {@code infinitum.cfg.xml}.
 	 * 
 	 * @return {@code BeanContainer}
 	 */

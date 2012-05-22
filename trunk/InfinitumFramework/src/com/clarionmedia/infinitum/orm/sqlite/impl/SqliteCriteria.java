@@ -28,8 +28,8 @@ import android.database.Cursor;
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
+import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
@@ -52,6 +52,7 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	private int mOffset;
 	private SqlBuilder mSqlBuilder;
 	private PersistencePolicy mPersistencePolicy;
+	private PropertyLoader mPropLoader;
 
 	/**
 	 * Constructs a new {@code SqliteCriteria}.
@@ -77,6 +78,7 @@ public class SqliteCriteria<T> implements Criteria<T> {
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
 		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
+		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
 
 	@Override
@@ -147,7 +149,7 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	public T unique() throws InfinitumRuntimeException {
 		Cursor result = mSession.executeForResult(toSql(), true);
 		if (result.getCount() > 1)
-			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT,
+			throw new InfinitumRuntimeException(String.format(mPropLoader.getErrorMessage("NON_UNIQUE_RESULT"),
 					mEntityClass.getName(), result.getCount()));
 		else if (result.getCount() == 0)
 			return null;

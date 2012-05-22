@@ -23,7 +23,6 @@ import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
@@ -45,8 +44,8 @@ public class BetweenExpression extends Criterion {
 	private Object mHigh;
 
 	/**
-	 * Constructs a new {@code BetweenExpression} with the given {@link Field} name and
-	 * value range.
+	 * Constructs a new {@code BetweenExpression} with the given {@link Field}
+	 * name and value range.
 	 * 
 	 * @param fieldName
 	 *            the name of the field to check value for
@@ -70,10 +69,12 @@ public class BetweenExpression extends Criterion {
 		try {
 			f = policy.findPersistentField(c, mFieldName);
 			if (f == null)
-				throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
+				throw new InvalidCriteriaException(String.format(mPropLoader.getErrorMessage("INVALID_CRITERIA"),
+						c.getName()));
 			f.setAccessible(true);
 		} catch (SecurityException e) {
-			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
+			throw new InvalidCriteriaException(String.format(mPropLoader.getErrorMessage("INVALID_CRITERIA"),
+					c.getName()));
 		}
 		String colName = policy.getFieldColumnName(f);
 		query.append(colName).append(' ').append(SqlConstants.OP_BETWEEN).append(' ');

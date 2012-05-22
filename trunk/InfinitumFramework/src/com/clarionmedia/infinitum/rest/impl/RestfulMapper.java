@@ -28,7 +28,6 @@ import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.RestfulTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
-import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -85,9 +84,11 @@ public class RestfulMapper extends ObjectMapper {
 				// Map Field values
 				mapField(ret, model, f);
 			} catch (IllegalArgumentException e) {
-				mLogger.error("Unable to map field " + f.getName() + " for object of type '" + model.getClass().getName() + "'", e);
+				mLogger.error("Unable to map field " + f.getName() + " for object of type '"
+						+ model.getClass().getName() + "'", e);
 			} catch (IllegalAccessException e) {
-				mLogger.error("Unable to map field " + f.getName() + " for object of type '" + model.getClass().getName() + "'", e);
+				mLogger.error("Unable to map field " + f.getName() + " for object of type '"
+						+ model.getClass().getName() + "'", e);
 			}
 		}
 		return ret;
@@ -114,7 +115,8 @@ public class RestfulMapper extends ObjectMapper {
 		type = Primitives.unwrap(type);
 		if (mTypeAdapters.containsKey(type))
 			return (RestfulTypeAdapter<T>) mTypeAdapters.get(type);
-		throw new InvalidMappingException(String.format(OrmConstants.CANNOT_MAP_TYPE, type.getSimpleName()));
+		throw new InvalidMappingException(String.format(mPropLoader.getErrorMessage("CANNOT_MAP_TYPE"),
+				type.getSimpleName()));
 	}
 
 	@Override

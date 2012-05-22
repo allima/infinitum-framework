@@ -28,7 +28,6 @@ import java.util.Set;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
-import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
 import com.clarionmedia.infinitum.orm.annotation.Column;
 import com.clarionmedia.infinitum.orm.annotation.Entity;
@@ -122,7 +121,8 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 				ret = f;
 				found = true;
 			} else if (pk != null && found) {
-				throw new ModelConfigurationException(String.format(OrmConstants.MULTIPLE_PK_ERROR, c.getName()));
+				throw new ModelConfigurationException(String.format(mPropLoader.getErrorMessage("MULTIPLE_PK_ERROR"),
+						c.getName()));
 			}
 		}
 		// Look for id fields if the annotation is missing
@@ -180,8 +180,8 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 				|| f.getType() == Long.class)
 			return true;
 		else
-			throw new InfinitumRuntimeException(String.format(OrmConstants.EXPLICIT_PK_TYPE_ERROR, f.getName(), f
-					.getDeclaringClass().getName()));
+			throw new InfinitumRuntimeException(String.format(mPropLoader.getErrorMessage("EXPLICIT_PK_TYPE_ERROR"),
+					f.getName(), f.getDeclaringClass().getName()));
 	}
 
 	@Override
@@ -242,7 +242,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 		return f.isAnnotationPresent(ManyToMany.class) || f.isAnnotationPresent(ManyToOne.class)
 				|| f.isAnnotationPresent(OneToMany.class) || f.isAnnotationPresent(OneToOne.class);
 	}
-	
+
 	@Override
 	public boolean isManyToManyRelationship(Field f) {
 		return f.isAnnotationPresent(ManyToMany.class);

@@ -23,7 +23,6 @@ import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
-import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
@@ -66,10 +65,12 @@ public class InExpression extends Criterion {
 		try {
 			f = policy.findPersistentField(c, mFieldName);
 			if (f == null)
-				throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
+				throw new InvalidCriteriaException(String.format(mPropLoader.getErrorMessage("INVALID_CRITERIA"),
+						c.getName()));
 			f.setAccessible(true);
 		} catch (SecurityException e) {
-			throw new InvalidCriteriaException(String.format(CriteriaConstants.INVALID_CRITERIA, c.getName()));
+			throw new InvalidCriteriaException(String.format(mPropLoader.getErrorMessage("INVALID_CRITERIA"),
+					c.getName()));
 		}
 		String colName = policy.getFieldColumnName(f);
 		query.append(colName).append(' ').append(SqlConstants.OP_IN).append(" (");
