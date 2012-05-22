@@ -78,11 +78,9 @@ In addition to its ORM and RESTful services, Infinitum offers an extremely light
 
 = Getting Started =
 
-Using Infinitum within your application is simple. The framework comes in the form of a JAR file, infinitumframework.jar. As it is still not in a release form, there is no official framework distribution. Thus, the JAR can be acquired from the SVN repository or the source code can be downloaded and then the JAR compiled. It should be placed in your application's libs directory. Alternatively, the Infinitum source can be imported into your workspace and then referenced from the application as an Android library.
+Using Infinitum within your application is simple. The framework comes in the form of a JAR file, infinitum.jar. A [http://code.google.com/p/infinitum-framework/downloads/detail?name=infinitum-prerelease.zip pre-release distribution] is currently available; however, this is not an official release and, as such, is not officially supported. The framework JAR should be placed in your application's libs directory. Alternatively, the Infinitum source can be imported into your workspace and then referenced from the application as an Android library.
 
-Infinitum has two dependencies which must also be included in your application's build path in order to function correctly: [http://code.google.com/p/google-gson/downloads/list Google Gson] and [http://code.google.com/p/dexmaker/downloads/list Dexmaker]. Download these JARs and place them in your application's libs directory.
-
-Once Infinitum reaches a stable release, a distribution that includes the framework and its dependencies will be provided in the Downloads page.
+Infinitum has two dependencies which must also be included in your application's build path in order to function correctly: [http://code.google.com/p/google-gson/downloads/list Google Gson] and [http://code.google.com/p/dexmaker/downloads/list Dexmaker]. These JARs are included in the distribution mentioned above.
 
  * [InstallationGuide]: complete guide to getting started with Infinitum.
  * [https://infinitum-framework.googlecode.com/svn/trunk/InfinitumFramework/doc/index.html Javadoc]: framework Javadoc API documentation
