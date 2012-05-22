@@ -1,5 +1,5 @@
 #summary Infinitum user guide.
-#labels Featured,Explained
+#labels Featured,Guide,Explained
 
 *NOTE:* this wiki is a work in progress.
 
