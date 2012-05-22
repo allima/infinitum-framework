@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.internal.Pair;
+import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -57,6 +58,7 @@ public abstract class ObjectMapper {
 	protected TypeResolutionPolicy mTypePolicy;
 	protected ClassReflector mClassReflector;
 	protected Logger mLogger;
+	protected PropertyLoader mPropLoader;
 
 	/**
 	 * Constructs a new {@code ObjectMapper}.
@@ -65,6 +67,7 @@ public abstract class ObjectMapper {
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mClassReflector = new DefaultClassReflector();
 		mLogger = Logger.getInstance(getClass().getSimpleName());
+		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
 
 	/**
@@ -150,8 +153,9 @@ public abstract class ObjectMapper {
 					ManyToManyRelationship mtm = (ManyToManyRelationship) rel;
 					related = f.get(model);
 					if (!(related instanceof Iterable))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MM_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
+						throw new ModelConfigurationException(String.format(mPropLoader
+								.getErrorMessage("INVALID_MM_RELATIONSHIP"), f.getName(), f.getDeclaringClass()
+								.getName()));
 					map.addManyToManyRelationship(new Pair<ManyToManyRelationship, Iterable<Object>>(mtm,
 							(Iterable<Object>) related));
 					break;
@@ -159,16 +163,18 @@ public abstract class ObjectMapper {
 					ManyToOneRelationship mto = (ManyToOneRelationship) rel;
 					related = f.get(model);
 					if (related != null && !mTypePolicy.isDomainModel(related.getClass()))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_MO_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
+						throw new ModelConfigurationException(String.format(mPropLoader
+								.getErrorMessage("INVALID_MO_RELATIONSHIP"), f.getName(), f.getDeclaringClass()
+								.getName()));
 					map.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(mto, related));
 					break;
 				case OneToMany:
 					OneToManyRelationship otm = (OneToManyRelationship) rel;
 					related = f.get(model);
 					if (!(related instanceof Iterable))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OM_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
+						throw new ModelConfigurationException(String.format(mPropLoader
+								.getErrorMessage("INVALID_OM_RELATIONSHIP"), f.getName(), f.getDeclaringClass()
+								.getName()));
 					map.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(otm,
 							(Iterable<Object>) related));
 					break;
@@ -176,8 +182,9 @@ public abstract class ObjectMapper {
 					OneToOneRelationship oto = (OneToOneRelationship) rel;
 					related = f.get(model);
 					if (related != null && !mTypePolicy.isDomainModel(related.getClass()))
-						throw new ModelConfigurationException(String.format(OrmConstants.INVALID_OO_RELATIONSHIP,
-								f.getName(), f.getDeclaringClass().getName()));
+						throw new ModelConfigurationException(String.format(mPropLoader
+								.getErrorMessage("INVALID_OO_RELATIONSHIP"), f.getName(), f.getDeclaringClass()
+								.getName()));
 					map.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(oto, related));
 					break;
 				}

@@ -36,28 +36,9 @@ public class OrmConstants {
 		Transient, Persistent
 	}
 
-	// General constants
-	public static final String BYTECODE_DIR = "dx";
-
-	// Errors
-	public static final String NO_PERSISTENT_FIELDS = "No persistent fields declared in '%s'.";
-	public static final String CREATE_TABLES_ERROR = "Error creating database tables.";
-	public static final String CANNOT_REGISTER_TYPE_ADAPTER = "Cannot register a TypeAdapter for '%s'.";
-	public static final String CANNOT_MAP_TYPE = "Cannot map '%s' to a database column.";
-	public static final String CANNOT_MODIFY_TRANSIENT = "Cannot modify transient class '%s'.";
-	public static final String CANNOT_LOAD_TRANSIENT = "Cannot load transient class '%s'.";
-	public static final String MULTIPLE_PK_ERROR = "Multiple primary keys declared in '%s'.";
-	public static final String INVALID_PK = "Invalid primary key value of type '%s' for '%s'.";
-	public static final String IMPLICIT_PK_TYPE_ERROR = "Implicit primary key '%s' is not of type int or long in '%s'.";
-	public static final String EXPLICIT_PK_TYPE_ERROR = "Explicit primary key '%s' is not of type int or long in '%s'.";
-	public static final String UNABLE_TO_GEN_QUERY = "Unable to generate SQL query for Object of type '%s'.";
-	public static final String NO_EMPTY_CONSTRUCTOR = "No empty constructor defined in '%s'.";
-	public static final String BAD_SQL = "There was a problem with the SQL formatting. Could not execute query: %s";
-	public static final String CLASS_NOT_FOUND = "The specified class '%s' could not be resolved in '%s'.";
-	public static final String MM_RELATIONSHIP_ERROR = "Could not create many-to-many relationship between '%s' and '%s'. Are the specified columns correct?";
-	public static final String INVALID_MM_RELATIONSHIP = "Field '%s' is marked as a many-to-many relationship in '%s', but it is not a collection.";
-	public static final String INVALID_OM_RELATIONSHIP = "Field '%s' is marked as a one-to-many relationship in '%s', but it is not a collection.";
-	public static final String INVALID_OO_RELATIONSHIP = "Field '%s' is marked as a one-to-one relationship in '%s', but it is not a domain entity.";
-	public static final String INVALID_MO_RELATIONSHIP = "Field '%s' is marked as a many-to-one relationship in '%s', but it is not a domain entity.";
+	/**
+	 * Directory name for dex bytecode cache.
+	 */
+	public static final String DEX_CACHE = "dx";
 
 }

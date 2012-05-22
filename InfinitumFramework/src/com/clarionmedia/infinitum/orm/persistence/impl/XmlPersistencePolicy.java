@@ -41,14 +41,13 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.PersistenceConstants;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
+import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationType;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
-import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationType;
 
 /**
  * <p>
@@ -116,11 +115,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_CLASS)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_CLASS"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					table = parser.getAttributeValue(null, PersistenceConstants.ATTR_TABLE);
+					table = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_TABLE"));
 					if (table == null) {
 						if (name.contains("."))
 							table = name.substring(name.lastIndexOf(".") + 1).toLowerCase();
@@ -160,19 +159,19 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				int code = parser.getEventType();
 				while (code != XmlPullParser.END_DOCUMENT) {
 					if (code == XmlPullParser.START_TAG
-							&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+							&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
+						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 						if (name == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify property name.");
 						if (name.equals(f.getName()))
 							ret.add(f);
 					} else if (code == XmlPullParser.START_TAG
-							&& (parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_MTM)
-									|| parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_OTM)
-									|| parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_MTO) || parser
-									.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_OTO))) {
-						String field = parser.getAttributeValue(null, PersistenceConstants.ATTR_FIELD);
+							&& (parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTM"))
+									|| parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTM"))
+									|| parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTO")) || parser
+									.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO")))) {
+						String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
 						if (field == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation field.");
@@ -202,8 +201,8 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PRIMARY_KEY"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify primary key name.");
@@ -243,13 +242,14 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (isFieldPrimaryKey(f)) {
 					if (code == XmlPullParser.START_TAG
-							&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+							&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PRIMARY_KEY"))) {
+						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 						if (name == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify property name.");
 						if (f.getName().equals(name)) {
-							String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
+							String column = parser.getAttributeValue(null,
+									mPropLoader.getPersistenceValue("ATTR_COLUMN"));
 							if (column == null)
 								column = StringUtil.formatFieldName(name);
 							mColumnCache.put(f, column);
@@ -258,13 +258,13 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 					}
 				}
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify property name.");
 					if (f.getName().equals(name)) {
-						String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
+						String column = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_COLUMN"));
 						if (column == null)
 							column = StringUtil.formatFieldName(name);
 						mColumnCache.put(f, column);
@@ -302,18 +302,19 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PRIMARY_KEY"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify primary key name.");
 					if (!name.equals(f.getName()))
 						continue;
-					String type = parser.getAttributeValue(null, PersistenceConstants.ATTR_TYPE);
+					String type = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_TYPE"));
 					if (type == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify primary key type.");
-					String autoincrement = parser.getAttributeValue(null, PersistenceConstants.ATTR_AUTOINCREMENT);
+					String autoincrement = parser.getAttributeValue(null,
+							mPropLoader.getPersistenceValue("ATTR_AUTOINCREMENT"));
 					if (type.equalsIgnoreCase("int") || type.equalsIgnoreCase("integer")
 							|| type.equalsIgnoreCase("long")) {
 						if (autoincrement == null) {
@@ -355,13 +356,14 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify property name.");
 					if (name.equals(f.getName())) {
-						String notNull = parser.getAttributeValue(null, PersistenceConstants.ATTR_NOT_NULL);
+						String notNull = parser.getAttributeValue(null,
+								mPropLoader.getPersistenceValue("ATTR_NOT_NULL"));
 						if (notNull == null) {
 							mFieldNullableCache.put(f, true);
 							return true;
@@ -399,13 +401,13 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify property name.");
 					if (name.equals(f.getName())) {
-						String unique = parser.getAttributeValue(null, PersistenceConstants.ATTR_UNIQUE);
+						String unique = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_UNIQUE"));
 						if (unique == null) {
 							mFieldUniqueCache.put(f, false);
 							return false;
@@ -460,11 +462,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_CLASS)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_CLASS"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					String cascade = parser.getAttributeValue(null, PersistenceConstants.ATTR_CASCADE);
+					String cascade = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CASCADE"));
 					if (cascade == null) {
 						mCascadeCache.put(c, true);
 						return true;
@@ -496,11 +498,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& (parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_MTM)
-								|| parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_OTM)
-								|| parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_MTO) || parser
-								.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_OTO))) {
-					String field = parser.getAttributeValue(null, PersistenceConstants.ATTR_FIELD);
+						&& (parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTM"))
+								|| parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTM"))
+								|| parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTO")) || parser
+								.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO")))) {
+					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
 					if (field == null)
 						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify field name.");
 					if (f.getName().equals(field)) {
@@ -518,7 +520,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		mRelationshipCheckCache.put(f, false);
 		return false;
 	}
-	
+
 	@Override
 	public boolean isManyToManyRelationship(Field f) {
 		if (mManyToManyCache.containsKey(f))
@@ -581,11 +583,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_CLASS)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_CLASS"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					String lazy = parser.getAttributeValue(null, PersistenceConstants.ATTR_LAZY);
+					String lazy = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_LAZY"));
 					if (lazy == null) {
 						mLazyLoadingCache.put(c, true);
 						return true;
@@ -616,11 +618,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_CLASS)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_CLASS"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					String res = parser.getAttributeValue(null, PersistenceConstants.ATTR_REST);
+					String res = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_REST"));
 					if (res == null) {
 						if (name.contains("."))
 							res = name.substring(name.lastIndexOf(".") + 1).toLowerCase();
@@ -653,13 +655,13 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (isFieldPrimaryKey(f)) {
 					if (code == XmlPullParser.START_TAG
-							&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PRIMARY_KEY)) {
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+							&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PRIMARY_KEY"))) {
+						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 						if (name == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify property name.");
 						if (f.getName().equals(name)) {
-							String rest = parser.getAttributeValue(null, PersistenceConstants.ATTR_REST);
+							String rest = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_REST"));
 							if (rest == null)
 								rest = StringUtil.formatFieldName(name);
 							mRestFieldCache.put(f, rest);
@@ -668,13 +670,13 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 					}
 				}
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_PROPERTY)) {
-					String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
+					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify property name.");
 					if (f.getName().equals(name)) {
-						String rest = parser.getAttributeValue(null, PersistenceConstants.ATTR_REST);
+						String rest = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_REST"));
 						if (rest == null)
 							rest = StringUtil.formatFieldName(name);
 						mRestFieldCache.put(f, rest);
@@ -715,35 +717,38 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_MTM)) {
-					String field = parser.getAttributeValue(null, PersistenceConstants.ATTR_FIELD);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTM"))) {
+					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
 					if (field == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify relation field.");
 					if (f.getName().equals(field)) {
 						ManyToManyRelationship ret = new ManyToManyRelationship();
 						ret.setFirstType(c);
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 						if (name == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation name.");
 						ret.setName(name);
-						String className = parser.getAttributeValue(null, PersistenceConstants.ATTR_CLASS);
+						String className = parser
+								.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CLASS"));
 						if (className == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation class.");
 						ret.setSecondType(Class.forName(className));
-						String foreignField = parser.getAttributeValue(null, PersistenceConstants.ATTR_FOREIGN_FIELD);
+						String foreignField = parser.getAttributeValue(null,
+								mPropLoader.getPersistenceValue("ATTR_FOREIGN_FIELD"));
 						if (foreignField == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation foreign field.");
 						ret.setSecondFieldName(foreignField);
-						String keyField = parser.getAttributeValue(null, PersistenceConstants.ATTR_KEY_FIELD);
+						String keyField = parser.getAttributeValue(null,
+								mPropLoader.getPersistenceValue("ATTR_KEY_FIELD"));
 						if (keyField == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation key field.");
 						ret.setFirstFieldName(keyField);
-						String table = parser.getAttributeValue(null, PersistenceConstants.ATTR_TABLE);
+						String table = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_TABLE"));
 						if (table == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation table.");
@@ -773,25 +778,26 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_MTO)) {
-					String field = parser.getAttributeValue(null, PersistenceConstants.ATTR_FIELD);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTO"))) {
+					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
 					if (field == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify relation field.");
 					if (f.getName().equals(field)) {
 						ManyToOneRelationship ret = new ManyToOneRelationship();
 						ret.setFirstType(c);
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 						if (name == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation name.");
 						ret.setName(name);
-						String className = parser.getAttributeValue(null, PersistenceConstants.ATTR_CLASS);
+						String className = parser
+								.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CLASS"));
 						if (className == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation class.");
 						ret.setSecondType(Class.forName(className));
-						String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
+						String column = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_COLUMN"));
 						if (column == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation column.");
@@ -821,8 +827,8 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_OTM)) {
-					String field = parser.getAttributeValue(null, PersistenceConstants.ATTR_FIELD);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTM"))) {
+					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
 					if (field == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify relation field.");
@@ -830,19 +836,20 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 						OneToManyRelationship ret = new OneToManyRelationship();
 						ret.setFirstType(c);
 						ret.setOneType(c);
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 						if (name == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation name.");
 						ret.setName(name);
-						String className = parser.getAttributeValue(null, PersistenceConstants.ATTR_CLASS);
+						String className = parser
+								.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CLASS"));
 						if (className == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation class.");
 						Class<?> t = Class.forName(className);
 						ret.setSecondType(t);
 						ret.setManyType(t);
-						String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
+						String column = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_COLUMN"));
 						if (column == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation column.");
@@ -872,25 +879,26 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(PersistenceConstants.ELEMENT_OTO)) {
-					String field = parser.getAttributeValue(null, PersistenceConstants.ATTR_FIELD);
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO"))) {
+					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
 					if (field == null)
 						throw new InvalidMapFileException("'" + c.getName()
 								+ "' map file does not specify relation field.");
 					if (f.getName().equals(field)) {
 						OneToOneRelationship ret = new OneToOneRelationship();
 						ret.setFirstType(c);
-						String name = parser.getAttributeValue(null, PersistenceConstants.ATTR_NAME);
+						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
 						if (name == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation name.");
 						ret.setName(name);
-						String className = parser.getAttributeValue(null, PersistenceConstants.ATTR_CLASS);
+						String className = parser
+								.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CLASS"));
 						if (className == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation class.");
 						ret.setSecondType(Class.forName(className));
-						String column = parser.getAttributeValue(null, PersistenceConstants.ATTR_COLUMN);
+						String column = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_COLUMN"));
 						if (column == null)
 							throw new InvalidMapFileException("'" + c.getName()
 									+ "' map file does not specify relation column.");

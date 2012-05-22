@@ -24,7 +24,7 @@ import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.OrmConstants;
+import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
@@ -35,21 +35,26 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
- * This class contains utility methods for generating SQL strings
- * for a SQLite database.
+ * This class contains utility methods for generating SQL strings for a SQLite
+ * database.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/15/12
  */
 public class SqliteUtil {
-	
+
 	private TypeResolutionPolicy mTypePolicy;
 	private ClassReflector mClassReflector;
-	
+	private PropertyLoader mPropLoader;
+
+	/**
+	 * Constructs a new {@code SqliteUtil}.
+	 */
 	public SqliteUtil() {
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mClassReflector = new DefaultClassReflector();
+		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
 
 	/**
@@ -79,14 +84,16 @@ public class SqliteUtil {
 		SqliteDataType t = mapper.getSqliteDataType(pk);
 		Object pkVal = null;
 		if (mTypePolicy.isDomainProxy(model.getClass())) {
-		    pkVal = mClassReflector.invokeGetter(pk, model);
+			pkVal = mClassReflector.invokeGetter(pk, model);
 		} else {
 			try {
 				pkVal = pk.get(model);
 			} catch (IllegalArgumentException e) {
-				throw new InfinitumRuntimeException(String.format(OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
+				throw new InfinitumRuntimeException(String.format(mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
+						model.getClass().getName()));
 			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException(String.format(OrmConstants.UNABLE_TO_GEN_QUERY, model.getClass().getName()));
+				throw new InfinitumRuntimeException(String.format(mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
+						model.getClass().getName()));
 			}
 		}
 		if (t == SqliteDataType.TEXT)
@@ -122,7 +129,8 @@ public class SqliteUtil {
 		PersistencePolicy policy = ContextFactory.getInstance().getPersistencePolicy();
 		Field pk = policy.getPrimaryKeyField(c);
 		if (!mTypePolicy.isValidPrimaryKey(pk, id))
-			throw new IllegalArgumentException(String.format(OrmConstants.INVALID_PK, id.getClass().getSimpleName(), c.getName()));
+			throw new IllegalArgumentException(String.format(mPropLoader.getErrorMessage("INVALID_PK"), id.getClass()
+					.getSimpleName(), c.getName()));
 		StringBuilder sb = new StringBuilder();
 		sb.append(policy.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = mapper.getSqliteDataType(pk);

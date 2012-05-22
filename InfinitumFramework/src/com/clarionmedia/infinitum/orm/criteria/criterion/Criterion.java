@@ -20,6 +20,9 @@
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.io.Serializable;
+
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 
@@ -37,6 +40,7 @@ public abstract class Criterion implements Serializable {
 	private static final long serialVersionUID = -7011049036451270500L;
 
 	protected String mFieldName;
+	protected PropertyLoader mPropLoader;
 
 	/**
 	 * Constructs a new {@code Criterion} with the given {@link Field} name.
@@ -46,6 +50,7 @@ public abstract class Criterion implements Serializable {
 	 */
 	public Criterion(String fieldName) {
 		mFieldName = fieldName;
+		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
 
 	/**

@@ -185,7 +185,7 @@ public class ApplicationContext implements InfinitumContext {
 	}
 
 	@Override
-	public Context getContext() {
+	public Context getAndroidContext() {
 		return mContext;
 	}
 

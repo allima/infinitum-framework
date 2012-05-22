@@ -31,6 +31,7 @@ import android.database.Cursor;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.LazilyLoadedObject;
 import com.clarionmedia.infinitum.orm.OrmConstants;
@@ -66,6 +67,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private SqliteMapper mMapper;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
+	private PropertyLoader mPropLoader;
 
 	/**
 	 * Constructs a {@code SqliteModelFactoryImpl} with the given
@@ -81,6 +83,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		mMapper = mapper;
 		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mLogger = Logger.getInstance(getClass().getSimpleName());
+		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
 
 	@Override
@@ -109,8 +112,8 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		} catch (SecurityException e) {
 			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (NoSuchMethodException e) {
-			throw new ModelConfigurationException(
-					String.format(OrmConstants.NO_EMPTY_CONSTRUCTOR, modelClass.getName()));
+			throw new ModelConfigurationException(String.format(mPropLoader.getErrorMessage("NO_EMPTY_CONSTRUCTOR"),
+					modelClass.getName()));
 		} catch (IllegalArgumentException e) {
 			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (InstantiationException e) {
@@ -190,7 +193,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						result.close();
 						return ret;
 					}
-				}).dexCache(mSession.getContext().getDir(OrmConstants.BYTECODE_DIR, Context.MODE_PRIVATE)).build();
+				}).dexCache(mSession.getContext().getDir(OrmConstants.DEX_CACHE, Context.MODE_PRIVATE)).build();
 			} catch (IOException e1) {
 				throw new InfinitumRuntimeException("Could not build entity proxy");
 			}
@@ -211,9 +214,11 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			try {
 				f.set(model, createFromResult(result, rel.getSecondType()));
 			} catch (IllegalArgumentException e) {
-				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
+				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName()
+						+ "'", e);
 			} catch (IllegalAccessException e) {
-				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
+				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName()
+						+ "'", e);
 			}
 		result.close();
 	}
@@ -242,7 +247,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 					result.close();
 					return collection;
 				}
-			}).dexCache(mSession.getContext().getDir(OrmConstants.BYTECODE_DIR, Context.MODE_PRIVATE)).build();
+			}).dexCache(mSession.getContext().getDir(OrmConstants.DEX_CACHE, Context.MODE_PRIVATE)).build();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
 			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
@@ -295,7 +300,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						result.close();
 						return ret;
 					}
-				}).dexCache(mSession.getContext().getDir(OrmConstants.BYTECODE_DIR, Context.MODE_PRIVATE)).build();
+				}).dexCache(mSession.getContext().getDir(OrmConstants.DEX_CACHE, Context.MODE_PRIVATE)).build();
 			} catch (IOException e1) {
 				throw new InfinitumRuntimeException("Could not build entity proxy");
 			}
@@ -317,9 +322,11 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			try {
 				f.set(model, createFromResult(result, direction));
 			} catch (IllegalArgumentException e) {
-				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
+				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName()
+						+ "'", e);
 			} catch (IllegalAccessException e) {
-				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
+				mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName()
+						+ "'", e);
 			}
 		result.close();
 	}

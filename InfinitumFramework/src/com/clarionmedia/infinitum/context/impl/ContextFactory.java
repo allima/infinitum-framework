@@ -22,20 +22,17 @@ package com.clarionmedia.infinitum.context.impl;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
-
-import com.clarionmedia.infinitum.context.ContextConstants;
 import com.clarionmedia.infinitum.context.ContextService;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContext.ConfigurationMode;
 import com.clarionmedia.infinitum.context.RestfulConfiguration;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.rest.TokenGenerator;
@@ -58,6 +55,10 @@ public class ContextFactory implements ContextService {
 	private static ContextFactory sContextFactory;
 	private static InfinitumContext sInfinitumContext;
 	private static Context sContext;
+	private static PropertyLoader sPropLoader;
+
+	private ContextFactory() {
+	}
 
 	/**
 	 * Retrieves an {@code InfinitumContextFactory} instance.
@@ -73,6 +74,7 @@ public class ContextFactory implements ContextService {
 	@Override
 	public InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException {
 		sContext = context;
+		sPropLoader = new PropertyLoader(sContext);
 		sInfinitumContext = configureFromXml(configId);
 		sInfinitumContext.setContext(context);
 		return sInfinitumContext;
@@ -81,15 +83,20 @@ public class ContextFactory implements ContextService {
 	@Override
 	public InfinitumContext getContext() throws InfinitumConfigurationException {
 		if (sInfinitumContext == null)
-			throw new InfinitumConfigurationException(ContextConstants.CONFIG_NOT_CALLED);
+			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("CONFIG_NOT_CALLED"));
 		return sInfinitumContext;
 	}
 
 	@Override
 	public PersistencePolicy getPersistencePolicy() {
 		if (sInfinitumContext == null)
-			throw new InfinitumConfigurationException(ContextConstants.CONFIG_NOT_CALLED);
+			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("CONFIG_NOT_CALLED"));
 		return sInfinitumContext.getPersistencePolicy();
+	}
+	
+	@Override
+	public Context getAndroidContext() {
+		return sContext;
 	}
 
 	private InfinitumContext configureFromXml(int configId) throws InfinitumConfigurationException {
@@ -105,22 +112,22 @@ public class ContextFactory implements ContextService {
 				switch (eventType) {
 				case XmlPullParser.START_TAG:
 					name = parser.getName();
-					if (name.equalsIgnoreCase(ContextConstants.APPLICATION_ELEMENT))
+					if (name.equalsIgnoreCase(sPropLoader.getContextValue("APPLICATION_ELEMENT")))
 						configureApplication(parser, ret);
-					else if (name.equalsIgnoreCase(ContextConstants.SQLITE_ELEMENT))
+					else if (name.equalsIgnoreCase(sPropLoader.getContextValue("SQLITE_ELEMENT")))
 						configureSqlite(parser, ret);
-					else if (name.equalsIgnoreCase(ContextConstants.REST_ELEMENT))
+					else if (name.equalsIgnoreCase(sPropLoader.getContextValue("REST_ELEMENT")))
 						configureRest(parser, ret);
-					else if (name.equalsIgnoreCase(ContextConstants.DOMAIN_ELEMENT))
+					else if (name.equalsIgnoreCase(sPropLoader.getContextValue("DOMAIN_ELEMENT")))
 						configureDomain(parser, ret);
 					break;
 				}
 				eventType = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			throw new InfinitumConfigurationException(ContextConstants.CONFIG_PARSE_ERROR);
+			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("CONFIG_PARSE_ERROR"));
 		} catch (IOException e) {
-			throw new InfinitumConfigurationException(ContextConstants.CONFIG_PARSE_ERROR);
+			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("CONFIG_PARSE_ERROR"));
 		} finally {
 			parser.close();
 		}
@@ -134,27 +141,33 @@ public class ContextFactory implements ContextService {
 			while (eventType != XmlPullParser.END_DOCUMENT) {
 				if (eventType == XmlPullParser.START_TAG) {
 					String name = parser.getName();
-					if (name.equalsIgnoreCase(ContextConstants.BEANS_ELEMENT)) {
+					if (name.equalsIgnoreCase(sPropLoader.getContextValue("BEANS_ELEMENT"))) {
 						parser.next();
-						while (!parser.getName().equalsIgnoreCase(ContextConstants.BEANS_ELEMENT)
+						while (!parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("BEANS_ELEMENT"))
 								|| (parser.getEventType() == XmlPullParser.END_TAG && parser.getName() == null)) {
 							if (parser.getEventType() == XmlPullParser.START_TAG
-									&& parser.getName().equalsIgnoreCase(ContextConstants.BEAN_ELEMENT)) {
-								String id = parser.getAttributeValue(null, ContextConstants.ID_ATTRIBUTE);
-								String className = parser.getAttributeValue(null, ContextConstants.CLASS_ATTRIBUTE);
+									&& parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("BEAN_ELEMENT"))) {
+								String id = parser.getAttributeValue(null, sPropLoader.getContextValue("ID_ATTRIBUTE"));
+								String className = parser.getAttributeValue(null,
+										sPropLoader.getContextValue("CLASS_ATTRIBUTE"));
 								if (id == null)
-									throw new InfinitumConfigurationException(String.format(
-											ContextConstants.BEAN_ID_MISSING_LINE, parser.getLineNumber()));
+									throw new InfinitumConfigurationException(
+											String.format(sPropLoader.getErrorMessage("BEAN_ID_MISSING_LINE"),
+													parser.getLineNumber()));
 								if (className == null)
 									throw new InfinitumConfigurationException(String.format(
-											ContextConstants.BEAN_CLASS_MISSING_LINE, parser.getLineNumber()));
+											sPropLoader.getErrorMessage("BEAN_CLASS_MISSING_LINE"),
+											parser.getLineNumber()));
 								eventType = parser.next();
 								Map<String, Object> args = new HashMap<String, Object>();
-								while (!parser.getName().equalsIgnoreCase(ContextConstants.BEAN_ELEMENT)) {
+								while (!parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("BEAN_ELEMENT"))) {
 									if (parser.getEventType() == XmlPullParser.START_TAG
-											&& parser.getName().equalsIgnoreCase(ContextConstants.PROPERTY_ELEMENT)) {
-										String prop = parser.getAttributeValue(null, ContextConstants.NAME_ATTRIBUTE);
-										String ref = parser.getAttributeValue(null, ContextConstants.REF_ATTRIBUTE);
+											&& parser.getName().equalsIgnoreCase(
+													sPropLoader.getContextValue("PROPERTY_ELEMENT"))) {
+										String prop = parser.getAttributeValue(null,
+												sPropLoader.getContextValue("NAME_ATTRIBUTE"));
+										String ref = parser.getAttributeValue(null,
+												sPropLoader.getContextValue("REF_ATTRIBUTE"));
 										Object val;
 										if (ref == null) {
 											parser.next();
@@ -185,23 +198,23 @@ public class ContextFactory implements ContextService {
 	private void configureApplication(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
 		parser.next();
-		while (!parser.getName().equalsIgnoreCase(ContextConstants.APPLICATION_ELEMENT)) {
+		while (!parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("APPLICATION_ELEMENT"))) {
 			if (parser.getEventType() == XmlPullParser.START_TAG
-					&& parser.getName().equalsIgnoreCase(ContextConstants.PROPERTY_ELEMENT)) {
-				String name = parser.getAttributeValue(null, ContextConstants.NAME_ATTRIBUTE);
+					&& parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("PROPERTY_ELEMENT"))) {
+				String name = parser.getAttributeValue(null, sPropLoader.getContextValue("NAME_ATTRIBUTE"));
 				parser.next();
 				String value = parser.getText();
-				if (ContextConstants.DEBUG_ATTRIBUTE.equalsIgnoreCase(name)) {
+				if (sPropLoader.getContextValue("DEBUG_ATTRIBUTE").equalsIgnoreCase(name)) {
 					ctx.setDebug(Boolean.parseBoolean(value));
-				} else if (name.equalsIgnoreCase(ContextConstants.MODE_ATTRIBUTE)) {
-					if (ContextConstants.MODE_ANNOTATIONS.equalsIgnoreCase(value))
+				} else if (name.equalsIgnoreCase(sPropLoader.getContextValue("MODE_ATTRIBUTE"))) {
+					if (sPropLoader.getContextValue("MODE_ANNOTATIONS").equalsIgnoreCase(value))
 						ctx.setConfigurationMode(ConfigurationMode.Annotation);
-					else if (ContextConstants.MODE_XML.equalsIgnoreCase(value))
+					else if (sPropLoader.getContextValue("MODE_XML").equalsIgnoreCase(value))
 						ctx.setConfigurationMode(ConfigurationMode.Xml);
 					else
 						throw new InfinitumConfigurationException(String.format(
-								ContextConstants.CONFIG_PARSE_ERROR_LINE, parser.getLineNumber()));
-				} else if (name.equalsIgnoreCase(ContextConstants.RECYCLE_ATTRIBUTE)) {
+								sPropLoader.getErrorMessage("CONFIG_PARSE_ERROR_LINE"), parser.getLineNumber()));
+				} else if (name.equalsIgnoreCase(sPropLoader.getContextValue("RECYCLE_ATTRIBUTE"))) {
 					ctx.setCacheRecyclable(Boolean.parseBoolean(value));
 				}
 			}
@@ -212,122 +225,125 @@ public class ContextFactory implements ContextService {
 	private void configureSqlite(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
 		parser.next();
-		while (!parser.getName().equalsIgnoreCase(ContextConstants.SQLITE_ELEMENT)) {
+		while (!parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("SQLITE_ELEMENT"))) {
 			if (parser.getEventType() == XmlPullParser.START_TAG
-					&& parser.getName().equalsIgnoreCase(ContextConstants.PROPERTY_ELEMENT)) {
-				String name = parser.getAttributeValue(null, ContextConstants.NAME_ATTRIBUTE);
+					&& parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("PROPERTY_ELEMENT"))) {
+				String name = parser.getAttributeValue(null, sPropLoader.getContextValue("NAME_ATTRIBUTE"));
 				parser.next();
 				String value = parser.getText();
-				if (ContextConstants.DB_NAME_ATTRIBUTE.equalsIgnoreCase(name)) {
+				if (sPropLoader.getContextValue("DB_NAME_ATTRIBUTE").equalsIgnoreCase(name)) {
 					if ("".equalsIgnoreCase(value))
-						throw new InfinitumConfigurationException(ContextConstants.SQLITE_DB_NAME_MISSING);
+						throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("SQLITE_DB_NAME_MISSING"));
 					ctx.setSqliteDbName(value.trim());
-				} else if (ContextConstants.DB_VERSION_ATTRIBUTE.equalsIgnoreCase(name)) {
+				} else if (sPropLoader.getContextValue("DB_VERSION_ATTRIBUTE").equalsIgnoreCase(name)) {
 					ctx.setSqliteDbVersion(Integer.parseInt(value));
-				} else if (ContextConstants.DB_GENERATE_SCHEMA_ATTRIBUTE.equalsIgnoreCase(name)) {
+				} else if (sPropLoader.getContextValue("DB_GENERATE_SCHEMA_ATTRIBUTE").equalsIgnoreCase(name)) {
 					ctx.setSchemaGenerated(Boolean.parseBoolean(value));
-				} else if (ContextConstants.DB_AUTOCOMMIT_ATTRIBUTE.equalsIgnoreCase(name)) {
+				} else if (sPropLoader.getContextValue("DB_AUTOCOMMIT_ATTRIBUTE").equalsIgnoreCase(name)) {
 					ctx.setAutocommit(Boolean.parseBoolean(value));
 				}
 			}
 			parser.next();
 		}
 		if (ctx.getSqliteDbName() == null)
-			throw new InfinitumConfigurationException(ContextConstants.SQLITE_DB_NAME_MISSING);
+			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("SQLITE_DB_NAME_MISSING"));
 	}
 
 	private void configureRest(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
 		RestfulConfiguration restCtx = new RestfulContext();
-		String clientBean = parser.getAttributeValue(null, ContextConstants.REF_ATTRIBUTE);
+		String clientBean = parser.getAttributeValue(null, sPropLoader.getContextValue("REF_ATTRIBUTE"));
 		if (clientBean != null && !ctx.getBeanContainer().beanExists(clientBean))
-			throw new InfinitumConfigurationException(ContextConstants.REST_CLIENT_BEAN_UNRESOLVED);
+			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("REST_CLIENT_BEAN_UNRESOLVED"));
 		restCtx.setClientBean(clientBean);
 		ctx.setRestfulConfiguration(restCtx);
 		parser.next();
-		while (!parser.getName().equalsIgnoreCase(ContextConstants.REST_ELEMENT)) {
+		while (!parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("REST_ELEMENT"))) {
 			if (parser.getEventType() == XmlPullParser.START_TAG
-					&& parser.getName().equalsIgnoreCase(ContextConstants.PROPERTY_ELEMENT)) {
-				String name = parser.getAttributeValue(null, ContextConstants.NAME_ATTRIBUTE);
+					&& parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("PROPERTY_ELEMENT"))) {
+				String name = parser.getAttributeValue(null, sPropLoader.getContextValue("NAME_ATTRIBUTE"));
 				parser.next();
 				String value = parser.getText();
-				if (ContextConstants.REST_HOST_ATTRIBUTE.equalsIgnoreCase(name)) {
+				if (sPropLoader.getContextValue("REST_HOST_ATTRIBUTE").equalsIgnoreCase(name)) {
 					if ("".equalsIgnoreCase(value))
-						throw new InfinitumConfigurationException(ContextConstants.REST_HOST_MISSING);
+						throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("REST_HOST_MISSING"));
 					ctx.getRestfulConfiguration().setRestHost(value.trim());
-				} else if (ContextConstants.CONNECTION_TIMEOUT_ATTRIBUTE.equalsIgnoreCase(name)) {
+				} else if (sPropLoader.getContextValue("CONNECTION_TIMEOUT_ATTRIBUTE").equalsIgnoreCase(name)) {
 					ctx.getRestfulConfiguration().setConnectionTimeout(Integer.parseInt(value));
-				} else if (ContextConstants.RESPONSE_TIMEOUT_ATTRIBUTE.equalsIgnoreCase(name)) {
+				} else if (sPropLoader.getContextValue("RESPONSE_TIMEOUT_ATTRIBUTE").equalsIgnoreCase(name)) {
 					ctx.getRestfulConfiguration().setResponseTimeout(Integer.parseInt(value));
 				}
 			} else if (parser.getEventType() == XmlPullParser.START_TAG
-					&& parser.getName().equalsIgnoreCase(ContextConstants.AUTHENTICATION_ELEMENT)) {
-				String enabled = parser.getAttributeValue(null, ContextConstants.ENABLED_ATTRIBUTE);
+					&& parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("AUTHENTICATION_ELEMENT"))) {
+				String enabled = parser.getAttributeValue(null, sPropLoader.getContextValue("ENABLED_ATTRIBUTE"));
 				if (enabled == null)
 					ctx.getRestfulConfiguration().setRestAuthenticated(true);
 				else
 					ctx.getRestfulConfiguration().setRestAuthenticated(Boolean.parseBoolean(enabled));
-				String strategy = parser.getAttributeValue(null, ContextConstants.STRATEGY_ATTRIBUTE);
+				String strategy = parser.getAttributeValue(null, sPropLoader.getContextValue("STRATEGY_ATTRIBUTE"));
 				if (strategy != null) {
 					ctx.getRestfulConfiguration().setAuthStrategy(strategy);
-					String generator = parser.getAttributeValue(null, ContextConstants.GENERATOR_ATTRIBUTE);
+					String generator = parser.getAttributeValue(null,
+							sPropLoader.getContextValue("GENERATOR_ATTRIBUTE"));
 					if (generator != null && "token".equalsIgnoreCase(strategy)) {
 						SharedSecretAuthentication auth = (SharedSecretAuthentication) ctx.getRestfulConfiguration()
 								.getAuthStrategy();
 						auth.setTokenGenerator((TokenGenerator) ctx.getBean(generator));
 					}
 				} else {
-					String beanRef = parser.getAttributeValue(null, ContextConstants.REF_ATTRIBUTE);
+					String beanRef = parser.getAttributeValue(null, sPropLoader.getContextValue("REF_ATTRIBUTE"));
 					ctx.getRestfulConfiguration().setAuthStrategy(
 							(AuthenticationStrategy) ctx.getBeanContainer().loadBean(beanRef));
 				}
 				SharedSecretAuthentication token = null;
 				AuthenticationStrategy strat = ctx.getRestfulConfiguration().getAuthStrategy();
 				if (strat == null)
-					throw new InfinitumConfigurationException(ContextConstants.AUTH_STRAT_MISSING);
+					throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("AUTH_STRAT_MISSING"));
 				if (strat.getClass() == SharedSecretAuthentication.class)
 					token = (SharedSecretAuthentication) strat;
 				parser.next();
-				while (!parser.getName().equalsIgnoreCase(ContextConstants.AUTHENTICATION_ELEMENT)) {
+				while (!parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("AUTHENTICATION_ELEMENT"))) {
 					if (parser.getEventType() == XmlPullParser.START_TAG
-							&& parser.getName().equalsIgnoreCase(ContextConstants.PROPERTY_ELEMENT)) {
-						String name = parser.getAttributeValue(null, ContextConstants.NAME_ATTRIBUTE);
+							&& parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("PROPERTY_ELEMENT"))) {
+						String name = parser.getAttributeValue(null, sPropLoader.getContextValue("NAME_ATTRIBUTE"));
 						parser.next();
 						String value = parser.getText();
-						if (ContextConstants.TOKEN_NAME_ATTRIBUTE.equalsIgnoreCase(name)) {
+						if (sPropLoader.getContextValue("TOKEN_NAME_ATTRIBUTE").equalsIgnoreCase(name)) {
 							if ("".equalsIgnoreCase(value))
-								throw new InfinitumConfigurationException(ContextConstants.AUTH_TOKEN_NAME_MISSING);
+								throw new InfinitumConfigurationException(
+										sPropLoader.getErrorMessage("AUTH_TOKEN_NAME_MISSING"));
 							token.setTokenName(value);
-						} else if (ContextConstants.TOKEN_ATTRIBUTE.equalsIgnoreCase(name)) {
+						} else if (sPropLoader.getContextValue("TOKEN_ATTRIBUTE").equalsIgnoreCase(name)) {
 							if ("".equalsIgnoreCase(value))
-								throw new InfinitumConfigurationException(ContextConstants.AUTH_TOKEN_MISSING);
+								throw new InfinitumConfigurationException(
+										sPropLoader.getErrorMessage("AUTH_TOKEN_MISSING"));
 							token.setToken(value);
 						}
 					}
 					parser.next();
 				}
 				if (token != null && token.getTokenName() == null)
-					throw new InfinitumConfigurationException(ContextConstants.AUTH_TOKEN_NAME_MISSING);
+					throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("AUTH_TOKEN_NAME_MISSING"));
 				if (token != null && token.getToken() == null)
-					throw new InfinitumConfigurationException(ContextConstants.AUTH_TOKEN_MISSING);
+					throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("AUTH_TOKEN_MISSING"));
 			}
 			parser.next();
 		}
 		if (ctx.getRestfulConfiguration().getRestHost() == null)
-			throw new InfinitumConfigurationException(ContextConstants.REST_HOST_MISSING);
+			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("REST_HOST_MISSING"));
 	}
 
 	private void configureDomain(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
 		parser.next();
-		while (!parser.getName().equalsIgnoreCase(ContextConstants.DOMAIN_ELEMENT)) {
+		while (!parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("DOMAIN_ELEMENT"))) {
 			if (parser.getEventType() == XmlPullParser.START_TAG
-					&& parser.getName().equalsIgnoreCase(ContextConstants.MODEL_ELEMENT)) {
-				String model = parser.getAttributeValue(null, ContextConstants.DOMAIN_RESOURCE_ATTRIBUTE);
+					&& parser.getName().equalsIgnoreCase(sPropLoader.getContextValue("MODEL_ELEMENT"))) {
+				String model = parser.getAttributeValue(null, sPropLoader.getContextValue("DOMAIN_RESOURCE_ATTRIBUTE"));
 				if (model == null)
-					throw new InfinitumConfigurationException(ContextConstants.MODEL_RESOURCE_MISSING);
+					throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("MODEL_RESOURCE_MISSING"));
 				if (model.trim().equalsIgnoreCase(""))
-					throw new InfinitumConfigurationException(ContextConstants.MODEL_RESOURCE_MISSING);
+					throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("MODEL_RESOURCE_MISSING"));
 				ctx.addDomainModel(model);
 			}
 			parser.next();
