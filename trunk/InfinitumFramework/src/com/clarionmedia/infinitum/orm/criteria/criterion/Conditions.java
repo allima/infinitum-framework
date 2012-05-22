@@ -21,6 +21,7 @@ package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
+import java.lang.reflect.Field;
 
 /**
  * <p>
