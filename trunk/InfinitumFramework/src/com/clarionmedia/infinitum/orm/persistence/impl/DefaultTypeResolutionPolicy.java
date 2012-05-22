@@ -43,6 +43,11 @@ public class DefaultTypeResolutionPolicy implements TypeResolutionPolicy {
 			return false;
 		Class<?> pkUnwrapped = Primitives.unwrap(pkField.getType());
 		Class<?> idUnwrapped = Primitives.unwrap(id.getClass());
+		// Handle ambiguous PK values (Java resolves 42 as an int, but it's also
+		// valid for PKs of type long, double, or float)
+		if ((pkUnwrapped == long.class || pkUnwrapped == double.class || pkUnwrapped == float.class)
+				&& idUnwrapped == int.class)
+			return true;
 		return pkUnwrapped == idUnwrapped;
 	}
 

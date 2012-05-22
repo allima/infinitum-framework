@@ -74,7 +74,7 @@ public class SqliteSession implements Session {
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = DEFAULT_CACHE_SIZE;
-		mPolicy = ContextFactory.getInstance().getPersistencePolicy(); 
+		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 	}
 
 	/**
@@ -164,8 +164,7 @@ public class SqliteSession implements Session {
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		int hash = mPolicy.computeModelHash(model);
 		// Remove from session cache
-		if (mSessionCache.containsKey(hash))
-			mSessionCache.remove(hash);
+		mSessionCache.remove(hash);
 		return mSqlite.delete(model);
 	}
 
@@ -180,8 +179,7 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		reconcileCache();
 		for (Object model : models) {
 			int hash = mPolicy.computeModelHash(model);
@@ -193,8 +191,7 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		reconcileCache();
 		for (Object model : models) {
 			int hash = mPolicy.computeModelHash(model);
@@ -206,8 +203,7 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		for (Object model : models) {
 			int hash = mPolicy.computeModelHash(model);
 			// Remove from session cache
@@ -217,9 +213,12 @@ public class SqliteSession implements Session {
 		return mSqlite.deleteAll(models);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T load(Class<T> c, Serializable id)
-			throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+		int hash = mPolicy.computeModelHash(c, id);
+		if (mSessionCache.containsKey(hash))
+			return (T) mSessionCache.get(hash);
 		return mSqlite.load(c, id);
 	}
 
@@ -285,18 +284,48 @@ public class SqliteSession implements Session {
 	 * @throws SQLGrammarException
 	 *             if the SQL was formatted incorrectly
 	 */
-	public Cursor executeForResult(String sql, boolean force)
-			throws SQLGrammarException {
+	public Cursor executeForResult(String sql, boolean force) throws SQLGrammarException {
 		return mSqlite.executeForResult(sql, force);
 	}
 
 	/**
-	 * Returns the {@link Session} cache for this {@code SqliteSession}.
+	 * Caches the given model identified by the given hash code.
 	 * 
-	 * @return {@code Session} cache
+	 * @param hash
+	 *            the hash code which maps to the model
+	 * @param model
+	 *            the {@link Object} to cache
+	 * @return {@code true} if the model was cached, {@code false} if not
 	 */
-	public Map<Integer, Object> getSessionCache() {
-		return mSessionCache;
+	public boolean cache(int hash, Object model) {
+		if (mSessionCache.size() >= mCacheSize)
+			return false;
+		mSessionCache.put(hash, model);
+		return true;
+	}
+
+	/**
+	 * Indicates if the session cache contains the given hash code.
+	 * 
+	 * @param hash
+	 *            the hash code to check for
+	 * @return {@code true} if the cache contains the hash code, {@code false}
+	 *         if not
+	 */
+	public boolean checkCache(int hash) {
+		return mSessionCache.containsKey(hash);
+	}
+
+	/**
+	 * Returns the model with the given hash code from the session cache.
+	 * 
+	 * @param hash
+	 *            the hash code of the model to retrieve
+	 * @return the model {@link Object} identified by the given hash code or
+	 *         {@code null} if no such entity exists in the cache
+	 */
+	public Object searchCache(int hash) {
+		return mSessionCache.get(hash);
 	}
 
 	/**
@@ -314,7 +343,8 @@ public class SqliteSession implements Session {
 	 * allows the {@code Session} cache to be recycled automatically when
 	 * needed. The cache can be manually recycled by calling
 	 * {@link SqliteSession#recycleCache()}, which will reclaim it regardless of
-	 * how Infinitum is configured.
+	 * how Infinitum is configured. The cache will be reclaimed if its current
+	 * size equals or exceeds the maximum cache size.
 	 */
 	public void reconcileCache() {
 		if (!mInfinitumContext.isCacheRecyclable())
@@ -334,7 +364,9 @@ public class SqliteSession implements Session {
 	}
 
 	/**
-	 * Returns the {@link SQLiteDatabase} associated with this {@code SqliteSession}.
+	 * Returns the {@link SQLiteDatabase} associated with this
+	 * {@code SqliteSession}.
+	 * 
 	 * @return {@code SQLiteDatabase}
 	 */
 	public SQLiteDatabase getDatabase() {

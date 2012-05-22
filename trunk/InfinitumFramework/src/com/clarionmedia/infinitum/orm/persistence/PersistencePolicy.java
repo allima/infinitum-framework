@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.orm.persistence;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -382,23 +383,38 @@ public abstract class PersistencePolicy {
 	 * @return hash code for the model
 	 */
 	public int computeModelHash(Object model) {
-		final int PRIME = 31;
-		int hash = 7;
-		hash *= PRIME + model.getClass().hashCode();
 		Field f = getPrimaryKeyField(model.getClass());
 		f.setAccessible(true);
-		Object o = null;
+		Serializable pk = null;
 		try {
-			o = f.get(model);
+			pk = (Serializable) f.get(model);
 		} catch (IllegalArgumentException e) {
 			mLogger.error("Unable to calculate model hash for object of type '" + model.getClass().getName() + "'", e);
 			return 0;
 		} catch (IllegalAccessException e) {
 			mLogger.error("Unable to calculate model hash for object of type '" + model.getClass().getName() + "'", e);
 			return 0;
+		} catch (ClassCastException e) {
+			throw new ModelConfigurationException("Invalid primary key specified for '" + model.getClass().getName()
+					+ "'");
 		}
-		if (o != null)
-			hash *= PRIME + o.hashCode();
+		return computeModelHash(model.getClass(), pk);
+	}
+
+	/**
+	 * Calculates a hash code based on the given {@link Class} and primary key.
+	 * 
+	 * @param c
+	 *            the {@code Class} to compute the hash for
+	 * @param pk
+	 *            the primary key to compute hash for
+	 * @return hash code
+	 */
+	public int computeModelHash(Class<?> c, Serializable pk) {
+		final int PRIME = 31;
+		int hash = 7;
+		hash *= PRIME + c.hashCode();
+		hash *= PRIME + pk.hashCode();
 		return hash;
 	}
 
