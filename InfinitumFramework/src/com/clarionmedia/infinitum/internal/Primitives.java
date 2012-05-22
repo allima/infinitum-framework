@@ -31,10 +31,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * <p>
  * Contains static utility methods pertaining to primitive types and their
  * corresponding wrapper types.
+ * </p>
  * 
  * @author Kevin Bourrillion
+ * @version 1.0 02/20/12
  */
 public final class Primitives {
 

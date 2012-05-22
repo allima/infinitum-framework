@@ -136,9 +136,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			}
 		}
 		int objHash = mPolicy.computeModelHash(ret);
-		if (mSession.getSessionCache().containsKey(objHash))
-			return (T) mSession.getSessionCache().get(objHash);
-		mSession.getSessionCache().put(objHash, ret);
+		if (mSession.checkCache(objHash))
+			return (T) mSession.searchCache(objHash);
+		mSession.cache(objHash, ret);
 		loadRelationships(ret);
 		return ret;
 	}

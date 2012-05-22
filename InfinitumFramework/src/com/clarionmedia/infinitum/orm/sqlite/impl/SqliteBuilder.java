@@ -44,8 +44,7 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
 
 /**
  * <p>
- * Implementation of {@link SqlBuilder} for interacting with a local SQLite
- * database.
+ * Implementation of {@link SqlBuilder} for interacting with a SQLite database.
  * </p>
  * 
  * @author Tyler Treat
@@ -61,6 +60,12 @@ public class SqliteBuilder implements SqlBuilder {
 	private PackageReflector mPackageReflector;
 	private Logger mLogger;
 
+	/**
+	 * Constructs a new {@code SqliteBuilder}.
+	 * 
+	 * @param mapper
+	 *            the {@link SqliteMapper} to use for this {@code SqliteBuilder}
+	 */
 	public SqliteBuilder(SqliteMapper mapper) {
 		mMapper = mapper;
 		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();

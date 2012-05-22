@@ -27,6 +27,7 @@ import android.database.Cursor;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.CriteriaConstants;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
@@ -35,7 +36,7 @@ import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 
 /**
  * <p>
- * Implementation of {@link Criteria}.
+ * Implementation of {@link Criteria} for SQLite queries.
  * </p>
  * 
  * @author Tyler Treat
@@ -50,15 +51,16 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	private int mLimit;
 	private int mOffset;
 	private SqlBuilder mSqlBuilder;
+	private PersistencePolicy mPersistencePolicy;
 
 	/**
-	 * Constructs a new {@code SqliteGenCriteria}.
+	 * Constructs a new {@code SqliteCriteria}.
 	 * 
 	 * @param session
-	 *            the {@link SqliteSession} this {@code SqliteGenCriteria} is
+	 *            the {@link SqliteSession} this {@code SqliteCriteria} is
 	 *            attached to
 	 * @param entityClass
-	 *            the {@code Class} to create {@code SqliteGenCriteria} for
+	 *            the {@code Class} to create {@code SqliteCriteria} for
 	 * @param sqlBuilder
 	 *            {@link SqlBuilder} for generating SQL statements
 	 * @param mapper
@@ -67,15 +69,14 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	 *             if {@code entityClass} is transient
 	 */
 	public SqliteCriteria(SqliteSession session, Class<T> entityClass, SqlBuilder sqlBuilder, SqliteMapper mapper)
-	        throws InfinitumRuntimeException {
-		PersistencePolicy policy = ContextFactory.getInstance().getPersistencePolicy();
-		if (!policy.isPersistent(entityClass))
-			throw new InfinitumRuntimeException(String.format(CriteriaConstants.TRANSIENT_CRITERIA, entityClass.getName()));
+			throws InfinitumRuntimeException {
+		Preconditions.checkPersistenceForLoading(entityClass);
 		mSession = session;
 		mEntityClass = entityClass;
 		mModelFactory = new SqliteModelFactoryImpl(session, mapper);
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
+		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
 	}
 
 	@Override
@@ -124,33 +125,41 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	@Override
 	public List<T> list() {
 		List<T> ret = new LinkedList<T>();
-		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
+		Cursor result = mSession.executeForResult(toSql(), true);
 		if (result.getCount() == 0) {
 			result.close();
 			return ret;
 		}
 		try {
-			while (result.moveToNext())
-				ret.add(mModelFactory.createFromCursor(result, mEntityClass));
-		} catch (InfinitumRuntimeException e) {
-			throw e;
+			while (result.moveToNext()) {
+				T entity = mModelFactory.createFromCursor(result, mEntityClass);
+				ret.add(entity);
+				// Cache results
+				mSession.cache(mPersistencePolicy.computeModelHash(entity), entity);
+			}
 		} finally {
 			result.close();
 		}
-
 		return ret;
 	}
 
 	@Override
 	public T unique() throws InfinitumRuntimeException {
-		Cursor result = mSession.executeForResult(mSqlBuilder.createQuery(this), true);
+		Cursor result = mSession.executeForResult(toSql(), true);
 		if (result.getCount() > 1)
-			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT, mEntityClass.getName(), result.getCount()));
+			throw new InfinitumRuntimeException(String.format(CriteriaConstants.NON_UNIQUE_RESULT,
+					mEntityClass.getName(), result.getCount()));
 		else if (result.getCount() == 0)
 			return null;
 		result.moveToFirst();
-		T ret = mModelFactory.createFromCursor(result, mEntityClass);
-		result.close();
+		T ret = null;
+		try {
+			ret = mModelFactory.createFromCursor(result, mEntityClass);
+			// Cache result
+			mSession.cache(mPersistencePolicy.computeModelHash(ret), ret);
+		} finally {
+			result.close();
+		}
 		return ret;
 	}
 
