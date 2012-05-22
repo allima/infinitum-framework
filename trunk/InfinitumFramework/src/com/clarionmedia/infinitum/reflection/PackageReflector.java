@@ -19,7 +19,6 @@
 
 package com.clarionmedia.infinitum.reflection;
 
-
 /**
  * <p>
  * This interface provides reflection methods for working with packages
@@ -31,16 +30,16 @@ package com.clarionmedia.infinitum.reflection;
  * @version 1.0 05/17/12
  */
 public interface PackageReflector {
-	
+
 	/**
-	 * Retrieves a <code>Class</code> instance for the <code>Class</code>
-	 * described by the given package-qualified name. Returns <code>null</code>
-	 * if the <code>Class</code> can not be found.
+	 * Retrieves a {@link Class} instance for the {@code Class} described by the
+	 * given package-qualified name. Returns {@code null} if the {@code Class}
+	 * can not be found.
 	 * 
 	 * @param className
-	 *            the package-qualified name of the desired <code>Class</code>
-	 * @return instance of the <code>Class</code> or <code>null</code> if the
-	 *         <code>Class</code> was not found
+	 *            the package-qualified name of the desired {@code Class}
+	 * @return instance of the {@code Class} or {@code null}if the {@code Class}
+	 *         was not found
 	 */
 	Class<?> getClass(String className);
 

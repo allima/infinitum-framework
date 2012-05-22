@@ -140,13 +140,11 @@ public class SqliteMapper extends ObjectMapper {
 	}
 
 	/**
-	 * Retrieves the SQLite data type associated with the given
-	 * <code>Field</code>.
+	 * Retrieves the SQLite data type associated with the given {@link Field}.
 	 * 
 	 * @param field
-	 *            the <code>Field</code> to retrieve the SQLite data type for
-	 * @return <code>SqliteDataType</code> that matches the given
-	 *         <code>Field</code>
+	 *            the{@code Field} to retrieve the SQLite data type for
+	 * @return {@code SqliteDataType} that matches the given {@code Field}
 	 */
 	public SqliteDataType getSqliteDataType(Field field) {
 		SqliteDataType ret = null;

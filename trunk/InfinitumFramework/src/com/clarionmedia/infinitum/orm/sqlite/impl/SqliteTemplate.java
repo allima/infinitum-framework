@@ -71,8 +71,6 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  */
 public class SqliteTemplate implements SqliteOperations {
 
-	private static final String TAG = "SqliteTemplate";
-
 	protected InfinitumContext mInfinitumContext;
 	protected SqliteSession mSession;
 	protected SqliteDbHelper mDbHelper;
@@ -104,7 +102,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mSession = session;
-		mLogger = Logger.getInstance(TAG);
+		mLogger = Logger.getInstance(getClass().getSimpleName());
 		mInfinitumContext = ContextFactory.getInstance().getContext();
 		mIsAutocommit = mInfinitumContext.isAutocommit();
 		mMapper = new SqliteMapper();

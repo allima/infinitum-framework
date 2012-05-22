@@ -44,8 +44,6 @@ import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
  */
 public class SqliteDbHelper extends SQLiteOpenHelper {
 
-	private static final String TAG = "SqliteDbHelper";
-
 	private SQLiteDatabase mSqliteDb;
 	private InfinitumContext mInfinitumContext;
 	private SqlBuilder mSqlBuilder;
@@ -64,7 +62,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	public SqliteDbHelper(Context context, SqliteMapper mapper) {
 		super(context, ContextFactory.getInstance().getContext().getSqliteDbName(), null, ContextFactory.getInstance()
 				.getContext().getSqliteDbVersion());
-		mLogger = Logger.getInstance(TAG);
+		mLogger = Logger.getInstance(getClass().getSimpleName());
 		mInfinitumContext = ContextFactory.getInstance().getContext();
 		mSqlBuilder = new SqliteBuilder(mapper);
 		mPropLoader = new PropertyLoader(mInfinitumContext.getAndroidContext());

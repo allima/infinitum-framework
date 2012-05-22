@@ -42,8 +42,8 @@ public interface SqlBuilder {
 
 	/**
 	 * Creates the model tables for the application in the SQLite database as
-	 * configured in <code>infinitum.cfg.xml</code> and returns the numbers of
-	 * tables created.
+	 * configured in {@code infinitum.cfg.xml} and returns the numbers of tables
+	 * created.
 	 * 
 	 * @param dbHelper
 	 *            the {@code SqliteDbHelper} encapsulating the
@@ -52,13 +52,12 @@ public interface SqlBuilder {
 	 * @throws ModelConfigurationException
 	 *             if table(s) cannot be created due to a misconfigured model.
 	 *             For example, a model that does not contain any persistent
-	 *             <code>Fields</code>
+	 *             {@code Fields}
 	 * @throws InfinitumConfigurationException
 	 *             if domain classes have not been properly configured in
 	 *             {@code infinitum.cfg.xml}
 	 */
-	int createTables(SqliteDbHelper dbHelper)
-			throws ModelConfigurationException;
+	int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException;
 
 	/**
 	 * Drops the model tables from the application's SQLite database and returns
@@ -72,20 +71,19 @@ public interface SqlBuilder {
 	int dropTables(SqliteDbHelper dbHelper);
 
 	/**
-	 * Generates the create table SQL statement for the specified
-	 * <code>Class</code>. If the <code>Class</code> itself is marked as
-	 * transient, this method will return null.
+	 * Generates the create table SQL statement for the specified {@link Class}.
+	 * If the {@code Class} itself is marked as transient, this method will
+	 * return null.
 	 * 
 	 * @param c
-	 *            the <code>Class</code> to generate the create table SQL
-	 *            statement for
+	 *            the {@code Class} to generate the create table SQL statement
+	 *            for
 	 * @return create table SQL statement
 	 * @throws ModelConfigurationException
 	 *             if the given {@code Class} does not contain any persistent
 	 *             {@code Fields}
 	 */
-	String createModelTableString(Class<?> c)
-			throws ModelConfigurationException;
+	String createModelTableString(Class<?> c) throws ModelConfigurationException;
 
 	/**
 	 * Generates the drop table SQL statement for the specified {@code Class}.
@@ -143,8 +141,7 @@ public interface SqlBuilder {
 	 *             if the direction {@code Class} is not a part of the given
 	 *             {@code ManyToManyRelationship}
 	 */
-	String createManyToManyJoinQuery(ManyToManyRelationship rel,
-			Serializable id, Class<?> direction)
+	String createManyToManyJoinQuery(ManyToManyRelationship rel, Serializable id, Class<?> direction)
 			throws InfinitumRuntimeException;
 
 	/**
@@ -153,9 +150,9 @@ public interface SqlBuilder {
 	 * 
 	 * <p>
 	 * For example:
-	 * <code>DELETE FROM foo_bar WHERE foo_id = 42 AND bar_id NOT IN (</code>.
-	 * The <code>NOT IN</code> clause is intended to be populated with the IDs
-	 * of entities which are currently related to the {@code Foo} entity with ID
+	 * {@code DELETE FROM foo_bar WHERE foo_id = 42 AND bar_id NOT IN (}. The
+	 * {@code NOT IN} clause is intended to be populated with the IDs of
+	 * entities which are currently related to the {@code Foo} entity with ID
 	 * 42, typically using
 	 * {@link SqlBuilder#addPrimaryKeyToQuery(Object, StringBuilder, String)} .
 	 * Thus, the completed query will be used to clear relationships which no
@@ -168,8 +165,7 @@ public interface SqlBuilder {
 	 *            the model containing the relationship
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	StringBuilder createInitialStaleRelationshipQuery(
-			ManyToManyRelationship rel, Object model);
+	StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model);
 
 	/**
 	 * Generates a {@link StringBuilder} consisting of the initial segment of a
@@ -181,8 +177,7 @@ public interface SqlBuilder {
 	 *            the model containing the relationship
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
-	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel,
-			Object model);
+	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel, Object model);
 
 	/**
 	 * Adds the given {@code Object's} primary key to the specified query. This
