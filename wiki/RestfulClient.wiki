@@ -108,5 +108,5 @@ rest.delete(foo);
 
 {{{
 // Load a single domain object by its ID
-Foo foo = rest.load(Foo.class, 42L);
+Foo foo = rest.load(Foo.class, 42);
 }}}
