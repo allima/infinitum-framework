@@ -532,6 +532,16 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
+	public boolean isToOneRelationship(Field f) {
+		if (mManyToOneCache.containsKey(f) || mOneToOneCache.containsKey(f))
+			return true;
+		ModelRelationship rel = getRelationship(f);
+		if (rel == null)
+			return false;
+		return rel.getRelationType() == RelationType.ManyToOne || rel.getRelationType() == RelationType.OneToOne;
+	}
+
+	@Override
 	public ModelRelationship getRelationship(Field f) {
 		ModelRelationship ret = getManyToManyRelationship(f);
 		if (ret != null)

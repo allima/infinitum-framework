@@ -41,6 +41,7 @@ import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
+import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
@@ -369,27 +370,17 @@ public class SqliteTemplate implements SqliteOperations {
 			return 0;
 		objectMap.put(objHash, model);
 		processOneToOneRelationships(model, map, objectMap, values);
-		long ret = mSqliteDb.insert(tableName, null, values);
-		if (ret <= 0) {
-			if (mInfinitumContext.isDebug())
-				mLogger.debug(model.getClass().getSimpleName() + " model was not saved");
-			return ret;
+		long rowId = mSqliteDb.insert(tableName, null, values);
+		if (rowId <= 0) {
+			mLogger.debug(model.getClass().getSimpleName() + " model was not saved");
+			return rowId;
 		}
-		Field f = mPersistencePolicy.getPrimaryKeyField(model.getClass());
-		f.setAccessible(true);
-		try {
-			f.set(model, ret);
-		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to set primary key field for object of type '" + model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to set primary key field for object of type '" + model.getClass().getName() + "'", e);
-		}
-		if (ret > 0 && mPersistencePolicy.isCascading(model.getClass())) {
+		setPrimaryKey(model, rowId);
+		if (rowId > 0 && mPersistencePolicy.isCascading(model.getClass())) {
 			processRelationships(map, objectMap, model);
-			if (mInfinitumContext.isDebug())
-				mLogger.debug(model.getClass().getSimpleName() + " model saved");
+			mLogger.debug(model.getClass().getSimpleName() + " model saved");
 		}
-		return ret;
+		return rowId;
 	}
 
 	private boolean updateRec(Object model, Map<Integer, Object> objectMap) {
@@ -460,7 +451,7 @@ public class SqliteTemplate implements SqliteOperations {
 				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(
 						model.getClass(), p.getFirst())), id);
 			} else if (id == 0) {
-				Object pk = mPersistencePolicy.getPrimaryKey(p.getSecond());
+				Serializable pk = mPersistencePolicy.getPrimaryKey(p.getSecond());
 				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(
 						model.getClass(), p.getFirst())), (Long) pk);
 			}
@@ -504,18 +495,18 @@ public class SqliteTemplate implements SqliteOperations {
 		try {
 			Field f;
 			Field s;
-			Object fPk;
-			Object sPk;
+			Serializable fPk;
+			Serializable sPk;
 			if (model.getClass() == first) {
 				f = mPersistencePolicy.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
 				s = mPersistencePolicy.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
-				fPk = f.get(model);
-				sPk = s.get(related);
+				fPk = (Serializable) f.get(model);
+				sPk = (Serializable) s.get(related);
 			} else if (model.getClass() == second) {
 				s = mPersistencePolicy.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
 				f = mPersistencePolicy.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
-				fPk = f.get(related);
-				sPk = s.get(model);
+				fPk = (Serializable) f.get(related);
+				sPk = (Serializable) s.get(model);
 			} else {
 				throw new InfinitumRuntimeException("Invalid many-to-many relationship");
 			}
@@ -579,6 +570,8 @@ public class SqliteTemplate implements SqliteOperations {
 			mLogger.error("Unable to insert many-to-many relationship", e);
 		} catch (IllegalAccessException e) {
 			mLogger.error("Unable to insert many-to-many relationship", e);
+		} catch (ClassCastException e) {
+			throw new ModelConfigurationException("Invalid primary key.");
 		}
 	}
 
@@ -590,6 +583,25 @@ public class SqliteTemplate implements SqliteOperations {
 				mSqliteDb.rawQuery(mSqlBuilder.createManyToManyDeleteQuery(model, rel), null);
 		}
 		// TODO Update non M:M relationships
+	}
+
+	private void setPrimaryKey(Object model, long rowId) {
+		Field f = mPersistencePolicy.getPrimaryKeyField(model.getClass());
+		f.setAccessible(true);
+		Class<?> pkType = Primitives.unwrap(f.getType());
+		// The row ID is not a PK if the PK type is not int or long
+		if (pkType != int.class && pkType != long.class)
+			return;
+		try {
+			if (pkType == int.class)
+				f.set(model, (int) rowId);
+			else
+				f.set(model, rowId);
+		} catch (IllegalArgumentException e) {
+			mLogger.error("Unable to set primary key field for object of type '" + model.getClass().getName() + "'", e);
+		} catch (IllegalAccessException e) {
+			mLogger.error("Unable to set primary key field for object of type '" + model.getClass().getName() + "'", e);
+		}
 	}
 
 }

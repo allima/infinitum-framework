@@ -19,11 +19,10 @@
 
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
-import com.clarionmedia.infinitum.orm.annotation.ManyToOne;
-import com.clarionmedia.infinitum.orm.annotation.OneToOne;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -107,8 +106,9 @@ public class BinaryExpression extends Criterion {
 		if (lowerCase)
 			query.append(')');
 		query.append(' ').append(mOperator).append(' ');
-		if (f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToOne.class)) {
-			Object pk = policy.getPrimaryKey(mValue);
+		// If it's a related object, use its primary key
+		if (policy.isToOneRelationship(f)) {
+			Serializable pk = policy.getPrimaryKey(mValue);
 			if (criteria.getObjectMapper().isTextColumn(f))
 				query.append("'").append(pk).append("'");
 			else

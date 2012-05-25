@@ -228,7 +228,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		final StringBuilder sql = new StringBuilder("SELECT * FROM ")
 				.append(mPolicy.getModelTableName(rel.getManyType())).append(" WHERE ").append(rel.getColumn())
 				.append(" = ");
-		Object pk = mPolicy.getPrimaryKey(model);
+		Serializable pk = mPolicy.getPrimaryKey(model);
 		switch (mMapper.getSqliteDataType(mPolicy.getPrimaryKeyField(model.getClass()))) {
 		case TEXT:
 			sql.append("'").append(pk).append("'");
@@ -261,7 +261,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private <T> void loadOneToMany(OneToManyRelationship rel, Field f, T model) {
 		StringBuilder sql = new StringBuilder("SELECT * FROM ").append(mPolicy.getModelTableName(rel.getManyType()))
 				.append(" WHERE ").append(rel.getColumn()).append(" = ");
-		Object pk = mPolicy.getPrimaryKey(model);
+		Serializable pk = mPolicy.getPrimaryKey(model);
 		switch (mMapper.getSqliteDataType(mPolicy.getPrimaryKeyField(model.getClass()))) {
 		case TEXT:
 			sql.append("'").append(pk).append("'");
@@ -336,8 +336,8 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		try {
 			// TODO Add reflexive M:M support
 			Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
-			Field pk = mPolicy.getPrimaryKeyField(model.getClass());
-			String sql = mSqlBuilder.createManyToManyJoinQuery(rel, (Serializable) pk.get(model), direction);
+			Serializable pk = mPolicy.getPrimaryKey(model);
+			String sql = mSqlBuilder.createManyToManyJoinQuery(rel, pk, direction);
 			SqliteResult result = (SqliteResult) mExecutor.execute(sql);
 			@SuppressWarnings("unchecked")
 			Collection<Object> related = (Collection<Object>) f.get(model);
@@ -357,20 +357,20 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 				.append(mPolicy.getFieldColumnName(mPolicy.getPrimaryKeyField(c))).append(" = ");
 		switch (mMapper.getSqliteDataType(f)) {
 		case TEXT:
-			sql.append("'").append(getForeignKey(model, f, rel)).append("'");
+			sql.append("'").append(getForeignKey(model, rel)).append("'");
 			break;
 		default:
-			sql.append(getForeignKey(model, f, rel));
+			sql.append(getForeignKey(model, rel));
 		}
 		return sql.append(" LIMIT 1").toString();
 	}
 
-	private long getForeignKey(Object model, Field f, ForeignKeyRelationship rel) {
+	private Serializable getForeignKey(Object model, ForeignKeyRelationship rel) {
 		StringBuilder q = new StringBuilder("SELECT ").append(rel.getColumn()).append(" FROM ")
 				.append(mPolicy.getModelTableName(model.getClass())).append(" WHERE ")
 				.append(mPolicy.getFieldColumnName(mPolicy.getPrimaryKeyField(model.getClass()))).append(" = ");
-		Object pk = mPolicy.getPrimaryKey(model);
-		switch (mMapper.getSqliteDataType(f)) {
+		Serializable pk = mPolicy.getPrimaryKey(model);
+		switch (mMapper.getSqliteDataType(pk)) {
 		case TEXT:
 			q.append("'").append(pk).append("'");
 			break;
@@ -379,8 +379,14 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		}
 		SqliteResult res = (SqliteResult) mExecutor.execute(q.toString());
 		res.getCursor().moveToFirst();
-		long id = res.getLong(0);
-		res.close();
+		Serializable id;
+		try {
+			id = res.getString(0);
+		} catch (ClassCastException e) {
+			throw new ModelConfigurationException("Invalid primary key specified for model.");
+		} finally {
+			res.close();
+		}
 		return id;
 	}
 

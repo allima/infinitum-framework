@@ -38,11 +38,11 @@ import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 public class DefaultTypeResolutionPolicy implements TypeResolutionPolicy {
 
 	@Override
-	public boolean isValidPrimaryKey(Field pkField, Serializable id) {
-		if (id == null)
+	public boolean isValidPrimaryKey(Field pkField, Serializable pk) {
+		if (pk == null)
 			return false;
 		Class<?> pkUnwrapped = Primitives.unwrap(pkField.getType());
-		Class<?> idUnwrapped = Primitives.unwrap(id.getClass());
+		Class<?> idUnwrapped = Primitives.unwrap(pk.getClass());
 		// Handle ambiguous PK values (Java resolves 42 as an int, but it's also
 		// valid for PKs of type long, double, or float)
 		if ((pkUnwrapped == long.class || pkUnwrapped == double.class || pkUnwrapped == float.class)

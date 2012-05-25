@@ -29,7 +29,6 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
 import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
-import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -58,7 +57,6 @@ public class SqliteBuilder implements SqlBuilder {
 	private SqliteMapper mMapper;
 	private PersistencePolicy mPersistencePolicy;
 	private PackageReflector mPackageReflector;
-	private Logger mLogger;
 	private PropertyLoader mPropLoader;
 
 	/**
@@ -71,7 +69,6 @@ public class SqliteBuilder implements SqlBuilder {
 		mMapper = mapper;
 		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mPackageReflector = new DefaultPackageReflector();
-		mLogger = Logger.getInstance(getClass().getName());
 		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
 
@@ -192,7 +189,7 @@ public class SqliteBuilder implements SqlBuilder {
 		else
 			query.append("y, ");
 		query.append(rel.getTableName()).append(" z ").append(SqlConstants.WHERE).append(' ').append("z.");
-		if (direction == rel.getFirstType())
+		if (direction == rel.getFirstType()) {
 			query.append(mPersistencePolicy.getModelTableName(rel.getFirstType())).append('_')
 					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(" = ").append("x.")
 					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(' ')
@@ -201,8 +198,15 @@ public class SqliteBuilder implements SqlBuilder {
 					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(" = ").append("y.")
 					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(' ')
 					.append(SqlConstants.AND).append(" y.")
-					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(" = ").append(id);
-		else
+					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(" = ");
+			switch (mMapper.getSqliteDataType(id)) {
+			case TEXT:
+				query.append("'").append(id).append("'");
+				break;
+			default:
+				query.append(id);
+			}
+		} else {
 			query.append(mPersistencePolicy.getModelTableName(rel.getSecondType())).append('_')
 					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(" = ").append("x.")
 					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(' ')
@@ -211,15 +215,21 @@ public class SqliteBuilder implements SqlBuilder {
 					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(" = ").append("y.")
 					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(' ')
 					.append(SqlConstants.AND).append(" y.")
-					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(" = ").append(id);
+					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(" = ");
+			switch (mMapper.getSqliteDataType(id)) {
+			case TEXT:
+				query.append("'").append(id).append("'");
+				break;
+			default:
+				query.append(id);
+			}
+		}
 		return query.toString();
 	}
 
 	@Override
 	public StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model) {
-		Field pkField = mPersistencePolicy.getPrimaryKeyField(model.getClass());
-		pkField.setAccessible(true);
-		Object pk = mPersistencePolicy.getPrimaryKey(model);
+		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
 		StringBuilder ret = new StringBuilder(SqlConstants.DELETE_FROM).append(rel.getTableName()).append(' ')
 				.append(SqlConstants.WHERE).append(' ');
 		Field col;
@@ -236,7 +246,7 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 		switch (mMapper.getSqliteDataType(col)) {
 		case TEXT:
-			ret.append("'").append(ret.append(pk)).append("'");
+			ret.append("'").append(pk).append("'");
 			break;
 		default:
 			ret.append(pk);
@@ -258,10 +268,10 @@ public class SqliteBuilder implements SqlBuilder {
 				.append(' ').append(rel.getColumn()).append(" = ");
 		Field pkField = mPersistencePolicy.getPrimaryKeyField(model.getClass());
 		pkField.setAccessible(true);
-		Object pk = mPersistencePolicy.getPrimaryKey(model);
+		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
 		switch (mMapper.getSqliteDataType(pkField)) {
 		case TEXT:
-			ret.append("'").append(ret.append(pk)).append("'");
+			ret.append("'").append(pk).append("'");
 			break;
 		default:
 			ret.append(pk);
@@ -276,7 +286,7 @@ public class SqliteBuilder implements SqlBuilder {
 	public void addPrimaryKeyToQuery(Object o, StringBuilder sb, String prefix) {
 		sb.append(prefix);
 		Field pkField = mPersistencePolicy.getPrimaryKeyField(o.getClass());
-		Object pk = mPersistencePolicy.getPrimaryKey(o);
+		Serializable pk = mPersistencePolicy.getPrimaryKey(o);
 		switch (mMapper.getSqliteDataType(pkField)) {
 		case TEXT:
 			sb.append("'").append(pk).append("'");
@@ -298,14 +308,7 @@ public class SqliteBuilder implements SqlBuilder {
 		query.append(" = ");
 		Field pkField = mPersistencePolicy.getPrimaryKeyField(obj.getClass());
 		pkField.setAccessible(true);
-		Object pk = null;
-		try {
-			pk = pkField.get(obj);
-		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to retrieve primary key for object of type '" + obj.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to retrieve primary key for object of type '" + obj.getClass().getName() + "'", e);
-		}
+		Serializable pk = mPersistencePolicy.getPrimaryKey(obj);
 		switch (mMapper.getSqliteDataType(pkField)) {
 		case TEXT:
 			query.append("'").append(pk).append("'");
@@ -318,10 +321,10 @@ public class SqliteBuilder implements SqlBuilder {
 
 	@Override
 	public String createUpdateQuery(Object model, Object related, String column) {
-		Object pk = mPersistencePolicy.getPrimaryKey(related);
-		StringBuilder update = new StringBuilder("UPDATE ").append(mPersistencePolicy.getModelTableName(model
-				.getClass()));
-		update.append(" SET ").append(column).append(" = ");
+		Serializable pk = mPersistencePolicy.getPrimaryKey(related);
+		StringBuilder update = new StringBuilder(SqlConstants.UPDATE).append(" ").append(
+				mPersistencePolicy.getModelTableName(model.getClass()));
+		update.append(" ").append(SqlConstants.SET).append(" ").append(column).append(" = ");
 		switch (mMapper.getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(related.getClass()))) {
 		case TEXT:
 			update.append("'").append(pk).append("'");
@@ -329,9 +332,9 @@ public class SqliteBuilder implements SqlBuilder {
 		default:
 			update.append(pk);
 		}
-		update.append(" WHERE ");
-		update.append(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.getPrimaryKeyField(model.getClass())));
-		update.append(" = ");
+		update.append(" ").append(SqlConstants.WHERE).append(" ")
+				.append(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.getPrimaryKeyField(model.getClass())))
+				.append(" = ");
 		pk = mPersistencePolicy.getPrimaryKey(model);
 		switch (mMapper.getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(model.getClass()))) {
 		case TEXT:
