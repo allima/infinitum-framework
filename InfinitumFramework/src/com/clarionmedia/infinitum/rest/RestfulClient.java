@@ -183,7 +183,7 @@ public abstract class RestfulClient {
 		Preconditions.checkPersistenceForModify(model);
 		mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		Object pk = mPolicy.getPrimaryKey(model);
+		Serializable pk = mPolicy.getPrimaryKey(model);
 		String uri = mHost + mPolicy.getRestfulResource(model.getClass()) + "/" + pk.toString();
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();

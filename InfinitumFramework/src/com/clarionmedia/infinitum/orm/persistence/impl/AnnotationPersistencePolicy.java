@@ -249,6 +249,11 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
+	public boolean isToOneRelationship(Field f) {
+		return f.isAnnotationPresent(ManyToOne.class) || f.isAnnotationPresent(OneToOne.class);
+	}
+
+	@Override
 	public ModelRelationship getRelationship(Field f) {
 		if (f.isAnnotationPresent(ManyToMany.class))
 			return new ManyToManyRelationship(f);

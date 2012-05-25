@@ -51,6 +51,9 @@ public class SqliteMapper extends ObjectMapper {
 	private Map<Class<?>, SqliteTypeAdapter<?>> mTypeAdapters;
 	private PersistencePolicy mPolicy;
 
+	/**
+	 * Constructs a new {@code SqliteMapper}.
+	 */
 	public SqliteMapper() {
 		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
@@ -149,6 +152,23 @@ public class SqliteMapper extends ObjectMapper {
 	public SqliteDataType getSqliteDataType(Field field) {
 		SqliteDataType ret = null;
 		Class<?> c = Primitives.unwrap(field.getType());
+		if (mTypeAdapters.containsKey(c))
+			ret = mTypeAdapters.get(c).getSqliteType();
+		else if (mTypePolicy.isDomainModel(c))
+			ret = getSqliteDataType(mPolicy.getPrimaryKeyField(c));
+		return ret;
+	}
+
+	/**
+	 * Retrieves the SQLite data type associated with the given {@link Object}.
+	 * 
+	 * @param object
+	 *            the {@code Object} to retrieve the SQLite data type for
+	 * @return {@code SqliteDataType} that matches the given {@code Object}
+	 */
+	public SqliteDataType getSqliteDataType(Object object) {
+		SqliteDataType ret = null;
+		Class<?> c = Primitives.unwrap(object.getClass());
 		if (mTypeAdapters.containsKey(c))
 			ret = mTypeAdapters.get(c).getSqliteType();
 		else if (mTypePolicy.isDomainModel(c))

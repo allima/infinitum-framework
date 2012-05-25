@@ -269,6 +269,17 @@ public abstract class PersistencePolicy {
 	public abstract boolean isManyToManyRelationship(Field f);
 
 	/**
+	 * Indicates if the given persistent {@link Field} is part of a many-to-one
+	 * or one-to-one entity relationship.
+	 * 
+	 * @param f
+	 *            the {@code Field} to check
+	 * @return {@code true} if it is part of a many-to-one or one-to-one
+	 *         relationship, {@code false} if not
+	 */
+	public abstract boolean isToOneRelationship(Field f);
+
+	/**
 	 * Retrieves the {@link ModelRelationship} the given {@link Field} is a part
 	 * of.
 	 * 
@@ -399,7 +410,7 @@ public abstract class PersistencePolicy {
 			return 0;
 		} catch (ClassCastException e) {
 			throw new ModelConfigurationException("Invalid primary key specified for '" + model.getClass().getName()
-					+ "'");
+					+ "'.");
 		}
 		return computeModelHash(model.getClass(), pk);
 	}
@@ -428,23 +439,25 @@ public abstract class PersistencePolicy {
 	 *            the model to retrieve the primary key for
 	 * @return primary key value
 	 */
-	public Object getPrimaryKey(Object model) {
-		Object ret = null;
+	public Serializable getPrimaryKey(Object model) {
+		Serializable ret = null;
 		Field pkField = getPrimaryKeyField(model.getClass());
 		pkField.setAccessible(true);
-		if (mTypePolicy.isDomainProxy(model.getClass())) {
-			// Need to invoke getter if it's a proxy
-			ret = mClassReflector.invokeGetter(pkField, model);
-		} else {
-			try {
-				ret = pkField.get(model);
-			} catch (IllegalArgumentException e) {
-				mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'",
-						e);
-			} catch (IllegalAccessException e) {
-				mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'",
-						e);
+		try {
+			if (mTypePolicy.isDomainProxy(model.getClass())) {
+				// Need to invoke getter if it's a proxy
+				ret = (Serializable) mClassReflector.invokeGetter(pkField, model);
+			} else {
+				// Otherwise just get it using reflection
+				ret = (Serializable) pkField.get(model);
 			}
+		} catch (IllegalArgumentException e) {
+			mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'", e);
+		} catch (IllegalAccessException e) {
+			mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'", e);
+		} catch (ClassCastException e) {
+			throw new ModelConfigurationException("Invalid primary key specified for '" + model.getClass().getName()
+					+ "'.");
 		}
 		return ret;
 	}
@@ -458,16 +471,7 @@ public abstract class PersistencePolicy {
 	 * @return {@code true} if it is 0 or {@code null}, false if not
 	 */
 	public boolean isPKNullOrZero(Object model) {
-		Field f = getPrimaryKeyField(model.getClass());
-		f.setAccessible(true);
-		Object pk = null;
-		try {
-			pk = f.get(model);
-		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'", e);
-		}
+		Serializable pk = getPrimaryKey(model);
 		if (pk == null)
 			return true;
 		if (pk instanceof Integer)
