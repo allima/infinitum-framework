@@ -33,23 +33,38 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * @author Tyler Treat
  * @version 1.0 05/18/12
  */
-public interface ContextService {
+public interface ContextProvider {
 
 	/**
-	 * Configures Infinitum with the specified configuration file. Configuration
-	 * file must be named {@code infinitum.cfg.xml}. This method must be called
-	 * before attempting to retrieve an {@link InfinitumContext}.
+	 * Configures Infinitum with the implicit configuration file
+	 * {@code res/xml/infinitum.cfg.xml}. This method must be called before
+	 * attempting to retrieve an {@link InfinitumContext}.
+	 * 
+	 * @param context
+	 *            the calling {@link Context}.
+	 * @return configured {@code InfinitumContext}
+	 * @throws InfinitumConfigurationException
+	 *             if the implied configuration file could not be found or if
+	 *             the file could not be parsed
+	 */
+	InfinitumContext configure(Context context)
+			throws InfinitumConfigurationException;
+
+	/**
+	 * Configures Infinitum with the specified configuration file. This method
+	 * must be called before attempting to retrieve an {@link InfinitumContext}.
 	 * 
 	 * @param context
 	 *            the calling {@code Context}
 	 * @param configId
-	 *            the resource ID for the XML config file
+	 *            the resource ID for the XML configuration file
 	 * @return configured {@code InfinitumContext}
 	 * @throws InfinitumConfigurationException
 	 *             if the configuration file could not be found or if the file
 	 *             could not be parsed
 	 */
-	InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException;
+	InfinitumContext configure(Context context, int configId)
+			throws InfinitumConfigurationException;
 
 	/**
 	 * Retrieves the {@link InfinitumContext} singleton.
