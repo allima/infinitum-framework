@@ -27,7 +27,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
-import com.clarionmedia.infinitum.context.ContextService;
+import com.clarionmedia.infinitum.context.ContextProvider;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContext.ConfigurationMode;
 import com.clarionmedia.infinitum.context.RestfulConfiguration;
@@ -50,7 +50,7 @@ import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
-public class ContextFactory implements ContextService {
+public class ContextFactory implements ContextProvider {
 
 	private static ContextFactory sContextFactory;
 	private static InfinitumContext sInfinitumContext;
@@ -69,6 +69,19 @@ public class ContextFactory implements ContextService {
 		if (sContextFactory == null)
 			sContextFactory = new ContextFactory();
 		return sContextFactory;
+	}
+	
+	@Override
+	public InfinitumContext configure(Context context) throws InfinitumConfigurationException {
+		sContext = context;
+		sPropLoader = new PropertyLoader(sContext);
+		Resources res = context.getResources();
+		int id = res.getIdentifier("infinitum", "xml", context.getPackageName());
+		if (id == 0)
+			throw new InfinitumConfigurationException("Configuration infinitum.cfg.xml could not be found.");
+		sInfinitumContext = configureFromXml(id);
+		sInfinitumContext.setContext(context);
+		return sInfinitumContext;
 	}
 
 	@Override
