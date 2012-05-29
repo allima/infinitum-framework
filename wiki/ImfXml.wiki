@@ -73,6 +73,11 @@ public class Foo {
 *foo.imf.xml*
 
 {{{
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE infinitum-mapping PUBLIC
+"-//Infinitum/Infinitum Mapping DTD 1.0//EN"
+"http://clarionmedia.com/infinitum/dtd/infinitum-mapping-1.0.dtd">
+
 <infinitum-mapping>
     <class name="com.example.domain.Foo" lazy="true" cascade="true">
         <primary-key name="mId" type="long" autoincrement="true" />
