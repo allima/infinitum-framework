@@ -28,11 +28,22 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
 /**
  * <p>
- * Acts as a container for application-wide context information. This should not
+ * Acts as a container for framework-wide context information. This should not
  * be instantiated directly but rather obtained through the
  * {@link ContextFactory}, which creates an instance of this from
- * {@code infinitum.cfg.xml}.
+ * {@code infinitum.cfg.xml}. {@code InfinitumContext} describes an
+ * application's domain model and how it should be persisted. Entity persistence
+ * can be configured using one of two policies: XML map files or annotations.
  * </p>
+ * <p>
+ * {@code InfinitumContext} is used to retrieve {@link Session} instances for
+ * configured data sources. For example, a SQLite {@code Session} would be
+ * retrieved by doing the following:
+ * </p>
+ * 
+ * <pre>
+ * Session session = context.getSession(DataSource.Sqlite);
+ * </pre>
  * 
  * @author Tyler Treat
  * @version 1.0 05/18/12
@@ -67,7 +78,7 @@ public interface InfinitumContext {
 	/**
 	 * Indicates if debug is enabled or not. If it is enabled, Infinitum will
 	 * produce log statements in {@code Logcat}, otherwise it will not produce
-	 * any logging.
+	 * any logging. This value is also used by Infinitum's logging framework.
 	 * 
 	 * @return {@code true} if debug is on, {@code false} if not
 	 */

@@ -34,19 +34,18 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 
 /**
  * <p>
- * Acts as a container for application-wide context information. This should not
- * be instantiated directly but rather obtained through the
- * {@link ContextFactory}, which creates an instance of this from
- * {@code infinitum.cfg.xml}.
+ * Implementation of {@link InfinitumContext}. This should not be instantiated
+ * directly but rather obtained through the {@link ContextFactory}, which
+ * creates an instance of this from {@code infinitum.cfg.xml}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
-public class ApplicationContext implements InfinitumContext {
+public final class ApplicationContext implements InfinitumContext {
 
 	private static final ConfigurationMode DEFAULT_MODE = ConfigurationMode.Annotation;
-	
+
 	private static PersistencePolicy sPersistencePolicy;
 
 	private boolean mIsDebug;
@@ -62,8 +61,8 @@ public class ApplicationContext implements InfinitumContext {
 	private BeanService mBeanContainer;
 
 	/**
-	 * Constructs a new {@code ApplicationContext}. This constructor should not be
-	 * called outside of {@link ContextFactory} as it is generated from
+	 * Constructs a new {@code ApplicationContext}. This constructor should not
+	 * be called outside of {@link ContextFactory} as it is generated from
 	 * {@code infinitum.cfg.xml}.
 	 */
 	public ApplicationContext() {
