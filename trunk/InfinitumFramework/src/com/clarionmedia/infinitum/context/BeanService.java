@@ -27,20 +27,22 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
  * <p>
  * Stores beans that have been configured in {@code infinitum.cfg.xml}. The
  * {@code BeanService} acts as a service locator for {@link InfinitumContext}.
+ * Beans are retrieved by their name and registered by providing a name, class,
+ * and field values.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 05/18/12
  */
 public interface BeanService {
-	
+
 	/**
 	 * Retrieves an instance of the bean with the given name. The name is
 	 * configured in {@code infinitum.cfg.xml}.
 	 * 
 	 * @param name
 	 *            the name of the bean to retrieve
-	 * @return an instance of the bean.
+	 * @return an instance of the bean
 	 * @throws InfinitumConfigurationException
 	 *             if the bean does not exist or could not be constructed
 	 */
@@ -57,14 +59,14 @@ public interface BeanService {
 
 	/**
 	 * Registers the bean with the given name and class name with the
-	 * {@code BeanContainer}.
+	 * {@code BeanService}.
 	 * 
 	 * @param name
 	 *            the name of the bean
 	 * @param beanClass
 	 *            the class name of the bean
 	 * @param args
-	 *            a {@link Map} of parameter names and their arguments
+	 *            a {@link Map} of {@link Field} names and their values
 	 */
 	void registerBean(String name, String beanClass, Map<String, Object> args);
 

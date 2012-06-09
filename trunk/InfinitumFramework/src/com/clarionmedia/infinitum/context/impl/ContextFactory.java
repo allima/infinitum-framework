@@ -45,6 +45,8 @@ import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
  * and {@link ContextFactory#configure(Context, int)} must be called using the
  * location of the XML file before accessing the {@code InfinitumContext} or an
  * {@link InfinitumConfigurationException} will be thrown.
+ * {@code ContextFactory} singletons should be acquired by calling the static
+ * method {@link ContextFactory#getInstance()}.
  * </p>
  * 
  * @author Tyler Treat
@@ -57,13 +59,18 @@ public class ContextFactory implements ContextProvider {
 	private static Context sContext;
 	private static PropertyLoader sPropLoader;
 
+	/**
+	 * Constructs a new {@code ContextFactory}. This is marked {@code private}
+	 * to prevent direct instantiation. {@code ContextFactory} should be
+	 * retrieved as a singleton.
+	 */
 	private ContextFactory() {
 	}
 
 	/**
-	 * Retrieves an {@code InfinitumContextFactory} instance.
+	 * Retrieves a {@code ContextFactory} instance.
 	 * 
-	 * @return {@code InfinitumContextFactory}
+	 * @return {@code ContextFactory}
 	 */
 	public static ContextFactory getInstance() {
 		if (sContextFactory == null)
@@ -106,12 +113,16 @@ public class ContextFactory implements ContextProvider {
 			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("CONFIG_NOT_CALLED"));
 		return sInfinitumContext.getPersistencePolicy();
 	}
-	
+
 	@Override
 	public Context getAndroidContext() {
 		return sContext;
 	}
 
+	// This is where we parse infinitum.cfg.xml and store its values in an
+	// InfinitumContext
+	// TODO this XML parsing code is really nasty and pretty poorly done -- it
+	// should be revisited
 	private InfinitumContext configureFromXml(int configId) throws InfinitumConfigurationException {
 		InfinitumContext ret = new ApplicationContext();
 		Resources resources = sContext.getResources();
@@ -147,6 +158,7 @@ public class ContextFactory implements ContextProvider {
 		return ret;
 	}
 
+	// Parse <beans> node
 	private BeanFactory configureBeans(XmlResourceParser parser, InfinitumContext ctx) {
 		BeanFactory container = new BeanFactory();
 		try {
@@ -208,6 +220,7 @@ public class ContextFactory implements ContextProvider {
 		return container;
 	}
 
+	// Parse <application> node
 	private void configureApplication(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
 		parser.next();
@@ -235,6 +248,7 @@ public class ContextFactory implements ContextProvider {
 		}
 	}
 
+	// Parse <sqlite> node
 	private void configureSqlite(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
 		parser.next();
@@ -262,6 +276,7 @@ public class ContextFactory implements ContextProvider {
 			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("SQLITE_DB_NAME_MISSING"));
 	}
 
+	// Parse <rest> node
 	private void configureRest(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
 		RestfulConfiguration restCtx = new RestfulContext();
@@ -346,6 +361,7 @@ public class ContextFactory implements ContextProvider {
 			throw new InfinitumConfigurationException(sPropLoader.getErrorMessage("REST_HOST_MISSING"));
 	}
 
+	// Parse <domain> node
 	private void configureDomain(XmlResourceParser parser, InfinitumContext ctx) throws XmlPullParserException,
 			IOException {
 		parser.next();
