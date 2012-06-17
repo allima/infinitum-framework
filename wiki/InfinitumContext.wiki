@@ -61,5 +61,5 @@ public void onCreate(Bundle savedInstanceState) {
 `InfinitumContext` also acts as a service locator, allowing configured beans to be retrieved. The code below shows how a `service` bean, configured to use the implementation `MyService`, might be retrieved using `InfinitumContext`.
 
 {{{
-MyService service = ContextFactory.getInstance().getContext().getBean("service");
+MyService service = ContextFactory.getInstance().getContext().getBean("service", MyService.class);
 }}}
