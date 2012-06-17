@@ -292,21 +292,21 @@ public interface InfinitumContext {
 	void setContext(Context context);
 
 	/**
-	 * Retrieves the {@link BeanService} for this {@code InfinitumContext}. The
+	 * Retrieves the {@link BeanProvider} for this {@code InfinitumContext}. The
 	 * {@code BeanContainer} is used to retrieve beans that have been configured
 	 * in {@code infinitum.cfg.xml}.
 	 * 
 	 * @return {@code BeanContainer}
 	 */
-	BeanService getBeanContainer();
+	BeanProvider getBeanContainer();
 
 	/**
-	 * Sets the {@link BeanService} for this {@code InfinitumContext}.
+	 * Sets the {@link BeanProvider} for this {@code InfinitumContext}.
 	 * 
 	 * @param beanContainer
 	 *            the {@code BeanContainer} to set
 	 */
-	void setBeanContainer(BeanService beanContainer);
+	void setBeanContainer(BeanProvider beanContainer);
 
 	/**
 	 * Retrieves a bean with the given name. Beans are configured in
@@ -318,6 +318,18 @@ public interface InfinitumContext {
 	 *         with the given name
 	 */
 	Object getBean(String name);
+	
+	/**
+	 * Retrieves a bean with the given name and {@link Class}.
+	 * Beans are configured in {@code infinitum.cfg.xml}.
+	 * 
+	 * @param name
+	 *            the name of the bean to retrieve
+	 * @param clazz
+	 *            the type of the bean to retrieve
+	 * @return an instance of the bean
+	 */
+	<T> T getBean(String name, Class<T> clazz);
 
 	/**
 	 * Retrieves the application {@link PersistencePolicy}, which is configured

@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.context.impl;
 import java.util.ArrayList;
 import java.util.List;
 import android.content.Context;
-import com.clarionmedia.infinitum.context.BeanService;
+import com.clarionmedia.infinitum.context.BeanProvider;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulConfiguration;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
@@ -58,7 +58,7 @@ public final class ApplicationContext implements InfinitumContext {
 	private List<String> mDomainModels;
 	private RestfulConfiguration mRestContext;
 	private Context mContext;
-	private BeanService mBeanContainer;
+	private BeanProvider mBeanContainer;
 
 	/**
 	 * Constructs a new {@code ApplicationContext}. This constructor should not
@@ -189,18 +189,23 @@ public final class ApplicationContext implements InfinitumContext {
 	}
 
 	@Override
-	public BeanService getBeanContainer() {
+	public BeanProvider getBeanContainer() {
 		return mBeanContainer;
 	}
 
 	@Override
-	public void setBeanContainer(BeanService beanContainer) {
+	public void setBeanContainer(BeanProvider beanContainer) {
 		mBeanContainer = beanContainer;
 	}
 
 	@Override
 	public Object getBean(String name) {
 		return mBeanContainer.loadBean(name);
+	}
+	
+	@Override
+	public <T> T getBean(String name, Class<T> clazz) {
+		return mBeanContainer.loadBean(name, clazz);
 	}
 
 	@Override
