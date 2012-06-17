@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.clarionmedia.infinitum.context.BeanService;
+import com.clarionmedia.infinitum.context.BeanProvider;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
@@ -34,7 +34,7 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
- * Implementation of {@link BeanService} for storing beans that have been
+ * Implementation of {@link BeanProvider} for storing beans that have been
  * configured in {@code infinitum.cfg.xml}. {@code BeanFactory} also acts as a
  * service locator for {@link ApplicationContext}.
  * </p>
@@ -42,7 +42,7 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  * @author Tyler Treat
  * @version 1.0 04/23/12
  */
-public class BeanFactory implements BeanService {
+public class BeanFactory implements BeanProvider {
 
 	private ClassReflector mClassReflector;
 	private Map<String, Pair<String, Map<String, Object>>> mBeanMap;
@@ -68,6 +68,15 @@ public class BeanFactory implements BeanService {
 		Map<String, Object> params = pair.getSecond();
 		setFields(bean, params);
 		return bean;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T loadBean(String name, Class<T> clazz) throws InfinitumConfigurationException {
+		Object bean = loadBean(name);
+		if (!clazz.isInstance(bean))
+		    throw new InfinitumConfigurationException("Bean '" + name + "' was not of type '" + clazz.getName() + "'.");
+		return (T) bean;
 	}
 
 	@Override
