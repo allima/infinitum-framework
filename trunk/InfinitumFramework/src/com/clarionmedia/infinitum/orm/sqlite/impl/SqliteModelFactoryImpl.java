@@ -154,7 +154,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			ModelRelationship rel = mPolicy.getRelationship(f);
 			switch (rel.getRelationType()) {
 			case ManyToMany:
-				loadManyToMany((ManyToManyRelationship) rel, f, model);
+				if (mPolicy.isLazy(model.getClass()))
+					lazilyLoadManyToMany((ManyToManyRelationship) rel, f, model);
+				else
+				    loadManyToMany((ManyToManyRelationship) rel, f, model);
 				break;
 			case ManyToOne:
 				if (mPolicy.isLazy(model.getClass()))
@@ -329,6 +332,34 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						+ "'", e);
 			}
 		result.close();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <T> void lazilyLoadManyToMany(final ManyToManyRelationship rel, Field f, T model) {
+		// TODO Add reflexive M:M support
+		final Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+		Serializable pk = mPolicy.getPrimaryKey(model);
+		final String sql = mSqlBuilder.createManyToManyJoinQuery(rel, pk, direction);
+		try {
+			final Collection<Object> collection = (Collection<Object>) f.get(model);
+			Collection<Object> related = ProxyBuilder.forClass(collection.getClass()).handler(new LazilyLoadedObject() {
+				@Override
+				protected Object loadObject() {
+					SqliteResult result = (SqliteResult) mExecutor.execute(sql);
+					while (result.getCursor().moveToNext())
+						collection.add(createFromResult(result, direction));
+					result.close();
+					return collection;
+				}
+			}).dexCache(mSession.getContext().getDir(OrmConstants.DEX_CACHE, Context.MODE_PRIVATE)).build();
+			f.set(model, related);
+		} catch (IllegalArgumentException e) {
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
+		} catch (IllegalAccessException e) {
+			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
+		} catch (IOException e) {
+			throw new InfinitumRuntimeException("Could not build entity proxy");
+		}
 	}
 
 	private <T> void loadManyToMany(ManyToManyRelationship rel, Field f, T model) throws ModelConfigurationException,
