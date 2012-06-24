@@ -20,22 +20,17 @@
 package com.clarionmedia.infinitumtest;
 
 import java.lang.reflect.Field;
-import java.util.LinkedList;
 import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
 
-import com.clarionmedia.infinitum.context.InfinitumContextFactory;
-import com.clarionmedia.infinitum.rest.JsonDeserializer;
-import com.clarionmedia.infinitum.rest.impl.BasicRestfulClient;
-import com.clarionmedia.infinitum.rest.impl.RestfulClientFactory;
-import com.clarionmedia.infinitumtest.domain.Bar;
-import com.clarionmedia.infinitumtest.service.MyService;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.InfinitumContext.DataSource;
+import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.orm.Session;
+import com.clarionmedia.infinitumtest.domain.Foo;
+import com.clarionmedia.infinitumtest.domain.TestModel;
 
 public class TestActivity extends Activity {
 
@@ -45,33 +40,38 @@ public class TestActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		InfinitumContextFactory.getInstance().configure(this, R.xml.infinitum);
-		BasicRestfulClient rest = (BasicRestfulClient) new RestfulClientFactory().registerJsonDeserializer(Bar.class, new JsonDeserializer<Bar>() {
-			@Override
-			public Bar deserializeObject(String json) {
-				Gson gson = new Gson();
-				String formattedJson = json.substring(json.indexOf('{') + 1, json.lastIndexOf('}') + 1);
-				formattedJson = json.substring(formattedJson.indexOf('{') + 1, formattedJson.lastIndexOf('}') + 1);
-				return gson.fromJson(formattedJson, Bar.class);
-			}
-			@Override
-			public List<Bar> deserializeObjects(String json) {
-				List<Bar> ret = new LinkedList<Bar>();
-				Gson gson = new Gson();
-				json = json.substring(json.indexOf(":") + 1);
-				json = json.substring(json.indexOf("["));
-				json = json.substring(0, json.length() - 1);
-				JsonElement jsonElement = new JsonParser().parse(json);
-				JsonArray jsonArray = jsonElement.getAsJsonArray();
-				for (JsonElement e : jsonArray)
-						ret.add(gson.fromJson(e, Bar.class));
-				return ret;
-			}
-		}).build();
-		Bar b = rest.load(Bar.class, 1L);
+		InfinitumContext context = ContextFactory.getInstance().configure(this);
+//		RestfulClient rest = new RestfulClientFactory().registerDeserializer(Bar.class, new JsonDeserializer<Bar>() {
+//			@Override
+//			public Bar deserializeObject(String json) {
+//				Gson gson = new Gson();
+//				String formattedJson = json.substring(json.indexOf('{') + 1, json.lastIndexOf('}') + 1);
+//				formattedJson = json.substring(formattedJson.indexOf('{') + 1, formattedJson.lastIndexOf('}') + 1);
+//				return gson.fromJson(formattedJson, Bar.class);
+//			}
+//			@Override
+//			public List<Bar> deserializeObjects(String json) {
+//				List<Bar> ret = new LinkedList<Bar>();
+//				Gson gson = new Gson();
+//				json = json.substring(json.indexOf(":") + 1);
+//				json = json.substring(json.indexOf("["));
+//				json = json.substring(0, json.length() - 1);
+//				JsonElement jsonElement = new JsonParser().parse(json);
+//				JsonArray jsonArray = jsonElement.getAsJsonArray();
+//				for (JsonElement e : jsonArray)
+//						ret.add(gson.fromJson(e, Bar.class));
+//				return ret;
+//			}
+//		}).build();
+//		Bar b = rest.load(Bar.class, 1L);
 		
-		MyService service = (MyService) InfinitumContextFactory.getInstance().getInfinitumContext().getBean("myService");
-		service.getClass();
+		Session session = context.getSession(DataSource.Sqlite);
+		session.open();
+		TestModel t = session.load(TestModel.class, 1);
+		for (Foo f : t.getRelated())
+			f.getClass();
+		session.close();
+		
 	}
 
 }

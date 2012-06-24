@@ -34,7 +34,7 @@ public class Foo extends AbstractBase {
 	@ManyToOne(className = "com.clarionmedia.infinitumtest.domain.Bar", name = "foo-bar", column = "bar")
 	private Bar mBar;
 
-	@ManyToMany(className = "com.clarionmedia.infinitumtest.domain.TestModel", foreignField = "mId", keyField = "mId", tableName = "testmodel_foo", name = "foo-testmodel")
+	@ManyToMany(className = "com.clarionmedia.infinitumtest.domain.TestModel", foreignField = "mId", keyField = "mId", table = "testmodel_foo", name = "foo-testmodel")
 	private List<TestModel> mRelated;
 
 	public Foo() {
