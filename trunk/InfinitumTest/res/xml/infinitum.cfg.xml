@@ -41,7 +41,7 @@
     </domain>
     
     <beans>
-        <bean id="restClient" class="com.clarionmedia.infinitum.rest.impl.BasicRestfulClient" />
+        <bean id="restClient" class="com.clarionmedia.infinitum.rest.impl.RestfulJsonClient" />
         <bean id="tokenGenerator" class="com.clarionmedia.infinitumtest.service.MyTokenGenerator" />
         <bean id="tokenAuthentication" class="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication">
             <property name="mTokenName">token</property>

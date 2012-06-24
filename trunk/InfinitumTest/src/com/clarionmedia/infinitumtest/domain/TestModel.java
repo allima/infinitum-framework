@@ -48,7 +48,7 @@ public class TestModel extends AbstractBase {
 	@Persistence(PersistenceMode.Transient)
 	private float mTransient;
 
-	@ManyToMany(className = "com.clarionmedia.infinitumtest.domain.Foo", foreignField = "mId", keyField = "mId", tableName = "testmodel_foo", name = "testmodel-foo")
+	@ManyToMany(className = "com.clarionmedia.infinitumtest.domain.Foo", foreignField = "mId", keyField = "mId", table = "testmodel_foo", name = "testmodel-foo")
 	private List<Foo> mRelated;
 
 	public TestModel() {
