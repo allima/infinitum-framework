@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.logging.impl;
 import android.util.Log;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.SimpleXmlContextFactory;
 import com.clarionmedia.infinitum.logging.Logger;
 
 /**
@@ -45,7 +45,7 @@ public class LoggerImpl extends Logger {
 	 *            the tag to assign to this {@code LoggerImpl}
 	 */
 	public LoggerImpl(String tag) {
-		mContext = ContextFactory.getInstance().getContext();
+		mContext = SimpleXmlContextFactory.getInstance().getContext();
 		mTag = tag;
 	}
 

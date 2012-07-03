@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.context.ContextProvider;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -119,7 +119,7 @@ public abstract class PersistencePolicy {
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mClassReflector = new DefaultClassReflector();
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+		mPropLoader = new PropertyLoader(ContextProvider.getInstance().getAndroidContext());
 	}
 
 	/**

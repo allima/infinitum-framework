@@ -25,8 +25,8 @@ import java.util.List;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import com.clarionmedia.infinitum.context.ContextProvider;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
@@ -67,9 +67,9 @@ public class SqliteBuilder implements SqlBuilder {
 	 */
 	public SqliteBuilder(SqliteMapper mapper) {
 		mMapper = mapper;
-		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
+		mPersistencePolicy = ContextProvider.getInstance().getPersistencePolicy();
 		mPackageReflector = new DefaultPackageReflector();
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+		mPropLoader = new PropertyLoader(ContextProvider.getInstance().getAndroidContext());
 	}
 
 	@Override

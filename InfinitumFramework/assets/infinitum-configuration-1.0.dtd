@@ -34,13 +34,14 @@
 <!ELEMENT property (#PCDATA)>
 <!ATTLIST property name CDATA #REQUIRED>
 <!ATTLIST property ref CDATA #IMPLIED>
+<!ATTLIST property value CDATA #IMPLIED>
 
 <!ELEMENT model (#PCDATA)>
 <!ATTLIST model resource CDATA #REQUIRED>
 
 <!ELEMENT bean (property*)>
 <!ATTLIST bean id CDATA #REQUIRED>
-<!ATTLIST bean class CDATA #REQUIRED>
+<!ATTLIST bean src CDATA #REQUIRED>
 
 <!ELEMENT resource (#PCDATA)>
 <!ATTLIST resource name CDATA #REQUIRED>

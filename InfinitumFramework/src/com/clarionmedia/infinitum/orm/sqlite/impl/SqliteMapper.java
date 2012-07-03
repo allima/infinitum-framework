@@ -26,7 +26,7 @@ import java.util.Map;
 
 import android.content.ContentValues;
 
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.context.ContextProvider;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.SqliteTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
@@ -55,7 +55,7 @@ public class SqliteMapper extends ObjectMapper {
 	 * Constructs a new {@code SqliteMapper}.
 	 */
 	public SqliteMapper() {
-		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
+		mPolicy = ContextProvider.getInstance().getPersistencePolicy();
 		mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, SqliteTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, SqliteTypeAdapters.BYTE);

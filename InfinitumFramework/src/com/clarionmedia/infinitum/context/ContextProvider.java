@@ -21,23 +21,31 @@ package com.clarionmedia.infinitum.context;
 
 import android.content.Context;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.SimpleXmlContextFactory;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
 /**
  * <p>
- * Provides access to an {@link InfinitumContext} singleton. This is typically
- * not used directly, rather the implementation {@link ContextFactory} is used.
+ * Provides access to an {@link InfinitumContext} singleton.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 05/18/12
  */
-public interface ContextProvider {
+public abstract class ContextProvider {
+
+	/**
+	 * Retrieves a new {@code ContextProvider} instance.
+	 * 
+	 * @return {@code ContextProvider}
+	 */
+	public static ContextProvider getInstance() {
+		return SimpleXmlContextFactory.newInstance();
+	}
 
 	/**
 	 * Configures Infinitum with the implicit configuration file
-	 * {@code res/xml/infinitum.cfg.xml}. This method must be called before
+	 * {@code res/raw/infinitum.cfg.xml}. This method must be called before
 	 * attempting to retrieve an {@link InfinitumContext}.
 	 * 
 	 * @param context
@@ -47,7 +55,7 @@ public interface ContextProvider {
 	 *             if the implied configuration file could not be found or if
 	 *             the file could not be parsed
 	 */
-	InfinitumContext configure(Context context)
+	public abstract InfinitumContext configure(Context context)
 			throws InfinitumConfigurationException;
 
 	/**
@@ -57,32 +65,34 @@ public interface ContextProvider {
 	 * @param context
 	 *            the calling {@code Context}
 	 * @param configId
-	 *            the resource ID for the XML configuration file
+	 *            the resource ID for the raw XML configuration file
 	 * @return configured {@code InfinitumContext}
 	 * @throws InfinitumConfigurationException
 	 *             if the configuration file could not be found or if the file
 	 *             could not be parsed
 	 */
-	InfinitumContext configure(Context context, int configId)
+	public abstract InfinitumContext configure(Context context, int configId)
 			throws InfinitumConfigurationException;
 
 	/**
 	 * Retrieves the {@link InfinitumContext} singleton.
-	 * {@link ContextFactory#configure} must be called before using this method.
-	 * Otherwise, an {@link InfinitumConfigurationException} will be thrown.
+	 * {@link PullParserContextFactory#configure} must be called before using
+	 * this method. Otherwise, an {@link InfinitumConfigurationException} will
+	 * be thrown.
 	 * 
 	 * @return the {@code InfinitumContext} singleton
 	 * @throws InfinitumConfigurationException
 	 *             if {@code configure} was not called
 	 */
-	InfinitumContext getContext() throws InfinitumConfigurationException;
+	public abstract InfinitumContext getContext()
+			throws InfinitumConfigurationException;
 
 	/**
 	 * Retrieves the configured {@link PersistencePolicy}.
 	 * 
 	 * @return {@code PersistencePolicy}
 	 */
-	PersistencePolicy getPersistencePolicy();
+	public abstract PersistencePolicy getPersistencePolicy();
 
 	/**
 	 * Retrieves the Android {@link Context} registered with the configured
@@ -90,6 +100,6 @@ public interface ContextProvider {
 	 * 
 	 * @return {@code Context}
 	 */
-	Context getAndroidContext();
+	public abstract Context getAndroidContext();
 
 }

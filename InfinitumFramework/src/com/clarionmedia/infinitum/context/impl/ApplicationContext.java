@@ -31,17 +31,19 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
+import com.clarionmedia.infinitum.context.impl.PullParserContextFactory;
 
 /**
  * <p>
  * Implementation of {@link InfinitumContext}. This should not be instantiated
- * directly but rather obtained through the {@link ContextFactory}, which
+ * directly but rather obtained through the {@link PullParserContextFactory}, which
  * creates an instance of this from {@code infinitum.cfg.xml}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
+@Deprecated
 public final class ApplicationContext implements InfinitumContext {
 
 	private static final ConfigurationMode DEFAULT_MODE = ConfigurationMode.Annotation;

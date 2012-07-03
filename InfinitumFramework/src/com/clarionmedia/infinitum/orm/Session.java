@@ -24,10 +24,9 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
 
-import android.content.Context;
 import android.database.SQLException;
 
-import com.clarionmedia.infinitum.context.impl.ApplicationContext;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
@@ -40,8 +39,8 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
  * interface to a configured application datastore. All database interaction
  * goes through the {@code Session}, which also provides an API for creating
  * {@link Criteria} and {@link Criteria} instances. {@code Session} instances
- * should be acquired from an {@link ApplicationContext} by calling
- * {@link ApplicationContext#getSession(Context, ApplicationContext.DataSource)}
+ * should be acquired from an {@link InfinitumContext} by calling
+ * {@link InfinitumContext#getSession(com.clarionmedia.infinitum.context.InfinitumContext.DataSource)}
  * .
  * </p>
  * <p>
@@ -214,7 +213,8 @@ public interface Session {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
+	void saveOrUpdateAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException;
 
 	/**
 	 * Persists the entire collection of {@code Objects} to the database.
@@ -225,7 +225,8 @@ public interface Session {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
+	int saveAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException;
 
 	/**
 	 * Deletes the entire collection of {@code Objects} from the database if
@@ -237,7 +238,8 @@ public interface Session {
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
+	int deleteAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException;
 
 	/**
 	 * Returns an instance of the given persistent model {@link Class} as
@@ -254,7 +256,8 @@ public interface Session {
 	 * @throws IllegalArgumentException
 	 *             if an invalid primary key is provided
 	 */
-	<T extends Object> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException;
+	<T extends Object> T load(Class<T> c, Serializable id)
+			throws InfinitumRuntimeException, IllegalArgumentException;
 
 	/**
 	 * Executes the given SQL non-query on the database, meaning no result is
