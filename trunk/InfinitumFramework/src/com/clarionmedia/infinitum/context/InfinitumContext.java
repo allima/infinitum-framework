@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.context;
 import java.util.List;
 import android.content.Context;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.context.impl.SimpleXmlContextFactory;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
@@ -30,7 +30,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * <p>
  * Acts as a container for framework-wide context information. This should not
  * be instantiated directly but rather obtained through the
- * {@link ContextFactory}, which creates an instance of this from
+ * {@link SimpleXmlContextFactory}, which creates an instance of this from
  * {@code infinitum.cfg.xml}. {@code InfinitumContext} describes an
  * application's domain model and how it should be persisted. Entity persistence
  * can be configured using one of two policies: XML map files or annotations.
@@ -54,7 +54,16 @@ public interface InfinitumContext {
 	 * Represents the entity persistence configuration mode.
 	 */
 	public static enum ConfigurationMode {
-		Xml, Annotation
+		Xml {
+			public String toString() {
+				return "xml";
+			}
+		},
+		Annotation {
+			public String toString() {
+				return "annotations";
+			}
+		}
 	}
 
 	/**

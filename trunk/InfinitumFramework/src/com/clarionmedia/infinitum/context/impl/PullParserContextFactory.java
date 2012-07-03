@@ -42,29 +42,34 @@ import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
  * <p>
  * Provides access to an {@link InfinitumContext} singleton. In order for this
  * class to function properly, an {@code infinitum.cfg.xml} file must be created
- * and {@link ContextFactory#configure(Context, int)} must be called using the
+ * and {@link PullParserContextFactory#configure(Context, int)} must be called using the
  * location of the XML file before accessing the {@code InfinitumContext} or an
  * {@link InfinitumConfigurationException} will be thrown.
  * {@code ContextFactory} singletons should be acquired by calling the static
- * method {@link ContextFactory#getInstance()}.
+ * method {@link PullParserContextFactory#getInstance()}.
+ * </p>
+ * <p>
+ * {@code PullParserContextFactory} uses an {@link XmlPullParser} to read {@code infinitum.cfg.xml}
+ * and create the {@code InfinitumContext}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/11/12
  */
-public class ContextFactory implements ContextProvider {
+@Deprecated
+public class PullParserContextFactory extends ContextProvider {
 
-	private static ContextFactory sContextFactory;
+	private static PullParserContextFactory sContextFactory;
 	private static InfinitumContext sInfinitumContext;
 	private static Context sContext;
 	private static PropertyLoader sPropLoader;
 
 	/**
-	 * Constructs a new {@code ContextFactory}. This is marked {@code private}
-	 * to prevent direct instantiation. {@code ContextFactory} should be
+	 * Constructs a new {@code PullParserContextFactory}. This is marked {@code private}
+	 * to prevent direct instantiation. {@code PullParserContextFactory} should be
 	 * retrieved as a singleton.
 	 */
-	private ContextFactory() {
+	private PullParserContextFactory() {
 	}
 
 	/**
@@ -72,9 +77,9 @@ public class ContextFactory implements ContextProvider {
 	 * 
 	 * @return {@code ContextFactory}
 	 */
-	public static ContextFactory getInstance() {
+	public static PullParserContextFactory newInstance() {
 		if (sContextFactory == null)
-			sContextFactory = new ContextFactory();
+			sContextFactory = new PullParserContextFactory();
 		return sContextFactory;
 	}
 	

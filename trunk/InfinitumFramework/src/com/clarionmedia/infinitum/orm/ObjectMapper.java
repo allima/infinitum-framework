@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.orm;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
+import com.clarionmedia.infinitum.context.ContextProvider;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -67,7 +67,7 @@ public abstract class ObjectMapper {
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mClassReflector = new DefaultClassReflector();
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+		mPropLoader = new PropertyLoader(ContextProvider.getInstance().getAndroidContext());
 	}
 
 	/**
@@ -144,7 +144,7 @@ public abstract class ObjectMapper {
 	@SuppressWarnings("unchecked")
 	protected void mapRelationship(ModelMap map, Object model, Field f) {
 		try {
-			PersistencePolicy policy = ContextFactory.getInstance().getPersistencePolicy();
+			PersistencePolicy policy = ContextProvider.getInstance().getPersistencePolicy();
 			if (policy.isRelationship(f)) {
 				ModelRelationship rel = policy.getRelationship(f);
 				Object related;

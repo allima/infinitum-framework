@@ -27,6 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -42,17 +43,17 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
+import com.clarionmedia.infinitum.context.ContextProvider;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.impl.RestfulJsonClient;
-import com.clarionmedia.infinitum.rest.impl.RestfulXmlClient;
 import com.clarionmedia.infinitum.rest.impl.RestfulMapper;
 import com.clarionmedia.infinitum.rest.impl.RestfulModelMap;
+import com.clarionmedia.infinitum.rest.impl.RestfulXmlClient;
 
 /**
  * <p>
@@ -81,13 +82,13 @@ public abstract class RestfulClient {
 
 	/**
 	 * Constructs a new {@code RestfulClient}. You must call
-	 * {@link ContextFactory#configure(android.content.Context, int)} before
+	 * {@link ContextProvider#configure(android.content.Context, int)} before
 	 * invoking this constructor.
 	 */
 	public RestfulClient() {
 		mLogger = Logger.getInstance(getClass().getSimpleName());
 		mMapper = new RestfulMapper();
-		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
+		mPolicy = ContextProvider.getInstance().getPersistencePolicy();
 	}
 
 	/**
@@ -126,7 +127,7 @@ public abstract class RestfulClient {
 	 * using it.
 	 */
 	public final void prepare() {
-		mContext = ContextFactory.getInstance().getContext();
+		mContext = ContextProvider.getInstance().getContext();
 		mHost = mContext.getRestfulConfiguration().getRestHost();
 		mIsAuthenticated = mContext.getRestfulConfiguration().isRestAuthenticated();
 		mAuthStrategy = mContext.getRestfulConfiguration().getAuthStrategy();

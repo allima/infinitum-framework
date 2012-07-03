@@ -19,6 +19,12 @@
 
 package com.clarionmedia.infinitum.context.impl;
 
+import java.util.Map;
+import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementMap;
+import org.simpleframework.xml.Root;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulConfiguration;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
@@ -35,73 +41,118 @@ import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
  */
 public class RestfulContext implements RestfulConfiguration {
 
-	private String mRestHost;
-	private boolean mIsRestAuthenticated;
-	private AuthenticationStrategy mAuthStrategy;
-	private int mConnectionTimeout;
-	private int mResponseTimeout;
+	@Attribute(name = "ref", required = false)
 	private String mClientBean;
+	
+	@ElementMap(required = true, entry = "property", key = "name", attribute = true, inline = true)
+	private Map<String, String> mProperties;
+	
+	@Element(name = "authentication", required = false)
+	private Authentication mAuthentication;
+	
+	private InfinitumContext mParentContext;
+	
+	@Override
+	public InfinitumContext getParentContext() {
+		return mParentContext;
+	}
+
+	@Override
+	public void setParentContext(InfinitumContext context) {
+		mParentContext = context;
+	}
 
 	@Override
 	public String getRestHost() {
-		return mRestHost;
+		String host = mProperties.get("host");
+		if (host == null || host.trim().length() == 0)
+			throw new InfinitumConfigurationException("Web service host not specified!");
+		return host;
 	}
 
 	@Override
 	public void setRestHost(String restHost) {
 		if (!restHost.endsWith("/"))
 			restHost += '/';
-		mRestHost = restHost;
+		mProperties.put("host", restHost);
 	}
 
 	@Override
 	public void setRestAuthenticated(boolean isRestAuthenticated) {
-		mIsRestAuthenticated = isRestAuthenticated;
+		mAuthentication = new Authentication();
 	}
 
 	@Override
 	public boolean isRestAuthenticated() {
-		return mIsRestAuthenticated;
+		if (mAuthentication == null)
+			return false;
+		return mAuthentication.mIsEnabled;
 	}
 
 	@Override
 	public void setAuthStrategy(String strategy)
 			throws InfinitumConfigurationException {
+		if (mAuthentication == null)
+			mAuthentication = new Authentication();
 		if ("token".equalsIgnoreCase(strategy))
-			mAuthStrategy = new SharedSecretAuthentication();
+			mAuthentication.mStrategy = "token";
+		else
+			throw new InfinitumConfigurationException(
+					"Unrecognized authentication strategy '" + strategy + "'.");
+	}
+	
+	@Override
+	public <T extends AuthenticationStrategy> void setAuthStrategy(T strategy) {
+		if (mAuthentication == null)
+			mAuthentication = new Authentication();
+		setAuthStrategy(strategy.getClass().getSimpleName());
+	}
+
+	@Override
+	public AuthenticationStrategy getAuthStrategy() {
+		if (mAuthentication == null)
+			return null;
+		if (mAuthentication.mAuthBean != null) {
+			return mParentContext.getBean(mAuthentication.mAuthBean, AuthenticationStrategy.class);
+		}
+		String strategy = mAuthentication.mStrategy;
+		if ("token".equalsIgnoreCase(strategy)) {
+			SharedSecretAuthentication auth = new SharedSecretAuthentication();
+			if (mAuthentication.mAuthProperties.containsKey("tokenName"))
+				auth.setTokenName(mAuthentication.mAuthProperties.get("tokenName"));
+			if (mAuthentication.mAuthProperties.containsKey("token"))
+				auth.setToken(mAuthentication.mAuthProperties.get("token"));
+			return auth;
+		}
 		else
 			throw new InfinitumConfigurationException(
 					"Unrecognized authentication strategy '" + strategy + "'.");
 	}
 
 	@Override
-	public <T extends AuthenticationStrategy> void setAuthStrategy(T strategy) {
-		mAuthStrategy = strategy;
-	}
-
-	@Override
-	public AuthenticationStrategy getAuthStrategy() {
-		return mAuthStrategy;
-	}
-
-	@Override
 	public int getConnectionTimeout() {
-		return mConnectionTimeout;
+		String timeout = mProperties.get("connectionTimeout");
+		if (timeout == null)
+			return 0;
+		return Integer.parseInt(timeout);
 	}
 
 	@Override
-	public void setConnectionTimeout(int mConnectionTimeout) {
-		this.mConnectionTimeout = mConnectionTimeout;
+	public void setConnectionTimeout(int connectionTimeout) {
+		mProperties.put("connectionTimeout", Integer.toString(connectionTimeout));
 	}
 
 	@Override
 	public int getResponseTimeout() {
-		return mResponseTimeout;
+		String timeout = mProperties.get("responseTimeout");
+		if (timeout == null)
+			return 0;
+		return Integer.parseInt(timeout);
 	}
 
 	@Override
-	public void setResponseTimeout(int mResponseTimeout) {
-		this.mResponseTimeout = mResponseTimeout;
+	public void setResponseTimeout(int responseTimeout) {
+		mProperties.put("responseTimeout", Integer.toString(responseTimeout));
 	}
 
 	@Override
@@ -112,6 +163,23 @@ public class RestfulContext implements RestfulConfiguration {
 	@Override
 	public void setClientBean(String clientBean) {
 		mClientBean = clientBean;
+	}
+
+	@Root
+	private static class Authentication {
+
+		@Attribute(name = "enabled", required = false)
+		private boolean mIsEnabled = true;
+
+		@Attribute(name = "ref", required = false)
+		private String mAuthBean;
+
+		@Attribute(name = "strategy", required = false)
+		private String mStrategy;
+
+		@ElementMap(required = false, entry = "property", key = "name", attribute = true, inline = true)
+		private Map<String, String> mAuthProperties;
+		
 	}
 
 }

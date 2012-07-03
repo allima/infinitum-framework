@@ -31,11 +31,11 @@ import java.util.Set;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
-import android.content.res.XmlResourceParser;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
@@ -53,7 +53,7 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  * <p>
  * This class provides runtime resolution for model persistence through XML map
  * files ({@code imf.xml}). Each persistent entity should have an
- * {@code imf.xml} file associated with it and placed in res/xml. If an entity
+ * {@code imf.xml} file associated with it and placed in res/raw. If an entity
  * has no such file, it is marked as transient.
  * </p>
  * 
@@ -99,7 +99,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public boolean isPersistent(Class<?> c) {
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		return parser != null;
 	}
 
@@ -110,7 +110,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		String table;
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -154,7 +154,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				ret.add(f);
 				continue;
 			}
-			XmlResourceParser parser = loadXmlMapFile(c);
+			XmlPullParser parser = loadXmlMapFile(c);
 			try {
 				int code = parser.getEventType();
 				while (code != XmlPullParser.END_DOCUMENT) {
@@ -196,7 +196,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			return mPrimaryKeyCache.get(c);
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -236,7 +236,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		Class<?> c = f.getDeclaringClass();
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -297,7 +297,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		Class<?> c = f.getDeclaringClass();
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -351,7 +351,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		Class<?> c = f.getDeclaringClass();
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -396,7 +396,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		Class<?> c = f.getDeclaringClass();
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -457,7 +457,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			return mCascadeCache.get(c);
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -493,7 +493,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		Class<?> c = f.getDeclaringClass();
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -588,7 +588,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			return mLazyLoadingCache.get(c);
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -623,7 +623,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			return mRestResourceCache.get(c);
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -659,7 +659,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		Class<?> c = f.getDeclaringClass();
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -704,16 +704,21 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				+ "'.");
 	}
 
-	private XmlResourceParser loadXmlMapFile(Class<?> c) {
+	private XmlPullParser loadXmlMapFile(Class<?> c) {
 		Resources res = mContext.getResources();
+		int id = 0;
 		if (!mResourceCache.containsKey(c)) {
 			String fileName = c.getSimpleName().toLowerCase();
-			int id = res.getIdentifier(fileName, "xml", mContext.getPackageName());
+			id = res.getIdentifier(fileName, "raw", mContext.getPackageName());
 			mResourceCache.put(c, id);
 		}
 		try {
-			return res.getXml(mResourceCache.get(c));
+			XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+			parser.setInput(res.openRawResource(mResourceCache.get(c)), "UTF-8");
+			return parser;
 		} catch (NotFoundException e) {
+			return null;
+		} catch (XmlPullParserException e) {
 			return null;
 		}
 	}
@@ -722,7 +727,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		if (mManyToManyCache.containsKey(f))
 			return mManyToManyCache.get(f);
 		Class<?> c = f.getDeclaringClass();
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -783,7 +788,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		if (mManyToOneCache.containsKey(f))
 			return mManyToOneCache.get(f);
 		Class<?> c = f.getDeclaringClass();
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -832,7 +837,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		if (mOneToManyCache.containsKey(f))
 			return mOneToManyCache.get(f);
 		Class<?> c = f.getDeclaringClass();
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
@@ -884,7 +889,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		if (mOneToOneCache.containsKey(f))
 			return mOneToOneCache.get(f);
 		Class<?> c = f.getDeclaringClass();
-		XmlResourceParser parser = loadXmlMapFile(c);
+		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {

@@ -33,6 +33,21 @@ import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 public interface RestfulConfiguration {
 
 	/**
+	 * Returns the parent context containing this {@code RestfulConfiguration}.
+	 * 
+	 * @return parent {@code InfinitumContext}
+	 */
+	InfinitumContext getParentContext();
+
+	/**
+	 * Sets the parent context containing this {@code RestfulConfiguration}.
+	 * 
+	 * @param context
+	 *            parent (@code InfinitumContext}
+	 */
+	void setParentContext(InfinitumContext context);
+
+	/**
 	 * Returns the configured web service host URL.
 	 * 
 	 * @return web service URL

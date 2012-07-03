@@ -23,9 +23,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.clarionmedia.infinitum.context.ContextProvider;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.impl.ApplicationContext;
-import com.clarionmedia.infinitum.context.impl.ContextFactory;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -60,10 +59,10 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	 *            the {@code SqliteMapper} to use for {@link Object} mapping
 	 */
 	public SqliteDbHelper(Context context, SqliteMapper mapper) {
-		super(context, ContextFactory.getInstance().getContext().getSqliteDbName(), null, ContextFactory.getInstance()
+		super(context, ContextProvider.getInstance().getContext().getSqliteDbName(), null, ContextProvider.getInstance()
 				.getContext().getSqliteDbVersion());
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mInfinitumContext = ContextFactory.getInstance().getContext();
+		mInfinitumContext = ContextProvider.getInstance().getContext();
 		mSqlBuilder = new SqliteBuilder(mapper);
 		mPropLoader = new PropertyLoader(mInfinitumContext.getAndroidContext());
 	}
@@ -78,7 +77,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * Returns the encapsulated {@link ApplicationContext}.
+	 * Returns the encapsulated {@link InfinitumContext}.
 	 * 
 	 * @return {@code InfinitumContext} instance
 	 */
