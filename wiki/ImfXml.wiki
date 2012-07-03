@@ -6,7 +6,7 @@
 
 = Introduction =
 
-As an alternative to inline Java annotations, domain model metadata can be provided through Infinitum XML mappings known as imf.xml files. Each persistent class has an imf.xml file associated with it, and, like InfinitumCfgXml, these files are stored in res/xml. For example, a class `Foo` would have a map file `foo.imf.xml`.
+As an alternative to inline Java annotations, domain model metadata can be provided through Infinitum XML mappings known as imf.xml files. Each persistent class has an imf.xml file associated with it, and, like InfinitumCfgXml, these files are stored in res/raw. For example, a class `Foo` would have a map file `foo.imf.xml`.
 
 = Class-level Configuration =
 
