@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE infinitum-mapping PUBLIC
+"-//Infinitum/Infinitum Mapping DTD 1.0//EN"
+"http://clarionmedia.com/infinitum/dtd/infinitum-mapping-1.0.dtd">
+
+<infinitum-mapping>
+    
+    <class name="com.clarionmedia.infinitumtest.domain.SideB">
+        <primary-key name="mId" type="long" />
+        <property name="mName" type="String" />
+    </class>
+    
+</infinitum-mapping>
