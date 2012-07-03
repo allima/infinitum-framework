@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.RestfulTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
@@ -49,7 +49,7 @@ public class RestfulMapper extends ObjectMapper {
 	private PersistencePolicy mPolicy;
 
 	public RestfulMapper() {
-		mPolicy = ContextProvider.getInstance().getPersistencePolicy();
+		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mTypeAdapters = new HashMap<Class<?>, RestfulTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, RestfulTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, RestfulTypeAdapters.BYTE);

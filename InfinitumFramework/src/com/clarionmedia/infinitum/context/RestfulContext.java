@@ -28,9 +28,10 @@ import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 05/18/12
+ * @version 1.0
+ * @since 05/18/12
  */
-public interface RestfulConfiguration {
+public interface RestfulContext {
 
 	/**
 	 * Returns the parent context containing this {@code RestfulConfiguration}.
@@ -88,8 +89,7 @@ public interface RestfulConfiguration {
 	 * @throws InfinitumConfigurationException
 	 *             if the given strategy does not exist
 	 */
-	void setAuthStrategy(String strategy)
-			throws InfinitumConfigurationException;
+	void setAuthStrategy(String strategy) throws InfinitumConfigurationException;
 
 	/**
 	 * Sets the {@link AuthenticationStrategy} for this

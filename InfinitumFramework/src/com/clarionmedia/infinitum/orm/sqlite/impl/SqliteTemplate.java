@@ -32,7 +32,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
@@ -100,11 +100,11 @@ public class SqliteTemplate implements SqliteOperations {
 	public SqliteTemplate(SqliteSession session) {
 		mSqliteUtil = new SqliteUtil();
 		mClassReflector = new DefaultClassReflector();
-		mPersistencePolicy = ContextProvider.getInstance().getPersistencePolicy();
+		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mSession = session;
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mInfinitumContext = ContextProvider.getInstance().getContext();
+		mInfinitumContext = ContextFactory.getInstance().getContext();
 		mIsAutocommit = mInfinitumContext.isAutocommit();
 		mMapper = new SqliteMapper();
 		mSqlBuilder = new SqliteBuilder(mMapper);

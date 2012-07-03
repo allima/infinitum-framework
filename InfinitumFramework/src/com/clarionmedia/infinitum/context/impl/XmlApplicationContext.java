@@ -31,9 +31,9 @@ import org.simpleframework.xml.ElementMap;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.core.Commit;
 import android.content.Context;
-import com.clarionmedia.infinitum.context.BeanProvider;
+import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.RestfulConfiguration;
+import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -44,39 +44,39 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 /**
  * <p>
  * Implementation of {@link InfinitumContext}. This should not be instantiated
- * directly but rather obtained through the {@link SimpleXmlContextFactory},
- * which creates an instance of this from {@code infinitum.cfg.xml}.
+ * directly but rather obtained through the {@link XmlContextFactory}, which
+ * creates an instance of this from {@code infinitum.cfg.xml}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 06/26/12
+ * @version 1.0
+ * @since 06/26/12
  */
 @Root(name = "infinitum-configuration")
 public class XmlApplicationContext implements InfinitumContext {
-	
+
 	private static PersistencePolicy sPersistencePolicy;
 
 	@ElementMap(name = "application", entry = "property", key = "name", attribute = true, required = false)
 	private Map<String, String> mAppConfig;
-	
+
 	@ElementMap(name = "sqlite", entry = "property", key = "name", attribute = true, required = false)
 	private Map<String, String> mSqliteConfig;
-	
+
 	@ElementList(name = "domain")
 	private List<Model> mModels;
-	
+
 	@ElementList(name = "beans")
 	private List<Bean> mBeans;
-	private BeanProvider mBeanProvider;
-	
-	@Element(name = "rest", required = false, type = RestfulContext.class)
-	private RestfulConfiguration mRestConfig;
-	
+	private BeanFactory mBeanProvider;
+
+	@Element(name = "rest", required = false, type = XmlRestfulContext.class)
+	private RestfulContext mRestConfig;
+
 	private Context mContext;
 
 	@Override
-	public Session getSession(DataSource source)
-			throws InfinitumConfigurationException {
+	public Session getSession(DataSource source) throws InfinitumConfigurationException {
 		switch (source) {
 		case Sqlite:
 			return new SqliteSession(mContext);
@@ -201,12 +201,12 @@ public class XmlApplicationContext implements InfinitumContext {
 	}
 
 	@Override
-	public RestfulConfiguration getRestfulConfiguration() {
+	public RestfulContext getRestfulConfiguration() {
 		return mRestConfig;
 	}
 
 	@Override
-	public void setRestfulConfiguration(RestfulConfiguration restContext) {
+	public void setRestfulConfiguration(RestfulContext restContext) {
 		mRestConfig = restContext;
 	}
 
@@ -221,12 +221,12 @@ public class XmlApplicationContext implements InfinitumContext {
 	}
 
 	@Override
-	public BeanProvider getBeanContainer() {
+	public BeanFactory getBeanContainer() {
 		return mBeanProvider;
 	}
 
 	@Override
-	public void setBeanContainer(BeanProvider beanContainer) {
+	public void setBeanContainer(BeanFactory beanContainer) {
 		mBeanProvider = beanContainer;
 	}
 
@@ -254,16 +254,16 @@ public class XmlApplicationContext implements InfinitumContext {
 		}
 		return sPersistencePolicy;
 	}
-	
+
 	@SuppressWarnings("unused")
 	@Commit
 	private void postProcess() {
 		mRestConfig.setParentContext(this);
 		initializeBeanProvider();
 	}
-	
+
 	private void initializeBeanProvider() {
-		mBeanProvider = new BeanFactory();
+		mBeanProvider = new ConfigurableBeanFactory();
 		for (Bean bean : mBeans) {
 			Map<String, Object> propertiesMap = new HashMap<String, Object>();
 			for (Bean.Property property : bean.getProperties()) {
@@ -279,35 +279,35 @@ public class XmlApplicationContext implements InfinitumContext {
 			mBeanProvider.registerBean(bean.getId(), bean.getClassName(), propertiesMap);
 		}
 	}
-	
+
 	@Root
 	private static class Model {
-		
+
 		@Attribute(name = "resource")
 		private String mResource;
 
 		public String getResource() {
 			return mResource;
 		}
-		
+
 		public void setResource(String resource) {
 			mResource = resource;
 		}
-		
+
 	}
-	
+
 	@Root
 	private static class Bean {
-		
+
 		@Attribute(name = "id")
 		private String mId;
-		
+
 		@Attribute(name = "src")
 		private String mClass;
-		
+
 		@ElementList(required = false, entry = "property", inline = true)
 		private List<Property> mProperties;
-		
+
 		@SuppressWarnings("unused")
 		public Bean() {
 			mProperties = new ArrayList<Property>();
@@ -324,16 +324,16 @@ public class XmlApplicationContext implements InfinitumContext {
 		public List<Property> getProperties() {
 			return mProperties;
 		}
-		
+
 		@Root
 		private static class Property {
-			
+
 			@Attribute(name = "name")
 			private String mName;
-			
+
 			@Attribute(name = "value", required = false)
 			private String mValue;
-			
+
 			@Attribute(name = "ref", required = false)
 			private String mRef;
 
@@ -348,7 +348,7 @@ public class XmlApplicationContext implements InfinitumContext {
 			public String getRef() {
 				return mRef;
 			}
-			
+
 		}
 	}
 

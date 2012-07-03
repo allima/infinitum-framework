@@ -27,7 +27,7 @@ import org.simpleframework.xml.core.Persister;
 import android.content.Context;
 import android.content.res.Resources;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -36,11 +36,11 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * <p>
  * Provides access to an {@link InfinitumContext} singleton. In order for this
  * class to function properly, an {@code infinitum.cfg.xml} file must be created
- * and {@link PullParserContextFactory#configure(Context, int)} must be called
- * using the location of the XML file before accessing the
- * {@code InfinitumContext} or an {@link InfinitumConfigurationException} will
- * be thrown. {@code ContextFactory} singletons should be acquired by calling
- * the static method {@link PullParserContextFactory#getInstance()}.
+ * and {@link ContextFactory#configure(Context, int)} must be called before
+ * accessing the {@code InfinitumContext} or an
+ * {@link InfinitumConfigurationException} will be thrown.
+ * {@link ContextFactory} singletons should be acquired by calling the static
+ * method {@link ContextFactory#getInstance()}.
  * </p>
  * <p>
  * {@code SimpleXmlContextFactory} uses the Simple XML framework to read
@@ -48,31 +48,32 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 06/25/12
+ * @version 1.0
+ * @since 06/25/12
  */
-public class SimpleXmlContextFactory extends ContextProvider {
-	
-	private static SimpleXmlContextFactory sContextFactory;
+public class XmlContextFactory extends ContextFactory {
+
+	private static XmlContextFactory sContextFactory;
 	private static Context sContext;
 	private static InfinitumContext sInfinitumContext;
-	
+
 	/**
-	 * Constructs a new {@code SimpleXmlContextFactory}. This is marked {@code private}
-	 * to prevent direct instantiation. {@code SimpleXmlContextFactory} should be
-	 * retrieved as a singleton.
+	 * Constructs a new {@code SimpleXmlContextFactory}. This is marked
+	 * {@code private} to prevent direct instantiation.
+	 * {@code SimpleXmlContextFactory} should be retrieved as a singleton.
 	 */
-	private SimpleXmlContextFactory() {
-		
+	private XmlContextFactory() {
+
 	}
-	
+
 	/**
 	 * Retrieves a {@code SimpleXmlContextFactory} instance.
 	 * 
 	 * @return {@code SimpleContextFactory}
 	 */
-	public static SimpleXmlContextFactory newInstance() {
+	public static XmlContextFactory newInstance() {
 		if (sContextFactory == null)
-			sContextFactory = new SimpleXmlContextFactory();
+			sContextFactory = new XmlContextFactory();
 		return sContextFactory;
 	}
 
@@ -116,7 +117,7 @@ public class SimpleXmlContextFactory extends ContextProvider {
 	public Context getAndroidContext() {
 		return sContext;
 	}
-	
+
 	private InfinitumContext configureFromXml(int configId) {
 		Resources resources = sContext.getResources();
 		Serializer serializer = new Persister();

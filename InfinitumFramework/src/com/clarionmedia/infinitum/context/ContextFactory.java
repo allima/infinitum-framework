@@ -21,7 +21,7 @@ package com.clarionmedia.infinitum.context;
 
 import android.content.Context;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.context.impl.SimpleXmlContextFactory;
+import com.clarionmedia.infinitum.context.impl.XmlContextFactory;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
 /**
@@ -30,17 +30,18 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 05/18/12
+ * @version 1.0
+ * @since 05/18/12
  */
-public abstract class ContextProvider {
+public abstract class ContextFactory {
 
 	/**
-	 * Retrieves a new {@code ContextProvider} instance.
+	 * Retrieves a new {@code ContextFactory} instance.
 	 * 
-	 * @return {@code ContextProvider}
+	 * @return {@code ContextFactory}
 	 */
-	public static ContextProvider getInstance() {
-		return SimpleXmlContextFactory.newInstance();
+	public static ContextFactory getInstance() {
+		return XmlContextFactory.newInstance();
 	}
 
 	/**
@@ -55,8 +56,7 @@ public abstract class ContextProvider {
 	 *             if the implied configuration file could not be found or if
 	 *             the file could not be parsed
 	 */
-	public abstract InfinitumContext configure(Context context)
-			throws InfinitumConfigurationException;
+	public abstract InfinitumContext configure(Context context) throws InfinitumConfigurationException;
 
 	/**
 	 * Configures Infinitum with the specified configuration file. This method
@@ -71,21 +71,18 @@ public abstract class ContextProvider {
 	 *             if the configuration file could not be found or if the file
 	 *             could not be parsed
 	 */
-	public abstract InfinitumContext configure(Context context, int configId)
-			throws InfinitumConfigurationException;
+	public abstract InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException;
 
 	/**
 	 * Retrieves the {@link InfinitumContext} singleton.
-	 * {@link PullParserContextFactory#configure} must be called before using
-	 * this method. Otherwise, an {@link InfinitumConfigurationException} will
-	 * be thrown.
+	 * {@link ContextFactory#configure} must be called before using this method.
+	 * Otherwise, an {@link InfinitumConfigurationException} will be thrown.
 	 * 
 	 * @return the {@code InfinitumContext} singleton
 	 * @throws InfinitumConfigurationException
 	 *             if {@code configure} was not called
 	 */
-	public abstract InfinitumContext getContext()
-			throws InfinitumConfigurationException;
+	public abstract InfinitumContext getContext() throws InfinitumConfigurationException;
 
 	/**
 	 * Retrieves the configured {@link PersistencePolicy}.

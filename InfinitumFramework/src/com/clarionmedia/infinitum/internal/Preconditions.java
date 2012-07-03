@@ -26,7 +26,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.res.XmlResourceParser;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
@@ -63,7 +63,7 @@ public class Preconditions {
 	 *            model to check persistence for
 	 */
 	public static void checkPersistenceForModify(Object model) {
-		InfinitumContext ctx = ContextProvider.getInstance().getContext();
+		InfinitumContext ctx = ContextFactory.getInstance().getContext();
 		PersistencePolicy policy = ctx.getPersistencePolicy();
 		if (!policy.isPersistent(model.getClass()))
 			throw new InfinitumRuntimeException(String.format(new PropertyLoader(ctx.getAndroidContext())
@@ -78,7 +78,7 @@ public class Preconditions {
 	 *            {@code Class} to check persistence for
 	 */
 	public static void checkPersistenceForLoading(Class<?> c) {
-		InfinitumContext ctx = ContextProvider.getInstance().getContext();
+		InfinitumContext ctx = ContextFactory.getInstance().getContext();
 		PersistencePolicy policy = ctx.getPersistencePolicy();
 		if (!policy.isPersistent(c))
 			throw new InfinitumRuntimeException(String.format(
@@ -95,7 +95,7 @@ public class Preconditions {
 	 *            the {@code XmlResourceParser} reading the XML file
 	 */
 	public static void checkMapFileClass(Class<?> c, XmlResourceParser parser) {
-		PropertyLoader propLoader = new PropertyLoader(ContextProvider.getInstance().getAndroidContext());
+		PropertyLoader propLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {

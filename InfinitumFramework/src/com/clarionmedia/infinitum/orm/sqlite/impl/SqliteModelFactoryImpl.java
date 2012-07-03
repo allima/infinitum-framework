@@ -30,7 +30,7 @@ import java.util.List;
 import android.content.Context;
 import android.database.Cursor;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -82,9 +82,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		mSqlBuilder = new SqliteBuilder(mapper);
 		mSession = session;
 		mMapper = mapper;
-		mPolicy = ContextProvider.getInstance().getPersistencePolicy();
+		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mPropLoader = new PropertyLoader(ContextProvider.getInstance().getAndroidContext());
+		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
 
 	@Override

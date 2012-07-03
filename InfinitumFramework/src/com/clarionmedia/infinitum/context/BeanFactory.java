@@ -32,9 +32,10 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 05/18/12
+ * @version 1.0
+ * @since 05/18/12
  */
-public interface BeanProvider {
+public interface BeanFactory {
 
 	/**
 	 * Retrieves an instance of the bean with the given name. The name is
@@ -61,8 +62,7 @@ public interface BeanProvider {
 	 *             if the bean does not exist, could not be constructed, or is
 	 *             of the wrong type
 	 */
-	<T> T loadBean(String name, Class<T> clazz)
-			throws InfinitumConfigurationException;
+	<T> T loadBean(String name, Class<T> clazz) throws InfinitumConfigurationException;
 
 	/**
 	 * Checks if a bean with the given name exists.
