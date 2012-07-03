@@ -34,6 +34,6 @@ In order to specify an alternate `AuthenticationStrategy` implementation, a bean
     <authentication ref="myAuthentication" enabled="true" />
 </rest>
 <beans>
-    <bean id="myAuthentication" class="com.example.rest.MyAuthentication" />
+    <bean id="myAuthentication" src="com.example.rest.MyAuthentication" />
 </beans>
 }}}
