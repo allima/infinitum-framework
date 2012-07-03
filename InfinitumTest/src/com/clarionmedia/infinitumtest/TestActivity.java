@@ -25,11 +25,10 @@ import java.util.List;
 import android.app.Activity;
 import android.os.Bundle;
 
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.InfinitumContext.DataSource;
-import com.clarionmedia.infinitum.context.impl.SimpleXmlContextFactory;
 import com.clarionmedia.infinitum.orm.Session;
-import com.clarionmedia.infinitumtest.domain.SideB;
 
 public class TestActivity extends Activity {
 
@@ -39,7 +38,7 @@ public class TestActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		InfinitumContext context = SimpleXmlContextFactory.getInstance().configure(this);
+		InfinitumContext context = ContextFactory.getInstance().configure(this);
 //		RestfulClient rest = new RestfulClientFactory().registerDeserializer(Bar.class, new JsonDeserializer<Bar>() {
 //			@Override
 //			public Bar deserializeObject(String json) {
@@ -66,9 +65,6 @@ public class TestActivity extends Activity {
 		
 		Session session = context.getSession(DataSource.Sqlite);
 		session.open();
-		
-		SideB b = new SideB();
-		session.save(b);
 		
 		session.close();
 		

@@ -7,7 +7,7 @@
 
     <application>
         <property name="debug">true</property> <!-- [true | false] -->
-        <property name="mode">xml</property> <!-- [annotations | xml] -->
+        <property name="mode">annotations</property> <!-- [annotations | xml] -->
         <property name="recycleCache">true</property> <!-- [true | false] -->
     </application>
     
@@ -22,14 +22,13 @@
         <property name="host">http://ec2-174-129-207-209.compute-1.amazonaws.com/infinitum</property>
         <property name="connectionTimeout">5000</property>
         <property name="responseTimeout">5000</property>
-        <authentication ref="tokenAuthentication" enabled="true" />
+<!--         <authentication ref="tokenAuthentication" enabled="true" /> -->
         
-        <!--
         <authentication strategy="token" enabled="true">
             <property name="tokenName">token</property>
             <property name="token">e489e8383c0ae2b7fe4dcf178330b4ac</property>
         </authentication>
-        -->
+
     </rest>
     
     <domain>
