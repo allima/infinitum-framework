@@ -94,9 +94,9 @@ The bean `restClient` will be used as the `RestfulClient`, while the `customAuth
 
 {{{
 <bean id="restClient"
-    class="com.clarionmedia.infinitumapp.service.MyRestfulClient" />
+    src="com.clarionmedia.infinitumapp.service.MyRestfulClient" />
 <bean id="customAuthenticator"
-    class="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
+    src="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
 }}}
 
 `MyRestfulClient` must extend the RestfulClient abstract class, and `MyAuthenticator` must implement the AuthenticationStrategy interface.
@@ -105,7 +105,7 @@ The bean `restClient` will be used as the `RestfulClient`, while the `customAuth
 
 Infinitum supports the notion of beans for injecting custom implementations for some of its different services at runtime, as was outlined briefly in the RESTful Configuration section above. For example, implementations of `RestfulClient` and `AuthenticationStrategy` can be provided.
 
-Beans are defined in `infinitum.cfg.xml`. Beans themselves can be injected with basic properties, such as `int`, `long`, `double`, `float`, and `String` fields.
+Beans are defined in `infinitum.cfg.xml`. Beans themselves can be injected with basic properties, such as `int`, `long`, `double`, `float`, and `String` fields, using the `value` attribute or with other beans using the `ref` attribute.
 
 == Bean Configuration Example ==
 
@@ -113,9 +113,9 @@ Take, for example, an `AuthenticationStrategy` implementation called `MyTokenAut
 
 {{{
 <beans>
-    <bean id="tokenAuthenticator" class="com.clarionmedia.infinitumapp.service.MyTokenAuthenticator">
-        <property name="tokenName">myToken</property>
-        <property name="token">e489e8383c0ae2b7</property>
+    <bean id="tokenAuthenticator" src="com.clarionmedia.infinitumapp.service.MyTokenAuthenticator">
+        <property name="tokenName" value="myToken" />
+        <property name="token" value="e489e8383c0ae2b7" />
     </bean>
 </beans>
 }}}
@@ -170,8 +170,8 @@ All of the components discussed above are used to compose the `infinitum.cfg.xml
     </rest>
 
     <beans>
-        <bean id="restClient" class="com.clarionmedia.infinitumapp.service.MyRestfulClient" />
-        <bean id="authenticator" class="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
+        <bean id="restClient" src="com.clarionmedia.infinitumapp.service.MyRestfulClient" />
+        <bean id="authenticator" src="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
     </beans>
 
 </infinitum-configuration>
