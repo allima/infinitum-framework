@@ -63,8 +63,8 @@ A `TokenGenerator` can be provided to a `SharedSecretAuthentication` using the `
 </rest>
 
 <beans>
-    <bean id="tokenGenerator" class="com.example.rest.TokenGenerator" />
-    <bean id="tokenAuthentication" class="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication">
+    <bean id="tokenGenerator" src="com.example.rest.TokenGenerator" />
+    <bean id="tokenAuthentication" src="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication">
         <property name="mGenerator" ref="tokenGenerator" />
     </bean>
 </beans>
