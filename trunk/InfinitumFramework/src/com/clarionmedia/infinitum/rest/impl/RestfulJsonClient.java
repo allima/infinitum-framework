@@ -34,7 +34,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.rest.Deserializer;
@@ -59,7 +59,7 @@ public class RestfulJsonClient extends RestfulClient {
 
 	/**
 	 * Constructs a new {@code RestfulJsonClient}. You must call
-	 * {@link ContextProvider#configure(android.content.Context, int)} before
+	 * {@link ContextFactory#configure(android.content.Context, int)} before
 	 * invoking this constructor.
 	 */
 	public RestfulJsonClient() {

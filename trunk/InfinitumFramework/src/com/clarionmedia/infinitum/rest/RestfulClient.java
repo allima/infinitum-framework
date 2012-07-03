@@ -43,7 +43,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
@@ -82,13 +82,13 @@ public abstract class RestfulClient {
 
 	/**
 	 * Constructs a new {@code RestfulClient}. You must call
-	 * {@link ContextProvider#configure(android.content.Context, int)} before
+	 * {@link ContextFactory#configure(android.content.Context, int)} before
 	 * invoking this constructor.
 	 */
 	public RestfulClient() {
 		mLogger = Logger.getInstance(getClass().getSimpleName());
 		mMapper = new RestfulMapper();
-		mPolicy = ContextProvider.getInstance().getPersistencePolicy();
+		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 	}
 
 	/**
@@ -127,7 +127,7 @@ public abstract class RestfulClient {
 	 * using it.
 	 */
 	public final void prepare() {
-		mContext = ContextProvider.getInstance().getContext();
+		mContext = ContextFactory.getInstance().getContext();
 		mHost = mContext.getRestfulConfiguration().getRestHost();
 		mIsAuthenticated = mContext.getRestfulConfiguration().isRestAuthenticated();
 		mAuthStrategy = mContext.getRestfulConfiguration().getAuthStrategy();

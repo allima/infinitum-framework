@@ -29,9 +29,9 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.impl.SimpleXmlContextFactory;
+import com.clarionmedia.infinitum.context.impl.XmlContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.Session;
@@ -70,11 +70,11 @@ public class SqliteSession implements Session {
 	public SqliteSession(Context context) {
 		mContext = context;
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mInfinitumContext = SimpleXmlContextFactory.getInstance().getContext();
+		mInfinitumContext = XmlContextFactory.getInstance().getContext();
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = DEFAULT_CACHE_SIZE;
-		mPolicy = ContextProvider.getInstance().getPersistencePolicy();
+		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class SqliteSession implements Session {
 	 */
 	public SqliteSession(Context context, int cacheSize) {
 		mContext = context;
-		mInfinitumContext = ContextProvider.getInstance().getContext();
+		mInfinitumContext = ContextFactory.getInstance().getContext();
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = cacheSize;

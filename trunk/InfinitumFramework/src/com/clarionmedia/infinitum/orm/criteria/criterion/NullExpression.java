@@ -21,7 +21,7 @@ package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.lang.reflect.Field;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.InvalidCriteriaException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -54,7 +54,7 @@ public class NullExpression extends Criterion {
 		StringBuilder query = new StringBuilder();
 		Class<?> c = criteria.getEntityClass();
 		Field f = null;
-		PersistencePolicy policy = ContextProvider.getInstance().getPersistencePolicy();
+		PersistencePolicy policy = ContextFactory.getInstance().getPersistencePolicy();
 		try {
 			f = policy.findPersistentField(c, mFieldName);
 			if (f == null)

@@ -25,33 +25,34 @@ import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementMap;
 import org.simpleframework.xml.Root;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.RestfulConfiguration;
+import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
 
 /**
  * <p>
- * Implementation of {@link RestfulConfiguration} containing RESTful web service
+ * Implementation of {@link RestfulContext} containing RESTful web service
  * configuration information.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 03/30/12
+ * @version 1.0
+ * @since 03/30/12
  */
-public class RestfulContext implements RestfulConfiguration {
+public class XmlRestfulContext implements RestfulContext {
 
 	@Attribute(name = "ref", required = false)
 	private String mClientBean;
-	
+
 	@ElementMap(required = true, entry = "property", key = "name", attribute = true, inline = true)
 	private Map<String, String> mProperties;
-	
+
 	@Element(name = "authentication", required = false)
 	private Authentication mAuthentication;
-	
+
 	private InfinitumContext mParentContext;
-	
+
 	@Override
 	public InfinitumContext getParentContext() {
 		return mParentContext;
@@ -90,17 +91,15 @@ public class RestfulContext implements RestfulConfiguration {
 	}
 
 	@Override
-	public void setAuthStrategy(String strategy)
-			throws InfinitumConfigurationException {
+	public void setAuthStrategy(String strategy) throws InfinitumConfigurationException {
 		if (mAuthentication == null)
 			mAuthentication = new Authentication();
 		if ("token".equalsIgnoreCase(strategy))
 			mAuthentication.mStrategy = "token";
 		else
-			throw new InfinitumConfigurationException(
-					"Unrecognized authentication strategy '" + strategy + "'.");
+			throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
 	}
-	
+
 	@Override
 	public <T extends AuthenticationStrategy> void setAuthStrategy(T strategy) {
 		if (mAuthentication == null)
@@ -123,10 +122,8 @@ public class RestfulContext implements RestfulConfiguration {
 			if (mAuthentication.mAuthProperties.containsKey("token"))
 				auth.setToken(mAuthentication.mAuthProperties.get("token"));
 			return auth;
-		}
-		else
-			throw new InfinitumConfigurationException(
-					"Unrecognized authentication strategy '" + strategy + "'.");
+		} else
+			throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
 	}
 
 	@Override
@@ -179,7 +176,7 @@ public class RestfulContext implements RestfulConfiguration {
 
 		@ElementMap(required = false, entry = "property", key = "name", attribute = true, inline = true)
 		private Map<String, String> mAuthProperties;
-		
+
 	}
 
 }

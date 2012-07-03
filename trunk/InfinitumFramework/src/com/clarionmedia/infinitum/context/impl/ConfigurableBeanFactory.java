@@ -23,7 +23,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import com.clarionmedia.infinitum.context.BeanProvider;
+import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
@@ -33,23 +33,24 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
- * Implementation of {@link BeanProvider} for storing beans that have been
- * configured in {@code infinitum.cfg.xml}. {@code BeanFactory} also acts as a
- * service locator for {@link ApplicationContext}.
+ * Implementation of {@link BeanFactory} for storing beans that have been
+ * configured in {@code infinitum.cfg.xml}. {@code ConfigurableBeanFactory} also
+ * acts as a service locator for {@link InfinitumContext}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 04/23/12
+ * @version 1.0
+ * @since 04/23/12
  */
-public class BeanFactory implements BeanProvider {
+public class ConfigurableBeanFactory implements BeanFactory {
 
 	private ClassReflector mClassReflector;
 	private Map<String, Pair<String, Map<String, Object>>> mBeanMap;
 
 	/**
-	 * Constructs a new {@code BeanFactory}.
+	 * Constructs a new {@code ConfigurableBeanFactory}.
 	 */
-	public BeanFactory() {
+	public ConfigurableBeanFactory() {
 		mClassReflector = new DefaultClassReflector();
 		mBeanMap = new HashMap<String, Pair<String, Map<String, Object>>>();
 	}
@@ -68,13 +69,13 @@ public class BeanFactory implements BeanProvider {
 		setFields(bean, params);
 		return bean;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T loadBean(String name, Class<T> clazz) throws InfinitumConfigurationException {
 		Object bean = loadBean(name);
 		if (!clazz.isInstance(bean))
-		    throw new InfinitumConfigurationException("Bean '" + name + "' was not of type '" + clazz.getName() + "'.");
+			throw new InfinitumConfigurationException("Bean '" + name + "' was not of type '" + clazz.getName() + "'.");
 		return (T) bean;
 	}
 

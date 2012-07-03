@@ -19,7 +19,7 @@
 
 package com.clarionmedia.infinitum.rest.impl;
 
-import com.clarionmedia.infinitum.context.ContextProvider;
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.rest.Deserializer;
 import com.clarionmedia.infinitum.rest.RestfulClient;
@@ -65,7 +65,7 @@ public class RestfulClientFactory implements RestfulClientBuilder {
 
 	@Override
 	public RestfulClientBuilder clearConfiguration() {
-		InfinitumContext ctx = ContextProvider.getInstance().getContext();
+		InfinitumContext ctx = ContextFactory.getInstance().getContext();
 		String client = ctx.getRestfulConfiguration().getClientBean();
 		if (client == null)
 			mRestClient = new RestfulJsonClient();

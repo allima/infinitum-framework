@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.context;
 import java.util.List;
 import android.content.Context;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.context.impl.SimpleXmlContextFactory;
+import com.clarionmedia.infinitum.context.impl.XmlContextFactory;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
@@ -30,7 +30,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * <p>
  * Acts as a container for framework-wide context information. This should not
  * be instantiated directly but rather obtained through the
- * {@link SimpleXmlContextFactory}, which creates an instance of this from
+ * {@link XmlContextFactory}, which creates an instance of this from
  * {@code infinitum.cfg.xml}. {@code InfinitumContext} describes an
  * application's domain model and how it should be persisted. Entity persistence
  * can be configured using one of two policies: XML map files or annotations.
@@ -46,7 +46,8 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * </pre>
  * 
  * @author Tyler Treat
- * @version 1.0 05/18/12
+ * @version 1.0
+ * @since 05/18/12
  */
 public interface InfinitumContext {
 
@@ -268,21 +269,21 @@ public interface InfinitumContext {
 	boolean isAutocommit();
 
 	/**
-	 * Retrieves the {@link RestfulConfiguration} for this
-	 * {@code InfinitumContext}. The {@code RestfulConfiguration} contains
-	 * configuration settings for the RESTful client.
+	 * Retrieves the {@link RestfulContext} for this {@code InfinitumContext}.
+	 * The {@code RestfulConfiguration} contains configuration settings for the
+	 * RESTful client.
 	 * 
 	 * @return {@code RestfulConfiguration}
 	 */
-	RestfulConfiguration getRestfulConfiguration();
+	RestfulContext getRestfulConfiguration();
 
 	/**
-	 * Sets the {@link RestfulConfiguration} for this {@code InfinitumContext}.
+	 * Sets the {@link RestfulContext} for this {@code InfinitumContext}.
 	 * 
 	 * @param restContext
 	 *            the {@code RestfulConfiguration} to set
 	 */
-	void setRestfulConfiguration(RestfulConfiguration restContext);
+	void setRestfulConfiguration(RestfulContext restContext);
 
 	/**
 	 * Retrieves the Android {@link Context} for this {@code InfinitumContext},
@@ -301,21 +302,21 @@ public interface InfinitumContext {
 	void setContext(Context context);
 
 	/**
-	 * Retrieves the {@link BeanProvider} for this {@code InfinitumContext}. The
+	 * Retrieves the {@link BeanFactory} for this {@code InfinitumContext}. The
 	 * {@code BeanContainer} is used to retrieve beans that have been configured
 	 * in {@code infinitum.cfg.xml}.
 	 * 
 	 * @return {@code BeanContainer}
 	 */
-	BeanProvider getBeanContainer();
+	BeanFactory getBeanContainer();
 
 	/**
-	 * Sets the {@link BeanProvider} for this {@code InfinitumContext}.
+	 * Sets the {@link BeanFactory} for this {@code InfinitumContext}.
 	 * 
 	 * @param beanContainer
 	 *            the {@code BeanContainer} to set
 	 */
-	void setBeanContainer(BeanProvider beanContainer);
+	void setBeanContainer(BeanFactory beanContainer);
 
 	/**
 	 * Retrieves a bean with the given name. Beans are configured in
@@ -327,10 +328,10 @@ public interface InfinitumContext {
 	 *         with the given name
 	 */
 	Object getBean(String name);
-	
+
 	/**
-	 * Retrieves a bean with the given name and {@link Class}.
-	 * Beans are configured in {@code infinitum.cfg.xml}.
+	 * Retrieves a bean with the given name and {@link Class}. Beans are
+	 * configured in {@code infinitum.cfg.xml}.
 	 * 
 	 * @param name
 	 *            the name of the bean to retrieve
