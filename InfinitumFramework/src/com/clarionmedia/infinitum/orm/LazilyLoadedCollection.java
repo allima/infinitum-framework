@@ -37,7 +37,7 @@ import java.util.Iterator;
  */
 public abstract class LazilyLoadedCollection<E> extends AbstractCollection<E> {
 
-	private final int mSize;
+	protected final int mSize;
 
 	/**
 	 * Constructs a new {@code LazilyLoadedCollection} of the given size. Note
@@ -89,13 +89,13 @@ public abstract class LazilyLoadedCollection<E> extends AbstractCollection<E> {
 	 * @author Tyler Treat
 	 * @version 1.0 03/15/12
 	 */
-	private class LazilyLoadedCollectionIterator implements Iterator<E> {
+	protected class LazilyLoadedCollectionIterator implements Iterator<E> {
 
-		private static final int PAGE_SIZE = 100;
+		protected static final int PAGE_SIZE = 100;
 
-		private int mOffset = 0;
-		private Collection<E> mCurrentCollection = new ArrayList<E>();
-		private Iterator<E> mCurrentIterator = mCurrentCollection.iterator();
+		protected int mOffset = 0;
+		protected Collection<E> mCurrentCollection = new ArrayList<E>();
+		protected Iterator<E> mCurrentIterator = mCurrentCollection.iterator();
 
 		@Override
 		public boolean hasNext() {
@@ -117,6 +117,7 @@ public abstract class LazilyLoadedCollection<E> extends AbstractCollection<E> {
 		}
 
 		private void nextIterator() {
+			unloadPage(mCurrentCollection);
 			mCurrentCollection = loadPage(mOffset, PAGE_SIZE);
 			mOffset += mCurrentCollection.size();
 			mCurrentIterator = mCurrentCollection.iterator();
