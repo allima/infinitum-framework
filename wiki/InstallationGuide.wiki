@@ -13,7 +13,7 @@ Your project can now reference Infinitum Framework APIs.
 
 = Framework Configuration =
 
-Before Infinitum can be used, you must create a configuration file, `infinitum.cfg.xml` and place it in your application's `res/xml` directory. Below is an example template that can be used with minimal configuration. See the InfinitumCfgXml guide for more information on configuring the framework.
+Before Infinitum can be used, you must create a configuration file, `infinitum.cfg.xml` and place it in your application's `res/raw` directory. Below is an example template that can be used with minimal configuration. See the InfinitumCfgXml guide for more information on configuring the framework.
 
 {{{
 <?xml version="1.0" encoding="UTF-8"?>
@@ -46,11 +46,11 @@ Before Infinitum can be used, you must create a configuration file, `infinitum.c
 The framework must be configured within the application code before any of its classes may be used. Within your `Activity`, call the following code:
 
 {{{
-ContextFactory.getInstance().configure(this);
+ContextProvider.getInstance().configure(this);
 }}}
 
-This will configure Infinitum using the `infinitum.cfg.xml` file in `res/xml`. Alternatively, you can specify explicitly which configuration resource to use by doing the following:
+This will configure Infinitum using the `infinitum.cfg.xml` file in `res/raw`. Alternatively, you can specify explicitly which configuration resource to use by doing the following:
 
 {{{
-ContextFactory.getInstance().configure(this, R.xml.infinitum);
+ContextProvider.getInstance().configure(this, R.xml.infinitum);
 }}}
