@@ -14,7 +14,7 @@ Under normal circumstances, it's not advisable to directly instantiate RestfulCl
 </rest>
 
 <beans>
-    <bean id="restClient" class="com.example.rest.MyRestfulClient" />
+    <bean id="restClient" src="com.example.rest.MyRestfulClient" />
 </beans>
 }}}
 
