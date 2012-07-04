@@ -144,7 +144,7 @@ public abstract class RestfulClient {
 		Preconditions.checkPersistenceForModify(model);
 		mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		String uri = mHost + mPolicy.getRestfulResource(model.getClass());
+		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPost httpPost = new HttpPost(uri);
@@ -185,7 +185,7 @@ public abstract class RestfulClient {
 		mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		Serializable pk = mPolicy.getPrimaryKey(model);
-		String uri = mHost + mPolicy.getRestfulResource(model.getClass()) + "/" + pk.toString();
+		String uri = mHost + mPolicy.getRestEndpoint(model.getClass()) + "/" + pk.toString();
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpDelete httpDelete = new HttpDelete(uri);
@@ -216,7 +216,7 @@ public abstract class RestfulClient {
 		Preconditions.checkPersistenceForModify(model);
 		mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		String uri = mHost + mPolicy.getRestfulResource(model.getClass());
+		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPut httpPut = new HttpPut(uri);

@@ -55,7 +55,8 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 05/09/12
+ * @version 1.0
+ * @since 05/09/12
  */
 public abstract class PersistencePolicy {
 
@@ -89,10 +90,10 @@ public abstract class PersistencePolicy {
 	// This Map caches the lazy-loading status for each persistent class
 	protected Map<Class<?>, Boolean> mLazyLoadingCache;
 
-	// This Map caches the resource names for models
-	protected Map<Class<?>, String> mRestResourceCache;
+	// This Map caches the endpoint names for models
+	protected Map<Class<?>, String> mRestEndpointCache;
 
-	// This Map caches the resource field names for model Fields
+	// This Map caches the endpoint field names for model Fields
 	protected Map<Field, String> mRestFieldCache;
 
 	protected TypeResolutionPolicy mTypePolicy;
@@ -114,7 +115,7 @@ public abstract class PersistencePolicy {
 		mOneToManyCache = new HashMap<Field, OneToManyRelationship>();
 		mOneToOneCache = new HashMap<Field, OneToOneRelationship>();
 		mLazyLoadingCache = new HashMap<Class<?>, Boolean>();
-		mRestResourceCache = new HashMap<Class<?>, String>();
+		mRestEndpointCache = new HashMap<Class<?>, String>();
 		mRestFieldCache = new HashMap<Field, String>();
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mClassReflector = new DefaultClassReflector();
@@ -315,30 +316,29 @@ public abstract class PersistencePolicy {
 	public abstract boolean isLazy(Class<?> c);
 
 	/**
-	 * Retrieves the RESTful resource name for the given persistent
-	 * {@link Class}.
+	 * Retrieves the REST endpoint name for the given persistent {@link Class}.
 	 * 
 	 * @param c
-	 *            the {@code Class} to retrieve the RESTful resource name for
-	 * @return resource name
+	 *            the {@code Class} to retrieve the REST endpoint name for
+	 * @return endpoint name
 	 * @throws IllegalArgumentException
 	 *             if the given {@code Class} is not a domain model or
 	 *             persistent
 	 */
-	public abstract String getRestfulResource(Class<?> c) throws IllegalArgumentException;
+	public abstract String getRestEndpoint(Class<?> c) throws IllegalArgumentException;
 
 	/**
-	 * Retrieves the RESTful resource field name for the given persistent
+	 * Retrieves the REST endpoint field name for the given persistent
 	 * {@link Field}.
 	 * 
 	 * @param f
-	 *            the {@code Field} to retrieve the resource field name for
-	 * @return resource field name
+	 *            the {@code Field} to retrieve the endpoint field name for
+	 * @return endpoint field name
 	 * @throws IllegalArgumentException
 	 *             if the containing {@link Class} of the given {@code Field} is
 	 *             transient or if the {@code Field} itself is marked transient
 	 */
-	public abstract String getResourceFieldName(Field f) throws IllegalArgumentException;
+	public abstract String getEndpointFieldName(Field f) throws IllegalArgumentException;
 
 	/**
 	 * Finds the persistent {@link Field} for the given {@link Class} which has

@@ -27,13 +27,14 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- * This annotation indicates the name of a resource field a {@link Field} is
+ * This annotation indicates the name of an endpoint field a {@link Field} is
  * mapped to for a RESTful web service. If the annotation is not provided, the
  * {@code Field} is mapped to a field with the same name as the {@code Field}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 03/25/12
+ * @version 1.0
+ * @since 03/25/12
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
