@@ -47,7 +47,7 @@ Metadata can come in two forms: XML map files and annotations. XML map files pro
   * PrimaryKey: indicates if a field is a primary key.
   * [Unique]: indicates that the field value must be unique to the table when being persisted to the database.
   * NotNull: indicates that the field may not contain a null value when being persisted to the database.
-  * [Rest]: indicates the name of a resource field a field is mapped to for a RESTful web service.
+  * [Rest]: indicates the name of a endpoint field a field is mapped to for a RESTful web service.
   * ManyToMany: indicates that the annotated field represents a many-to-many relationship with another persistent class.
   * ManyToOne: indicates that the annotated field represents a many-to-one relationship with another persistent class.
   * OneToMany: indicates that the annotated field represents a one-to-many relationship with another persistent class.
@@ -68,7 +68,7 @@ The Infinitum RESTful client provides an extensible API for communicating with a
   * TokenGenerator: generates shared-secret tokens.
   * JsonDeserializer: tells Infinitum how to deserialize JSON responses into domain model instances.
   * XmlDeserializer: tells Infinitum how to deserialize XML responses into domain model instances.
-  * [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulTypeAdapter RestfulTypeAdapter]: facilitates the mapping of Java data types to RESTful web service resource fields.
+  * [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulTypeAdapter RestfulTypeAdapter]: facilitates the mapping of Java data types to RESTful web service endpoint fields.
 
 = Logging =
 
