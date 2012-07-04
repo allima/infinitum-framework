@@ -10,7 +10,7 @@ As an alternative to inline Java annotations, domain model metadata can be provi
 
 = Class-level Configuration =
 
-There are a number of different class-level properties that can be applied to persistent entities. The root element of an imf.xml file, ignoring `infinitum-mapping`, is the `class` node, which contains the metadata for the class itself as well as its fields. Classes can be configured to lazily load and cascade their associations using the `lazy` and `cascade` attributes respectively. Note that these properties are enabled by default, so they need not be explicitly defined. By default, domain entities are persisted to a table or RESTful resource of the same name, but both of these properties can be changed by specifying the `table` and `rest` attributes.
+There are a number of different class-level properties that can be applied to persistent entities. The root element of an imf.xml file, ignoring `infinitum-mapping`, is the `class` node, which contains the metadata for the class itself as well as its fields. Classes can be configured to lazily load and cascade their associations using the `lazy` and `cascade` attributes respectively. Note that these properties are enabled by default, so they need not be explicitly defined. By default, domain entities are persisted to a table or REST endpoint of the same name, but both of these properties can be changed by specifying the `table` and `rest` attributes.
 
 == Class-level Configuration Example ==
 
