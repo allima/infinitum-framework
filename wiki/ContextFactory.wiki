@@ -19,6 +19,6 @@ The following code snippet illustrates how Infinitum is configured and how an in
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContext ctx = ContextFactory.getInstance().configure(this, R.xml.infinitum);
+    InfinitumContext ctx = ContextFactory.getInstance().configure(this, R.raw.infinitum);
 }
 }}}
