@@ -58,7 +58,8 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 05/09/12
+ * @version 1.0
+ * @since 05/09/12
  */
 public class XmlPersistencePolicy extends PersistencePolicy {
 
@@ -618,9 +619,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getRestfulResource(Class<?> c) throws IllegalArgumentException {
-		if (mRestResourceCache.containsKey(c))
-			return mRestResourceCache.get(c);
+	public String getRestEndpoint(Class<?> c) throws IllegalArgumentException {
+		if (mRestEndpointCache.containsKey(c))
+			return mRestEndpointCache.get(c);
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
 		XmlPullParser parser = loadXmlMapFile(c);
@@ -639,7 +640,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 						else
 							res = name.toLowerCase();
 					}
-					mRestResourceCache.put(c, res);
+					mRestEndpointCache.put(c, res);
 					return res;
 				}
 				code = parser.next();
@@ -653,7 +654,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getResourceFieldName(Field f) throws IllegalArgumentException {
+	public String getEndpointFieldName(Field f) throws IllegalArgumentException {
 		if (mRestFieldCache.containsKey(f))
 			return mRestFieldCache.get(f);
 		Class<?> c = f.getDeclaringClass();

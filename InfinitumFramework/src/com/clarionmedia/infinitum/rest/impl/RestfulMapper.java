@@ -134,7 +134,7 @@ public class RestfulMapper extends ObjectMapper {
 		// Otherwise just use normal reflection...
 		else
 			val = field.get(model);
-		String fieldName = mPolicy.getResourceFieldName(field);
+		String fieldName = mPolicy.getEndpointFieldName(field);
 		resolveType(field.getType()).mapObjectToField(val, fieldName, map.getNameValuePairs());
 	}
 

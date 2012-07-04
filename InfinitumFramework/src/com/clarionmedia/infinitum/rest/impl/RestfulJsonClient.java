@@ -72,7 +72,7 @@ public class RestfulJsonClient extends RestfulClient {
 		Preconditions.checkPersistenceForLoading(type);
 		mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
-		String uri = mHost + mPolicy.getRestfulResource(type) + "/" + id;
+		String uri = mHost + mPolicy.getRestEndpoint(type) + "/" + id;
 		if (mIsAuthenticated)
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpGet httpGet = new HttpGet(uri);

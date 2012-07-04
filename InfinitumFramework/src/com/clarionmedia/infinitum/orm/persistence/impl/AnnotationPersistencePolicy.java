@@ -58,7 +58,8 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 02/12/12
+ * @version 1.0
+ * @since 02/12/12
  */
 public class AnnotationPersistencePolicy extends PersistencePolicy {
 
@@ -313,26 +314,26 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getRestfulResource(Class<?> c) throws IllegalArgumentException {
+	public String getRestEndpoint(Class<?> c) throws IllegalArgumentException {
 		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException();
-		if (mRestResourceCache.containsKey(c))
-			return mRestResourceCache.get(c);
+		if (mRestEndpointCache.containsKey(c))
+			return mRestEndpointCache.get(c);
 		String ret;
 		if (!c.isAnnotationPresent(Entity.class)) {
 			ret = c.getSimpleName().toLowerCase();
 		} else {
 			Entity entity = c.getAnnotation(Entity.class);
-			ret = entity.resource();
+			ret = entity.endpoint();
 			if (ret.equals(""))
 				ret = c.getSimpleName().toLowerCase();
 		}
-		mRestResourceCache.put(c, ret);
+		mRestEndpointCache.put(c, ret);
 		return ret;
 	}
 
 	@Override
-	public String getResourceFieldName(Field f) throws IllegalArgumentException {
+	public String getEndpointFieldName(Field f) throws IllegalArgumentException {
 		if (!isPersistent(f.getDeclaringClass()) || !mTypePolicy.isDomainModel(f.getDeclaringClass()))
 			throw new IllegalArgumentException();
 		if (f.isAnnotationPresent(Persistence.class)) {

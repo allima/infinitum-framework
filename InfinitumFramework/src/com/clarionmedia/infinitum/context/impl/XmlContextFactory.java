@@ -39,11 +39,11 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * and {@link ContextFactory#configure(Context, int)} must be called before
  * accessing the {@code InfinitumContext} or an
  * {@link InfinitumConfigurationException} will be thrown.
- * {@link ContextFactory} singletons should be acquired by calling the static
- * method {@link ContextFactory#getInstance()}.
+ * {@link XmlContextFactory} singletons should be acquired by calling the static
+ * method {@link XmlContextFactory#instance()}.
  * </p>
  * <p>
- * {@code SimpleXmlContextFactory} uses the Simple XML framework to read
+ * {@code XmlContextFactory} uses the Simple XML framework to read
  * {@code infinitum.cfg.xml} and create the {@code InfinitumContext}.
  * </p>
  * 
@@ -54,7 +54,6 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 public class XmlContextFactory extends ContextFactory {
 
 	private static XmlContextFactory sContextFactory;
-	private static Context sContext;
 	private static InfinitumContext sInfinitumContext;
 
 	/**
@@ -67,11 +66,11 @@ public class XmlContextFactory extends ContextFactory {
 	}
 
 	/**
-	 * Retrieves a {@code SimpleXmlContextFactory} instance.
+	 * Retrieves an {@code XmlContextFactory} singleton.
 	 * 
 	 * @return {@code SimpleContextFactory}
 	 */
-	public static XmlContextFactory newInstance() {
+	public static XmlContextFactory instance() {
 		if (sContextFactory == null)
 			sContextFactory = new XmlContextFactory();
 		return sContextFactory;
@@ -79,7 +78,7 @@ public class XmlContextFactory extends ContextFactory {
 
 	@Override
 	public InfinitumContext configure(Context context) throws InfinitumConfigurationException {
-		sContext = context;
+		mContext = context;
 		Resources res = context.getResources();
 		int id = res.getIdentifier("infinitum", "raw", context.getPackageName());
 		if (id == 0)
@@ -91,7 +90,7 @@ public class XmlContextFactory extends ContextFactory {
 
 	@Override
 	public InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException {
-		sContext = context;
+		mContext = context;
 		sInfinitumContext = configureFromXml(configId);
 		sInfinitumContext.setContext(context);
 		return sInfinitumContext;
@@ -99,35 +98,26 @@ public class XmlContextFactory extends ContextFactory {
 
 	@Override
 	public InfinitumContext getContext() throws InfinitumConfigurationException {
-		// TODO
 		if (sInfinitumContext == null)
-			throw new InfinitumConfigurationException("not configured");
+			throw new InfinitumConfigurationException("Infinitum context not configured!");
 		return sInfinitumContext;
 	}
 
 	@Override
 	public PersistencePolicy getPersistencePolicy() {
-		// TODO
 		if (sInfinitumContext == null)
-			throw new InfinitumConfigurationException("not configured");
+			throw new InfinitumConfigurationException("Infinitum context not configured!");
 		return sInfinitumContext.getPersistencePolicy();
 	}
 
-	@Override
-	public Context getAndroidContext() {
-		return sContext;
-	}
-
 	private InfinitumContext configureFromXml(int configId) {
-		Resources resources = sContext.getResources();
+		Resources resources = mContext.getResources();
 		Serializer serializer = new Persister();
 		try {
 			InputStream stream = resources.openRawResource(configId);
 			String xml = new java.util.Scanner(stream).useDelimiter("\\A").next();
 			return serializer.read(XmlApplicationContext.class, xml);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 			return null;
 		}
 	}

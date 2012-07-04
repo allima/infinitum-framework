@@ -45,7 +45,8 @@ import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
  * </pre>
  * 
  * @author Tyler Treat
- * @version 1.0 02/12/12
+ * @version 1.0
+ * @since 02/12/12
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -78,9 +79,9 @@ public @interface Entity {
 	boolean lazy() default true;
 
 	/**
-	 * Returns the RESTful resource name for this entity.
+	 * Returns the REST endpoint name for this entity.
 	 * 
-	 * @return RESTful resource name
+	 * @return REST endpoint name
 	 */
-	String resource() default "";
+	String endpoint() default "";
 }

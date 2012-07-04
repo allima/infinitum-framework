@@ -26,7 +26,16 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
 /**
  * <p>
- * Provides access to an {@link InfinitumContext} singleton.
+ * Provides access to an {@link InfinitumContext} singleton. Before an
+ * {@code InfinitumContext} can be retrieved,
+ * {@link ContextFactory#configure(Context, int)} must be called, which will
+ * read in configuration settings from {@code infinitum.cfg.xml}. If an attempt
+ * to access the context is made before it has been configured, an
+ * {@link InfinitumConfigurationException} will be thrown.
+ * </p>
+ * <p>
+ * {@code ContextFactory} instances can be retrieved by calling
+ * {@link ContextFactory#getInstance()}.
  * </p>
  * 
  * @author Tyler Treat
@@ -35,13 +44,25 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  */
 public abstract class ContextFactory {
 
+	protected Context mContext;
+
 	/**
 	 * Retrieves a new {@code ContextFactory} instance.
 	 * 
 	 * @return {@code ContextFactory}
 	 */
 	public static ContextFactory getInstance() {
-		return XmlContextFactory.newInstance();
+		return XmlContextFactory.instance();
+	}
+
+	/**
+	 * Retrieves the Android {@link Context} registered with the configured
+	 * {@link InfinitumContext}.
+	 * 
+	 * @return {@code Context}
+	 */
+	public Context getAndroidContext() {
+		return mContext;
 	}
 
 	/**
@@ -90,13 +111,5 @@ public abstract class ContextFactory {
 	 * @return {@code PersistencePolicy}
 	 */
 	public abstract PersistencePolicy getPersistencePolicy();
-
-	/**
-	 * Retrieves the Android {@link Context} registered with the configured
-	 * {@link InfinitumContext}.
-	 * 
-	 * @return {@code Context}
-	 */
-	public abstract Context getAndroidContext();
 
 }
