@@ -35,6 +35,9 @@ import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.Bean;
+import com.clarionmedia.infinitum.di.BeanPostProcessor;
+import com.clarionmedia.infinitum.internal.AutowiredBeanPostProcessor;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;
@@ -68,7 +71,7 @@ public class XmlApplicationContext implements InfinitumContext {
 
 	@ElementList(name = "beans")
 	private List<Bean> mBeans;
-	private BeanFactory mBeanProvider;
+	private BeanFactory mBeanFactory;
 
 	@Element(name = "rest", required = false, type = XmlRestfulContext.class)
 	private RestfulContext mRestConfig;
@@ -222,22 +225,22 @@ public class XmlApplicationContext implements InfinitumContext {
 
 	@Override
 	public BeanFactory getBeanContainer() {
-		return mBeanProvider;
+		return mBeanFactory;
 	}
 
 	@Override
 	public void setBeanContainer(BeanFactory beanContainer) {
-		mBeanProvider = beanContainer;
+		mBeanFactory = beanContainer;
 	}
 
 	@Override
 	public Object getBean(String name) {
-		return mBeanProvider.loadBean(name);
+		return mBeanFactory.loadBean(name);
 	}
 
 	@Override
 	public <T> T getBean(String name, Class<T> clazz) {
-		return mBeanProvider.loadBean(name, clazz);
+		return mBeanFactory.loadBean(name, clazz);
 	}
 
 	@Override
@@ -255,29 +258,11 @@ public class XmlApplicationContext implements InfinitumContext {
 		return sPersistencePolicy;
 	}
 
-	@SuppressWarnings("unused")
 	@Commit
 	private void postProcess() {
 		mRestConfig.setParentContext(this);
-		initializeBeanProvider();
-	}
-
-	private void initializeBeanProvider() {
-		mBeanProvider = new ConfigurableBeanFactory();
-		for (Bean bean : mBeans) {
-			Map<String, Object> propertiesMap = new HashMap<String, Object>();
-			for (Bean.Property property : bean.getProperties()) {
-				String name = property.getName();
-				String ref = property.getRef();
-				if (ref != null) {
-					propertiesMap.put(name, mBeanProvider.loadBean(ref));
-				} else {
-					String value = property.getValue();
-					propertiesMap.put(name, value);
-				}
-			}
-			mBeanProvider.registerBean(bean.getId(), bean.getClassName(), propertiesMap);
-		}
+		mBeanFactory = new ConfigurableBeanFactory();
+		mBeanFactory.registerBeans(mBeans);
 	}
 
 	@Root
@@ -294,62 +279,6 @@ public class XmlApplicationContext implements InfinitumContext {
 			mResource = resource;
 		}
 
-	}
-
-	@Root
-	private static class Bean {
-
-		@Attribute(name = "id")
-		private String mId;
-
-		@Attribute(name = "src")
-		private String mClass;
-
-		@ElementList(required = false, entry = "property", inline = true)
-		private List<Property> mProperties;
-
-		@SuppressWarnings("unused")
-		public Bean() {
-			mProperties = new ArrayList<Property>();
-		}
-
-		public String getId() {
-			return mId;
-		}
-
-		public String getClassName() {
-			return mClass;
-		}
-
-		public List<Property> getProperties() {
-			return mProperties;
-		}
-
-		@Root
-		private static class Property {
-
-			@Attribute(name = "name")
-			private String mName;
-
-			@Attribute(name = "value", required = false)
-			private String mValue;
-
-			@Attribute(name = "ref", required = false)
-			private String mRef;
-
-			public String getName() {
-				return mName;
-			}
-
-			public String getValue() {
-				return mValue;
-			}
-
-			public String getRef() {
-				return mRef;
-			}
-
-		}
 	}
 
 }
