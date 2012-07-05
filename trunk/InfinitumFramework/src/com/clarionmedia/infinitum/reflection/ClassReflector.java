@@ -19,7 +19,9 @@
 
 package com.clarionmedia.infinitum.reflection;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -59,23 +61,41 @@ public interface ClassReflector {
 	/**
 	 * Retrieves all {@code Fields} for the given {@link Class}.
 	 * 
-	 * @param c
+	 * @param clazz
 	 *            the {@code Class} to get {@code Fields} for
 	 * @return {@link List} of {@code Fields}
 	 */
-	List<Field> getAllFields(Class<?> c);
+	List<Field> getAllFields(Class<?> clazz);
+	
+	/**
+	 * Retrieves all {@code Methods} for the given {@link Class}.
+	 * 
+	 * @param clazz
+	 *            the {@code Class} to get {@code Methods} for
+	 * @return {@link List} of {@code Methods}
+	 */
+	List<Method> getAllMethods(Class<?> clazz);
+	
+	/**
+	 * Retrieves all {@code Constructors} for the given {@link Class}.
+	 * 
+	 * @param clazz
+	 *            the {@code Class} to get {@code Constructors} for
+	 * @return {@link List} of {@code Constructors}
+	 */
+	List<Constructor<?>> getAllConstructors(Class<?> clazz);
 
 	/**
 	 * Retrieves the {@link Field} with the given name for the given
 	 * {@link Class}.
 	 * 
-	 * @param c
+	 * @param clazz
 	 *            the {@code Class} to retrieve the {@code Field} from
 	 * @param name
 	 *            the name of the {@code Field}
 	 * @return {@code Field} with the given name or {@code null} if it does not
 	 *         exist
 	 */
-	Field getField(Class<?> c, String name);
+	Field getField(Class<?> clazz, String name);
 
 }

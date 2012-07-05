@@ -19,9 +19,10 @@
 
 package com.clarionmedia.infinitum.context;
 
+import java.util.List;
 import java.util.Map;
-
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.Bean;
 
 /**
  * <p>
@@ -29,6 +30,11 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
  * {@code BeanProvider} acts as a service locator for {@link InfinitumContext}.
  * Beans are retrieved by their name and registered by providing a name, class,
  * and field values.
+ * </p>
+ * <p>
+ * {@code BeanFactory} is responsible for maintaining a bean registry,
+ * initializing bean instances, and performing any necessary dependency
+ * injections.
  * </p>
  * 
  * @author Tyler Treat
@@ -62,7 +68,8 @@ public interface BeanFactory {
 	 *             if the bean does not exist, could not be constructed, or is
 	 *             of the wrong type
 	 */
-	<T> T loadBean(String name, Class<T> clazz) throws InfinitumConfigurationException;
+	<T> T loadBean(String name, Class<T> clazz)
+			throws InfinitumConfigurationException;
 
 	/**
 	 * Checks if a bean with the given name exists.
@@ -72,10 +79,16 @@ public interface BeanFactory {
 	 * @return {@code true} if it exists, {@code false} if not
 	 */
 	boolean beanExists(String name);
+	
+	/**
+	 * Registers the given {@code Beans} with the {@code BeanFactory}.
+	 * @param beans the {@code Beans} to register
+	 */
+	void registerBeans(List<Bean> beans);
 
 	/**
 	 * Registers the bean with the given name and class name with the
-	 * {@code BeanService}.
+	 * {@code BeanFactory}.
 	 * 
 	 * @param name
 	 *            the name of the bean
@@ -85,5 +98,12 @@ public interface BeanFactory {
 	 *            a {@link Map} of {@link Field} names and their values
 	 */
 	void registerBean(String name, String beanClass, Map<String, Object> args);
+
+	/**
+	 * Retrieves the bean definitions for this {@code BeanFactory}.
+	 * 
+	 * @return {@code Map} of bean names and their corresponding type
+	 */
+	Map<String, String> getBeanDefinitions();
 
 }

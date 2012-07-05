@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.reflection.impl;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -92,25 +93,43 @@ public class DefaultClassReflector implements ClassReflector {
 	}
 
 	@Override
-	public List<Field> getAllFields(Class<?> c) {
-		return getAllFieldsRec(c, new LinkedList<Field>());
+	public List<Field> getAllFields(Class<?> clazz) {
+		return getAllFieldsRec(clazz, new LinkedList<Field>());
+	}
+	
+	@Override
+	public List<Method> getAllMethods(Class<?> clazz) {
+		return getAllMethodsRec(clazz, new LinkedList<Method>());
+	}
+	
+	@Override
+	public List<Constructor<?>> getAllConstructors(Class<?> clazz) {
+		return Arrays.asList(clazz.getDeclaredConstructors());
 	}
 
 	@Override
-	public Field getField(Class<?> c, String name) {
-		for (Field f : getAllFields(c)) {
+	public Field getField(Class<?> clazz, String name) {
+		for (Field f : getAllFields(clazz)) {
 			if (f.getName().equals(name))
 				return f;
 		}
 		return null;
 	}
 
-	private List<Field> getAllFieldsRec(Class<?> c, List<Field> fields) {
-		Class<?> superClass = c.getSuperclass();
+	private List<Field> getAllFieldsRec(Class<?> clazz, List<Field> fields) {
+		Class<?> superClass = clazz.getSuperclass();
 		if (superClass != null)
 			getAllFieldsRec(superClass, fields);
-		fields.addAll(Arrays.asList(c.getDeclaredFields()));
+		fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
 		return fields;
+	}
+	
+	private List<Method> getAllMethodsRec(Class<?> clazz, List<Method> methods) {
+		Class<?> superClass = clazz.getSuperclass();
+		if (superClass != null)
+			getAllMethodsRec(superClass, methods);
+		methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+		return methods;
 	}
 
 }
