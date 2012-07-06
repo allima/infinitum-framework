@@ -40,16 +40,16 @@
     </domain>
     
     <beans>
-        <bean id="restClient" src="com.clarionmedia.infinitum.rest.impl.RestfulJsonClient" />
-        <bean id="tokenGenerator" src="com.clarionmedia.infinitumtest.service.MyTokenGenerator" />
-        <bean id="tokenAuthentication" src="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication">
-            <property name="mTokenName" value="token" />
-            <property name="mToken" value="e489e8383c0ae2b7fe4dcf178330b4ac" />
-            <property name="mGenerator" ref="tokenGenerator" />
-        </bean>
+<!--         <bean id="restClient" src="com.clarionmedia.infinitum.rest.impl.RestfulJsonClient" /> -->
+<!--         <bean id="tokenGenerator" src="com.clarionmedia.infinitumtest.service.MyTokenGenerator" /> -->
+<!--         <bean id="tokenAuthentication" src="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication"> -->
+<!--             <property name="mTokenName" value="token" /> -->
+<!--             <property name="mToken" value="e489e8383c0ae2b7fe4dcf178330b4ac" /> -->
+<!--             <property name="mGenerator" ref="tokenGenerator" /> -->
+<!--         </bean> -->
         <bean id="myDao" src="com.clarionmedia.infinitumtest.dao.impl.MyDaoImpl" />
         <bean id="myService" src="com.clarionmedia.infinitumtest.service.impl.MyServiceImpl">
-            <property name="mDao" ref="myDao" />
+<!--             <property name="mDao" ref="myDao" /> -->
         </bean>
     </beans>
 
