@@ -102,8 +102,9 @@ public class DefaultClassReflector implements ClassReflector {
 		return getAllMethodsRec(clazz, new LinkedList<Method>());
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
-	public List<Constructor<?>> getAllConstructors(Class<?> clazz) {
+	public List<Constructor> getAllConstructors(Class<?> clazz) {
 		return Arrays.asList(clazz.getDeclaredConstructors());
 	}
 

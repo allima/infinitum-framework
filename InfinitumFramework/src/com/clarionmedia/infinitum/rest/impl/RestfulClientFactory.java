@@ -22,22 +22,22 @@ package com.clarionmedia.infinitum.rest.impl;
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.rest.Deserializer;
-import com.clarionmedia.infinitum.rest.RestfulClient;
-import com.clarionmedia.infinitum.rest.RestfulClientBuilder;
+import com.clarionmedia.infinitum.rest.RestfulOrmClient;
+import com.clarionmedia.infinitum.rest.RestfulOrmClientBuilder;
 import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
 
 /**
  * <p>
- * Implementation of {@link RestfulClientBuilder} for creating new, configured
- * instances of {@link RestfulClient}.
+ * Implementation of {@link RestfulOrmClientBuilder} for creating new, configured
+ * instances of {@link RestfulOrmClient}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/28/12
  */
-public class RestfulClientFactory implements RestfulClientBuilder {
+public class RestfulClientFactory implements RestfulOrmClientBuilder {
 
-	private RestfulClient mRestClient;
+	private RestfulOrmClient mRestClient;
 
 	/**
 	 * Constructs a new {@code RestfulClientFactory}.
@@ -47,30 +47,30 @@ public class RestfulClientFactory implements RestfulClientBuilder {
 	}
 
 	@Override
-	public RestfulClient build() {
+	public RestfulOrmClient build() {
 		return mRestClient;
 	}
 
 	@Override
-	public <E> RestfulClientBuilder registerDeserializer(Class<E> type, Deserializer<E> deserializer) {
+	public <E> RestfulOrmClientBuilder registerDeserializer(Class<E> type, Deserializer<E> deserializer) {
 		mRestClient.registerDeserializer(type, deserializer);
 		return this;
 	}
 
 	@Override
-	public <E> RestfulClientBuilder registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter) {
+	public <E> RestfulOrmClientBuilder registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter) {
 		mRestClient.registerTypeAdapter(type, adapter);
 		return this;
 	}
 
 	@Override
-	public RestfulClientBuilder clearConfiguration() {
+	public RestfulOrmClientBuilder clearConfiguration() {
 		InfinitumContext ctx = ContextFactory.getInstance().getContext();
 		String client = ctx.getRestfulConfiguration().getClientBean();
 		if (client == null)
 			mRestClient = new RestfulJsonClient();
 		else
-		    mRestClient = (RestfulClient) ctx.getBean(client);
+		    mRestClient = (RestfulOrmClient) ctx.getBean(client);
 		mRestClient.prepare();
 		return this;
 	}

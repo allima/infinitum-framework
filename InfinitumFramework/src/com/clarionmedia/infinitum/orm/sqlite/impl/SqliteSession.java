@@ -229,12 +229,8 @@ public class SqliteSession implements Session {
 
 	@Override
 	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
-		try {
-			SqliteTypeAdapter<T> a = (SqliteTypeAdapter<T>) adapter;
-			mSqlite.registerTypeAdapter(type, a);
-		} catch (ClassCastException e) {
-			// If adapter is not a SqliteTypeAdapter, ignore it
-		}
+		if (adapter instanceof SqliteTypeAdapter)
+			mSqlite.registerTypeAdapter(type, (SqliteTypeAdapter<T>) adapter);
 	}
 
 	@Override

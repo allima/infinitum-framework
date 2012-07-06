@@ -124,12 +124,8 @@ public class SqliteMapper extends ObjectMapper {
 
 	@Override
 	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
-		try {
-			SqliteTypeAdapter<T> sqliteAdapter = (SqliteTypeAdapter<T>) adapter;
-			mTypeAdapters.put(type, sqliteAdapter);
-		} catch (ClassCastException e) {
-			// Ignore TypeAdapters that are not SqliteTypeAdapters
-		}
+		if (adapter instanceof SqliteTypeAdapter)
+			mTypeAdapters.put(type, (SqliteTypeAdapter<T>) adapter);
 	}
 
 	@Override
