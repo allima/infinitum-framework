@@ -23,7 +23,7 @@ import java.lang.reflect.Field;
 
 /**
  * <p>
- * Provides an API for constructing new {@link RestfulClient} instances. In
+ * Provides an API for constructing new {@link RestfulOrmClient} instances. In
  * addition to acting as a factory, the purpose of this interface is to allow
  * for {@code RestfulClients} to be configured before retrieving instances.
  * </p>
@@ -31,14 +31,14 @@ import java.lang.reflect.Field;
  * @author Tyler Treat
  * @version 1.0 03/28/12
  */
-public interface RestfulClientBuilder {
+public interface RestfulOrmClientBuilder {
 
 	/**
-	 * Builds a configured {@link RestfulClient} instance.
+	 * Builds a configured {@link RestfulOrmClient} instance.
 	 * 
 	 * @return {@code RestfulClient}
 	 */
-	RestfulClient build();
+	RestfulOrmClient build();
 
 	/**
 	 * Registers a {@link Deserializer} for the given {@link Class} type.
@@ -53,7 +53,7 @@ public interface RestfulClientBuilder {
 	 *            the {@code JsonDeserializer} to register
 	 * @return {@code RestfulClientBuilder} to allow for method chaining
 	 */
-	<E> RestfulClientBuilder registerDeserializer(Class<E> type, Deserializer<E> deserializer);
+	<E> RestfulOrmClientBuilder registerDeserializer(Class<E> type, Deserializer<E> deserializer);
 
 	/**
 	 * Registers the given {@link RestfulTypeAdapter} for the specified
@@ -70,13 +70,13 @@ public interface RestfulClientBuilder {
 	 *            the {@code RestfulTypeAdapter} to register
 	 * @return {@code RestfulClientBuilder} to allow for method chaining
 	 */
-	<E> RestfulClientBuilder registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter);
+	<E> RestfulOrmClientBuilder registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter);
 
 	/**
-	 * Removes any current configurations for the {@link RestfulClient}.
+	 * Removes any current configurations for the {@link RestfulOrmClient}.
 	 * 
 	 * @return {@code RestfulClientBuilder} to allow for method chaining
 	 */
-	RestfulClientBuilder clearConfiguration();
+	RestfulOrmClientBuilder clearConfiguration();
 
 }

@@ -38,20 +38,21 @@ import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.rest.Deserializer;
-import com.clarionmedia.infinitum.rest.RestfulClient;
+import com.clarionmedia.infinitum.rest.RestfulOrmClient;
 import com.clarionmedia.infinitum.rest.XmlDeserializer;
 
 /**
  * <p>
- * A basic implementation of {@link RestfulClient} for standard CRUD operations.
+ * A basic implementation of {@link RestfulOrmClient} for standard CRUD operations.
  * This implementation is used for web services which send responses back as
  * XML.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 05/21/12
+ * @version 1.0
+ * @since 05/21/12
  */
-public class RestfulXmlClient extends RestfulClient {
+public class RestfulXmlClient extends RestfulOrmClient {
 
 	protected Map<Class<?>, XmlDeserializer<?>> mXmlDeserializers;
 
@@ -102,12 +103,8 @@ public class RestfulXmlClient extends RestfulClient {
 
 	@Override
 	public <T> void registerDeserializer(Class<T> type, Deserializer<T> deserializer) {
-		try {
-			XmlDeserializer<T> d = (XmlDeserializer<T>) deserializer;
-			mXmlDeserializers.put(type, d);
-		} catch (ClassCastException e) {
-			// If deserializer is not XmlDeserializer, ignore it
-		}
+		if (deserializer instanceof XmlDeserializer)
+			mXmlDeserializers.put(type, (XmlDeserializer<T>) deserializer);
 	}
 
 }

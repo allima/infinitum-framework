@@ -39,21 +39,22 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.rest.Deserializer;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
-import com.clarionmedia.infinitum.rest.RestfulClient;
+import com.clarionmedia.infinitum.rest.RestfulOrmClient;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 /**
  * <p>
- * A basic implementation of {@link RestfulClient} for standard CRUD operations.
+ * A basic implementation of {@link RestfulOrmClient} for standard CRUD operations.
  * This implementation is used for web services which send responses back as
  * JSON.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 03/21/12
+ * @version 1.0
+ * @since 03/21/12
  */
-public class RestfulJsonClient extends RestfulClient {
+public class RestfulJsonClient extends RestfulOrmClient {
 
 	protected Map<Class<?>, JsonDeserializer<?>> mJsonDeserializers;
 
@@ -88,8 +89,10 @@ public class RestfulJsonClient extends RestfulClient {
 				entity.writeTo(out);
 				out.close();
 				String jsonResponse = out.toString();
+				// Attempt to use a registered deserializer
 				if (mJsonDeserializers.containsKey(type))
 					return (T) mJsonDeserializers.get(type).deserializeObject(jsonResponse);
+				// Otherwise fallback to Gson
 				return new Gson().fromJson(jsonResponse, type);
 			}
 		} catch (ClientProtocolException e) {
@@ -107,12 +110,8 @@ public class RestfulJsonClient extends RestfulClient {
 
 	@Override
 	public <T> void registerDeserializer(Class<T> type, Deserializer<T> deserializer) {
-		try {
-			JsonDeserializer<T> d = (JsonDeserializer<T>) deserializer;
-			mJsonDeserializers.put(type, d);
-		} catch (ClassCastException e) {
-			// If deserializer is not JsonDeserializer, ignore it
-		}
+		if (deserializer instanceof JsonDeserializer)
+			mJsonDeserializers.put(type, (JsonDeserializer<T>) deserializer);
 	}
 
 }

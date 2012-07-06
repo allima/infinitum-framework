@@ -20,24 +20,25 @@
 package com.clarionmedia.infinitum.context.impl;
 
 import static java.lang.Boolean.parseBoolean;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.ElementMap;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.core.Commit;
+
 import android.content.Context;
+
 import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.Bean;
-import com.clarionmedia.infinitum.di.BeanPostProcessor;
-import com.clarionmedia.infinitum.internal.AutowiredBeanPostProcessor;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;
@@ -258,6 +259,7 @@ public class XmlApplicationContext implements InfinitumContext {
 		return sPersistencePolicy;
 	}
 
+	@SuppressWarnings("unused")
 	@Commit
 	private void postProcess() {
 		mRestConfig.setParentContext(this);

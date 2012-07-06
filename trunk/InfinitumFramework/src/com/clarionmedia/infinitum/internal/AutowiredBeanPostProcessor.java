@@ -22,13 +22,11 @@ package com.clarionmedia.infinitum.internal;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
+import com.clarionmedia.infinitum.di.BeanUtils;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
@@ -86,63 +84,40 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 		if (candidate != null) {
 			value = mBeanFactory.loadBean(candidate);
 		} else {
-			value = findCandidateBean(field.getType());
+			value = BeanUtils.findCandidateBean(mBeanFactory, field.getType());
 		}
 		try {
 			field.set(bean, value);
 		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException(
-					"Could not set field in object of type '"
-							+ bean.getClass().getName() + "'");
+			throw new InfinitumRuntimeException("Could not set field in object of type '" + bean.getClass().getName()
+					+ "'");
 		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(
-					"Could not set field in object of type '"
-							+ bean.getClass().getName() + "'");
+			throw new InfinitumRuntimeException("Could not set field in object of type '" + bean.getClass().getName()
+					+ "'");
 		}
 	}
 
-	private void injectBeanCandidate(Object bean, Method setter,
-			String candidate) {
+	private void injectBeanCandidate(Object bean, Method setter, String candidate) {
 		Object value;
 		if (candidate != null) {
 			value = mBeanFactory.loadBean(candidate);
 		} else {
 			if (setter.getParameterTypes().length != 1)
-				throw new InfinitumConfigurationException(
-						"Autowired setter method must contain 1 parameter.");
-			value = findCandidateBean(setter.getParameterTypes()[0]);
+				throw new InfinitumConfigurationException("Autowired setter method must contain 1 parameter.");
+			value = BeanUtils.findCandidateBean(mBeanFactory, setter.getParameterTypes()[0]);
 		}
 		try {
 			setter.invoke(bean, value);
 		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException(
-					"Could not invoke setter in object of type '"
-							+ bean.getClass().getName() + "'");
+			throw new InfinitumRuntimeException("Could not invoke setter in object of type '"
+					+ bean.getClass().getName() + "'");
 		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(
-					"Could not invoke setter in object of type '"
-							+ bean.getClass().getName() + "'");
+			throw new InfinitumRuntimeException("Could not invoke setter in object of type '"
+					+ bean.getClass().getName() + "'");
 		} catch (InvocationTargetException e) {
-			throw new InfinitumRuntimeException(
-					"Could not invoke setter in object of type '"
-							+ bean.getClass().getName() + "'");
+			throw new InfinitumRuntimeException("Could not invoke setter in object of type '"
+					+ bean.getClass().getName() + "'");
 		}
 	}
 
-	private Object findCandidateBean(Class<?> clazz) {
-		String candidate = invert(mBeanFactory.getBeanDefinitions()).get(clazz);
-		return mBeanFactory.loadBean(candidate);
-	}
-
-	private <V, K> Map<V, K> invert(Map<K, V> map) {
-		Map<V, K> inv = new HashMap<V, K>();
-		for (Entry<K, V> entry : map.entrySet()) {
-			if (inv.containsKey(entry.getValue()))
-				throw new InfinitumConfigurationException(
-						"More than 1 bean candidate found of type '"
-								+ entry.getValue() + "'.");
-			inv.put(entry.getValue(), entry.getKey());
-		}
-		return inv;
-	}
 }

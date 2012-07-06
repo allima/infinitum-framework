@@ -83,7 +83,8 @@ public interface ClassReflector {
 	 *            the {@code Class} to get {@code Constructors} for
 	 * @return {@link List} of {@code Constructors}
 	 */
-	List<Constructor<?>> getAllConstructors(Class<?> clazz);
+	@SuppressWarnings("rawtypes")
+	List<Constructor> getAllConstructors(Class<?> clazz);
 
 	/**
 	 * Retrieves the {@link Field} with the given name for the given
