@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
@@ -55,7 +54,7 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 public class ConfigurableBeanFactory implements BeanFactory {
 
 	private ClassReflector mClassReflector;
-	private Map<String, Pair<String, Map<String, Object>>> mBeanDefinitions;
+	private Map<String, Pair<Class<?>, Map<String, Object>>> mBeanDefinitions;
 	private Map<String, Object> mBeanMap;
 
 	/**
@@ -63,7 +62,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	 */
 	public ConfigurableBeanFactory() {
 		mClassReflector = new DefaultClassReflector();
-		mBeanDefinitions = new HashMap<String, Pair<String, Map<String, Object>>>();
+		mBeanDefinitions = new HashMap<String, Pair<Class<?>, Map<String, Object>>>();
 		mBeanMap = new HashMap<String, Object>();
 	}
 
@@ -111,7 +110,13 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	@Override
 	public void registerBean(String name, String beanClass, Map<String, Object> args) {
 		// args: Map<fieldName, fieldValue>
-		Pair<String, Map<String, Object>> pair = new Pair<String, Map<String, Object>>(beanClass, args);
+		Class<?> clazz;
+		try {
+			clazz = Class.forName(beanClass);
+		} catch (ClassNotFoundException e) {
+			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved ('" + beanClass + "' not found)");
+		}
+		Pair<Class<?>, Map<String, Object>> pair = new Pair<Class<?>, Map<String, Object>>(clazz, args);
 		// pair: Pair<bean, beanArgsMap>
 		mBeanDefinitions.put(name, pair);
 		// First we construct an instance of the bean
@@ -122,9 +127,9 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	}
 
 	@Override
-	public Map<String, String> getBeanDefinitions() {
-		Map<String, String> beanDefinitions = new HashMap<String, String>();
-		for (Entry<String, Pair<String, Map<String, Object>>> entry : mBeanDefinitions.entrySet()) {
+	public Map<String, Class<?>> getBeanDefinitions() {
+		Map<String, Class<?>> beanDefinitions = new HashMap<String, Class<?>>();
+		for (Entry<String, Pair<Class<?>, Map<String, Object>>> entry : mBeanDefinitions.entrySet()) {
 			beanDefinitions.put(entry.getKey(), entry.getValue().getFirst());
 		}
 		return beanDefinitions;
@@ -180,6 +185,8 @@ public class ConfigurableBeanFactory implements BeanFactory {
 			if (target.getParameterTypes().length == 1) {
 				Class<?> paramType = target.getParameterTypes()[0];
 				Object argument = BeanUtils.findCandidateBean(this, paramType);
+				if (argument == null)
+					throw new InfinitumConfigurationException("Could not autowire property of type '" + clazz.getName() + "' in bean '" + name + "' (no autowire candidates found)");
 				return target.newInstance(argument);
 			} else {
 				return target.newInstance();
