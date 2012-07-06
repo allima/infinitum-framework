@@ -72,8 +72,12 @@ public class RestResponse {
 		return mHeaders;
 	}
 
-	public void setmHeaders(Map<String, String> headers) {
+	public void setHeaders(Map<String, String> headers) {
 		mHeaders = headers;
+	}
+	
+	public void addHeader(String name, String value) {
+		mHeaders.put(name, value);
 	}
 
 	public String getResponseDataAsString() {
