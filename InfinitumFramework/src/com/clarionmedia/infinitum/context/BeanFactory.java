@@ -79,10 +79,12 @@ public interface BeanFactory {
 	 * @return {@code true} if it exists, {@code false} if not
 	 */
 	boolean beanExists(String name);
-	
+
 	/**
 	 * Registers the given {@code Beans} with the {@code BeanFactory}.
-	 * @param beans the {@code Beans} to register
+	 * 
+	 * @param beans
+	 *            the {@code Beans} to register
 	 */
 	void registerBeans(List<Bean> beans);
 
@@ -104,6 +106,6 @@ public interface BeanFactory {
 	 * 
 	 * @return {@code Map} of bean names and their corresponding type
 	 */
-	Map<String, String> getBeanDefinitions();
+	Map<String, Class<?>> getBeanDefinitions();
 
 }

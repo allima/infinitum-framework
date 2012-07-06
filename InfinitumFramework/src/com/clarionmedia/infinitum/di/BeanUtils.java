@@ -36,11 +36,37 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
  * @since 07/05/12
  */
 public class BeanUtils {
-	
-	public static Object findCandidateBean(BeanFactory beanFactory, Class<?> clazz) {
-		// TODO: find candidates who are subclasses of clazz
-		String candidate = invert(beanFactory.getBeanDefinitions()).get(clazz);
-		return beanFactory.loadBean(candidate);
+
+	/**
+	 * Resolves an autowire dependency for the given {@link Class}. This will
+	 * return an instance of the {@code Class} or one of its derivatives from
+	 * the given {@link BeanFactory}. If there is no candidate, it will return
+	 * {@code null}. An {@link InfinitumConfigurationException} will be thrown
+	 * if more than one candidate is found.
+	 * 
+	 * @param beanFactory
+	 *            the {@code BeanFactory} to load the autowire candidate from
+	 * @param clazz
+	 *            the {@code Class} of the candidate
+	 * @return bean candidate or {@code null} if none exists
+	 * @throws InfinitumConfigurationException
+	 *             if more than one autowire candidate is found
+	 */
+	public static Object findCandidateBean(BeanFactory beanFactory,
+			Class<?> clazz) {
+		Class<?> candidate = null;
+		Map<Class<?>, String> invertedBeanMap = invert(beanFactory
+				.getBeanDefinitions());
+		for (Class<?> type : invertedBeanMap.keySet()) {
+			if (clazz.isAssignableFrom(type)) {
+				// TODO: check if there is more than 1 candidate?
+				candidate = type;
+				break;
+			}
+		}
+		if (candidate == null)
+			return null;
+		return beanFactory.loadBean(invertedBeanMap.get(candidate));
 	}
 
 	private static <V, K> Map<V, K> invert(Map<K, V> map) {
@@ -48,7 +74,7 @@ public class BeanUtils {
 		for (Entry<K, V> entry : map.entrySet()) {
 			if (inv.containsKey(entry.getValue()))
 				throw new InfinitumConfigurationException(
-						"More than 1 bean candidate found of type '"
+						"More than 1 autowire candidate found of type '"
 								+ entry.getValue() + "'.");
 			inv.put(entry.getValue(), entry.getKey());
 		}
