@@ -34,11 +34,12 @@ import org.simpleframework.xml.core.Commit;
 
 import android.content.Context;
 
-import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.Bean;
+import com.clarionmedia.infinitum.di.BeanFactory;
+import com.clarionmedia.infinitum.di.impl.ConfigurableBeanFactory;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;

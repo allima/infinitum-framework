@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.context.impl;
+package com.clarionmedia.infinitum.di.impl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -26,10 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.Bean;
+import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
 import com.clarionmedia.infinitum.di.BeanUtils;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
@@ -114,13 +114,14 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		try {
 			clazz = Class.forName(beanClass);
 		} catch (ClassNotFoundException e) {
-			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved ('" + beanClass + "' not found)");
+			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved ('" + beanClass
+					+ "' not found)");
 		}
 		Pair<Class<?>, Map<String, Object>> pair = new Pair<Class<?>, Map<String, Object>>(clazz, args);
 		// pair: Pair<bean, beanArgsMap>
 		mBeanDefinitions.put(name, pair);
 		// First we construct an instance of the bean
-		Object bean = createBean(name, beanClass);
+		Object bean = instantiateBean(name, clazz);
 		// Then we populate its fields
 		setFields(bean, args);
 		mBeanMap.put(name, bean);
@@ -140,21 +141,6 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		for (Entry<String, Object> bean : mBeanMap.entrySet()) {
 			beanPostProcessor.postProcessBean(bean.getKey(), bean.getValue());
 		}
-	}
-
-	private Object createBean(String name, String beanClass) {
-		if (beanClass == null)
-			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved");
-		Class<?> clazz;
-		try {
-			// Find the class
-			clazz = Class.forName(beanClass);
-		} catch (ClassNotFoundException e) {
-			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved ('" + beanClass
-					+ "' not found)");
-		}
-		// Instantiate it
-		return instantiateBean(name, clazz);
 	}
 
 	private Object instantiateBean(String name, Class<?> clazz) {
@@ -186,7 +172,8 @@ public class ConfigurableBeanFactory implements BeanFactory {
 				Class<?> paramType = target.getParameterTypes()[0];
 				Object argument = BeanUtils.findCandidateBean(this, paramType);
 				if (argument == null)
-					throw new InfinitumConfigurationException("Could not autowire property of type '" + clazz.getName() + "' in bean '" + name + "' (no autowire candidates found)");
+					throw new InfinitumConfigurationException("Could not autowire property of type '" + clazz.getName()
+							+ "' in bean '" + name + "' (no autowire candidates found)");
 				return target.newInstance(argument);
 			} else {
 				return target.newInstance();

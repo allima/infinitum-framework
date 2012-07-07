@@ -20,7 +20,6 @@
 package com.clarionmedia.infinitum.di;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.BeanFactory;
 
 /**
  * <p>

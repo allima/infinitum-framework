@@ -17,12 +17,13 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.context;
+package com.clarionmedia.infinitum.di;
 
 import java.util.List;
 import java.util.Map;
+
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.di.Bean;
 
 /**
  * <p>

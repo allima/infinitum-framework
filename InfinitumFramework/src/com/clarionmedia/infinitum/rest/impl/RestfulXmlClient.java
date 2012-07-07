@@ -38,12 +38,12 @@ import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.rest.Deserializer;
-import com.clarionmedia.infinitum.rest.RestfulOrmClient;
+import com.clarionmedia.infinitum.rest.RestfulModelClient;
 import com.clarionmedia.infinitum.rest.XmlDeserializer;
 
 /**
  * <p>
- * A basic implementation of {@link RestfulOrmClient} for standard CRUD operations.
+ * A basic implementation of {@link RestfulModelClient} for standard CRUD operations.
  * This implementation is used for web services which send responses back as
  * XML.
  * </p>
@@ -52,7 +52,7 @@ import com.clarionmedia.infinitum.rest.XmlDeserializer;
  * @version 1.0
  * @since 05/21/12
  */
-public class RestfulXmlClient extends RestfulOrmClient {
+public class RestfulXmlClient extends RestfulModelClient {
 
 	protected Map<Class<?>, XmlDeserializer<?>> mXmlDeserializers;
 
