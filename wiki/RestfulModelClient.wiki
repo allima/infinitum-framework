@@ -6,7 +6,9 @@
 
 = Introduction =
 
-The `RestfulModelClient` abstract class provides an API for communicating with a RESTful web service using domain objects. `RestfulModelClient` differs from RestfulClient in that it uses domain objects to communicate with a web service, while `RestfulClient` must be provided with RESTful endpoint URIs and request data. Thus, `RestfulModelClient` can be seen as a somewhat rudimentary ORM for application web services. Infinitum provides two implementations called `RestfulJsonClient` and `RestfulXmlClient`, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulModelClient` implementation can be specified in InfinitumCfgXml by referencing a bean which extends `RestfulModelClient`. This implementation is then acquired from the RestfulModelClientBuilder.
+The `RestfulModelClient` abstract class provides an API for communicating with a RESTful web service using domain objects. `RestfulModelClient` differs from RestfulClient in that it uses domain objects to communicate with a web service, while `RestfulClient` must be provided with RESTful endpoint URIs and request data. Thus, `RestfulModelClient` can be seen as a somewhat rudimentary ORM for application web services. Because it is tied to an application's domain model, the `RestfulModelClient` must be configured in [http://code.google.com/p/infinitum-framework/wiki/InfinitumCfgXml#RESTful_Configuration InfinitumCfgXml].
+
+Infinitum provides two implementations of `RestfulModelClient` called `RestfulJsonClient` and `RestfulXmlClient`, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulModelClient` implementation can be specified in InfinitumCfgXml by referencing a bean which extends `RestfulModelClient`. This implementation is then acquired from the RestfulModelClientBuilder.
 
 {{{
 <rest ref="restClient">
