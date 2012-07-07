@@ -59,7 +59,7 @@ If SQLite is being used as a datastore, a database name and version number _must
 
 = RESTful Configuration =
 
-If the RESTful web service client is being utilized, it _must_ be configured, at least minimally, in `infinitum.cfg.xml`. The only required property is the host, which designates the URL of the web service. Optional properties include connection timeout, response timeout, and authentication.
+If RestfulModelClient is being utilized, it _must_ be configured, at least minimally, in `infinitum.cfg.xml`. The only required property is the host, which designates the URL of the web service. Optional properties include connection timeout, response timeout, and authentication.
 
 Connection and response timeouts indicate the time, in milliseconds, the client will wait for a connection or response, respectively, before failing.
 
