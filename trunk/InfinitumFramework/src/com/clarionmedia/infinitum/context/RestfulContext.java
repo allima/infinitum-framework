@@ -146,7 +146,7 @@ public interface RestfulContext {
 	void setResponseTimeout(int responseTimeout);
 
 	/**
-	 * Retrieves the name of the bean for the configured {@link RestfulOrmClient}.
+	 * Retrieves the name of the bean for the configured {@link RestfulModelClient}.
 	 * 
 	 * @return the name of the {@code RestfulClient} bean or {@code null} if it
 	 *         has not been configured
@@ -154,7 +154,7 @@ public interface RestfulContext {
 	String getClientBean();
 
 	/**
-	 * Sets the name of the bean for the {@link RestfulOrmClient}.
+	 * Sets the name of the bean for the {@link RestfulModelClient}.
 	 * 
 	 * @param clientBean
 	 *            the name of the {@code RestfulClient} bean

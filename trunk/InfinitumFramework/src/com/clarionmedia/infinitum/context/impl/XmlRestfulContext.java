@@ -20,10 +20,12 @@
 package com.clarionmedia.infinitum.context.impl;
 
 import java.util.Map;
+
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementMap;
 import org.simpleframework.xml.Root;
+
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;

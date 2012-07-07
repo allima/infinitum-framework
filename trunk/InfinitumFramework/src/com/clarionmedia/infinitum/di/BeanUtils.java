@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 
 /**
@@ -52,11 +51,9 @@ public class BeanUtils {
 	 * @throws InfinitumConfigurationException
 	 *             if more than one autowire candidate is found
 	 */
-	public static Object findCandidateBean(BeanFactory beanFactory,
-			Class<?> clazz) {
+	public static Object findCandidateBean(BeanFactory beanFactory, Class<?> clazz) {
 		Class<?> candidate = null;
-		Map<Class<?>, String> invertedBeanMap = invert(beanFactory
-				.getBeanDefinitions());
+		Map<Class<?>, String> invertedBeanMap = invert(beanFactory.getBeanDefinitions());
 		for (Class<?> type : invertedBeanMap.keySet()) {
 			if (clazz.isAssignableFrom(type)) {
 				// TODO: check if there is more than 1 candidate?
@@ -73,9 +70,8 @@ public class BeanUtils {
 		Map<V, K> inv = new HashMap<V, K>();
 		for (Entry<K, V> entry : map.entrySet()) {
 			if (inv.containsKey(entry.getValue()))
-				throw new InfinitumConfigurationException(
-						"More than 1 autowire candidate found of type '"
-								+ entry.getValue() + "'.");
+				throw new InfinitumConfigurationException("More than 1 autowire candidate found of type '"
+						+ entry.getValue() + "'.");
 			inv.put(entry.getValue(), entry.getKey());
 		}
 		return inv;

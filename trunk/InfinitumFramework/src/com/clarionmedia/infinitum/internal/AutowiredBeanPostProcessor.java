@@ -23,8 +23,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import com.clarionmedia.infinitum.context.BeanFactory;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
 import com.clarionmedia.infinitum.di.BeanUtils;
 import com.clarionmedia.infinitum.di.annotation.Autowired;

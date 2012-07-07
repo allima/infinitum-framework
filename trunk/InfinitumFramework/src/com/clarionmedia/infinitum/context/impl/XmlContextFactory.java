@@ -118,7 +118,7 @@ public class XmlContextFactory extends ContextFactory {
 			String xml = new java.util.Scanner(stream).useDelimiter("\\A").next();
 			return serializer.read(XmlApplicationContext.class, xml);
 		} catch (Exception e) {
-			return null;
+			throw new InfinitumConfigurationException("Unable to initialize Infinitum configuration.");
 		}
 	}
 

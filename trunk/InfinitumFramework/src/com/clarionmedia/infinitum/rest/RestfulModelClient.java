@@ -39,10 +39,15 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
+import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.impl.RestfulJsonClient;
@@ -52,8 +57,8 @@ import com.clarionmedia.infinitum.rest.impl.RestfulXmlClient;
 
 /**
  * <p>
- * This abstract class provides an API for communicating with a RESTful web
- * service using objects. Infinitum provides two implementations called
+ * Provides an API for communicating with a RESTful web service using domain
+ * objects. Infinitum provides two implementations called
  * {@link RestfulJsonClient}, which is used for web services that respond with
  * JSON, and {@link RestfulXmlClient}, which is used for web services that
  * respond with XML. These can be extended or re-implemented for specific
@@ -64,19 +69,30 @@ import com.clarionmedia.infinitum.rest.impl.RestfulXmlClient;
  * @version 1.0
  * @since 02/27/12
  */
-public abstract class RestfulOrmClient extends RestfulClient {
+public abstract class RestfulModelClient {
 
 	protected static final String ENCODING = "UTF-8";
 
+	protected InfinitumContext mContext;
+	protected String mHost;
+	protected boolean mIsAuthenticated;
+	protected AuthenticationStrategy mAuthStrategy;
+	protected Logger mLogger;
 	protected RestfulMapper mMapper;
 	protected PersistencePolicy mPolicy;
 
 	/**
-	 * Constructs a new {@code RestfulOrmClient}. You must call
-	 * {@link ContextFactory#configure(android.content.Context, int)} before
-	 * invoking this constructor.
+	 * Prepares this {@code RestfulClient} for use. This must be called before
+	 * using it.
 	 */
-	public RestfulOrmClient() {
+	public final void prepare() {
+		mLogger = Logger.getInstance(getClass().getSimpleName());
+		mContext = ContextFactory.getInstance().getContext();
+		mHost = mContext.getRestfulConfiguration().getRestHost();
+		if (!mHost.endsWith("/"))
+			mHost += '/';
+		mIsAuthenticated = mContext.getRestfulConfiguration().isRestAuthenticated();
+		mAuthStrategy = mContext.getRestfulConfiguration().getAuthStrategy();
 		mMapper = new RestfulMapper();
 		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 	}
@@ -254,6 +270,21 @@ public abstract class RestfulOrmClient extends RestfulClient {
 	 */
 	public Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters() {
 		return mMapper.getRegisteredTypeAdapters();
+	}
+
+	/**
+	 * Returns a {@link HttpParams} configured using the
+	 * {@link InfinitumContext}.
+	 * 
+	 * @return {@code HttpParams}
+	 */
+	protected HttpParams getHttpParams() {
+		HttpParams httpParams = new BasicHttpParams();
+		HttpConnectionParams
+				.setConnectionTimeout(httpParams, mContext.getRestfulConfiguration().getConnectionTimeout());
+		HttpConnectionParams.setSoTimeout(httpParams, mContext.getRestfulConfiguration().getResponseTimeout());
+		HttpConnectionParams.setTcpNoDelay(httpParams, true);
+		return httpParams;
 	}
 
 }

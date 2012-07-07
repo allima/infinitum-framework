@@ -23,41 +23,41 @@ import java.lang.reflect.Field;
 
 /**
  * <p>
- * Provides an API for constructing new {@link RestfulOrmClient} instances. In
+ * Provides an API for constructing new {@link RestfulModelClient} instances. In
  * addition to acting as a factory, the purpose of this interface is to allow
- * for {@code RestfulClients} to be configured before retrieving instances.
+ * for {@code RestfulModelClients} to be configured before retrieving instances.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/28/12
  */
-public interface RestfulOrmClientBuilder {
+public interface RestfulModelClientBuilder {
 
 	/**
-	 * Builds a configured {@link RestfulOrmClient} instance.
+	 * Builds a configured {@link RestfulModelClient} instance.
 	 * 
-	 * @return {@code RestfulClient}
+	 * @return {@code RestfulModelClient}
 	 */
-	RestfulOrmClient build();
+	RestfulModelClient build();
 
 	/**
-	 * Registers a {@link Deserializer} for the given {@link Class} type.
-	 * This deserializer will be used to deserialize any objects of the given
-	 * type. Registering a {@code Deserializer} for a {@code Class} which
-	 * already has a {@code Deserializer} registered for it will result in
-	 * the previous {@code Deserializer} being overridden.
+	 * Registers a {@link Deserializer} for the given {@link Class} type. This
+	 * deserializer will be used to deserialize any objects of the given type.
+	 * Registering a {@code Deserializer} for a {@code Class} which already has
+	 * a {@code Deserializer} registered for it will result in the previous
+	 * {@code Deserializer} being overridden.
 	 * 
 	 * @param type
 	 *            the {@code Class} associated with this deserializer
 	 * @param deserializer
 	 *            the {@code JsonDeserializer} to register
-	 * @return {@code RestfulClientBuilder} to allow for method chaining
+	 * @return {@code RestfulModelClientBuilder} to allow for method chaining
 	 */
-	<E> RestfulOrmClientBuilder registerDeserializer(Class<E> type, Deserializer<E> deserializer);
+	<E> RestfulModelClientBuilder registerDeserializer(Class<E> type, Deserializer<E> deserializer);
 
 	/**
 	 * Registers the given {@link RestfulTypeAdapter} for the specified
-	 * {@link Class} with this {@code RestfulClientBuilder} instance. The
+	 * {@link Class} with this {@code RestfulModelClientBuilder} instance. The
 	 * {@code RestfulTypeAdapter} allows a {@link Field} of this type to be
 	 * mapped to a resource field in a web service. Registering a
 	 * {@code RestfulTypeAdapter} for a {@code Class} which already has a
@@ -68,15 +68,15 @@ public interface RestfulOrmClientBuilder {
 	 *            the {@code Class} this {@code RestfulTypeAdapter} is for
 	 * @param adapter
 	 *            the {@code RestfulTypeAdapter} to register
-	 * @return {@code RestfulClientBuilder} to allow for method chaining
+	 * @return {@code RestfulModelClientBuilder} to allow for method chaining
 	 */
-	<E> RestfulOrmClientBuilder registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter);
+	<E> RestfulModelClientBuilder registerTypeAdapter(Class<E> type, RestfulTypeAdapter<E> adapter);
 
 	/**
-	 * Removes any current configurations for the {@link RestfulOrmClient}.
+	 * Removes any current configurations for the {@link RestfulModelClient}.
 	 * 
-	 * @return {@code RestfulClientBuilder} to allow for method chaining
+	 * @return {@code RestfulModelClientBuilder} to allow for method chaining
 	 */
-	RestfulOrmClientBuilder clearConfiguration();
+	RestfulModelClientBuilder clearConfiguration();
 
 }

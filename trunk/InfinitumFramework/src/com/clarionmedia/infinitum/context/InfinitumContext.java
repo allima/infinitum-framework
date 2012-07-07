@@ -23,6 +23,7 @@ import java.util.List;
 import android.content.Context;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.context.impl.XmlContextFactory;
+import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 

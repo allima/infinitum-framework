@@ -39,13 +39,13 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.rest.Deserializer;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
-import com.clarionmedia.infinitum.rest.RestfulOrmClient;
+import com.clarionmedia.infinitum.rest.RestfulModelClient;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 /**
  * <p>
- * A basic implementation of {@link RestfulOrmClient} for standard CRUD operations.
+ * A basic implementation of {@link RestfulModelClient} for standard CRUD operations.
  * This implementation is used for web services which send responses back as
  * JSON.
  * </p>
@@ -54,7 +54,7 @@ import com.google.gson.JsonSyntaxException;
  * @version 1.0
  * @since 03/21/12
  */
-public class RestfulJsonClient extends RestfulOrmClient {
+public class RestfulJsonClient extends RestfulModelClient {
 
 	protected Map<Class<?>, JsonDeserializer<?>> mJsonDeserializers;
 
