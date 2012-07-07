@@ -16,18 +16,18 @@ Infinitum provides an implementation of `RestfulClient` called `BasicRestfulClie
 RestfulClient rest = new BasicRestfulClient();
 
 // HTTP GET request
-RestResponse = rest.executeGet("http://localhost/mywebservice/foo/42");
+RestResponse response = rest.executeGet("http://localhost/mywebservice/foo/42");
 
 // HTTP DELETE request
-RestResponse = rest.executeDelete("http://localhost/mywebservice/foo/42");
+RestResponse response = rest.executeDelete("http://localhost/mywebservice/foo/42");
 
 // HTTP POST request
 String someJson = "{\"id\":\"328\",\"val\":\"42\"}";
-RestResponse = rest.executePost("http://localhost/mywebservice/foo", someJson, "application/json");
+RestResponse response = rest.executePost("http://localhost/mywebservice/foo", someJson, "application/json");
 
 // HTTP PUT request
 String someJson = "{\"id\":\"328\",\"val\":\"76\"}";
-RestResponse = rest.executePut("http://localhost/mywebservice/foo", someJson, "application/json");
+RestResponse response = rest.executePut("http://localhost/mywebservice/foo", someJson, "application/json");
 
 }}}
 
@@ -36,7 +36,7 @@ We can also apply headers to our requests:
 {{{
 Map<String, String> headers = new HashMap<String, String>();
 headers.put("Accept", "text/xml");
-RestResponse = rest.executeGet("http://localhost/mywebservice/foo/42", headers);
+RestResponse response = rest.executeGet("http://localhost/mywebservice/foo/42", headers);
 }}}
 
 Additionally, connection and response timeouts can be configured for the `RestfulClient`:
