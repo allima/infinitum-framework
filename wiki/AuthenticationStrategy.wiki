@@ -16,7 +16,7 @@ An `AuthenticationStrategy` can be specified for a RestfulClient in InfinitumCfg
 
 {{{
 <rest>
-    <property name="host">http://localhost:80/mywebservice</property>
+    <property name="host">http://localhost/mywebservice</property>
     <authentication strategy="token" enabled="true">
         <property name="tokenName">token</property>
         <property name="token">e489e8383c0ae2b7fe4dcf178330b4ac</property>
@@ -30,7 +30,7 @@ In order to specify an alternate `AuthenticationStrategy` implementation, a bean
 
 {{{
 <rest>
-    <property name="host">http://localhost:80/mywebservice</property>
+    <property name="host">http://localhost/mywebservice</property>
     <authentication ref="myAuthentication" enabled="true" />
 </rest>
 <beans>
