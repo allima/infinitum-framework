@@ -38,3 +38,10 @@ Map<String, String> headers = new HashMap<String, String>();
 headers.put("Accept", "text/xml");
 RestResponse = rest.executeGet("http://localhost/mywebservice/foo/42", headers);
 }}}
+
+Additionally, connection and response timeouts can be configured for the `RestfulClient`:
+
+{{{
+rest.setConnectionTimeout(5000);
+rest.setResponseTimeout(5000);
+}}}
