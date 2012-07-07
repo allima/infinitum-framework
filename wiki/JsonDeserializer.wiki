@@ -24,7 +24,7 @@ And web service B's JSON might look something like this:
 {"id":"328","val":"42"}
 }}}
 
-Both are valid JSON and both represent the same `Foo` object -- the first just has some additional syntax. Assuming we don't want to (or are unable to) coerce the JSON response from the server side, we can utilize a `JsonDeserializer` to parse out the superfluous artifacts from the response.
+Both are valid JSON and both represent the same `Foo` object -- the first just has some additional syntax. Assuming we don't want to (or are unable to) coerce the JSON response from the server side and we don't want to clutter our domain model with wrapper objects, we can utilize a `JsonDeserializer` to parse out the superfluous artifacts from the response.
 
 = Example Implementation =
 
