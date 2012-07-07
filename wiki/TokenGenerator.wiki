@@ -58,7 +58,7 @@ A `TokenGenerator` can be provided to a `SharedSecretAuthentication` using the `
 
 {{{
 <rest>
-    <property name="host">http://localhost:80/mywebservice</property>
+    <property name="host">http://localhost/mywebservice</property>
     <authentication ref="tokenAuthentication" enabled="true" />
 </rest>
 
