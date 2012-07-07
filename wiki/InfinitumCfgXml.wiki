@@ -69,7 +69,7 @@ If a web service uses some type of authentication, an authentication strategy ca
 
 {{{
 <rest>
-    <property name="host">http://localhost:80/mywebservice</property>
+    <property name="host">http://localhost/mywebservice</property>
     <property name="connectionTimeout">5000</property>
     <property name="responseTimeout">5000</property>
     <authentication strategy="token">
@@ -83,7 +83,7 @@ By default, Infinitum's `RestfulClientFactory` will use `RestfulJsonClient` as i
 
 {{{
 <rest ref="restClient">
-    <property name="host">http://localhost:80/mywebservice</property>
+    <property name="host">http://localhost/mywebservice</property>
     <property name="connectionTimeout">5000</property>
     <property name="responseTimeout">5000</property>
     <authentication ref="customAuthenticator" enabled="true" />
@@ -124,7 +124,7 @@ The properties `tokenName` and `token` will be injected into the `MyTokenAuthent
 
 {{{
 <rest>
-    <property name="host">http://localhost:80/mywebservice</property>
+    <property name="host">http://localhost/mywebservice</property>
     <authentication ref="tokenAuthenticator" />
 </rest>
 }}}
@@ -163,7 +163,7 @@ All of the components discussed above are used to compose the `infinitum.cfg.xml
     </sqlite>
     
     <rest ref="restClient">
-        <property name="host">http://localhost:80/mywebservice</property>
+        <property name="host">http://localhost/mywebservice</property>
         <property name="connectionTimeout">5000</property>
         <property name="responseTimeout">5000</property>
         <authentication ref="authenticator" />
