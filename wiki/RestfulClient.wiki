@@ -19,15 +19,15 @@ RestfulClient rest = new BasicRestfulClient();
 RestResponse response = rest.executeGet("http://localhost/mywebservice/foo/42");
 
 // HTTP DELETE request
-RestResponse response = rest.executeDelete("http://localhost/mywebservice/foo/42");
+response = rest.executeDelete("http://localhost/mywebservice/foo/42");
 
 // HTTP POST request
 String someJson = "{\"id\":\"328\",\"val\":\"42\"}";
-RestResponse response = rest.executePost("http://localhost/mywebservice/foo", someJson, "application/json");
+response = rest.executePost("http://localhost/mywebservice/foo", someJson, "application/json");
 
 // HTTP PUT request
-String someJson = "{\"id\":\"328\",\"val\":\"76\"}";
-RestResponse response = rest.executePut("http://localhost/mywebservice/foo", someJson, "application/json");
+someJson = "{\"id\":\"328\",\"val\":\"76\"}";
+response = rest.executePut("http://localhost/mywebservice/foo", someJson, "application/json");
 
 }}}
 
@@ -36,7 +36,7 @@ We can also apply headers to our requests:
 {{{
 Map<String, String> headers = new HashMap<String, String>();
 headers.put("Accept", "text/xml");
-RestResponse response = rest.executeGet("http://localhost/mywebservice/foo/42", headers);
+response = rest.executeGet("http://localhost/mywebservice/foo/42", headers);
 }}}
 
 Additionally, connection and response timeouts can be configured for the `RestfulClient`:
