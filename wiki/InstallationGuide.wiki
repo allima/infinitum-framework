@@ -52,5 +52,5 @@ ContextFactory.getInstance().configure(this);
 This will configure Infinitum using the `infinitum.cfg.xml` file in `res/raw`. Alternatively, you can specify explicitly which configuration resource to use by doing the following:
 
 {{{
-ContextFactory.getInstance().configure(this, R.xml.infinitum);
+ContextFactory.getInstance().configure(this, R.raw.infinitum);
 }}}
