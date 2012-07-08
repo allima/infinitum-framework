@@ -43,10 +43,31 @@ public class SharedSecretAuthentication implements AuthenticationStrategy {
 	private String mTokenName;
 	private String mToken;
 	private TokenGenerator mGenerator;
+	private boolean mIsHeader;
 
 	@Override
 	public String getAuthenticationString() {
 		return mTokenName + "=" + getToken();
+	}
+	
+	@Override
+	public String getAuthenticationKey() {
+		return mTokenName;
+	}
+
+	@Override
+	public String getAuthenticationValue() {
+		return getToken();
+	}
+
+	@Override
+	public boolean isHeader() {
+		return mIsHeader;
+	}
+	
+	@Override
+	public void setHeader(boolean isHeader) {
+		mIsHeader = isHeader;
 	}
 
 	/**

@@ -30,6 +30,7 @@ import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.rest.TokenGenerator;
 import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
 
 /**
@@ -119,10 +120,13 @@ public class XmlRestfulContext implements RestfulContext {
 		String strategy = mAuthentication.mStrategy;
 		if ("token".equalsIgnoreCase(strategy)) {
 			SharedSecretAuthentication auth = new SharedSecretAuthentication();
+			auth.setHeader(mAuthentication.mHeader);
 			if (mAuthentication.mAuthProperties.containsKey("tokenName"))
 				auth.setTokenName(mAuthentication.mAuthProperties.get("tokenName"));
 			if (mAuthentication.mAuthProperties.containsKey("token"))
 				auth.setToken(mAuthentication.mAuthProperties.get("token"));
+			if (mAuthentication.mGenerator != null)
+				auth.setTokenGenerator(mParentContext.getBean(mAuthentication.mGenerator, TokenGenerator.class));
 			return auth;
 		} else
 			throw new InfinitumConfigurationException("Unrecognized authentication strategy '" + strategy + "'.");
@@ -175,6 +179,12 @@ public class XmlRestfulContext implements RestfulContext {
 
 		@Attribute(name = "strategy", required = false)
 		private String mStrategy;
+		
+		@Attribute(name = "header", required = false)
+		private boolean mHeader;
+		
+		@Attribute(name = "generator", required = false)
+		private String mGenerator;
 
 		@ElementMap(required = false, entry = "property", key = "name", attribute = true, inline = true)
 		private Map<String, String> mAuthProperties;

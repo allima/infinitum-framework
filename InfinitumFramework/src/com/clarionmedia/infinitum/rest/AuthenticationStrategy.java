@@ -38,10 +38,42 @@ public interface AuthenticationStrategy {
 	 * Retrieves the authentication {@link String} for this
 	 * {@code AuthenticationStrategy}. The authentication {@code String} is the
 	 * value used to authenticate web service requests and is typically appended
-	 * to the request URL.
+	 * to the request URL or included as a header.
 	 * 
 	 * @return authentication {@code String}
 	 */
 	String getAuthenticationString();
+
+	/**
+	 * Returns the authentication key.
+	 * 
+	 * @return authentication key
+	 */
+	String getAuthenticationKey();
+
+	/**
+	 * Returns the authentication value.
+	 * 
+	 * @return authentication value
+	 */
+	String getAuthenticationValue();
+
+	/**
+	 * Indicates if the authentication is included in the request headers.
+	 * 
+	 * @return {@code true} if authentication is included as a header,
+	 *         {@code false} if not
+	 */
+	boolean isHeader();
+
+	/**
+	 * Sets the value indicating if authentication is included in the request
+	 * headers.
+	 * 
+	 * @param isHeader
+	 *            {@code true} if authentication is included as a header,
+	 *            {@code false} if not
+	 */
+	void setHeader(boolean isHeader);
 
 }

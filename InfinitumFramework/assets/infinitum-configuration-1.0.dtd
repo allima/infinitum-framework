@@ -51,3 +51,4 @@
 <!ATTLIST authentication ref CDATA #IMPLIED>
 <!ATTLIST authentication enabled CDATA #IMPLIED>
 <!ATTLIST authentication generator CDATA #IMPLIED>
+<!ATTLIST authentication header CDATA #IMPLIED>

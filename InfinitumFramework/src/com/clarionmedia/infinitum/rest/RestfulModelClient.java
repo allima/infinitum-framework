@@ -141,9 +141,11 @@ public abstract class RestfulModelClient {
 		mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
-		if (mIsAuthenticated)
+		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPost httpPost = new HttpPost(uri);
+		if (mIsAuthenticated && mAuthStrategy.isHeader())
+			httpPost.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap map = mMapper.mapModel(model);
 		List<NameValuePair> pairs = map.getNameValuePairs();
 		try {
@@ -182,9 +184,11 @@ public abstract class RestfulModelClient {
 		HttpClient httpClient = new DefaultHttpClient();
 		Serializable pk = mPolicy.getPrimaryKey(model);
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass()) + "/" + pk.toString();
-		if (mIsAuthenticated)
+		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpDelete httpDelete = new HttpDelete(uri);
+		if (mIsAuthenticated && mAuthStrategy.isHeader())
+			httpDelete.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
 		HttpResponse response;
 		try {
 			response = httpClient.execute(httpDelete);
@@ -213,9 +217,11 @@ public abstract class RestfulModelClient {
 		mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
-		if (mIsAuthenticated)
+		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPut httpPut = new HttpPut(uri);
+		if (mIsAuthenticated && mAuthStrategy.isHeader())
+			httpPut.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap map = mMapper.mapModel(model);
 		List<NameValuePair> pairs = map.getNameValuePairs();
 		try {

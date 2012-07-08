@@ -72,9 +72,11 @@ public class RestfulXmlClient extends RestfulModelClient {
 		mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
 		String uri = mHost + mPolicy.getRestEndpoint(type) + "/" + id;
-		if (mIsAuthenticated)
+		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpGet httpGet = new HttpGet(uri);
+		if (mIsAuthenticated && mAuthStrategy.isHeader())
+			httpGet.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
 		httpGet.addHeader("Accept", "application/xml");
 		try {
 			HttpResponse response = httpClient.execute(httpGet);
