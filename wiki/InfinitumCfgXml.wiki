@@ -65,6 +65,8 @@ Connection and response timeouts indicate the time, in milliseconds, the client 
 
 If a web service uses some type of authentication, an authentication strategy can be registered. For example, if using a shared secret, a "token" strategy can be declared, indicating the name of the shared secret and the token itself (a token generator can also be used if an unchanging token is undesirable).
 
+Authentication is included in the request URI's query string, but it can be included as a header instead by enabling the `header` property.
+
 == RESTful Configuration Example ==
 
 {{{
@@ -72,14 +74,14 @@ If a web service uses some type of authentication, an authentication strategy ca
     <property name="host">http://localhost/mywebservice</property>
     <property name="connectionTimeout">5000</property>
     <property name="responseTimeout">5000</property>
-    <authentication strategy="token">
+    <authentication strategy="token" header="true">
         <property name="tokenName">token</property>
         <property name="token">52b353fb27267973cebb5e8566e0415d</property>
     </authentication>
 </rest>
 }}}
 
-By default, Infinitum's `RestfulClientFactory` will use `RestfulJsonClient` as its RESTful client implementation. However, alternative implementations can be used by providing a bean, which will then be injected into the `RestfulClientFactory`. In a similar manner, alternative `AuthenticationStrategy` implementations can be used by providing a bean also. Both of these notions are illustrated in the example below.
+By default, Infinitum's `RestfulModelClientFactory` will use `RestfulJsonClient` as its RESTful client implementation. However, alternative implementations can be used by providing a bean, which will then be injected into the `RestfulModelClientFactory`. In a similar manner, alternative `AuthenticationStrategy` implementations can be used by providing a bean also. Both of these notions are illustrated in the example below.
 
 {{{
 <rest ref="restClient">
@@ -90,7 +92,7 @@ By default, Infinitum's `RestfulClientFactory` will use `RestfulJsonClient` as i
 </rest>
 }}}
 
-The bean `restClient` will be used as the `RestfulClient`, while the `customAuthenticator` bean will be used as the client's `AuthenticationStrategy`. These beans would be defined as follows:
+The bean `restClient` will be used as the `RestfulModelClient`, while the `customAuthenticator` bean will be used as the client's `AuthenticationStrategy`. These beans would be defined as follows:
 
 {{{
 <bean id="restClient"
@@ -99,17 +101,17 @@ The bean `restClient` will be used as the `RestfulClient`, while the `customAuth
     src="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
 }}}
 
-`MyRestfulClient` must extend the RestfulClient abstract class, and `MyAuthenticator` must implement the AuthenticationStrategy interface.
+`MyRestfulClient` must extend the RestfulModelClient abstract class, and `MyAuthenticator` must implement the AuthenticationStrategy interface.
 
 = Bean Configuration =
 
-Infinitum supports the notion of beans for injecting custom implementations for some of its different services at runtime, as was outlined briefly in the RESTful Configuration section above. For example, implementations of `RestfulClient` and `AuthenticationStrategy` can be provided.
+Infinitum supports the notion of beans for injecting custom implementations for some of its different services at runtime, as was outlined briefly in the RESTful Configuration section above. For example, implementations of `RestfulModelClient` and `AuthenticationStrategy` can be provided.
 
 Beans are defined in `infinitum.cfg.xml`. Beans themselves can be injected with basic properties, such as `int`, `long`, `double`, `float`, and `String` fields, using the `value` attribute or with other beans using the `ref` attribute.
 
 == Bean Configuration Example ==
 
-Take, for example, an `AuthenticationStrategy` implementation called `MyTokenAuthenticator`, which has two fields, `token` and `tokenName`, both of type `String`. Let's say we want to use this authenticator in our `RestfulClient`. It's a rather contrived example, considering SharedSecretAuthentication provides identical functionality, but it illustrates the use of beans and bean properties. First, we must define the bean:
+Take, for example, an `AuthenticationStrategy` implementation called `MyTokenAuthenticator`, which has two fields, `token` and `tokenName`, both of type `String`. Let's say we want to use this authenticator in our `RestfulModelClient`. It's a rather contrived example, considering SharedSecretAuthentication provides identical functionality, but it illustrates the use of beans and bean properties. First, we must define the bean:
 
 {{{
 <beans>
