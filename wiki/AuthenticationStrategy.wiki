@@ -8,11 +8,11 @@
 
 In order to support communication with web services which require some sort of request authentication, Infinitum provides the `AuthenticationStrategy`. `AuthenticationStrategy` describes how web service requests are authenticated. This interface should be implemented for specific web service authentication strategies. If a web service uses token or shared-secret authentication, SharedSecretAuthentication should be used.
 
-`AuthenticationStrategy` has but a single method which must be implemented, `getAuthenticationString()`, which returns the string used to authenticate web service requests and is typically appended to the request URL.
+`AuthenticationStrategy` has a small handful of methods which must be implemented. One such method, `getAuthenticationString()`, returns the string used to authenticate web service requests and is typically appended to the request URI or included as a header. Another method, `isHeader()` indicates just that, whether authentication is included in the request query string or in a header.
 
 = Specifying an `AuthenticationStrategy` =
 
-An `AuthenticationStrategy` can be specified for a RestfulClient in InfinitumCfgXml using one of two ways. One of Infinitum's built-in strategies, such as `SharedSecretAuthentication`, can be specified using the following:
+An `AuthenticationStrategy` can be specified for a RestfulModelClient in InfinitumCfgXml using one of two ways. One of Infinitum's built-in strategies, such as `SharedSecretAuthentication`, can be specified using the following:
 
 {{{
 <rest>
