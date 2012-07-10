@@ -51,8 +51,6 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
  */
 public class SqliteSession implements Session {
 
-	private static final int DEFAULT_CACHE_SIZE = 500;
-
 	private SqliteTemplate mSqlite;
 	private Context mContext;
 	private InfinitumContext mInfinitumContext;
@@ -99,11 +97,9 @@ public class SqliteSession implements Session {
 	public void open() throws SQLException {
 		try {
 			mSqlite.open();
-			if (mInfinitumContext.isDebug())
-				mLogger.debug("Session opened");
+			mLogger.debug("Session opened");
 		} catch (SQLException e) {
-			if (mInfinitumContext.isDebug())
-				mLogger.error("Session not opened", e);
+			mLogger.error("Session not opened", e);
 			throw e;
 		}
 	}
@@ -111,9 +107,8 @@ public class SqliteSession implements Session {
 	@Override
 	public void close() {
 		mSqlite.close();
-		mSessionCache.clear();
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Session closed");
+		recycleCache();
+		mLogger.debug("Session closed");
 	}
 
 	@Override
@@ -127,8 +122,8 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void setCacheSize(int mCacheSize) {
-		this.mCacheSize = mCacheSize;
+	public void setCacheSize(int cacheSize) {
+		mCacheSize = cacheSize;
 	}
 
 	@Override
