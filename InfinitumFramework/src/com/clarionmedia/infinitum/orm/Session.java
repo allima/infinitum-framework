@@ -62,6 +62,8 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
  * @version 1.0 03/15/12
  */
 public interface Session {
+	
+	public static final int DEFAULT_CACHE_SIZE = 500;
 
 	/**
 	 * Opens the {@code Session} for transactions.
