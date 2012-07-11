@@ -26,16 +26,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.di.Bean;
+import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
-import com.clarionmedia.infinitum.di.BeanPostProcessor;
 import com.clarionmedia.infinitum.di.BeanUtils;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.internal.AutowiredBeanPostProcessor;
 import com.clarionmedia.infinitum.internal.Pair;
+import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
@@ -88,10 +88,10 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	}
 
 	@Override
-	public void registerBeans(List<Bean> beans) {
-		for (Bean bean : beans) {
+	public void registerBeans(List<BeanComponent> beans) {
+		for (BeanComponent bean : beans) {
 			Map<String, Object> propertiesMap = new HashMap<String, Object>();
-			for (Bean.Property property : bean.getProperties()) {
+			for (BeanComponent.Property property : bean.getProperties()) {
 				String name = property.getName();
 				String ref = property.getRef();
 				if (ref != null) {
@@ -103,8 +103,6 @@ public class ConfigurableBeanFactory implements BeanFactory {
 			}
 			registerBean(bean.getId(), bean.getClassName(), propertiesMap);
 		}
-		// Execute bean post processor
-		postProcess();
 	}
 
 	@Override
@@ -135,12 +133,10 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		}
 		return beanDefinitions;
 	}
-
-	private void postProcess() {
-		BeanPostProcessor beanPostProcessor = new AutowiredBeanPostProcessor(this);
-		for (Entry<String, Object> bean : mBeanMap.entrySet()) {
-			beanPostProcessor.postProcessBean(bean.getKey(), bean.getValue());
-		}
+	
+	@Override
+	public Map<String, Object> getBeanMap() {
+		return mBeanMap;
 	}
 
 	private Object instantiateBean(String name, Class<?> clazz) {
@@ -190,6 +186,9 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	}
 
 	private void setFields(Object bean, Map<String, Object> params) {
+		Preconditions.checkNotNull(bean);
+		if (params == null || params.size() == 0)
+			return;
 		for (Entry<String, Object> e : params.entrySet()) {
 			try {
 				// Find the field

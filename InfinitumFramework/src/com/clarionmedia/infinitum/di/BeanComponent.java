@@ -24,6 +24,7 @@ import java.util.List;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
+import java.lang.reflect.Field;
 
 /**
  * <p>
@@ -32,11 +33,11 @@ import org.simpleframework.xml.Root;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
+ * @version 1.0 06/26/12
  * @since 06/26/12
  */
 @Root
-public class Bean {
+public class BeanComponent {
 
 	@Attribute(name = "id")
 	private String mId;
@@ -47,16 +48,28 @@ public class Bean {
 	@ElementList(required = false, entry = "property", inline = true)
 	private List<Property> mProperties;
 
-	public Bean() {
+	public BeanComponent() {
 		mProperties = new ArrayList<Property>();
+	}
+	
+	public void setId(String id) {
+		mId = id;
 	}
 
 	public String getId() {
 		return mId;
 	}
+	
+	public void setClassName(String className) {
+		mClass = className;
+	}
 
 	public String getClassName() {
 		return mClass;
+	}
+	
+	public void setProperties(List<Property> properties) {
+		mProperties = properties;
 	}
 
 	public List<Property> getProperties() {
@@ -70,7 +83,7 @@ public class Bean {
 	 * </p>
 	 * 
 	 * @author Tyler Treat
-	 * @version 1.0
+	 * @version 1.0 06/26/12
 	 * @since 06/26/12
 	 */
 	@Root
@@ -88,13 +101,25 @@ public class Bean {
 		public String getName() {
 			return mName;
 		}
+		
+		public void setName(String name) {
+			mName = name;
+		}
 
 		public String getValue() {
 			return mValue;
 		}
+		
+		public void setValue(String value) {
+			mValue = value;
+		}
 
 		public String getRef() {
 			return mRef;
+		}
+		
+		public void setRef(String ref) {
+			mRef = ref;
 		}
 
 	}

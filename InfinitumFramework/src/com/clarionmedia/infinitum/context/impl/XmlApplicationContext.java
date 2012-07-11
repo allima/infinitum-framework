@@ -34,12 +34,12 @@ import org.simpleframework.xml.core.Commit;
 
 import android.content.Context;
 
+import com.clarionmedia.infinitum.context.AbstractContext;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.di.Bean;
+import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
-import com.clarionmedia.infinitum.di.impl.ConfigurableBeanFactory;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;
@@ -54,11 +54,11 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
+ * @version 1.0 06/26/12
  * @since 06/26/12
  */
 @Root(name = "infinitum-configuration")
-public class XmlApplicationContext implements InfinitumContext {
+public class XmlApplicationContext extends AbstractContext {
 
 	private static PersistencePolicy sPersistencePolicy;
 
@@ -72,8 +72,7 @@ public class XmlApplicationContext implements InfinitumContext {
 	private List<Model> mModels;
 
 	@ElementList(name = "beans")
-	private List<Bean> mBeans;
-	private BeanFactory mBeanFactory;
+	private List<BeanComponent> mBeans;
 
 	@Element(name = "rest", required = false, type = XmlRestfulContext.class)
 	private RestfulContext mRestConfig;
@@ -259,13 +258,24 @@ public class XmlApplicationContext implements InfinitumContext {
 		}
 		return sPersistencePolicy;
 	}
+	
+	@Override
+	protected List<BeanComponent> getBeans() {
+		return mBeans;
+	}
+	
+	@Override
+	protected RestfulContext getRestContext() {
+		return mRestConfig;
+	}
 
-	@SuppressWarnings("unused")
+	/**
+	 * Executes after the {@code XmlApplicationContext} has been constructed.
+	 */
+	@Override
 	@Commit
-	private void postProcess() {
-		mRestConfig.setParentContext(this);
-		mBeanFactory = new ConfigurableBeanFactory();
-		mBeanFactory.registerBeans(mBeans);
+	protected void postProcess() {
+		super.postProcess();
 	}
 
 	@Root
