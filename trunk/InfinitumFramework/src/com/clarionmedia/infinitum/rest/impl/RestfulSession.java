@@ -87,7 +87,7 @@ public abstract class RestfulSession implements Session {
 	protected PersistencePolicy mPolicy;
 	protected Map<Integer, Object> mSessionCache;
 	protected int mCacheSize;
-
+	
 	@Override
 	public abstract <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException,
 			IllegalArgumentException;
