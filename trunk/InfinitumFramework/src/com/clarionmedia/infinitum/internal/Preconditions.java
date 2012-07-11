@@ -41,6 +41,11 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * @version 1.0 03/18/12
  */
 public class Preconditions {
+	
+	public static void checkNotNull(Object arg) {
+		if (arg == null)
+			throw new IllegalArgumentException("Argument may not be null.");
+	}
 
 	/**
 	 * Verifies that if autocommit is disabled, a transaction is open.

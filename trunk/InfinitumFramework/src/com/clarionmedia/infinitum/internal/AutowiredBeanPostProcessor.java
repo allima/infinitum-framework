@@ -28,6 +28,7 @@ import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
 import com.clarionmedia.infinitum.di.BeanUtils;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
+import com.clarionmedia.infinitum.di.annotation.Component;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
@@ -35,13 +36,14 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 /**
  * <p>
  * Implementation of {@link BeanPostProcessor} used to inject autowired bean
- * dependencies.
+ * dependencies after beans have been initialized.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 07/05/12
+ * @version 1.0 07/05/12
+ * @since 1.0
  */
+@Component
 public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
 	private ClassReflector mClassReflector;

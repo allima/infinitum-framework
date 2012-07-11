@@ -73,4 +73,20 @@ public class StringUtil {
 		return name.toLowerCase();
 	}
 
+	/**
+	 * Returns a camelcase-formatted version of the given {@link String}. For
+	 * example, passing in {@code FooBar} will return {@code fooBar}.
+	 * 
+	 * @param string
+	 *            the {@code String} to format
+	 * @return the camelcase version of {@code string}
+	 */
+	public static String toCamelCase(String string) {
+		if (string == null || string.length() == 0)
+			return string;
+		if (string.length() == 1)
+			return string.toLowerCase();
+		return string.substring(0, 1).toLowerCase() + string.substring(1);
+	}
+
 }

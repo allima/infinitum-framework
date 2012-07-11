@@ -87,7 +87,7 @@ public interface BeanFactory {
 	 * @param beans
 	 *            the {@code Beans} to register
 	 */
-	void registerBeans(List<Bean> beans);
+	void registerBeans(List<BeanComponent> beans);
 
 	/**
 	 * Registers the bean with the given name and class name with the
@@ -108,5 +108,12 @@ public interface BeanFactory {
 	 * @return {@code Map} of bean names and their corresponding type
 	 */
 	Map<String, Class<?>> getBeanDefinitions();
+
+	/**
+	 * Retrieves the bean {@link Map} for this {@code BeanFactory}.
+	 * 
+	 * @return {@code Map} of bean names and their corresponding instances
+	 */
+	Map<String, Object> getBeanMap();
 
 }

@@ -25,40 +25,38 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.di.BeanPostProcessor;
-import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.BeanFactory;
 
 /**
  * <p>
- * Indicates that the annotated constructor, setter, or field is to be autowired
- * by the {@link InfinitumContext}.
+ * Specialization of the {@link Component} annotation indicating that the
+ * annotated {@link Class} is a dependency-injection bean, meaning it is a
+ * candidate for auto-detection by the framework if classpath scanning is
+ * enabled.
  * </p>
  * <p>
- * If a constructor is marked with this annotation, it will be used to
- * initialize the bean. Only one such constructor can carry this annotation, and
- * it does not have to be public.
- * </p>
- * <p>
- * Fields and methods will be autowired immediately after all bean
- * initialization has completed using a {@link BeanPostProcessor}.
+ * {@code Beans} that are picked up during auto-detection are registered with
+ * the {@link InfinitumContext} and stored in its {@link BeanFactory}. If a bean
+ * name is not suggested, the bean will be registered using the camelcase
+ * version of its {@code Class} name. For example, an annotated {@code Class}
+ * {@code FooBar} will use the bean name {@code fooBar} unless otherwise
+ * specified.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 07/05/12
+ * @version 1.0 07/11/12
  * @since 1.0
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD})
-public @interface Autowired {
-
+@Target(ElementType.TYPE)
+@Component
+public @interface Bean {
+	
 	/**
-	 * Declares the qualifier indicating the name of the bean to autowire. If
-	 * this is not defined, Infinitum will inject a candidate bean specified in
-	 * the {@link InfinitumContext}. If there is more than one candidate bean,
-	 * an {@link InfinitumConfigurationException} will be thrown.
+	 * Declares the {@Bean} name to be used.
 	 * 
-	 * @return the name of the bean to inject
+	 * @return the suggested {@Bean} name
 	 */
 	String value() default "";
 
