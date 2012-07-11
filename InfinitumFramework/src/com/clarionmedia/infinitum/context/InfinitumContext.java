@@ -72,7 +72,7 @@ public interface InfinitumContext {
 	 * Represents the configured data source for a {@link Session}.
 	 */
 	public static enum DataSource {
-		Sqlite
+		Sqlite, Rest
 	}
 
 	/**

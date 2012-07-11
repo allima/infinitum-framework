@@ -32,19 +32,11 @@ import org.simpleframework.xml.ElementMap;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.core.Commit;
 
-import android.content.Context;
-
 import com.clarionmedia.infinitum.context.AbstractContext;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanComponent;
-import com.clarionmedia.infinitum.di.BeanFactory;
-import com.clarionmedia.infinitum.orm.Session;
-import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
-import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 
 /**
  * <p>
@@ -60,8 +52,6 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 @Root(name = "infinitum-configuration")
 public class XmlApplicationContext extends AbstractContext {
 
-	private static PersistencePolicy sPersistencePolicy;
-
 	@ElementMap(name = "application", entry = "property", key = "name", attribute = true, required = false)
 	private Map<String, String> mAppConfig;
 
@@ -76,18 +66,6 @@ public class XmlApplicationContext extends AbstractContext {
 
 	@Element(name = "rest", required = false, type = XmlRestfulContext.class)
 	private RestfulContext mRestConfig;
-
-	private Context mContext;
-
-	@Override
-	public Session getSession(DataSource source) throws InfinitumConfigurationException {
-		switch (source) {
-		case Sqlite:
-			return new SqliteSession(mContext);
-		default:
-			throw new InfinitumConfigurationException("Data source not configured.");
-		}
-	}
 
 	@Override
 	public boolean isDebug() {
@@ -212,51 +190,6 @@ public class XmlApplicationContext extends AbstractContext {
 	@Override
 	public void setRestfulConfiguration(RestfulContext restContext) {
 		mRestConfig = restContext;
-	}
-
-	@Override
-	public Context getAndroidContext() {
-		return mContext;
-	}
-
-	@Override
-	public void setContext(Context context) {
-		mContext = context;
-	}
-
-	@Override
-	public BeanFactory getBeanContainer() {
-		return mBeanFactory;
-	}
-
-	@Override
-	public void setBeanContainer(BeanFactory beanContainer) {
-		mBeanFactory = beanContainer;
-	}
-
-	@Override
-	public Object getBean(String name) {
-		return mBeanFactory.loadBean(name);
-	}
-
-	@Override
-	public <T> T getBean(String name, Class<T> clazz) {
-		return mBeanFactory.loadBean(name, clazz);
-	}
-
-	@Override
-	public PersistencePolicy getPersistencePolicy() {
-		if (sPersistencePolicy == null) {
-			switch (getConfigurationMode()) {
-			case Annotation:
-				sPersistencePolicy = new AnnotationPersistencePolicy();
-				break;
-			case Xml:
-				sPersistencePolicy = new XmlPersistencePolicy(mContext);
-				break;
-			}
-		}
-		return sPersistencePolicy;
 	}
 	
 	@Override
