@@ -20,8 +20,10 @@
 package com.clarionmedia.infinitum.context.impl;
 
 import static java.lang.Boolean.parseBoolean;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -61,11 +63,11 @@ public class XmlApplicationContext extends AbstractContext {
 	@ElementList(name = "domain")
 	private List<Model> mModels;
 
-	@ElementList(name = "beans")
-	private List<BeanComponent> mBeans;
-
 	@Element(name = "rest", required = false, type = XmlRestfulContext.class)
 	private RestfulContext mRestConfig;
+	
+	@Element(name = "beans", required = false)
+	private BeanContainer mBeanContainer;
 
 	@Override
 	public boolean isDebug() {
@@ -194,7 +196,7 @@ public class XmlApplicationContext extends AbstractContext {
 	
 	@Override
 	protected List<BeanComponent> getBeans() {
-		return mBeans;
+		return mBeanContainer.mBeans;
 	}
 	
 	@Override
@@ -202,6 +204,11 @@ public class XmlApplicationContext extends AbstractContext {
 		return mRestConfig;
 	}
 
+	@Override
+	protected List<String> getScanPackages() {
+		return mBeanContainer.mComponentScan.getBasePackages();
+	}
+	
 	/**
 	 * Executes after the {@code XmlApplicationContext} has been constructed.
 	 */
@@ -225,6 +232,37 @@ public class XmlApplicationContext extends AbstractContext {
 			mResource = resource;
 		}
 
+	}
+	
+	@Root
+	private static class BeanContainer {
+		
+		@ElementList(entry = "bean", inline = true, required = false)
+		private List<BeanComponent> mBeans;
+		
+		@Element(name = "component-scan", required = false)
+		private ComponentScan mComponentScan;
+		
+		@Root
+		private static class ComponentScan {
+			
+			@Attribute(name = "base-package")
+			private String mBasePackages;
+
+			public List<String> getBasePackages() {
+				List<String> packages = new ArrayList<String>(asList(mBasePackages.split(",")));
+				Iterator<String> iter = packages.iterator();
+				while (iter.hasNext()) {
+					String pkg = iter.next().trim();
+					if (pkg.length() == 0)
+					    iter.remove();
+				}
+				packages.add("com.clarionmedia.infinitum.internal");
+				return packages;
+			}
+			
+		}
+		
 	}
 
 }

@@ -89,6 +89,8 @@ public class ConfigurableBeanFactory implements BeanFactory {
 
 	@Override
 	public void registerBeans(List<BeanComponent> beans) {
+		if (beans == null)
+			return;
 		for (BeanComponent bean : beans) {
 			Map<String, Object> propertiesMap = new HashMap<String, Object>();
 			for (BeanComponent.Property property : bean.getProperties()) {

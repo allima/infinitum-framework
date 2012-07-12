@@ -36,7 +36,7 @@ import java.lang.reflect.Field;
  * @version 1.0 06/26/12
  * @since 06/26/12
  */
-@Root
+@Root(strict = false)
 public class BeanComponent {
 
 	@Attribute(name = "id")

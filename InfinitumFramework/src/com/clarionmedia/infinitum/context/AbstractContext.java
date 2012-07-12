@@ -56,7 +56,7 @@ import com.clarionmedia.infinitum.rest.impl.RestfulSession;
  * @since 1.0
  */
 public abstract class AbstractContext implements InfinitumContext {
-	
+
 	private static PersistencePolicy sPersistencePolicy;
 
 	protected BeanFactory mBeanFactory;
@@ -77,43 +77,52 @@ public abstract class AbstractContext implements InfinitumContext {
 	 * @return {@code RestfulContext} or {@code null} if none was registered
 	 */
 	protected abstract RestfulContext getRestContext();
-	
+
+	/**
+	 * Returns a {@link List} of packages to scan for components.
+	 * 
+	 * @return {@code List} of package names
+	 */
+	protected abstract List<String> getScanPackages();
+
 	@Override
-	public Session getSession(DataSource source) throws InfinitumConfigurationException {
+	public Session getSession(DataSource source)
+			throws InfinitumConfigurationException {
 		switch (source) {
-		case Sqlite:
-			return new SqliteSession(mContext);
-		case Rest:
-			String client = getRestfulConfiguration().getClientBean();
-			RestfulSession session;
-			if (client == null) {
-				// Use RestfulJsonSession if no client is defined
-				session = new RestfulJsonSession();
-			} else {
-				// Otherwise use the preferred client
-				session = getBean(client, RestfulSession.class);
-			}
-			return session;
-		default:
-			throw new InfinitumConfigurationException("Data source not configured.");
+			case Sqlite :
+				return new SqliteSession(mContext);
+			case Rest :
+				String client = getRestfulConfiguration().getClientBean();
+				RestfulSession session;
+				if (client == null) {
+					// Use RestfulJsonSession if no client is defined
+					session = new RestfulJsonSession();
+				} else {
+					// Otherwise use the preferred client
+					session = getBean(client, RestfulSession.class);
+				}
+				return session;
+			default :
+				throw new InfinitumConfigurationException(
+						"Data source not configured.");
 		}
 	}
-	
+
 	@Override
 	public PersistencePolicy getPersistencePolicy() {
 		if (sPersistencePolicy == null) {
 			switch (getConfigurationMode()) {
-			case Annotation:
-				sPersistencePolicy = new AnnotationPersistencePolicy();
-				break;
-			case Xml:
-				sPersistencePolicy = new XmlPersistencePolicy(mContext);
-				break;
+				case Annotation :
+					sPersistencePolicy = new AnnotationPersistencePolicy();
+					break;
+				case Xml :
+					sPersistencePolicy = new XmlPersistencePolicy(mContext);
+					break;
 			}
 		}
 		return sPersistencePolicy;
 	}
-	
+
 	@Override
 	public BeanFactory getBeanFactory() {
 		return mBeanFactory;
@@ -123,7 +132,7 @@ public abstract class AbstractContext implements InfinitumContext {
 	public void setBeanFactory(BeanFactory beanFactory) {
 		mBeanFactory = beanFactory;
 	}
-	
+
 	@Override
 	public Object getBean(String name) {
 		return mBeanFactory.loadBean(name);
@@ -133,7 +142,7 @@ public abstract class AbstractContext implements InfinitumContext {
 	public <T> T getBean(String name, Class<T> clazz) {
 		return mBeanFactory.loadBean(name, clazz);
 	}
-	
+
 	@Override
 	public Context getAndroidContext() {
 		return mContext;
@@ -150,10 +159,21 @@ public abstract class AbstractContext implements InfinitumContext {
 	 * 
 	 * @return {@code Set} of {@code Classes}
 	 */
-	@SuppressWarnings("unchecked")
 	protected Set<Class<?>> getClasspathComponents() {
+		List<String> packages = getScanPackages();
+		if (packages.size() == 0)
+			return null;
 		PackageReflector reflector = new DefaultPackageReflector();
-		return reflector.getClassesWithAnnotations(Component.class, Bean.class);
+		String[] packageArr = new String[packages.size()];
+		Set<Class<?>> classes = reflector.getPackageClasses(packages
+				.toArray(packageArr));
+		Set<Class<?>> components = new HashSet<Class<?>>();
+		for (Class<?> clazz : classes) {
+			if (clazz.isAnnotationPresent(Component.class)
+					|| clazz.isAnnotationPresent(Bean.class))
+				components.add(clazz);
+		}
+		return components;
 	}
 
 	/**
@@ -166,6 +186,8 @@ public abstract class AbstractContext implements InfinitumContext {
 
 		// Scan for Components
 		Set<Class<?>> components = getClasspathComponents();
+		if (components == null)
+			return;
 
 		// Categorize the Components while filtering down the original Set
 		Set<Class<BeanPostProcessor>> beanPostProcessors = getAndRemoveBeanPostProcessors(components);
@@ -221,12 +243,16 @@ public abstract class AbstractContext implements InfinitumContext {
 			Collection<Class<BeanPostProcessor>> postProcessors) {
 		for (Class<BeanPostProcessor> postProcessor : postProcessors) {
 			try {
-				BeanPostProcessor postProcessorInstance = postProcessor.newInstance();
-				for (Entry<String, Object> bean : mBeanFactory.getBeanMap().entrySet()) {
-					postProcessorInstance.postProcessBean(mBeanFactory, bean.getKey(), bean.getValue());
+				BeanPostProcessor postProcessorInstance = postProcessor
+						.newInstance();
+				for (Entry<String, Object> bean : mBeanFactory.getBeanMap()
+						.entrySet()) {
+					postProcessorInstance.postProcessBean(mBeanFactory,
+							bean.getKey(), bean.getValue());
 				}
 			} catch (InstantiationException e) {
-				throw new InfinitumRuntimeException("BeanPostProcessor must have an empty constructor.");
+				throw new InfinitumRuntimeException(
+						"BeanPostProcessor must have an empty constructor.");
 			} catch (IllegalAccessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -238,10 +264,12 @@ public abstract class AbstractContext implements InfinitumContext {
 			Collection<Class<BeanFactoryPostProcessor>> postProcessors) {
 		for (Class<BeanFactoryPostProcessor> postProcessor : postProcessors) {
 			try {
-				BeanFactoryPostProcessor postProcessorInstance = postProcessor.newInstance();
+				BeanFactoryPostProcessor postProcessorInstance = postProcessor
+						.newInstance();
 				postProcessorInstance.postProcessBeanFactory(mBeanFactory);
 			} catch (InstantiationException e) {
-				throw new InfinitumRuntimeException("BeanFactoryPostProcessor must have an empty constructor.");
+				throw new InfinitumRuntimeException(
+						"BeanFactoryPostProcessor must have an empty constructor.");
 			} catch (IllegalAccessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
