@@ -32,6 +32,7 @@ import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
+import com.clarionmedia.infinitum.rest.Deserializer;
 
 /**
  * <p>
@@ -60,6 +61,7 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
  * 
  * @author Tyler Treat
  * @version 1.0 03/15/12
+ * @since 1.0
  */
 public interface Session {
 	
@@ -68,15 +70,19 @@ public interface Session {
 	/**
 	 * Opens the {@code Session} for transactions.
 	 * 
+	 * @return {@code Session} to allow chaining
+	 * 
 	 * @throws SQLException
 	 *             if the {@code Session} cannot be opened
 	 */
-	void open() throws SQLException;
+	Session open() throws SQLException;
 
 	/**
 	 * Closes the {@code Session} and cleans up any resources.
+	 * 
+	 * @return {@code Session} to allow chaining
 	 */
-	void close();
+	Session close();
 
 	/**
 	 * Indicates if the {@code Session} is open.
@@ -90,20 +96,26 @@ public interface Session {
 	 * this method will have no effect. A transaction must be committed or
 	 * rolled back by calling {@link Session#commit()} or
 	 * {@link Session#rollback()}, respectively.
+	 * 
+	 * @return {@code Session} to allow chaining
 	 */
-	void beginTransaction();
+	Session beginTransaction();
 
 	/**
 	 * Commits the current transaction. This method is idempotent. If no
 	 * transaction is open or autocommit is enabled, this will have no effect.
+	 * 
+	 * @return {@code Session} to allow chaining
 	 */
-	void commit();
+	Session commit();
 
 	/**
 	 * Rolls back the current transaction. This method is idempotent. If no
 	 * transaction is open or autocommit is enabled, this will have no effect.
+	 * 
+	 * @return {@code Session} to allow chaining
 	 */
-	void rollback();
+	Session rollback();
 
 	/**
 	 * Indicates if a transaction is currently open.
@@ -122,8 +134,9 @@ public interface Session {
 	 * 
 	 * @param autocommit
 	 *            {@code true} to enable autocommit, {@code false} to disable it
+	 * @return {@code Session} to allow chaining
 	 */
-	void setAutocommit(boolean autocommit);
+	Session setAutocommit(boolean autocommit);
 
 	/**
 	 * Indicates if autocommit is enabled or disabled.
@@ -134,8 +147,10 @@ public interface Session {
 
 	/**
 	 * Recycles the {@code Session} cache, effectively reclaiming its memory.
+	 * 
+	 * @return {@code Session} to allow chaining
 	 */
-	void recycleCache();
+	Session recycleCache();
 
 	/**
 	 * Sets the {@code Session} cache capacity in terms of how many
@@ -147,8 +162,9 @@ public interface Session {
 	 * 
 	 * @param mCacheSize
 	 *            the maximum number of {@code Objects} the cache can store
+	 * @return {@code Session} to allow chaining
 	 */
-	void setCacheSize(int mCacheSize);
+	Session setCacheSize(int mCacheSize);
 
 	/**
 	 * Returns the maximum capacity of the {@code Session} cache in terms of how
@@ -267,10 +283,12 @@ public interface Session {
 	 * 
 	 * @param sql
 	 *            the SQL query to execute
+	 * @return {@code Session} to allow chaining
+	 * 
 	 * @throws SQLGrammarException
 	 *             if the SQL was formatted incorrectly
 	 */
-	void execute(String sql) throws SQLGrammarException;
+	Session execute(String sql) throws SQLGrammarException;
 
 	/**
 	 * Creates a new {@link Criteria} instance for the given persistent entity
@@ -294,8 +312,9 @@ public interface Session {
 	 *            the {@code Class} this {@code TypeAdapter} is for
 	 * @param adapter
 	 *            the {@code TypeAdapter} to register
+	 * @return {@code Session} to allow chaining
 	 */
-	<T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter);
+	<T> Session registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter);
 
 	/**
 	 * Returns a {@link Map} containing all {@link TypeAdapter} instances
@@ -305,5 +324,20 @@ public interface Session {
 	 * @return {@code Map<Class<?>, ? extends TypeAdapter<?>>
 	 */
 	Map<Class<?>, ? extends TypeAdapter<?>> getRegisteredTypeAdapters();
+	
+	/**
+	 * Registers the given {@link Deserializer} for the given {@link Class}
+	 * type. Registering a {@code Deserializer} for a {@code Class} which
+	 * already has a {@code Deserializer} registered for it will result in the
+	 * previous {@code Deserializer} being overridden.
+	 * 
+	 * @param type
+	 *            the {@code Class} to associate this deserializer with
+	 * @param deserializer
+	 *            the {@code Deserializer} to use when deserializing
+	 *            {@code Objects} of the given type
+	 * @return {@code Session} to allow chaining
+	 */
+	<T> Session registerDeserializer(Class<T> type, Deserializer<T> deserializer);
 
 }

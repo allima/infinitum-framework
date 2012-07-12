@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -42,7 +43,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+
 import android.database.SQLException;
+
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -54,11 +57,6 @@ import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
-import com.clarionmedia.infinitum.rest.Deserializer;
-import com.clarionmedia.infinitum.rest.impl.RestfulJsonClient;
-import com.clarionmedia.infinitum.rest.impl.RestfulMapper;
-import com.clarionmedia.infinitum.rest.impl.RestfulModelMap;
-import com.clarionmedia.infinitum.rest.impl.RestfulXmlClient;
 
 /**
  * <p>
@@ -71,8 +69,8 @@ import com.clarionmedia.infinitum.rest.impl.RestfulXmlClient;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 02/27/12
+ * @version 1.0 02/27/12
+ * @since 1.0
  */
 public abstract class RestfulSession implements Session {
 
@@ -91,23 +89,9 @@ public abstract class RestfulSession implements Session {
 	@Override
 	public abstract <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException,
 			IllegalArgumentException;
-
-	/**
-	 * Registers the given {@link Deserializer} for the given {@link Class}
-	 * type. Registering a {@code Deserializer} for a {@code Class} which
-	 * already has a {@code Deserializer} registered for it will result in the
-	 * previous {@code Deserializer} being overridden.
-	 * 
-	 * @param type
-	 *            the {@code Class} to associate this deserializer with
-	 * @param deserializer
-	 *            the {@code Deserializer} to use when deserializing
-	 *            {@code Objects} of the given type
-	 */
-	public abstract <T> void registerDeserializer(Class<T> type, Deserializer<T> deserializer);
 	
 	@Override
-	public void open() throws SQLException {
+	public Session open() throws SQLException {
 		mLogger = Logger.getInstance(getClass().getSimpleName());
 		InfinitumContext context = ContextFactory.getInstance().getContext();
 		mHost = context.getRestfulConfiguration().getRestHost();
@@ -121,13 +105,15 @@ public abstract class RestfulSession implements Session {
 		mCacheSize = DEFAULT_CACHE_SIZE;
 		mIsOpen = true;
 		mLogger.debug("Session opened");
+		return this;
 	}
 
 	@Override
-	public void close() {
+	public Session close() {
 		recycleCache();
 		mIsOpen = false;
 		mLogger.debug("Session closed");
+		return this;
 	}
 
 	@Override
@@ -136,17 +122,17 @@ public abstract class RestfulSession implements Session {
 	}
 	
 	@Override
-	public void beginTransaction() {
+	public Session beginTransaction() {
 		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
 	@Override
-	public void commit() {
+	public Session commit() {
 		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
 	@Override
-	public void rollback() {
+	public Session rollback() {
 		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
@@ -156,7 +142,7 @@ public abstract class RestfulSession implements Session {
 	}
 
 	@Override
-	public void setAutocommit(boolean autocommit) {
+	public Session setAutocommit(boolean autocommit) {
 		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
@@ -166,13 +152,15 @@ public abstract class RestfulSession implements Session {
 	}
 	
 	@Override
-	public void recycleCache() {
+	public Session recycleCache() {
 		mSessionCache.clear();
+		return this;
 	}
 
 	@Override
-	public void setCacheSize(int cacheSize) {
+	public Session setCacheSize(int cacheSize) {
 		mCacheSize = cacheSize;
+		return this;
 	}
 
 	@Override
@@ -354,7 +342,7 @@ public abstract class RestfulSession implements Session {
 	}
 	
 	@Override
-	public void execute(String sql) throws SQLGrammarException {
+	public Session execute(String sql) throws SQLGrammarException {
 		throw new UnsupportedOperationException("RestfulSession does not support SQL operations!");
 	}
 
@@ -364,8 +352,9 @@ public abstract class RestfulSession implements Session {
 	}
 
 	@Override
-	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
+	public <T> Session registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
 		mMapper.registerTypeAdapter(type, adapter);
+		return this;
 	}
 
 	@Override

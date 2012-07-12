@@ -49,7 +49,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * 
  * @author Tyler Treat
  * @version 1.0 06/25/12
- * @since 06/25/12
+ * @since 1.0
  */
 public class XmlContextFactory extends ContextFactory {
 
