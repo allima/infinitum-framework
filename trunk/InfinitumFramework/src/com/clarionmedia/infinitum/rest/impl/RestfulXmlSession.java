@@ -37,6 +37,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
+import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.rest.Deserializer;
 import com.clarionmedia.infinitum.rest.XmlDeserializer;
 
@@ -47,8 +48,8 @@ import com.clarionmedia.infinitum.rest.XmlDeserializer;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 05/21/12
+ * @version 1.0 05/21/12
+ * @since 1.0
  */
 public class RestfulXmlSession extends RestfulSession {
 
@@ -102,9 +103,10 @@ public class RestfulXmlSession extends RestfulSession {
 	}
 
 	@Override
-	public <T> void registerDeserializer(Class<T> type, Deserializer<T> deserializer) {
-		if (deserializer instanceof XmlDeserializer)
+	public <T> Session registerDeserializer(Class<T> type, Deserializer<T> deserializer) {
+		if (XmlDeserializer.class.isAssignableFrom(deserializer.getClass()))
 			mXmlDeserializers.put(type, (XmlDeserializer<T>) deserializer);
+		return this;
 	}
 
 }

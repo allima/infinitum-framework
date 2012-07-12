@@ -40,6 +40,7 @@ import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
+import com.clarionmedia.infinitum.rest.Deserializer;
 
 /**
  * <p>
@@ -48,6 +49,7 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
  * 
  * @author Tyler Treat
  * @version 1.0 03/15/12
+ * @since 1.0
  */
 public class SqliteSession implements Session {
 
@@ -94,10 +96,11 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void open() throws SQLException {
+	public Session open() throws SQLException {
 		try {
 			mSqlite.open();
 			mLogger.debug("Session opened");
+			return this;
 		} catch (SQLException e) {
 			mLogger.error("Session not opened", e);
 			throw e;
@@ -105,10 +108,11 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void close() {
+	public Session close() {
 		mSqlite.close();
 		recycleCache();
 		mLogger.debug("Session closed");
+		return this;
 	}
 
 	@Override
@@ -117,13 +121,15 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void recycleCache() {
+	public Session recycleCache() {
 		mSessionCache.clear();
+		return this;
 	}
 
 	@Override
-	public void setCacheSize(int cacheSize) {
+	public Session setCacheSize(int cacheSize) {
 		mCacheSize = cacheSize;
+		return this;
 	}
 
 	@Override
@@ -218,14 +224,16 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void execute(String sql) throws SQLGrammarException {
+	public Session execute(String sql) throws SQLGrammarException {
 		mSqlite.execute(sql);
+		return this;
 	}
 
 	@Override
-	public <T> void registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
+	public <T> Session registerTypeAdapter(Class<T> type, TypeAdapter<T> adapter) {
 		if (adapter instanceof SqliteTypeAdapter)
 			mSqlite.registerTypeAdapter(type, (SqliteTypeAdapter<T>) adapter);
+		return this;
 	}
 
 	@Override
@@ -234,18 +242,21 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void beginTransaction() {
+	public Session beginTransaction() {
 		mSqlite.beginTransaction();
+		return this;
 	}
 
 	@Override
-	public void commit() {
+	public Session commit() {
 		mSqlite.commit();
+		return this;
 	}
 
 	@Override
-	public void rollback() {
+	public Session rollback() {
 		mSqlite.rollback();
+		return this;
 	}
 
 	@Override
@@ -254,13 +265,21 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public void setAutocommit(boolean autocommit) {
+	public Session setAutocommit(boolean autocommit) {
 		mSqlite.setAutocommit(autocommit);
+		return this;
 	}
 
 	@Override
 	public boolean isAutocommit() {
 		return mSqlite.isAutocommit();
+	}
+	
+	@Override
+	public <T> Session registerDeserializer(Class<T> type,
+			Deserializer<T> deserializer) {
+		// TODO SqliteSession does not currently utilize Deserializers
+		return this;
 	}
 
 	/**

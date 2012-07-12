@@ -37,6 +37,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
+import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.rest.Deserializer;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
 import com.google.gson.Gson;
@@ -49,8 +50,8 @@ import com.google.gson.JsonSyntaxException;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 03/21/12
+ * @version 1.0 03/21/12
+ * @since 1.0
  */
 public class RestfulJsonSession extends RestfulSession {
 
@@ -112,10 +113,11 @@ public class RestfulJsonSession extends RestfulSession {
 	}
 
 	@Override
-	public <T> void registerDeserializer(Class<T> type,
+	public <T> Session registerDeserializer(Class<T> type,
 			Deserializer<T> deserializer) {
-		if (deserializer instanceof JsonDeserializer)
+		if (JsonDeserializer.class.isAssignableFrom(deserializer.getClass()))
 			mJsonDeserializers.put(type, (JsonDeserializer<T>) deserializer);
+		return this;
 	}
 
 }

@@ -29,7 +29,7 @@
 <!ELEMENT domain (model*)>
 <!ELEMENT beans (bean*)>
 <!ELEMENT rest (property+ , authentication?)>
-<!ATTLIST rest ref CDATA #REQUIRED>
+<!ATTLIST rest ref CDATA #IMPLIED>
 
 <!ELEMENT property (#PCDATA)>
 <!ATTLIST property name CDATA #REQUIRED>
