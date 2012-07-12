@@ -17,42 +17,22 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.aop;
+package com.clarionmedia.infinitum.aop.annotation;
+
+import com.clarionmedia.infinitum.aop.JoinPoint;
 
 /**
  * <p>
- * Separates cross-cutting concerns from core application code by providing
- * pointcut advice.
+ * Indicates that the annotated advice is to be executed around a
+ * {@link JoinPoint}. {@code Around} advice has the ability to prevent a
+ * {@code JoinPoint} from being executed by returning its own return value or
+ * throwing an exception.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/12/12
  * @since 1.0
  */
-public interface Aspect {
-
-	/**
-	 * Executes before target invocation.
-	 * 
-	 * @param joinPoint
-	 *            the {@link JoinPoint} to advise
-	 */
-	void before(JoinPoint joinPoint);
-
-	/**
-	 * Executes after target invocation.
-	 * 
-	 * @param joinPoint
-	 *            the {@link JoinPoint} to advise
-	 */
-	void after(JoinPoint joinPoint);
-
-	/**
-	 * Executes before and after target invocation.
-	 * 
-	 * @param joinPoint
-	 *            the {@link JoinPoint} to advise
-	 */
-	void around(JoinPoint joinPoint);
+public @interface Around {
 
 }
