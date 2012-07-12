@@ -60,8 +60,8 @@ public class DefaultPackageReflector implements PackageReflector {
 	}
 	
 	@Override
-	public Set<Class<?>> getClassesWithAnnotation(
-			Class<? extends Annotation> annotation) {
+	public Set<Class<?>> getClassesWithAnnotations(
+			Class<? extends Annotation>... annotations) {
 		Set<Class<?>> classes = new HashSet<Class<?>>();
 		Field dexField;
 		try {
@@ -78,8 +78,12 @@ public class DefaultPackageReflector implements PackageReflector {
 					String entry = entries.nextElement();
 					Class<?> entryClass = dex.loadClass(entry, classLoader);
 					if (entryClass != null) {
-						if (entryClass.isAnnotationPresent(annotation))
-							classes.add(entryClass);
+						for (Class<? extends Annotation> annotation : annotations) {
+							if (entryClass.isAnnotationPresent(annotation)) {
+								classes.add(entryClass);
+								break;
+							}
+						}
 					}
 				}
 			}

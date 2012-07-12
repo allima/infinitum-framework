@@ -50,7 +50,6 @@ import com.clarionmedia.infinitum.di.BeanFactory;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Component
 public @interface Bean {
 	
 	/**

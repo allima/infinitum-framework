@@ -25,7 +25,7 @@ package com.clarionmedia.infinitum.di;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
+ * @version 1.0 07/05/12
  * @since 07/05/12
  */
 public interface BeanPostProcessor {
@@ -33,11 +33,13 @@ public interface BeanPostProcessor {
 	/**
 	 * Invoked on the given bean after it has been initialized.
 	 * 
+	 * @param beanFactory
+	 *            the {@link BeanFactory} the given bean is registered with
 	 * @param beanName
 	 *            the name of the bean to process
 	 * @param bean
 	 *            the bean to process
 	 */
-	void postProcessBean(String beanName, Object bean);
+	void postProcessBean(BeanFactory beanFactory, String beanName, Object bean);
 
 }

@@ -25,9 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import android.content.Context;
-
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
@@ -36,6 +34,7 @@ import com.clarionmedia.infinitum.di.BeanPostProcessor;
 import com.clarionmedia.infinitum.di.annotation.Bean;
 import com.clarionmedia.infinitum.di.annotation.Component;
 import com.clarionmedia.infinitum.di.impl.ConfigurableBeanFactory;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -116,13 +115,13 @@ public abstract class AbstractContext implements InfinitumContext {
 	}
 	
 	@Override
-	public BeanFactory getBeanContainer() {
+	public BeanFactory getBeanFactory() {
 		return mBeanFactory;
 	}
 
 	@Override
-	public void setBeanContainer(BeanFactory beanContainer) {
-		mBeanFactory = beanContainer;
+	public void setBeanFactory(BeanFactory beanFactory) {
+		mBeanFactory = beanFactory;
 	}
 	
 	@Override
@@ -151,9 +150,10 @@ public abstract class AbstractContext implements InfinitumContext {
 	 * 
 	 * @return {@code Set} of {@code Classes}
 	 */
+	@SuppressWarnings("unchecked")
 	protected Set<Class<?>> getClasspathComponents() {
 		PackageReflector reflector = new DefaultPackageReflector();
-		return reflector.getClassesWithAnnotation(Component.class);
+		return reflector.getClassesWithAnnotations(Component.class, Bean.class);
 	}
 
 	/**
@@ -221,16 +221,12 @@ public abstract class AbstractContext implements InfinitumContext {
 			Collection<Class<BeanPostProcessor>> postProcessors) {
 		for (Class<BeanPostProcessor> postProcessor : postProcessors) {
 			try {
-				BeanPostProcessor postProcessorInstance = postProcessor
-						.newInstance();
-				for (Entry<String, Object> bean : mBeanFactory.getBeanMap()
-						.entrySet()) {
-					postProcessorInstance.postProcessBean(bean.getKey(),
-							bean.getValue());
+				BeanPostProcessor postProcessorInstance = postProcessor.newInstance();
+				for (Entry<String, Object> bean : mBeanFactory.getBeanMap().entrySet()) {
+					postProcessorInstance.postProcessBean(mBeanFactory, bean.getKey(), bean.getValue());
 				}
 			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new InfinitumRuntimeException("BeanPostProcessor must have an empty constructor.");
 			} catch (IllegalAccessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -242,12 +238,10 @@ public abstract class AbstractContext implements InfinitumContext {
 			Collection<Class<BeanFactoryPostProcessor>> postProcessors) {
 		for (Class<BeanFactoryPostProcessor> postProcessor : postProcessors) {
 			try {
-				BeanFactoryPostProcessor postProcessorInstance = postProcessor
-						.newInstance();
+				BeanFactoryPostProcessor postProcessorInstance = postProcessor.newInstance();
 				postProcessorInstance.postProcessBeanFactory(mBeanFactory);
 			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new InfinitumRuntimeException("BeanFactoryPostProcessor must have an empty constructor.");
 			} catch (IllegalAccessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

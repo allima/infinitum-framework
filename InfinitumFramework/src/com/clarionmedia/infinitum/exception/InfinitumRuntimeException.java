@@ -42,4 +42,17 @@ public class InfinitumRuntimeException extends RuntimeException {
 		super(error);
 	}
 
+	/**
+	 * Constructs a new {@code InfinitumRuntimeException} with the given error
+	 * message.
+	 * 
+	 * @param error
+	 *            the error message for the {@link RuntimeException}
+	 * @param throwable
+	 *            the cause of this exception
+	 */
+	public InfinitumRuntimeException(String error, Throwable throwable) {
+		super(error, throwable);
+	}
+
 }
