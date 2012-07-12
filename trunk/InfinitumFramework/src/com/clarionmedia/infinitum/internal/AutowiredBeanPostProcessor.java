@@ -47,46 +47,45 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
 	private ClassReflector mClassReflector;
-	private BeanFactory mBeanFactory;
 
 	/**
 	 * Constructs a new {@code AutowiredBeanPostProcessor}.
 	 */
-	public AutowiredBeanPostProcessor(BeanFactory beanFactory) {
+	public AutowiredBeanPostProcessor() {
 		mClassReflector = new DefaultClassReflector();
-		mBeanFactory = beanFactory;
 	}
 
 	@Override
-	public void postProcessBean(String beanName, Object bean) {
-		injectFields(bean);
-		injectSetters(bean);
+	public void postProcessBean(BeanFactory beanFactory, String beanName, Object bean) {
+		injectFields(beanFactory, bean);
+		injectSetters(beanFactory, bean);
 	}
 
-	private void injectFields(Object bean) {
+	private void injectFields(BeanFactory beanFactory, Object bean) {
 		for (Field field : mClassReflector.getAllFields(bean.getClass())) {
 			if (!field.isAnnotationPresent(Autowired.class))
 				continue;
 			Autowired autowired = field.getAnnotation(Autowired.class);
-			injectBeanCandidate(bean, field, autowired.value());
+			injectBeanCandidate(beanFactory, bean, field, autowired.value());
 		}
 	}
 
-	private void injectSetters(Object bean) {
+	private void injectSetters(BeanFactory beanFactory, Object bean) {
 		for (Method method : mClassReflector.getAllMethods(bean.getClass())) {
 			if (!method.isAnnotationPresent(Autowired.class))
 				continue;
 			Autowired autowired = method.getAnnotation(Autowired.class);
-			injectBeanCandidate(bean, method, autowired.value());
+			injectBeanCandidate(beanFactory, bean, method, autowired.value());
 		}
 	}
 
-	private void injectBeanCandidate(Object bean, Field field, String candidate) {
+	private void injectBeanCandidate(BeanFactory beanFactory, Object bean, Field field, String candidate) {
 		Object value;
-		if (candidate != null) {
-			value = mBeanFactory.loadBean(candidate);
+		field.setAccessible(true);
+		if (candidate != null && candidate.trim().length() > 0) {
+			value = beanFactory.loadBean(candidate);
 		} else {
-			value = BeanUtils.findCandidateBean(mBeanFactory, field.getType());
+			value = BeanUtils.findCandidateBean(beanFactory, field.getType());
 		}
 		try {
 			field.set(bean, value);
@@ -99,14 +98,14 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 		}
 	}
 
-	private void injectBeanCandidate(Object bean, Method setter, String candidate) {
+	private void injectBeanCandidate(BeanFactory beanFactory, Object bean, Method setter, String candidate) {
 		Object value;
-		if (candidate != null) {
-			value = mBeanFactory.loadBean(candidate);
+		if (candidate != null && candidate.trim().length() > 0) {
+			value = beanFactory.loadBean(candidate);
 		} else {
 			if (setter.getParameterTypes().length != 1)
 				throw new InfinitumConfigurationException("Autowired setter method must contain 1 parameter.");
-			value = BeanUtils.findCandidateBean(mBeanFactory, setter.getParameterTypes()[0]);
+			value = BeanUtils.findCandidateBean(beanFactory, setter.getParameterTypes()[0]);
 		}
 		try {
 			setter.invoke(bean, value);

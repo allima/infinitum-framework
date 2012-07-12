@@ -48,7 +48,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
+ * @version 1.0 06/25/12
  * @since 06/25/12
  */
 public class XmlContextFactory extends ContextFactory {
@@ -118,7 +118,7 @@ public class XmlContextFactory extends ContextFactory {
 			String xml = new java.util.Scanner(stream).useDelimiter("\\A").next();
 			return serializer.read(XmlApplicationContext.class, xml);
 		} catch (Exception e) {
-			throw new InfinitumConfigurationException("Unable to initialize Infinitum configuration.");
+			throw new InfinitumConfigurationException("Unable to initialize Infinitum configuration.", e);
 		}
 	}
 

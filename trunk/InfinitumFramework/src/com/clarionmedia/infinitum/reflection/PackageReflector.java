@@ -58,14 +58,13 @@ public interface PackageReflector {
 
 	/**
 	 * Retrieves a {@link Set} containing the {@link Class} instances which
-	 * contain the given {@code Class}-level annotation.
+	 * contain the given {@code Class}-level annotation(s).
 	 * 
-	 * @param annotation
-	 *            the annotation to retrieve {@code Classes} by
+	 * @param annotations
+	 *            the annotations to retrieve {@code Classes} by
 	 * @return {@code Set} of {@code Classes} which contain {@code annotation}
 	 */
-	Set<Class<?>> getClassesWithAnnotation(
-			Class<? extends Annotation> annotation);
+	Set<Class<?>> getClassesWithAnnotations(Class<? extends Annotation>... annotations);
 
 	/**
 	 * {@link Comparator} for ordering a collection of classes based on their

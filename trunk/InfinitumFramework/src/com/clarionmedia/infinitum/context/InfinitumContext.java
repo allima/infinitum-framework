@@ -47,7 +47,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * </pre>
  * 
  * @author Tyler Treat
- * @version 1.0
+ * @version 1.0 05/18/12
  * @since 05/18/12
  */
 public interface InfinitumContext {
@@ -309,15 +309,15 @@ public interface InfinitumContext {
 	 * 
 	 * @return {@code BeanContainer}
 	 */
-	BeanFactory getBeanContainer();
+	BeanFactory getBeanFactory();
 
 	/**
 	 * Sets the {@link BeanFactory} for this {@code InfinitumContext}.
 	 * 
-	 * @param beanContainer
+	 * @param beanFactory
 	 *            the {@code BeanContainer} to set
 	 */
-	void setBeanContainer(BeanFactory beanContainer);
+	void setBeanFactory(BeanFactory beanFactory);
 
 	/**
 	 * Retrieves a bean with the given name. Beans are configured in
