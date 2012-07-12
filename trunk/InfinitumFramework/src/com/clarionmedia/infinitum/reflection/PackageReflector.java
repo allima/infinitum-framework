@@ -19,11 +19,7 @@
 
 package com.clarionmedia.infinitum.reflection;
 
-import java.lang.annotation.Annotation;
-import java.util.Comparator;
 import java.util.Set;
-
-import com.clarionmedia.infinitum.reflection.impl.Package;
 
 /**
  * <p>
@@ -51,32 +47,9 @@ public interface PackageReflector {
 	Class<?> getClass(String className);
 
 	/**
-	 * Retrieves a {@link Package} describing the loadable classes whose package
-	 * name is {@code packageName}.
+	 * Retrieves a {@link Set} of {@link Class} instances whose are contained in
+	 * one of the given package names.
 	 */
-	Package scan(String packageName);
-
-	/**
-	 * Retrieves a {@link Set} containing the {@link Class} instances which
-	 * contain the given {@code Class}-level annotation(s).
-	 * 
-	 * @param annotations
-	 *            the annotations to retrieve {@code Classes} by
-	 * @return {@code Set} of {@code Classes} which contain {@code annotation}
-	 */
-	Set<Class<?>> getClassesWithAnnotations(Class<? extends Annotation>... annotations);
-
-	/**
-	 * {@link Comparator} for ordering a collection of classes based on their
-	 * names.
-	 */
-	public static final Comparator<Class<?>> ORDER_CLASS_BY_NAME = new Comparator<Class<?>>() {
-
-		@Override
-		public int compare(Class<?> a, Class<?> b) {
-			return a.getName().compareTo(b.getName());
-		}
-
-	};
+	Set<Class<?>> getPackageClasses(String... packageNames);
 
 }

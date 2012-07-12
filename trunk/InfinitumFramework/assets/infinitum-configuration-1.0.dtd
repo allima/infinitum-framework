@@ -27,7 +27,7 @@
 <!ELEMENT application (property*)>
 <!ELEMENT sqlite (property+)>
 <!ELEMENT domain (model*)>
-<!ELEMENT beans (bean*)>
+<!ELEMENT beans (bean* , component-scan)>
 <!ELEMENT rest (property+ , authentication?)>
 <!ATTLIST rest ref CDATA #IMPLIED>
 
@@ -42,6 +42,9 @@
 <!ELEMENT bean (property*)>
 <!ATTLIST bean id CDATA #REQUIRED>
 <!ATTLIST bean src CDATA #REQUIRED>
+
+<!ELEMENT component-scan>
+<!ATTLIST component-scan base-package #REQUIRED>
 
 <!ELEMENT resource (#PCDATA)>
 <!ATTLIST resource name CDATA #REQUIRED>
