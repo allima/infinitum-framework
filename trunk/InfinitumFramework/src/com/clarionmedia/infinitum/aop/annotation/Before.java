@@ -17,43 +17,20 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.aop;
+package com.clarionmedia.infinitum.aop.annotation;
 
-import java.lang.reflect.Method;
-import com.clarionmedia.infinitum.aop.annotation.Aspect;
+import com.clarionmedia.infinitum.aop.JoinPoint;
 
 /**
  * <p>
- * Provides contextual information about a join point. A {@code JoinPoint} is
- * passed to an {@link Aspect} advice when invoked to provide it with reflective
- * state data.
+ * Indicates that the annotated advice is to be executed after a
+ * {@link JoinPoint} completes.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/12/12
+ * @since 1.0
  */
-public interface JoinPoint {
-
-	/**
-	 * Returns the {@link Method} being invoked at this {@code JoinPoint}.
-	 * 
-	 * @return {@code Method} to be advised
-	 */
-	Method getMethod();
-
-	/**
-	 * Returns the arguments being passed to this {@code JoinPoint}.
-	 * 
-	 * @return {@code Object[]} of arguments
-	 */
-	Object[] getArguments();
-
-	/**
-	 * Returns the target {@link Object} being invoked at this {@code JoinPoint}
-	 * .
-	 * 
-	 * @return {@code Object} where {@code JoinPoint} is being executed
-	 */
-	Object getTarget();
+public @interface Before {
 
 }
