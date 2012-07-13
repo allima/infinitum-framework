@@ -18,7 +18,7 @@
         <property name="autocommit">true</property> <!-- [true | false] -->
     </sqlite>
     
-    <rest ref="restClient">
+    <rest>
         <property name="host">http://ec2-174-129-207-209.compute-1.amazonaws.com/infinitum</property>
         <property name="connectionTimeout">5000</property>
         <property name="responseTimeout">5000</property>
@@ -40,6 +40,7 @@
     </domain>
     
     <beans>
+        <component-scan base-package="com.clarionmedia.infinitumtest" />
 <!--         <bean id="restClient" src="com.clarionmedia.infinitum.rest.impl.RestfulJsonClient" /> -->
 <!--         <bean id="tokenGenerator" src="com.clarionmedia.infinitumtest.service.MyTokenGenerator" /> -->
 <!--         <bean id="tokenAuthentication" src="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication"> -->
@@ -47,10 +48,10 @@
 <!--             <property name="mToken" value="e489e8383c0ae2b7fe4dcf178330b4ac" /> -->
 <!--             <property name="mGenerator" ref="tokenGenerator" /> -->
 <!--         </bean> -->
-        <bean id="myDao" src="com.clarionmedia.infinitumtest.dao.impl.MyDaoImpl" />
-        <bean id="myService" src="com.clarionmedia.infinitumtest.service.impl.MyServiceImpl">
-<!--             <property name="mDao" ref="myDao" /> -->
-        </bean>
+<!--         <bean id="myDao" src="com.clarionmedia.infinitumtest.dao.impl.MyDaoImpl" /> -->
+<!--         <bean id="myService" src="com.clarionmedia.infinitumtest.service.impl.MyServiceImpl"> -->
+<!--              <property name="mDao" ref="myDao" /> -->
+<!--         </bean> -->
     </beans>
 
 </infinitum-configuration>
