@@ -20,7 +20,9 @@
 package com.clarionmedia.infinitum.context;
 
 import java.util.List;
+
 import android.content.Context;
+
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.context.impl.XmlContextFactory;
 import com.clarionmedia.infinitum.di.BeanFactory;
@@ -51,7 +53,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * @since 05/18/12
  */
 public interface InfinitumContext {
-
+	
 	/**
 	 * Represents the entity persistence configuration mode.
 	 */
@@ -84,7 +86,8 @@ public interface InfinitumContext {
 	 * @throws InfinitumConfigurationException
 	 *             if the specified {@code DataSource} was not configured
 	 */
-	Session getSession(DataSource source) throws InfinitumConfigurationException;
+	Session getSession(DataSource source)
+			throws InfinitumConfigurationException;
 
 	/**
 	 * Indicates if debug is enabled or not. If it is enabled, Infinitum will

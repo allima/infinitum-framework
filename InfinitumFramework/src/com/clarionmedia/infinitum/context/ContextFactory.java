@@ -20,6 +20,7 @@
 package com.clarionmedia.infinitum.context;
 
 import android.content.Context;
+
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.context.impl.XmlContextFactory;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -39,13 +40,13 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 05/18/12
+ * @version 1.0 05/18/12
+ * @since 1.0
  */
 public abstract class ContextFactory {
 
-	protected Context mContext;
-
+	protected static Context mContext;
+	
 	/**
 	 * Retrieves a new {@code ContextFactory} instance.
 	 * 

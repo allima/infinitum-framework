@@ -31,11 +31,12 @@ import android.content.Context;
 import android.database.Cursor;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.LazilyLoadedObject;
-import com.clarionmedia.infinitum.orm.OrmConstants;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.relationship.ForeignKeyRelationship;
@@ -68,6 +69,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private SqliteMapper mMapper;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
+	private InfinitumContext mCtx;
 	private PropertyLoader mPropLoader;
 
 	/**
@@ -82,7 +84,8 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		mSqlBuilder = new SqliteBuilder(mapper);
 		mSession = session;
 		mMapper = mapper;
-		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
+		mCtx = ContextFactory.getInstance().getContext();
+		mPolicy = mCtx.getPersistencePolicy();
 		mLogger = Logger.getInstance(getClass().getSimpleName());
 		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
 	}
@@ -197,7 +200,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						result.close();
 						return ret;
 					}
-				}).dexCache(mSession.getContext().getDir(OrmConstants.DEX_CACHE, Context.MODE_PRIVATE)).build();
+				}).dexCache(DexCaching.getDexCache(mSession.getContext())).build();
 			} catch (IOException e1) {
 				throw new InfinitumRuntimeException("Could not build entity proxy");
 			}
@@ -251,7 +254,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 					result.close();
 					return collection;
 				}
-			}).dexCache(mSession.getContext().getDir(OrmConstants.DEX_CACHE, Context.MODE_PRIVATE)).build();
+			}).dexCache(DexCaching.getDexCache(mSession.getContext())).build();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
 			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);
@@ -304,7 +307,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 						result.close();
 						return ret;
 					}
-				}).dexCache(mSession.getContext().getDir(OrmConstants.DEX_CACHE, Context.MODE_PRIVATE)).build();
+				}).dexCache(DexCaching.getDexCache(mSession.getContext())).build();
 			} catch (IOException e1) {
 				throw new InfinitumRuntimeException("Could not build entity proxy");
 			}
@@ -352,7 +355,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 					result.close();
 					return collection;
 				}
-			}).dexCache(mSession.getContext().getDir(OrmConstants.DEX_CACHE, Context.MODE_PRIVATE)).build();
+			}).dexCache(DexCaching.getDexCache(mSession.getContext())).build();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
 			mLogger.error("Unable to set relationship field for object of type '" + model.getClass().getName() + "'", e);

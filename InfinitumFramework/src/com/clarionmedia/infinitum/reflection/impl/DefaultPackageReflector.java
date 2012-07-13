@@ -19,14 +19,22 @@
 
 package com.clarionmedia.infinitum.reflection.impl;
 
-import java.lang.reflect.Field;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+
+import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
+
 import dalvik.system.DexFile;
-import dalvik.system.PathClassLoader;
 
 /**
  * <p>
@@ -53,42 +61,35 @@ public class DefaultPackageReflector implements PackageReflector {
 	}
 
 	@Override
-	public Set<Class<?>> getPackageClasses(String... packageNames) {
+	public synchronized Set<Class<?>> getPackageClasses(String... packageNames) {
 		Set<Class<?>> classes = new HashSet<Class<?>>();
-		Field dexField;
+		Context context = ContextFactory.getInstance().getAndroidContext();
+		PackageManager packageManager = context.getPackageManager();
 		try {
-			dexField = PathClassLoader.class.getDeclaredField("mDexs");
-			dexField.setAccessible(true);
-
-			PathClassLoader classLoader = (PathClassLoader) Thread
-					.currentThread().getContextClassLoader();
-
-			DexFile[] dexs = (DexFile[]) dexField.get(classLoader);
-			for (DexFile dex : dexs) {
-				Enumeration<String> entries = dex.entries();
-				while (entries.hasMoreElements()) {
-					String entry = entries.nextElement();
-					for (String packageName : packageNames) {
-						if (entry.toLowerCase().startsWith(packageName.toLowerCase())) {
-							Class<?> entryClass = dex.loadClass(entry, classLoader);
-							classes.add(entryClass);
-							break;
-						}
+			ApplicationInfo appInfo = packageManager.getApplicationInfo(
+					context.getPackageName(), 0);
+			String sourceDir = appInfo.sourceDir;
+			DexFile dex = DexFile.loadDex(sourceDir, DexCaching.getDexCache(context)
+					.getPath() + "/classes.dex", 0);
+			Enumeration<String> entries = dex.entries();
+			while (entries.hasMoreElements()) {
+				String entry = entries.nextElement();
+				for (String packageName : packageNames) {
+					if (entry.toLowerCase().startsWith(
+							packageName.toLowerCase())) {
+						classes.add(getClass(entry));
+						break;
 					}
 				}
 			}
-
-		} catch (SecurityException e) {
-			throw new InfinitumRuntimeException("Component-scanning is not supported in this environment.");
-		} catch (NoSuchFieldException e) {
-			throw new InfinitumRuntimeException("Component-scanning is not supported in this environment.");
-		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException("Component-scanning is not supported in this environment.");
-		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException("Component-scanning is not supported in this environment.");
-		} catch (ClassCastException e) {
-			throw new InfinitumRuntimeException("Component-scanning is not supported in this environment.");
+		} catch (NameNotFoundException e) {
+			throw new InfinitumRuntimeException(
+					"Component-scanning is not supported in this environment.");
+		} catch (IOException e) {
+			throw new InfinitumRuntimeException(
+					"Component-scanning is not supported in this environment.");
 		}
+
 		return classes;
 	}
 
