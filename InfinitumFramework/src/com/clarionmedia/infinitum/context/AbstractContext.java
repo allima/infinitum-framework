@@ -19,13 +19,22 @@
 
 package com.clarionmedia.infinitum.context;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import android.content.Context;
+
+import com.clarionmedia.infinitum.aop.AspectWeaver;
+import com.clarionmedia.infinitum.aop.JoinPoint;
+import com.clarionmedia.infinitum.aop.annotation.Aspect;
+import com.clarionmedia.infinitum.aop.impl.AdvisedObject;
+import com.clarionmedia.infinitum.aop.impl.BasicAspectWeaver;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
@@ -35,6 +44,7 @@ import com.clarionmedia.infinitum.di.annotation.Bean;
 import com.clarionmedia.infinitum.di.annotation.Component;
 import com.clarionmedia.infinitum.di.impl.ConfigurableBeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -45,6 +55,7 @@ import com.clarionmedia.infinitum.reflection.PackageReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
 import com.clarionmedia.infinitum.rest.impl.RestfulJsonSession;
 import com.clarionmedia.infinitum.rest.impl.RestfulSession;
+import com.google.dexmaker.stock.ProxyBuilder;
 
 /**
  * <p>
@@ -89,22 +100,22 @@ public abstract class AbstractContext implements InfinitumContext {
 	public Session getSession(DataSource source)
 			throws InfinitumConfigurationException {
 		switch (source) {
-			case Sqlite :
-				return new SqliteSession(mContext);
-			case Rest :
-				String client = getRestfulConfiguration().getClientBean();
-				RestfulSession session;
-				if (client == null) {
-					// Use RestfulJsonSession if no client is defined
-					session = new RestfulJsonSession();
-				} else {
-					// Otherwise use the preferred client
-					session = getBean(client, RestfulSession.class);
-				}
-				return session;
-			default :
-				throw new InfinitumConfigurationException(
-						"Data source not configured.");
+		case Sqlite:
+			return new SqliteSession(mContext);
+		case Rest:
+			String client = getRestfulConfiguration().getClientBean();
+			RestfulSession session;
+			if (client == null) {
+				// Use RestfulJsonSession if no client is defined
+				session = new RestfulJsonSession();
+			} else {
+				// Otherwise use the preferred client
+				session = getBean(client, RestfulSession.class);
+			}
+			return session;
+		default:
+			throw new InfinitumConfigurationException(
+					"Data source not configured.");
 		}
 	}
 
@@ -112,12 +123,12 @@ public abstract class AbstractContext implements InfinitumContext {
 	public PersistencePolicy getPersistencePolicy() {
 		if (sPersistencePolicy == null) {
 			switch (getConfigurationMode()) {
-				case Annotation :
-					sPersistencePolicy = new AnnotationPersistencePolicy();
-					break;
-				case Xml :
-					sPersistencePolicy = new XmlPersistencePolicy(mContext);
-					break;
+			case Annotation:
+				sPersistencePolicy = new AnnotationPersistencePolicy();
+				break;
+			case Xml:
+				sPersistencePolicy = new XmlPersistencePolicy(mContext);
+				break;
 			}
 		}
 		return sPersistencePolicy;
@@ -170,7 +181,8 @@ public abstract class AbstractContext implements InfinitumContext {
 		Set<Class<?>> components = new HashSet<Class<?>>();
 		for (Class<?> clazz : classes) {
 			if (clazz.isAnnotationPresent(Component.class)
-					|| clazz.isAnnotationPresent(Bean.class))
+					|| clazz.isAnnotationPresent(Bean.class)
+					|| clazz.isAnnotationPresent(Aspect.class))
 				components.add(clazz);
 		}
 		return components;
@@ -190,8 +202,18 @@ public abstract class AbstractContext implements InfinitumContext {
 			return;
 
 		// Categorize the Components while filtering down the original Set
+		Set<Class<?>> aspects = getAndRemoveAspects(components);
 		Set<Class<BeanPostProcessor>> beanPostProcessors = getAndRemoveBeanPostProcessors(components);
 		Set<Class<BeanFactoryPostProcessor>> beanFactoryPostProcessors = getAndRemoveBeanFactoryPostProcessors(components);
+
+		// Process Aspects
+		for (Class<?> aspectClass : aspects) {
+			Aspect aspect = aspectClass.getAnnotation(Aspect.class);
+			String beanName = aspect.value().trim().equals("") ? StringUtil
+					.toCamelCase(aspectClass.getSimpleName()) : aspect.value()
+					.trim();
+			mBeanFactory.registerAspect(beanName, aspectClass.getName(), null);
+		}
 
 		// Register scanned Bean candidates
 		for (Class<?> candidate : components) {
@@ -207,6 +229,45 @@ public abstract class AbstractContext implements InfinitumContext {
 		// Execute post processors
 		executeBeanPostProcessors(beanPostProcessors);
 		executeBeanFactoryPostProcessors(beanFactoryPostProcessors);
+
+		// Process Aspects
+		// TODO revisit
+		AspectWeaver aspectWeaver = new BasicAspectWeaver(mBeanFactory);
+		Set<JoinPoint> pointcuts = new HashSet<JoinPoint>();
+		for (Class<?> aspect : aspects) {
+			pointcuts.addAll(aspectWeaver.getPointcut(aspect));
+		}
+		List<Set<JoinPoint>> groupedPointcuts = aspectWeaver
+				.groupPointcutsByType(pointcuts);
+		for (Set<JoinPoint> pointcut : groupedPointcuts) {
+			List<JoinPoint> joinPoints = new ArrayList<JoinPoint>(pointcut);
+			String beanName = joinPoints.get(0).getBeanName();
+			if (beanName == null)
+				continue;
+			Object bean = mBeanFactory.loadBean(beanName);
+			try {
+				bean = ProxyBuilder.forClass(bean.getClass())
+						.handler(new AdvisedObject(pointcut))
+						.dexCache(DexCaching.getDexCache(mContext)).build();
+				mBeanFactory.getBeanMap().put(beanName, bean);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private Set<Class<?>> getAndRemoveAspects(Collection<Class<?>> components) {
+		Set<Class<?>> aspects = new HashSet<Class<?>>();
+		Iterator<Class<?>> iter = components.iterator();
+		while (iter.hasNext()) {
+			Class<?> component = iter.next();
+			if (component.isAnnotationPresent(Aspect.class)) {
+				aspects.add(component);
+				iter.remove();
+			}
+		}
+		return aspects;
 	}
 
 	@SuppressWarnings("unchecked")

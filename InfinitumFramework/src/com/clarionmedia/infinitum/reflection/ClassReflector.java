@@ -19,6 +19,7 @@
 
 package com.clarionmedia.infinitum.reflection;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -26,15 +27,15 @@ import java.util.List;
 
 /**
  * <p>
- * This interface provides reflection methods for working with classes
- * contained within projects that are using Infinitum.
+ * This interface provides reflection methods for working with classes contained
+ * within projects that are using Infinitum.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 05/17/12
  */
 public interface ClassReflector {
-	
+
 	/**
 	 * Retrieves the value of the given {@link Field} for the specified
 	 * {@link Object} by invoking its getter method.
@@ -66,7 +67,7 @@ public interface ClassReflector {
 	 * @return {@link List} of {@code Fields}
 	 */
 	List<Field> getAllFields(Class<?> clazz);
-	
+
 	/**
 	 * Retrieves all {@code Methods} for the given {@link Class}.
 	 * 
@@ -75,7 +76,20 @@ public interface ClassReflector {
 	 * @return {@link List} of {@code Methods}
 	 */
 	List<Method> getAllMethods(Class<?> clazz);
-	
+
+	/**
+	 * Retrieves all {@code Methods} for the given {@link Class} that have the
+	 * given {@link Annotation}.
+	 * 
+	 * @param clazz
+	 *            the {@code Class} to get {@code Methods} for
+	 * @param annotation
+	 *            the {@code Annotation} type to find {@code Methods} for
+	 * @return {@link List} of {@code Methods}
+	 */
+	List<Method> getAllMethodsAnnotatedWith(Class<?> clazz,
+			Class<? extends Annotation> annotation);
+
 	/**
 	 * Retrieves all {@code Constructors} for the given {@link Class}.
 	 * 

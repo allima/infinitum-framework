@@ -34,6 +34,10 @@ import com.clarionmedia.infinitum.aop.annotation.Aspect;
  */
 public interface JoinPoint {
 
+	public static enum Location {
+		Before, After, Around
+	};
+
 	/**
 	 * Returns the {@link Method} being invoked at this {@code JoinPoint}.
 	 * 
@@ -42,18 +46,90 @@ public interface JoinPoint {
 	Method getMethod();
 
 	/**
-	 * Returns the arguments being passed to this {@code JoinPoint}.
+	 * Sets the {@link Method} to be invoked at this {@code JoinPoint}.
+	 * 
+	 * @param method
+	 *            {@code Method} to be advised
+	 */
+	void setMethod(Method method);
+
+	/**
+	 * Returns the arguments to be passed into this {@code JoinPoint}.
 	 * 
 	 * @return {@code Object[]} of arguments
 	 */
 	Object[] getArguments();
 
 	/**
-	 * Returns the target {@link Object} being invoked at this {@code JoinPoint}
+	 * Sets the arguments to be passed into this {@code JoinPoint}.
+	 * 
+	 * @param args
+	 *            {@code Object[]} of arguments
+	 */
+	void setArguments(Object[] args);
+
+	/**
+	 * Returns the target {@link Object} to be invoked at this {@code JoinPoint}
 	 * .
 	 * 
-	 * @return {@code Object} where {@code JoinPoint} is being executed
+	 * @return {@code Object} where {@code JoinPoint} is to be executed
 	 */
 	Object getTarget();
+
+	/**
+	 * Sets the target {@link Object} to be invoked at this {@code JoinPoint}.
+	 * 
+	 * @param target
+	 *            {@code Object} where {@code JoinPoint} is to be executed
+	 */
+	void setTarget(Object target);
+
+	/**
+	 * Returns the name of the bean to be invoked at this {@code JoinPoint}.
+	 * 
+	 * @return bean name
+	 */
+	String getBeanName();
+
+	/**
+	 * Sets the name of the bean to be invoked at this {@code JoinPoint}.
+	 * 
+	 * @param beanName
+	 *            bean name
+	 */
+	void setBeanName(String beanName);
+
+	/**
+	 * Indicates if the {@code JoinPoint} applies to the entire target
+	 * {@link Class} or just a specific {@link Method}.
+	 * 
+	 * @return {@code true} if it is {@code Class} scope, {@code false} if not
+	 */
+	boolean isClassScope();
+
+	/**
+	 * Sets the value indicating if the {@code JoinPoint} applies to the entire
+	 * target {@link Class} or just a specific {@link Method}.
+	 * 
+	 * @param isClassScope
+	 *            {@code true} if it is {@code Class} scope, {@code false} if
+	 *            not
+	 */
+	void setClassScope(boolean isClassScope);
+
+	/**
+	 * Returns the advice location.
+	 * 
+	 * @return advice location
+	 */
+	Location getLocation();
+
+	/**
+	 * Sets the advice location.
+	 * 
+	 * @param location
+	 *            advice location
+	 */
+	void setLocation(Location location);
 
 }

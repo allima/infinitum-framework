@@ -56,6 +56,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	private ClassReflector mClassReflector;
 	private Map<String, Pair<Class<?>, Map<String, Object>>> mBeanDefinitions;
 	private Map<String, Object> mBeanMap;
+	private Map<String, Object> mAspectMap;
 
 	/**
 	 * Constructs a new {@code ConfigurableBeanFactory}.
@@ -64,6 +65,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		mClassReflector = new DefaultClassReflector();
 		mBeanDefinitions = new HashMap<String, Pair<Class<?>, Map<String, Object>>>();
 		mBeanMap = new HashMap<String, Object>();
+		mAspectMap = new HashMap<String, Object>();
 	}
 
 	@Override
@@ -71,6 +73,13 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		if (!mBeanMap.containsKey(name))
 			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved");
 		return mBeanMap.get(name);
+	}
+	
+	@Override
+	public Object loadAspect(String name) throws InfinitumConfigurationException {
+		if (!mAspectMap.containsKey(name))
+			throw new InfinitumConfigurationException("Aspect '" + name + "' could not be resolved");
+		return mAspectMap.get(name);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -124,6 +133,27 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		Object bean = instantiateBean(name, clazz);
 		// Then we populate its fields
 		setFields(bean, args);
+		mBeanMap.put(name, bean);
+	}
+	
+	@Override
+	public void registerAspect(String name, String beanClass, Map<String, Object> args) {
+		// args: Map<fieldName, fieldValue>
+		Class<?> clazz;
+		try {
+			clazz = Class.forName(beanClass);
+		} catch (ClassNotFoundException e) {
+			throw new InfinitumConfigurationException("Bean '" + name + "' could not be resolved ('" + beanClass
+					+ "' not found)");
+		}
+		Pair<Class<?>, Map<String, Object>> pair = new Pair<Class<?>, Map<String, Object>>(clazz, args);
+		// pair: Pair<bean, beanArgsMap>
+		mBeanDefinitions.put(name, pair);
+		// First we construct an instance of the bean
+		Object bean = instantiateBean(name, clazz);
+		// Then we populate its fields
+		setFields(bean, args);
+		mAspectMap.put(name, bean);
 		mBeanMap.put(name, bean);
 	}
 
