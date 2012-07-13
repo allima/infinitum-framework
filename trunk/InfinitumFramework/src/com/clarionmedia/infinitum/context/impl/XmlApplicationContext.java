@@ -53,7 +53,7 @@ import com.clarionmedia.infinitum.di.BeanComponent;
  */
 @Root(name = "infinitum-configuration")
 public class XmlApplicationContext extends AbstractContext {
-
+	
 	@ElementMap(name = "application", entry = "property", key = "name", attribute = true, required = false)
 	private Map<String, String> mAppConfig;
 
@@ -206,6 +206,8 @@ public class XmlApplicationContext extends AbstractContext {
 
 	@Override
 	protected List<String> getScanPackages() {
+	    if (mBeanContainer.mComponentScan == null)
+	    	return new ArrayList<String>();
 		return mBeanContainer.mComponentScan.getBasePackages();
 	}
 	

@@ -20,6 +20,7 @@
 package com.clarionmedia.infinitum.context.impl;
 
 import java.io.InputStream;
+import java.util.Scanner;
 
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
@@ -59,7 +60,7 @@ public class XmlContextFactory extends ContextFactory {
 	/**
 	 * Constructs a new {@code SimpleXmlContextFactory}. This is marked
 	 * {@code private} to prevent direct instantiation.
-	 * {@code SimpleXmlContextFactory} should be retrieved as a singleton.
+	 * {@code XmlContextFactory} should be retrieved as a singleton.
 	 */
 	private XmlContextFactory() {
 
@@ -115,7 +116,7 @@ public class XmlContextFactory extends ContextFactory {
 		Serializer serializer = new Persister();
 		try {
 			InputStream stream = resources.openRawResource(configId);
-			String xml = new java.util.Scanner(stream).useDelimiter("\\A").next();
+			String xml = new Scanner(stream).useDelimiter("\\A").next();
 			return serializer.read(XmlApplicationContext.class, xml);
 		} catch (Exception e) {
 			throw new InfinitumConfigurationException("Unable to initialize Infinitum configuration.", e);
