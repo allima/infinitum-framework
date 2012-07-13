@@ -27,7 +27,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import android.content.Context;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
-import com.clarionmedia.infinitum.aop.impl.BasicAspectWeaver;
+import com.clarionmedia.infinitum.aop.impl.AnnotationsAspectWeaver;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
@@ -217,12 +217,13 @@ public abstract class AbstractContext implements InfinitumContext {
 			}
 		}
 
+		// Process Aspects
+		Context context = ContextFactory.getInstance().getAndroidContext();
+		new AnnotationsAspectWeaver(mBeanFactory).weave(context, aspects);
+		
 		// Execute post processors
 		executeBeanPostProcessors(beanPostProcessors);
 		executeBeanFactoryPostProcessors(beanFactoryPostProcessors);
-
-		// Process Aspects
-		new BasicAspectWeaver(mBeanFactory).weave(mContext, aspects);
 	}
 
 	private Set<Class<?>> getAndRemoveAspects(Collection<Class<?>> components) {

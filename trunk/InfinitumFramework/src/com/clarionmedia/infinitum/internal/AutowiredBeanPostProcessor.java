@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
@@ -57,8 +58,14 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
 	@Override
 	public void postProcessBean(BeanFactory beanFactory, String beanName, Object bean) {
-		injectFields(beanFactory, bean);
-		injectSetters(beanFactory, bean);
+		Object target;
+		AopProxy proxy = AopProxy.getProxy(bean);
+		if (proxy != null)
+			target = proxy.getTarget();
+		else
+			target = bean;
+		injectFields(beanFactory, target);
+		injectSetters(beanFactory, target);
 	}
 
 	private void injectFields(BeanFactory beanFactory, Object bean) {
