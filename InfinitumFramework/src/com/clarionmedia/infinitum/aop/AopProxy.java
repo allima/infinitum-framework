@@ -17,47 +17,42 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.aop.impl;
+package com.clarionmedia.infinitum.aop;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 
-import com.clarionmedia.infinitum.aop.Pointcut;
-import com.clarionmedia.infinitum.internal.Preconditions;
+import com.clarionmedia.infinitum.aop.impl.DexMakerProxy;
 
 /**
  * <p>
- * Represents an advised {@link Object} in which aspect advice has been woven
- * in.
+ * Provides proxy support for the AOP framework.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/13/12
  * @since 1.0
  */
-public class AdvisedObject implements InvocationHandler {
-
-	private Pointcut mPointcut;
-	private Object mTarget;
+public abstract class AopProxy implements InvocationHandler {
+	
+	public static AopProxy getProxy(Object object) {
+		AopProxy proxy = DexMakerProxy.getProxy(object);
+		if (proxy != null)
+			return proxy;
+		// TODO
+		return null;
+	}
 
 	/**
-	 * Creates a new {@code AdvisedObject} with the given {@link Pointcut}.
+	 * Returns the proxied {@link Object}.
 	 * 
-	 * @param target
-	 *            the advised {@code Object}
-	 * @param pointcut
-	 *            the {@code Pointcut} for this {@link Object}
+	 * @return target {@code Object}
 	 */
-	public AdvisedObject(Object target, Pointcut pointcut) {
-		Preconditions.checkNotNull(pointcut);
-		mPointcut = pointcut;
-		mTarget = target;
-	}
-
-	@Override
-	public Object invoke(Object proxy, Method method, Object[] args)
-			throws Throwable {
-		return method.invoke(mTarget, args);
-	}
+	public abstract Object getTarget();
+	
+	public abstract boolean isProxy(Object object);
+	
+	public abstract Object getProxy();
+	
+	public abstract InvocationHandler getInvocationHandler(Object proxy);
 
 }

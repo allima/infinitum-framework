@@ -19,7 +19,6 @@
 
 package com.clarionmedia.infinitum.aop.impl;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,6 +28,7 @@ import java.util.Set;
 
 import android.content.Context;
 
+import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.aop.AspectWeaver;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.JoinPoint.Location;
@@ -38,33 +38,32 @@ import com.clarionmedia.infinitum.aop.annotation.Around;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.annotation.Before;
 import com.clarionmedia.infinitum.di.BeanFactory;
-import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
-import com.google.dexmaker.stock.ProxyBuilder;
 
 /**
  * <p>
- * Basic implementation of {@link AspectWeaver}.
+ * Implementation of {@link AspectWeaver} for processing aspects annotated with
+ * {@link Aspect}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/12/12
  * @since 1.0
  */
-public class BasicAspectWeaver implements AspectWeaver {
+public class AnnotationsAspectWeaver implements AspectWeaver {
 
 	private ClassReflector mClassReflector;
 	private BeanFactory mBeanFactory;
 
 	/**
-	 * Creates a new {@code BasicAspectWeaver} with the given
+	 * Creates a new {@code AnnotationsAspectWeaver} with the given
 	 * {@link BeanFactory}.
 	 * 
 	 * @param beanFactory
 	 *            the {@code BeanFactory} to retrieve beans from
 	 */
-	public BasicAspectWeaver(BeanFactory beanFactory) {
+	public AnnotationsAspectWeaver(BeanFactory beanFactory) {
 		mClassReflector = new DefaultClassReflector();
 		mBeanFactory = beanFactory;
 	}
@@ -74,15 +73,9 @@ public class BasicAspectWeaver implements AspectWeaver {
 		for (Pointcut pointcut : getPointcuts(aspects)) {
 			String beanName = pointcut.getBeanName();
 			Object bean = mBeanFactory.loadBean(beanName);
-			try {
-				bean = ProxyBuilder.forClass(bean.getClass())
-						.handler(new AdvisedObject(pointcut))
-						.dexCache(DexCaching.getDexCache(context)).build();
-				mBeanFactory.getBeanMap().put(beanName, bean);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			// TODO: proxy factory?
+			AopProxy proxy = new DexMakerProxy(context, bean, pointcut);
+			mBeanFactory.getBeanMap().put(beanName, proxy.getProxy());
 		}
 	}
 
