@@ -21,9 +21,9 @@ package com.clarionmedia.infinitum.aop.impl;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Set;
 
-import com.clarionmedia.infinitum.aop.JoinPoint;
+import com.clarionmedia.infinitum.aop.Pointcut;
+import com.clarionmedia.infinitum.internal.Preconditions;
 
 /**
  * <p>
@@ -37,16 +37,16 @@ import com.clarionmedia.infinitum.aop.JoinPoint;
  */
 public class AdvisedObject implements InvocationHandler {
 
-	private Set<JoinPoint> mPointcut;
+	private Pointcut mPointcut;
 
 	/**
-	 * Creates a new {@code AdvisedObject}.
+	 * Creates a new {@code AdvisedObject} with the given {@link Pointcut}.
 	 * 
 	 * @param pointcut
-	 *            the {@link Set} of {@code JoinPoint} instances for this
-	 *            {@link Object}
+	 *            the {@code Pointcut} for this {@link Object}
 	 */
-	public AdvisedObject(Set<JoinPoint> pointcut) {
+	public AdvisedObject(Pointcut pointcut) {
+		Preconditions.checkNotNull(pointcut);
 		mPointcut = pointcut;
 	}
 
@@ -55,6 +55,15 @@ public class AdvisedObject implements InvocationHandler {
 			throws Throwable {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/**
+	 * Returns the {@link Pointcut} for this {@link Object}.
+	 * 
+	 * @return {@code Pointcut}
+	 */
+	public Pointcut getPointcut() {
+		return mPointcut;
 	}
 
 }

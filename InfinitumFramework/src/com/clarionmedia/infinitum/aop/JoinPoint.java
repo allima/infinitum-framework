@@ -85,6 +85,13 @@ public interface JoinPoint {
 	void setTarget(Object target);
 
 	/**
+	 * Returns the {@link Class} of the {@code JoinPoint} target.
+	 * 
+	 * @return {@code Class} of target
+	 */
+	Class<?> getTargetType();
+
+	/**
 	 * Returns the name of the bean to be invoked at this {@code JoinPoint}.
 	 * 
 	 * @return bean name

@@ -66,6 +66,13 @@ public class BasicJoinPoint implements JoinPoint {
 	public Object getTarget() {
 		return mTarget;
 	}
+	
+	@Override
+	public Class<?> getTargetType() {
+		if (mTarget == null)
+			return null;
+		return mTarget.getClass();
+	}
 
 	@Override
 	public void setBeanName(String beanName) {

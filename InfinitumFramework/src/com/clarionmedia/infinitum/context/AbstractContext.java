@@ -19,21 +19,14 @@
 
 package com.clarionmedia.infinitum.context;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import android.content.Context;
-
-import com.clarionmedia.infinitum.aop.AspectWeaver;
-import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
-import com.clarionmedia.infinitum.aop.impl.AdvisedObject;
 import com.clarionmedia.infinitum.aop.impl.BasicAspectWeaver;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanComponent;
@@ -44,7 +37,6 @@ import com.clarionmedia.infinitum.di.annotation.Bean;
 import com.clarionmedia.infinitum.di.annotation.Component;
 import com.clarionmedia.infinitum.di.impl.ConfigurableBeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -55,7 +47,6 @@ import com.clarionmedia.infinitum.reflection.PackageReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
 import com.clarionmedia.infinitum.rest.impl.RestfulJsonSession;
 import com.clarionmedia.infinitum.rest.impl.RestfulSession;
-import com.google.dexmaker.stock.ProxyBuilder;
 
 /**
  * <p>
@@ -231,30 +222,7 @@ public abstract class AbstractContext implements InfinitumContext {
 		executeBeanFactoryPostProcessors(beanFactoryPostProcessors);
 
 		// Process Aspects
-		// TODO revisit
-		AspectWeaver aspectWeaver = new BasicAspectWeaver(mBeanFactory);
-		Set<JoinPoint> pointcuts = new HashSet<JoinPoint>();
-		for (Class<?> aspect : aspects) {
-			pointcuts.addAll(aspectWeaver.getPointcut(aspect));
-		}
-		List<Set<JoinPoint>> groupedPointcuts = aspectWeaver
-				.groupPointcutsByType(pointcuts);
-		for (Set<JoinPoint> pointcut : groupedPointcuts) {
-			List<JoinPoint> joinPoints = new ArrayList<JoinPoint>(pointcut);
-			String beanName = joinPoints.get(0).getBeanName();
-			if (beanName == null)
-				continue;
-			Object bean = mBeanFactory.loadBean(beanName);
-			try {
-				bean = ProxyBuilder.forClass(bean.getClass())
-						.handler(new AdvisedObject(pointcut))
-						.dexCache(DexCaching.getDexCache(mContext)).build();
-				mBeanFactory.getBeanMap().put(beanName, bean);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		new BasicAspectWeaver(mBeanFactory).weave(mContext, aspects);
 	}
 
 	private Set<Class<?>> getAndRemoveAspects(Collection<Class<?>> components) {

@@ -19,22 +19,29 @@
 
 package com.clarionmedia.infinitum.aop.impl;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import android.content.Context;
 
 import com.clarionmedia.infinitum.aop.AspectWeaver;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.JoinPoint.Location;
+import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.aop.annotation.After;
 import com.clarionmedia.infinitum.aop.annotation.Around;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.annotation.Before;
 import com.clarionmedia.infinitum.di.BeanFactory;
-import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
+import com.google.dexmaker.stock.ProxyBuilder;
 
 /**
  * <p>
@@ -46,108 +53,142 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  * @since 1.0
  */
 public class BasicAspectWeaver implements AspectWeaver {
-	
+
 	private ClassReflector mClassReflector;
 	private BeanFactory mBeanFactory;
-	
+
+	/**
+	 * Creates a new {@code BasicAspectWeaver} with the given
+	 * {@link BeanFactory}.
+	 * 
+	 * @param beanFactory
+	 *            the {@code BeanFactory} to retrieve beans from
+	 */
 	public BasicAspectWeaver(BeanFactory beanFactory) {
 		mClassReflector = new DefaultClassReflector();
 		mBeanFactory = beanFactory;
 	}
 
 	@Override
-	public Set<JoinPoint> getPointcut(Class<?> aspect) {
-		if (!aspect.isAnnotationPresent(Aspect.class))
-			throw new InfinitumRuntimeException("Aspects must be annotated with '@Aspect'!");
-		Set<JoinPoint> pointcut = new HashSet<JoinPoint>();
-		// Process @Before advice
-		List<Method> methods = mClassReflector.getAllMethodsAnnotatedWith(aspect, Before.class);
-		for (Method method : methods) {
-			Before before = method.getAnnotation(Before.class);
-			for (String bean : before.beans()) {
-				bean = bean.trim();
-				if (bean.length() == 0)
-					continue;
-				String beanName = bean;
-				boolean isClassScope = false;
-				if (bean.contains("#")) {
-					beanName = bean.substring(0, bean.indexOf('#'));
-				} else {
-					isClassScope = true;
-				}
-				JoinPoint joinPoint = new BasicJoinPoint(Location.Before);
-				joinPoint.setBeanName(beanName);
-				joinPoint.setTarget(mBeanFactory.loadBean(beanName));
-				if (isClassScope) {
-					joinPoint.setClassScope(true);
-				} else {
-					// TODO Add support for specific method join points
-				}
-				pointcut.add(joinPoint);
+	public void weave(Context context, Set<Class<?>> aspects) {
+		for (Pointcut pointcut : getPointcuts(aspects)) {
+			String beanName = pointcut.getBeanName();
+			Object bean = mBeanFactory.loadBean(beanName);
+			try {
+				bean = ProxyBuilder.forClass(bean.getClass())
+						.handler(new AdvisedObject(pointcut))
+						.dexCache(DexCaching.getDexCache(context)).build();
+				mBeanFactory.getBeanMap().put(beanName, bean);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			// TODO Add within support
 		}
-		// Process @After advice
-		methods = mClassReflector.getAllMethodsAnnotatedWith(aspect, After.class);
-		for (Method method : methods) {
-			After after = method.getAnnotation(After.class);
-			for (String bean : after.beans()) {
-				bean = bean.trim();
-				if (bean.length() == 0)
-					continue;
-				String beanName = bean;
-				boolean isClassScope = false;
-				if (bean.contains("#")) {
-					beanName = bean.substring(0, bean.indexOf('#'));
-				} else {
-					isClassScope = true;
-				}
-				JoinPoint joinPoint = new BasicJoinPoint(Location.After);
-				joinPoint.setBeanName(beanName);
-				joinPoint.setTarget(mBeanFactory.loadBean(beanName));
-				if (isClassScope) {
-					joinPoint.setClassScope(true);
-				} else {
-					// TODO Add support for specific method join points
-				}
-				pointcut.add(joinPoint);
-			}
-			// TODO Add within support
-		}
-		// Process @Around advice
-		methods = mClassReflector.getAllMethodsAnnotatedWith(aspect, Around.class);
-		for (Method method : methods) {
-			Around around = method.getAnnotation(Around.class);
-			for (String bean : around.beans()) {
-				bean = bean.trim();
-				if (bean.length() == 0)
-					continue;
-				String beanName = bean;
-				boolean isClassScope = false;
-				if (bean.contains("#")) {
-					beanName = bean.substring(0, bean.indexOf('#'));
-				} else {
-					isClassScope = true;
-				}
-				JoinPoint joinPoint = new BasicJoinPoint(Location.Around);
-				joinPoint.setBeanName(beanName);
-				joinPoint.setTarget(mBeanFactory.loadBean(beanName));
-				if (isClassScope) {
-					joinPoint.setClassScope(true);
-				} else {
-					// TODO Add support for specific method join points
-				}
-				pointcut.add(joinPoint);
-			}
-			// TODO Add within support
-		}
-		return pointcut;
 	}
 
-	@Override
-	public List<Set<JoinPoint>> groupPointcutsByType(Set<JoinPoint> pointcut) {
-		// TODO Auto-generated method stub
-		return null;
+	private Collection<Pointcut> getPointcuts(Set<Class<?>> aspects) {
+		Map<String, Pointcut> pointcutMap = new HashMap<String, Pointcut>();
+		for (Class<?> aspect : aspects) {
+			if (!aspect.isAnnotationPresent(Aspect.class))
+				continue;
+			// Process @Before advice
+			List<Method> methods = mClassReflector.getAllMethodsAnnotatedWith(
+					aspect, Before.class);
+			for (Method method : methods) {
+				Before before = method.getAnnotation(Before.class);
+				for (String bean : before.beans()) {
+					bean = bean.trim();
+					if (bean.length() == 0)
+						continue;
+					String beanName = bean;
+					boolean isClassScope = false;
+					if (bean.contains("#")) {
+						beanName = bean.substring(0, bean.indexOf('#'));
+					} else {
+						isClassScope = true;
+					}
+					JoinPoint joinPoint = new BasicJoinPoint(Location.Before);
+					joinPoint.setBeanName(beanName);
+					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
+					if (isClassScope) {
+						joinPoint.setClassScope(true);
+					} else {
+						// TODO Add support for specific method join points
+					}
+					putJoinPoint(pointcutMap, joinPoint);
+				}
+				// TODO Add within support
+			}
+			// Process @After advice
+			methods = mClassReflector.getAllMethodsAnnotatedWith(aspect,
+					After.class);
+			for (Method method : methods) {
+				After after = method.getAnnotation(After.class);
+				for (String bean : after.beans()) {
+					bean = bean.trim();
+					if (bean.length() == 0)
+						continue;
+					String beanName = bean;
+					boolean isClassScope = false;
+					if (bean.contains("#")) {
+						beanName = bean.substring(0, bean.indexOf('#'));
+					} else {
+						isClassScope = true;
+					}
+					JoinPoint joinPoint = new BasicJoinPoint(Location.After);
+					joinPoint.setBeanName(beanName);
+					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
+					if (isClassScope) {
+						joinPoint.setClassScope(true);
+					} else {
+						// TODO Add support for specific method join points
+					}
+					putJoinPoint(pointcutMap, joinPoint);
+				}
+				// TODO Add within support
+			}
+			// Process @Around advice
+			methods = mClassReflector.getAllMethodsAnnotatedWith(aspect,
+					Around.class);
+			for (Method method : methods) {
+				Around around = method.getAnnotation(Around.class);
+				for (String bean : around.beans()) {
+					bean = bean.trim();
+					if (bean.length() == 0)
+						continue;
+					String beanName = bean;
+					boolean isClassScope = false;
+					if (bean.contains("#")) {
+						beanName = bean.substring(0, bean.indexOf('#'));
+					} else {
+						isClassScope = true;
+					}
+					JoinPoint joinPoint = new BasicJoinPoint(Location.Around);
+					joinPoint.setBeanName(beanName);
+					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
+					if (isClassScope) {
+						joinPoint.setClassScope(true);
+					} else {
+						// TODO Add support for specific method join points
+					}
+					putJoinPoint(pointcutMap, joinPoint);
+				}
+				// TODO Add within support
+			}
+		}
+		return pointcutMap.values();
 	}
-	
+
+	private void putJoinPoint(Map<String, Pointcut> pointcutMap,
+			JoinPoint joinPoint) {
+		if (pointcutMap.containsKey(joinPoint.getBeanName())) {
+			pointcutMap.get(joinPoint.getBeanName()).addJoinPoint(joinPoint);
+		} else {
+			Pointcut pointcut = new Pointcut(joinPoint.getBeanName(),
+					joinPoint.getTargetType());
+			pointcut.addJoinPoint(joinPoint);
+			pointcutMap.put(joinPoint.getBeanName(), pointcut);
+		}
+	}
+
 }
