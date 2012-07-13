@@ -19,19 +19,48 @@
 
 package com.clarionmedia.infinitum.aop.annotation;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 
 /**
  * <p>
  * Indicates that the annotated advice is to be executed before a
- * {@link JoinPoint}. This advice does not have the ability to halt execution
- * flow proceeding to the join point unless it throws an exception.
+ * {@link JoinPoint}. The {@code JoinPoint} itself will be passed as an argument
+ * to methods annotated with this.
+ * </p>
+ * <p>
+ * This advice does not have the ability to halt execution flow proceeding to
+ * the join point unless it throws an exception.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/12/12
  * @since 1.0
  */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 public @interface After {
 
+	/**
+	 * Declares the beans and, optionally, specific methods which make up a
+	 * pointcut.
+	 * 
+	 * @return array of bean names, which may or may not include specific
+	 *         methods to create a pointcut
+	 */
+	String[] beans() default {};
+
+	/**
+	 * Declares the packages such that any contained type's methods make up a
+	 * pointcut.
+	 * 
+	 * @return array of package names to create a pointcut
+	 */
+	String[] within() default {};
+	
 }

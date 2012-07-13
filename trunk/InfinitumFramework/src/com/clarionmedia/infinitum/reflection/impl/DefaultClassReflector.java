@@ -19,12 +19,13 @@
 
 package com.clarionmedia.infinitum.reflection.impl;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -63,23 +64,31 @@ public class DefaultClassReflector implements ClassReflector {
 				name = name.substring(1);
 		}
 		try {
-			Method getter = object.getClass().getMethod(StringUtil.getterName(name));
+			Method getter = object.getClass().getMethod(
+					StringUtil.getterName(name));
 			return getter.invoke(object);
 		} catch (SecurityException e) {
-			throw new InfinitumRuntimeException("Unable to invoke getter for object of type '"
-					+ object.getClass().getName() + "'");
+			throw new InfinitumRuntimeException(
+					"Unable to invoke getter for object of type '"
+							+ object.getClass().getName() + "'");
 		} catch (NoSuchMethodException e) {
-			throw new ModelConfigurationException("Field '" + field.getName() + "' in model '"
-					+ object.getClass().getName() + "' does not have an associated getter method.");
+			throw new ModelConfigurationException("Field '" + field.getName()
+					+ "' in model '" + object.getClass().getName()
+					+ "' does not have an associated getter method.");
 		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException("Unable to invoke getter for object of type '"
-					+ object.getClass().getName() + "' (illegal argument)");
+			throw new InfinitumRuntimeException(
+					"Unable to invoke getter for object of type '"
+							+ object.getClass().getName()
+							+ "' (illegal argument)");
 		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException("Unable to invoke getter for object of type '"
-					+ object.getClass().getName() + "' (illegal access)");
+			throw new InfinitumRuntimeException(
+					"Unable to invoke getter for object of type '"
+							+ object.getClass().getName()
+							+ "' (illegal access)");
 		} catch (InvocationTargetException e) {
-			throw new InfinitumRuntimeException("Unable to invoke getter for object of type '"
-					+ object.getClass().getName() + "'");
+			throw new InfinitumRuntimeException(
+					"Unable to invoke getter for object of type '"
+							+ object.getClass().getName() + "'");
 		}
 	}
 
@@ -94,14 +103,20 @@ public class DefaultClassReflector implements ClassReflector {
 
 	@Override
 	public List<Field> getAllFields(Class<?> clazz) {
-		return getAllFieldsRec(clazz, new LinkedList<Field>());
+		return getAllFieldsRec(clazz, new ArrayList<Field>());
 	}
-	
+
 	@Override
 	public List<Method> getAllMethods(Class<?> clazz) {
-		return getAllMethodsRec(clazz, new LinkedList<Method>());
+		return getAllMethodsRec(clazz, new ArrayList<Method>());
 	}
-	
+
+	@Override
+	public List<Method> getAllMethodsAnnotatedWith(Class<?> clazz,
+			Class<? extends Annotation> annotation) {
+		return getAllMethodsRec(clazz, new ArrayList<Method>(), annotation);
+	}
+
 	@Override
 	public List<Constructor<?>> getAllConstructors(Class<?> clazz) {
 		return Arrays.asList(clazz.getDeclaredConstructors());
@@ -123,12 +138,25 @@ public class DefaultClassReflector implements ClassReflector {
 		fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
 		return fields;
 	}
-	
+
 	private List<Method> getAllMethodsRec(Class<?> clazz, List<Method> methods) {
 		Class<?> superClass = clazz.getSuperclass();
 		if (superClass != null)
 			getAllMethodsRec(superClass, methods);
 		methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+		return methods;
+	}
+
+	private List<Method> getAllMethodsRec(Class<?> clazz, List<Method> methods,
+			Class<? extends Annotation> annotation) {
+		Class<?> superClass = clazz.getSuperclass();
+		if (superClass != null)
+			getAllMethodsRec(superClass, methods, annotation);
+		for (final Method method : clazz.getDeclaredMethods()) {
+			if (method.isAnnotationPresent(annotation)) {
+				methods.add(method);
+			}
+		}
 		return methods;
 	}
 

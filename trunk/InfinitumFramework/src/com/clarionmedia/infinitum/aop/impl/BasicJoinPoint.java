@@ -33,25 +33,23 @@ import com.clarionmedia.infinitum.aop.JoinPoint;
  */
 public class BasicJoinPoint implements JoinPoint {
 
+	// TODO Implement equals() and hashCode()!
+
 	private Object mTarget;
 	private Method mMethod;
 	private Object[] mArguments;
+	private String mBeanName;
+	private boolean mIsClassScope;
+	private Location mLocation;
 
 	/**
-	 * Creates a new {@code JoinPoint}.
+	 * Creates a new {@code BasicJoinPoint}.
 	 * 
-	 * @param target
-	 *            the {@link Object} in which {@code method} is being invoked
-	 *            for
-	 * @param method
-	 *            the {@link Method} being invoked
-	 * @param arguments
-	 *            the parameter arguments passed to {@code method}
+	 * @param location
+	 *            advice location
 	 */
-	public BasicJoinPoint(Object target, Method method, Object[] arguments) {
-		mTarget = target;
-		mMethod = method;
-		mArguments = arguments;
+	public BasicJoinPoint(Location location) {
+		mLocation = location;
 	}
 
 	@Override
@@ -69,5 +67,49 @@ public class BasicJoinPoint implements JoinPoint {
 		return mTarget;
 	}
 
+	@Override
+	public void setBeanName(String beanName) {
+		mBeanName = beanName;
+	}
+
+	@Override
+	public String getBeanName() {
+		return mBeanName;
+	}
+
+	@Override
+	public void setMethod(Method method) {
+		mMethod = method;
+	}
+
+	@Override
+	public void setArguments(Object[] args) {
+		mArguments = args;
+	}
+
+	@Override
+	public void setTarget(Object target) {
+		mTarget = target;
+	}
+
+	@Override
+	public boolean isClassScope() {
+		return mIsClassScope;
+	}
+
+	@Override
+	public void setClassScope(boolean isClassScope) {
+		mIsClassScope = isClassScope;
+	}
+
+	@Override
+	public Location getLocation() {
+		return mLocation;
+	}
+
+	@Override
+	public void setLocation(Location location) {
+		mLocation = location;
+	}
 
 }

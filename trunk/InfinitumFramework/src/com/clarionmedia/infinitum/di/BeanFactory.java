@@ -46,7 +46,7 @@ public interface BeanFactory {
 
 	/**
 	 * Retrieves an instance of the bean with the given name. The name is
-	 * configured in {@code infinitum.cfg.xml}.
+	 * configured in {@code infinitum.cfg.xml} or the {@link Bean} annotation.
 	 * 
 	 * @param name
 	 *            the name of the bean to retrieve
@@ -57,8 +57,20 @@ public interface BeanFactory {
 	Object loadBean(String name) throws InfinitumConfigurationException;
 
 	/**
+	 * Retrieves an instance of the {@link Aspect} bean with the given name. The
+	 * name is configured in {@code infinitum.cfg.xml} or the {@link Aspect}
+	 * annotation.
+	 * 
+	 * @param name
+	 * @return
+	 * @throws InfinitumConfigurationException
+	 */
+	Object loadAspect(String name) throws InfinitumConfigurationException;
+
+	/**
 	 * Retrieves an instance of the bean with the given name and {@link Class}.
-	 * The name is configured in {@code infinitum.cfg.xml}.
+	 * The name is configured in {@code infinitum.cfg.xml} or the {@link Bean}
+	 * annotation.
 	 * 
 	 * @param name
 	 *            the name of the bean to retrieve
@@ -101,6 +113,19 @@ public interface BeanFactory {
 	 *            a {@link Map} of {@link Field} names and their values
 	 */
 	void registerBean(String name, String beanClass, Map<String, Object> args);
+	
+	/**
+	 * Registers the {@link Aspect} bean with the given name and class name with the
+	 * {@code BeanFactory}.
+	 * 
+	 * @param name
+	 *            the name of the aspect bean
+	 * @param beanClass
+	 *            the class name of the bean
+	 * @param args
+	 *            a {@link Map} of {@link Field} names and their values
+	 */
+	void registerAspect(String name, String beanClass, Map<String, Object> args);
 
 	/**
 	 * Retrieves the bean definitions for this {@code BeanFactory}.
