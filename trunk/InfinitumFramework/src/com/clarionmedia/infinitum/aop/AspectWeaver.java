@@ -19,14 +19,13 @@
 
 package com.clarionmedia.infinitum.aop;
 
-import java.util.List;
 import java.util.Set;
 
-import com.clarionmedia.infinitum.aop.annotation.Aspect;
+import android.content.Context;
 
 /**
  * <p>
- * Provides facilities to resolve {@link Aspect} advice with pointcuts.
+ * Responsible for generating advice-woven bytecode.
  * </p>
  * 
  * @author Tyler Treat
@@ -36,24 +35,14 @@ import com.clarionmedia.infinitum.aop.annotation.Aspect;
 public interface AspectWeaver {
 
 	/**
-	 * Returns a {@link Set} of all {@link JoinPoint} instances making up a
-	 * pointcut for the given aspect. The {@code aspect} {@link Class} must be
-	 * annotated with {@link Aspect} or a runtime exception will be thrown.
+	 * Weaves the advice from the given aspects into the framework-managed
+	 * components and generates bytecode for them.
 	 * 
-	 * @param aspect
-	 *            the aspect to qualify for
-	 * @return {@code Set} of {@code JoinPoints}
+	 * @param context
+	 *            the {@link Context} used to retrieve the bytecode cache from
+	 * @param aspects
+	 *            the aspects to weave
 	 */
-	Set<JoinPoint> getPointcut(Class<?> aspect);
-
-	/**
-	 * Groups the "master" pointcut into a {@link List} of sub-pointcuts based
-	 * on their associated type.
-	 * 
-	 * @param pointcut
-	 *            the "master" pointcut
-	 * @return grouped pointcuts
-	 */
-	List<Set<JoinPoint>> groupPointcutsByType(Set<JoinPoint> pointcut);
+	void weave(Context context, Set<Class<?>> aspects);
 
 }
