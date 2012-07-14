@@ -17,36 +17,46 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.aop;
+package com.clarionmedia.infinitum.aop.impl;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Set;
-
+import com.clarionmedia.infinitum.aop.JdkDynamicProxy;
+import com.clarionmedia.infinitum.aop.JoinPoint;
+import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.internal.Preconditions;
 
 /**
  * <p>
- * Abstract specialization of {@link AopProxy} for weaving aspect advice into
- * join points.
+ * Implementation of {@link JdkDynamicProxy} that provides AOP advice support
+ * for proxies based on the JDK's {@link Proxy}.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/14/12
  * @since 1.0
  */
-public abstract class AdvisedProxy extends AopProxy {
+public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 
-	protected Set<JoinPoint> mBeforeAdvice;
-	protected Set<JoinPoint> mAfterAdvice;
-	protected Set<JoinPoint> mAroundAdvice;
+	private Set<JoinPoint> mBeforeAdvice;
+	private Set<JoinPoint> mAfterAdvice;
+	private Set<JoinPoint> mAroundAdvice;
 
 	/**
-	 * Creates a new {@code AdvisedProxy} with the given {@link Pointcut}.
+	 * Creates a new {@code AdvisedJdkDynamicProxy}.
 	 * 
+	 * @param target
+	 *            the proxied {@link Object}
 	 * @param pointcut
-	 *            the {@code Pointcut} to provide advice
+	 *            the {@link Pointcut} to provide advice
+	 * @param interfaces
+	 *            the interfaces the proxy will implement
 	 */
-	public AdvisedProxy(Pointcut pointcut) {
+	public AdvisedJdkDynamicProxy(Object target, Pointcut pointcut,
+			Class<?>[] interfaces) {
+		super(target, interfaces);
 		Preconditions.checkNotNull(pointcut);
 		mBeforeAdvice = new HashSet<JoinPoint>();
 		mAfterAdvice = new HashSet<JoinPoint>();
@@ -64,6 +74,24 @@ public abstract class AdvisedProxy extends AopProxy {
 				break;
 			}
 		}
+	}
+
+	@Override
+	public Object invoke(Object proxy, Method method, Object[] args)
+			throws Throwable {
+		// TODO revisit
+		for (JoinPoint joinPoint : mBeforeAdvice) {
+			joinPoint.setMethod(method);
+			joinPoint.setArguments(args);
+			joinPoint.invoke();
+		}
+		Object ret = method.invoke(mTarget, args);
+		for (JoinPoint joinPoint : mAfterAdvice) {
+			joinPoint.setMethod(method);
+			joinPoint.setArguments(args);
+			joinPoint.invoke();
+		}
+		return ret;
 	}
 
 }

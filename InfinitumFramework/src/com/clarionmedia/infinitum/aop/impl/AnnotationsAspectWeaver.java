@@ -74,7 +74,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			String beanName = pointcut.getBeanName();
 			Object bean = mBeanFactory.loadBean(beanName);
 			// TODO: proxy factory?
-			AopProxy proxy = new DexMakerProxy(context, bean, pointcut);
+			AopProxy proxy = new AdvisedDexMakerProxy(context, bean, pointcut);
 			mBeanFactory.getBeanMap().put(beanName, proxy.getProxy());
 		}
 	}

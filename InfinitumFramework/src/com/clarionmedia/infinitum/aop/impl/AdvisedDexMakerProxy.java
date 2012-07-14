@@ -19,35 +19,61 @@
 
 package com.clarionmedia.infinitum.aop.impl;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
-import com.clarionmedia.infinitum.aop.AdvisedProxy;
-import com.clarionmedia.infinitum.aop.AopProxy;
+import java.util.HashSet;
+import java.util.Set;
+import android.content.Context;
+import com.clarionmedia.infinitum.aop.DexMakerProxy;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.internal.Preconditions;
 
 /**
  * <p>
- * Implementation of {@link AopProxy} that relies on the JDK-provided
- * {@link Proxy} in order to proxy interfaces.
+ * Implementation of {@link DexMakerProxy} that provides AOP advice support for
+ * DexMaker-based proxies.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 07/14/12
+ * @version 1.0 07/13/12
  * @since 1.0
  */
-public class JdkDynamicProxy extends AdvisedProxy {
+public class AdvisedDexMakerProxy extends DexMakerProxy {
 
-	private Class<?>[] mInterfaces;
-	
-	public JdkDynamicProxy(Object target, Pointcut pointcut, Class<?>... interfaces) {
-		super(pointcut);
-	    Preconditions.checkNotNull(target);
-		mInterfaces = interfaces;
-		mTarget = target;
+	private Set<JoinPoint> mBeforeAdvice;
+	private Set<JoinPoint> mAfterAdvice;
+	private Set<JoinPoint> mAroundAdvice;
+
+	/**
+	 * Creates a new {@code AdvisedDexMakerProxy}.
+	 * 
+	 * @param context
+	 *            the {@link Context} used to retrieve the DEX bytecode cache
+	 * @param target
+	 *            the proxied {@link Object}
+	 * @param pointcut
+	 *            the {@link Pointcut} to provide advice
+	 */
+	public AdvisedDexMakerProxy(Context context, Object target,
+			Pointcut pointcut) {
+		super(context, target);
+		Preconditions.checkNotNull(pointcut);
+		mBeforeAdvice = new HashSet<JoinPoint>();
+		mAfterAdvice = new HashSet<JoinPoint>();
+		mAroundAdvice = new HashSet<JoinPoint>();
+		for (JoinPoint joinPoint : pointcut.getJoinPoints()) {
+			switch (joinPoint.getLocation()) {
+			case Before:
+				mBeforeAdvice.add(joinPoint);
+				break;
+			case After:
+				mAfterAdvice.add(joinPoint);
+				break;
+			case Around:
+				mAroundAdvice.add(joinPoint);
+				break;
+			}
+		}
 	}
 
 	@Override
@@ -68,26 +94,4 @@ public class JdkDynamicProxy extends AdvisedProxy {
 		return ret;
 	}
 
-	@Override
-	public Object getTarget() {
-		return mTarget;
-	}
-
-	@Override
-	public boolean isProxy(Object object) {
-		return Proxy.isProxyClass(object.getClass());
-	}
-
-	@Override
-	public Object getProxy() {
-		return Proxy.newProxyInstance(Thread.currentThread()
-				.getContextClassLoader(), mInterfaces, this);
-	}
-
-	@Override
-	public InvocationHandler getInvocationHandler(Object proxy) {
-		if (!isProxy(proxy))
-			return null;
-		return Proxy.getInvocationHandler(proxy);
-	}
 }

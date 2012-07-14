@@ -17,35 +17,33 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.aop.impl;
+package com.clarionmedia.infinitum.aop;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-
-import android.content.Context;
-
-import com.clarionmedia.infinitum.aop.AdvisedProxy;
-import com.clarionmedia.infinitum.aop.AopProxy;
-import com.clarionmedia.infinitum.aop.JoinPoint;
-import com.clarionmedia.infinitum.aop.Pointcut;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.google.dexmaker.stock.ProxyBuilder;
+import com.clarionmedia.infinitum.aop.impl.AdvisedDexMakerProxy;
+import com.clarionmedia.infinitum.orm.LazyLoadDexMakerProxy;
+import android.content.Context;
 
 /**
  * <p>
- * Implementation of {@link AopProxy} that relies on DexMaker in order to proxy
- * non-final classes in addition to interfaces.
+ * Abstract implementation of {@link AopProxy} that relies on DexMaker in order
+ * to proxy non-final classes in addition to interfaces.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 07/13/12
+ * @version 1.0 07/14/12
  * @since 1.0
+ * @see AdvisedDexMakerProxy
+ * @see LazyLoadDexMakerProxy
  */
-public class DexMakerProxy extends AdvisedProxy {
+public abstract class DexMakerProxy extends AopProxy {
 
-	private Context mContext;
+	protected Context mContext;
 
 	/**
 	 * Creates a new {@code DexMakerProxy}.
@@ -54,15 +52,11 @@ public class DexMakerProxy extends AdvisedProxy {
 	 *            the {@link Context} used to retrieve the DEX bytecode cache
 	 * @param target
 	 *            the proxied {@link Object}
-	 * @param pointcut
-	 *            the {@link Pointcut} to provide advice
 	 */
-	public DexMakerProxy(Context context, Object target, Pointcut pointcut) {
-		super(pointcut);
-		Preconditions.checkNotNull(target);
+	public DexMakerProxy(Context context, Object target) {
+		super(target);
 		Preconditions.checkNotNull(context);
 		mContext = context;
-		mTarget = target;
 	}
 
 	/**
@@ -80,50 +74,30 @@ public class DexMakerProxy extends AdvisedProxy {
 	}
 
 	@Override
-	public Object invoke(Object proxy, Method method, Object[] args)
-			throws Throwable {
-		// TODO revisit
-		for (JoinPoint joinPoint : mBeforeAdvice) {
-			joinPoint.setMethod(method);
-			joinPoint.setArguments(args);
-			joinPoint.invoke();
-		}
-		Object ret = method.invoke(mTarget, args);
-		for (JoinPoint joinPoint : mAfterAdvice) {
-			joinPoint.setMethod(method);
-			joinPoint.setArguments(args);
-			joinPoint.invoke();
-		}
-		return ret;
-	}
-
-	@Override
-	public Object getTarget() {
-		return mTarget;
-	}
-
-	@Override
 	public Object getProxy() {
 		try {
 			return ProxyBuilder.forClass(mTarget.getClass()).handler(this)
 					.dexCache(DexCaching.getDexCache(mContext)).build();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+			throw new InfinitumRuntimeException("DEX cache was not writeable.");
 		}
 	}
 
 	@Override
-	public boolean isProxy(Object object) {
+	public final boolean isProxy(Object object) {
 		return ProxyBuilder.isProxyClass(object.getClass());
 	}
 
 	@Override
-	public InvocationHandler getInvocationHandler(Object proxy) {
+	public final InvocationHandler getInvocationHandler(Object proxy) {
 		if (!isProxy(proxy))
 			return null;
 		return ProxyBuilder.getInvocationHandler(proxy);
+	}
+	
+	@Override
+	public final ProxyType getProxyType() {
+		return ProxyType.DexMaker;
 	}
 
 }

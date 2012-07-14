@@ -20,27 +20,44 @@
 package com.clarionmedia.infinitum.aop;
 
 import java.lang.reflect.InvocationHandler;
-
-import com.clarionmedia.infinitum.aop.impl.DexMakerProxy;
+import com.clarionmedia.infinitum.aop.JdkDynamicProxy;
+import com.clarionmedia.infinitum.aop.DexMakerProxy;
 
 /**
  * <p>
- * Provides proxy support for the AOP framework.
+ * Provides proxy support for the AOP framework. Infinitum offers two
+ * implementations for JDK dynamic proxies and DexMaker proxies.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/13/12
  * @since 1.0
+ * @see JdkDynamicProxy
+ * @see DexMakerProxy
  */
 public abstract class AopProxy implements InvocationHandler {
 
+	public static enum ProxyType {
+		JdkDynamic, DexMaker
+	};
+
 	protected Object mTarget;
-	
+
 	/**
-	 * Retrieves an {@code AopProxy} instance for the given proxy.
+	 * Creates a new {@code AopProxy}.
+	 * 
+	 * @param target
+	 *            the proxied {@link Object}
+	 */
+	public AopProxy(Object target) {
+		mTarget = target;
+	}
+
+	/**
+	 * Retrieves a handle for the given proxy {@link Object}, if it is one.
 	 * 
 	 * @param object
-	 *            the {@link Object} to retrieve a proxy instance for
+	 *            the {code Object} to retrieve a proxy instance for
 	 * @return {@code AopProxy} or {@code null} if {@code object} is not a proxy
 	 */
 	public static AopProxy getProxy(Object object) {
@@ -56,7 +73,9 @@ public abstract class AopProxy implements InvocationHandler {
 	 * 
 	 * @return target {@code Object}
 	 */
-	public abstract Object getTarget();
+	public Object getTarget() {
+		return mTarget;
+	}
 
 	/**
 	 * Indicates if the given {@link Object} is a proxy or not
@@ -83,5 +102,12 @@ public abstract class AopProxy implements InvocationHandler {
 	 *         {@code Object} is not a proxy
 	 */
 	public abstract InvocationHandler getInvocationHandler(Object proxy);
+
+	/**
+	 * Returns the {@link ProxyType} for this {@code AopProxy}.
+	 * 
+	 * @return {@code ProxyType}
+	 */
+	public abstract ProxyType getProxyType();
 
 }
