@@ -160,4 +160,15 @@ public class DefaultClassReflector implements ClassReflector {
 		return methods;
 	}
 
+	@Override
+	public Object getClassInstance(Class<?> clazz) {
+		try {
+			return clazz.newInstance();
+		} catch (InstantiationException e) {
+			throw new InfinitumRuntimeException("Unable to instantiate '" + clazz.getName() + "'.");
+		} catch (IllegalAccessException e) {
+			throw new InfinitumRuntimeException("Unable to instantiate '" + clazz.getName() + "'.");
+		}
+	}
+
 }

@@ -84,11 +84,12 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 		for (Class<?> aspect : aspects) {
 			if (!aspect.isAnnotationPresent(Aspect.class))
 				continue;
+			Object advisor = mClassReflector.getClassInstance(aspect);
 			// Process @Before advice
 			List<Method> methods = mClassReflector.getAllMethodsAnnotatedWith(
 					aspect, Before.class);
-			for (Method method : methods) {
-				Before before = method.getAnnotation(Before.class);
+			for (Method advice : methods) {
+				Before before = advice.getAnnotation(Before.class);
 				for (String bean : before.beans()) {
 					bean = bean.trim();
 					if (bean.length() == 0)
@@ -100,7 +101,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 					} else {
 						isClassScope = true;
 					}
-					JoinPoint joinPoint = new BasicJoinPoint(Location.Before);
+					JoinPoint joinPoint = new BasicJoinPoint(advisor, advice, Location.Before);
 					joinPoint.setBeanName(beanName);
 					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
 					if (isClassScope) {
@@ -115,8 +116,8 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			// Process @After advice
 			methods = mClassReflector.getAllMethodsAnnotatedWith(aspect,
 					After.class);
-			for (Method method : methods) {
-				After after = method.getAnnotation(After.class);
+			for (Method advice : methods) {
+				After after = advice.getAnnotation(After.class);
 				for (String bean : after.beans()) {
 					bean = bean.trim();
 					if (bean.length() == 0)
@@ -128,7 +129,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 					} else {
 						isClassScope = true;
 					}
-					JoinPoint joinPoint = new BasicJoinPoint(Location.After);
+					JoinPoint joinPoint = new BasicJoinPoint(advisor, advice, Location.After);
 					joinPoint.setBeanName(beanName);
 					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
 					if (isClassScope) {
@@ -143,8 +144,8 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			// Process @Around advice
 			methods = mClassReflector.getAllMethodsAnnotatedWith(aspect,
 					Around.class);
-			for (Method method : methods) {
-				Around around = method.getAnnotation(Around.class);
+			for (Method advice : methods) {
+				Around around = advice.getAnnotation(Around.class);
 				for (String bean : around.beans()) {
 					bean = bean.trim();
 					if (bean.length() == 0)
@@ -156,7 +157,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 					} else {
 						isClassScope = true;
 					}
-					JoinPoint joinPoint = new BasicJoinPoint(Location.Around);
+					JoinPoint joinPoint = new BasicJoinPoint(advisor, advice, Location.Around);
 					joinPoint.setBeanName(beanName);
 					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
 					if (isClassScope) {

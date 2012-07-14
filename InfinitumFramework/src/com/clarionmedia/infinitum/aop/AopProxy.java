@@ -33,7 +33,16 @@ import com.clarionmedia.infinitum.aop.impl.DexMakerProxy;
  * @since 1.0
  */
 public abstract class AopProxy implements InvocationHandler {
+
+	protected Object mTarget;
 	
+	/**
+	 * Retrieves an {@code AopProxy} instance for the given proxy.
+	 * 
+	 * @param object
+	 *            the {@link Object} to retrieve a proxy instance for
+	 * @return {@code AopProxy} or {@code null} if {@code object} is not a proxy
+	 */
 	public static AopProxy getProxy(Object object) {
 		AopProxy proxy = DexMakerProxy.getProxy(object);
 		if (proxy != null)
@@ -48,11 +57,31 @@ public abstract class AopProxy implements InvocationHandler {
 	 * @return target {@code Object}
 	 */
 	public abstract Object getTarget();
-	
+
+	/**
+	 * Indicates if the given {@link Object} is a proxy or not
+	 * 
+	 * @param object
+	 *            the {@code Object} to check
+	 * @return {@code true} if it is a proxy, {@code false} if not
+	 */
 	public abstract boolean isProxy(Object object);
-	
+
+	/**
+	 * Creates a new proxy
+	 * 
+	 * @return proxy {@link Object}
+	 */
 	public abstract Object getProxy();
-	
+
+	/**
+	 * Returns the {@link InvocationHandler} for the given proxy.
+	 * 
+	 * @param proxy
+	 *            the proxy to retrieve the {@code InvocationHandler} for
+	 * @return {@code InvocationHandler} or {@code null} if the given
+	 *         {@code Object} is not a proxy
+	 */
 	public abstract InvocationHandler getInvocationHandler(Object proxy);
 
 }
