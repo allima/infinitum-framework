@@ -17,47 +17,53 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.aop.impl;
+package com.clarionmedia.infinitum.aop;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
 
-import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.internal.Preconditions;
 
 /**
  * <p>
- * Represents an advised {@link Object} in which aspect advice has been woven
- * in.
+ * Abstract specialization of {@link AopProxy} for weaving aspect advice into
+ * join points.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 07/13/12
+ * @version 1.0 07/14/12
  * @since 1.0
  */
-public class AdvisedObject implements InvocationHandler {
+public abstract class AdvisedProxy extends AopProxy {
 
-	private Pointcut mPointcut;
-	private Object mTarget;
+	protected Set<JoinPoint> mBeforeAdvice;
+	protected Set<JoinPoint> mAfterAdvice;
+	protected Set<JoinPoint> mAroundAdvice;
 
 	/**
-	 * Creates a new {@code AdvisedObject} with the given {@link Pointcut}.
+	 * Creates a new {@code AdvisedProxy} with the given {@link Pointcut}.
 	 * 
-	 * @param target
-	 *            the advised {@code Object}
 	 * @param pointcut
-	 *            the {@code Pointcut} for this {@link Object}
+	 *            the {@code Pointcut} to provide advice
 	 */
-	public AdvisedObject(Object target, Pointcut pointcut) {
+	public AdvisedProxy(Pointcut pointcut) {
 		Preconditions.checkNotNull(pointcut);
-		mPointcut = pointcut;
-		mTarget = target;
-	}
-
-	@Override
-	public Object invoke(Object proxy, Method method, Object[] args)
-			throws Throwable {
-		return method.invoke(mTarget, args);
+		mBeforeAdvice = new HashSet<JoinPoint>();
+		mAfterAdvice = new HashSet<JoinPoint>();
+		mAroundAdvice = new HashSet<JoinPoint>();
+		for (JoinPoint joinPoint : pointcut.getJoinPoints()) {
+			switch (joinPoint.getLocation()) {
+			case Before:
+				mBeforeAdvice.add(joinPoint);
+				break;
+			case After:
+				mAfterAdvice.add(joinPoint);
+				break;
+			case Around:
+				mAroundAdvice.add(joinPoint);
+				break;
+			}
+		}
 	}
 
 }

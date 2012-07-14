@@ -20,7 +20,10 @@
 package com.clarionmedia.infinitum.aop.impl;
 
 import java.lang.reflect.Method;
+
 import com.clarionmedia.infinitum.aop.JoinPoint;
+import com.clarionmedia.infinitum.aop.annotation.Aspect;
+import com.clarionmedia.infinitum.internal.Preconditions;
 
 /**
  * <p>
@@ -41,15 +44,23 @@ public class BasicJoinPoint implements JoinPoint {
 	private String mBeanName;
 	private boolean mIsClassScope;
 	private Location mLocation;
+	private Method mAdvice;
+	private Object mAdvisor;
 
 	/**
 	 * Creates a new {@code BasicJoinPoint}.
 	 * 
+	 * @param advisor
+	 *            the {@link Aspect} containing the advice to apply
+	 * @param advice
+	 *            the advice {@link Method} to apply at this {link JoinPoint}
 	 * @param location
 	 *            advice location
 	 */
-	public BasicJoinPoint(Location location) {
+	public BasicJoinPoint(Object advisor, Method advice, Location location) {
 		mLocation = location;
+		mAdvice = advice;
+		mAdvisor = advisor;
 	}
 
 	@Override
@@ -66,7 +77,7 @@ public class BasicJoinPoint implements JoinPoint {
 	public Object getTarget() {
 		return mTarget;
 	}
-	
+
 	@Override
 	public Class<?> getTargetType() {
 		if (mTarget == null)
@@ -117,6 +128,33 @@ public class BasicJoinPoint implements JoinPoint {
 	@Override
 	public void setLocation(Location location) {
 		mLocation = location;
+	}
+	
+	@Override
+	public Object getAdvisor() {
+		return mAdvisor;
+	}
+
+	@Override
+	public void setAdvisor(Object advisor) {
+		mAdvisor = advisor;
+	}
+
+	@Override
+	public Method getAdvice() {
+		return mAdvice;
+	}
+
+	@Override
+	public void setAdvice(Method advice) {
+		mAdvice = advice;
+	}
+
+	@Override
+	public Object invoke() throws Throwable {
+		Preconditions.checkNotNull(mAdvisor);
+		Preconditions.checkNotNull(mAdvice);
+		return mAdvice.invoke(mAdvisor, this);
 	}
 
 }

@@ -19,64 +19,35 @@
 
 package com.clarionmedia.infinitum.aop.impl;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-
-import android.content.Context;
+import java.lang.reflect.Proxy;
 
 import com.clarionmedia.infinitum.aop.AdvisedProxy;
 import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.Pointcut;
-import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.internal.Preconditions;
-import com.google.dexmaker.stock.ProxyBuilder;
 
 /**
  * <p>
- * Implementation of {@link AopProxy} that relies on DexMaker in order to proxy
- * non-final classes in addition to interfaces.
+ * Implementation of {@link AopProxy} that relies on the JDK-provided
+ * {@link Proxy} in order to proxy interfaces.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 07/13/12
+ * @version 1.0 07/14/12
  * @since 1.0
  */
-public class DexMakerProxy extends AdvisedProxy {
+public class JdkDynamicProxy extends AdvisedProxy {
 
-	private Context mContext;
-
-	/**
-	 * Creates a new {@code DexMakerProxy}.
-	 * 
-	 * @param context
-	 *            the {@link Context} used to retrieve the DEX bytecode cache
-	 * @param target
-	 *            the proxied {@link Object}
-	 * @param pointcut
-	 *            the {@link Pointcut} to provide advice
-	 */
-	public DexMakerProxy(Context context, Object target, Pointcut pointcut) {
+	private Class<?>[] mInterfaces;
+	
+	public JdkDynamicProxy(Object target, Pointcut pointcut, Class<?>... interfaces) {
 		super(pointcut);
-		Preconditions.checkNotNull(target);
-		Preconditions.checkNotNull(context);
-		mContext = context;
+	    Preconditions.checkNotNull(target);
+		mInterfaces = interfaces;
 		mTarget = target;
-	}
-
-	/**
-	 * Retrieves a {@code DexMakerProxy} instance for the given proxy.
-	 * 
-	 * @param object
-	 *            the {@link Object} to retrieve a proxy instance for
-	 * @return {@code DexMakerProxy} or {@code null} if {@code object} is not a
-	 *         proxy
-	 */
-	public static DexMakerProxy getProxy(Object object) {
-		if (!ProxyBuilder.isProxyClass(object.getClass()))
-			return null;
-		return (DexMakerProxy) ProxyBuilder.getInvocationHandler(object);
 	}
 
 	@Override
@@ -103,27 +74,20 @@ public class DexMakerProxy extends AdvisedProxy {
 	}
 
 	@Override
-	public Object getProxy() {
-		try {
-			return ProxyBuilder.forClass(mTarget.getClass()).handler(this)
-					.dexCache(DexCaching.getDexCache(mContext)).build();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
+	public boolean isProxy(Object object) {
+		return Proxy.isProxyClass(object.getClass());
 	}
 
 	@Override
-	public boolean isProxy(Object object) {
-		return ProxyBuilder.isProxyClass(object.getClass());
+	public Object getProxy() {
+		return Proxy.newProxyInstance(Thread.currentThread()
+				.getContextClassLoader(), mInterfaces, this);
 	}
 
 	@Override
 	public InvocationHandler getInvocationHandler(Object proxy) {
 		if (!isProxy(proxy))
 			return null;
-		return ProxyBuilder.getInvocationHandler(proxy);
+		return Proxy.getInvocationHandler(proxy);
 	}
-
 }

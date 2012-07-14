@@ -112,4 +112,14 @@ public interface ClassReflector {
 	 */
 	Field getField(Class<?> clazz, String name);
 
+	/**
+	 * Retrieves a new instance of the given {@link Class} by invoking its empty
+	 * constructor.
+	 * 
+	 * @param clazz
+	 *            the {@code Class} to construct
+	 * @return new instance of {@code Class}
+	 */
+	Object getClassInstance(Class<?> clazz);
+
 }

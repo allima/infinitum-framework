@@ -139,4 +139,43 @@ public interface JoinPoint {
 	 */
 	void setLocation(Location location);
 
+	/**
+	 * Returns the {@link Aspect} containing the advice to apply.
+	 * 
+	 * @return {@Aspect}
+	 */
+	Object getAdvisor();
+
+	/**
+	 * Sets the {@link Aspect} containing the advice to apply.
+	 * 
+	 * @param advisor
+	 *            {@code Aspect}
+	 */
+	void setAdvisor(Object advisor);
+
+	/**
+	 * Returns the advice {@link Method}.
+	 * 
+	 * @return advice {@code Method}
+	 */
+	Method getAdvice();
+
+	/**
+	 * Sets the advice {@link Method}.
+	 * 
+	 * @param advice
+	 *            the advice {@code Method} to set
+	 */
+	void setAdvice(Method advice);
+
+	/**
+	 * Executes the advice.
+	 * 
+	 * @return the advice return value, if any
+	 * @throws Throwable
+	 *             if the advice throws any exceptions
+	 */
+	Object invoke() throws Throwable;
+
 }
