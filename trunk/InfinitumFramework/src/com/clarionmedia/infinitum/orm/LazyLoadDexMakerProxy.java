@@ -19,15 +19,24 @@
 
 package com.clarionmedia.infinitum.orm;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+
+import android.content.Context;
+
+import com.clarionmedia.infinitum.aop.DexMakerProxy;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.DexCaching;
+import com.clarionmedia.infinitum.internal.Preconditions;
+import com.google.dexmaker.stock.ProxyBuilder;
 
 /**
  * <p>
  * Used to proxy an {@link Object} which has been configured to lazily load.
  * Every method called on the {@code Object} will pass through this
- * {@link InvocationHandler} . This handler is responsible for lazily loading
- * the {@code Object}, which occurs in {@link LazilyLoadedObject#loadObject()}.
+ * {@link InvocationHandler}. This handler is responsible for lazily loading the
+ * {@code Object}, which occurs in {@link LazyLoadDexMakerProxy#loadObject()}.
  * </p>
  * <p>
  * The first method invocation made on a proxy will result in the proxied
@@ -38,10 +47,25 @@ import java.lang.reflect.Method;
  * 
  * @author Tyler Treat
  * @version 1.0 03/12/12
+ * @since 1.0
  */
-public abstract class LazilyLoadedObject implements InvocationHandler {
+public abstract class LazyLoadDexMakerProxy extends DexMakerProxy {
 
-	private Object mTarget;
+	protected Class<?> mType;
+
+	/**
+	 * Creates a new {@code LazyLoadDexMakerProxy}.
+	 * 
+	 * @param context
+	 *            the {@link Context} used to retrieve the DEX bytecode cache
+	 * @param type
+	 *            the {@link Class} to proxy
+	 */
+	public LazyLoadDexMakerProxy(Context context, Class<?> type) {
+		super(context, null);
+		Preconditions.checkNotNull(type);
+		mType = type;
+	}
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args)
@@ -50,6 +74,16 @@ public abstract class LazilyLoadedObject implements InvocationHandler {
 			mTarget = loadObject();
 		}
 		return method.invoke(mTarget, args);
+	}
+
+	@Override
+	public Object getProxy() {
+		try {
+			return ProxyBuilder.forClass(mType).handler(this)
+					.dexCache(DexCaching.getDexCache(mContext)).build();
+		} catch (IOException e) {
+			throw new InfinitumRuntimeException("DEX cache was not writeable.");
+		}
 	}
 
 	/**
