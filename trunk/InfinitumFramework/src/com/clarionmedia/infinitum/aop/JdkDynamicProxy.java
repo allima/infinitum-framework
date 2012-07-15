@@ -21,8 +21,9 @@ package com.clarionmedia.infinitum.aop;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import com.clarionmedia.infinitum.internal.Preconditions;
+
 import com.clarionmedia.infinitum.aop.impl.AdvisedJdkDynamicProxy;
+import com.clarionmedia.infinitum.internal.Preconditions;
 
 /**
  * <p>
@@ -51,6 +52,20 @@ public abstract class JdkDynamicProxy extends AopProxy {
 		super(target);
 		Preconditions.checkNotNull(interfaces);
 		mInterfaces = interfaces;
+	}
+	
+	/**
+	 * Retrieves a {@code JdkDynamicProxy} instance for the given proxy.
+	 * 
+	 * @param object
+	 *            the {@link Object} to retrieve a proxy instance for
+	 * @return {@code JdkDynamicProxy} or {@code null} if {@code object} is not a
+	 *         proxy
+	 */
+	public static JdkDynamicProxy getProxy(Object object) {
+		if (!Proxy.isProxyClass(object.getClass()))
+			return null;
+		return (JdkDynamicProxy) Proxy.getInvocationHandler(object);
 	}
 
 	@Override

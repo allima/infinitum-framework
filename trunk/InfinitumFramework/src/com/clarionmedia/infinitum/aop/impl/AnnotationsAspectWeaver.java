@@ -28,6 +28,7 @@ import java.util.Set;
 
 import android.content.Context;
 
+import com.clarionmedia.infinitum.aop.AdvisedProxyFactory;
 import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.aop.AspectWeaver;
 import com.clarionmedia.infinitum.aop.JoinPoint;
@@ -55,6 +56,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 
 	private ClassReflector mClassReflector;
 	private BeanFactory mBeanFactory;
+	private AdvisedProxyFactory mProxyFactory;
 
 	/**
 	 * Creates a new {@code AnnotationsAspectWeaver} with the given
@@ -65,6 +67,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 	 */
 	public AnnotationsAspectWeaver(BeanFactory beanFactory) {
 		mClassReflector = new DefaultClassReflector();
+		mProxyFactory = new DelegatingAdvisedProxyFactory();
 		mBeanFactory = beanFactory;
 	}
 
@@ -73,8 +76,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 		for (Pointcut pointcut : getPointcuts(aspects)) {
 			String beanName = pointcut.getBeanName();
 			Object bean = mBeanFactory.loadBean(beanName);
-			// TODO: proxy factory?
-			AopProxy proxy = new AdvisedDexMakerProxy(context, bean, pointcut);
+			AopProxy proxy = mProxyFactory.createProxy(context, bean, pointcut);
 			mBeanFactory.getBeanMap().put(beanName, proxy.getProxy());
 		}
 	}

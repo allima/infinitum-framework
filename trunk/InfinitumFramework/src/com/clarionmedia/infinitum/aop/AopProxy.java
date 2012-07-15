@@ -37,6 +37,9 @@ import com.clarionmedia.infinitum.aop.DexMakerProxy;
  */
 public abstract class AopProxy implements InvocationHandler {
 
+	/**
+	 * Indicates the backing implementation of a proxy.
+	 */
 	public static enum ProxyType {
 		JdkDynamic, DexMaker
 	};
@@ -64,8 +67,8 @@ public abstract class AopProxy implements InvocationHandler {
 		AopProxy proxy = DexMakerProxy.getProxy(object);
 		if (proxy != null)
 			return proxy;
-		// TODO
-		return null;
+		proxy = JdkDynamicProxy.getProxy(object);
+		return proxy;
 	}
 
 	/**
