@@ -19,8 +19,8 @@
 
 package com.clarionmedia.infinitum.aop;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import com.clarionmedia.infinitum.internal.Preconditions;
 
@@ -36,7 +36,7 @@ import com.clarionmedia.infinitum.internal.Preconditions;
  */
 public class Pointcut {
 
-	private Set<JoinPoint> mJoinPoints;
+	private Queue<JoinPoint> mJoinPoints;
 	private String mBeanName;
 	private Class<?> mClass;
 
@@ -51,7 +51,7 @@ public class Pointcut {
 	public Pointcut(String beanName, Class<?> clazz) {
 		Preconditions.checkNotNull(beanName);
 		Preconditions.checkNotNull(clazz);
-		mJoinPoints = new HashSet<JoinPoint>();
+		mJoinPoints = new PriorityQueue<JoinPoint>(11, new JoinPoint.JoinPointComparator());
 		mClass = clazz;
 		mBeanName = beanName;
 	}
@@ -79,7 +79,7 @@ public class Pointcut {
 	 * 
 	 * @return {@code JoinPoints}
 	 */
-	public Set<JoinPoint> getJoinPoints() {
+	public Queue<JoinPoint> getJoinPoints() {
 		return mJoinPoints;
 	}
 
@@ -90,7 +90,7 @@ public class Pointcut {
 	 *            the {@code JoinPoint} to add
 	 */
 	public void addJoinPoint(JoinPoint joinPoint) {
-		mJoinPoints.add(joinPoint);
+		boolean result = mJoinPoints.add(joinPoint);
 	}
 
 	/**

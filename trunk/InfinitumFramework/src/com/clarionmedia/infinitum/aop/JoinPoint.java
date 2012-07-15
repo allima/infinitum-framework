@@ -20,6 +20,8 @@
 package com.clarionmedia.infinitum.aop;
 
 import java.lang.reflect.Method;
+import java.util.Comparator;
+
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 
 /**
@@ -173,6 +175,26 @@ public interface JoinPoint {
 	void setAdvice(Method advice);
 
 	/**
+	 * Returns the advice precedence. A smaller number indicates a higher
+	 * precedence, while a larger number indicates a lower precedence. The
+	 * default value is {@link Integer#MAX_VALUE} The precedence determines the
+	 * order in which advice is executed.
+	 * 
+	 * @return advice precedence
+	 */
+	int getOrder();
+
+	/**
+	 * Sets the advice precedence. A smaller number indicates a higher
+	 * precedence, while a larger number indicates a lower precedence. The
+	 * default value is {@link Integer#MAX_VALUE} The precedence determines the
+	 * order in which advice is executed.
+	 * 
+	 * @param order
+	 */
+	void setOrder(int order);
+
+	/**
 	 * Executes the advice.
 	 * 
 	 * @return the advice return value, if any
@@ -180,5 +202,28 @@ public interface JoinPoint {
 	 *             if the advice throws any exceptions
 	 */
 	Object invoke() throws Throwable;
+
+	/**
+	 * <p>
+	 * {@link Comparator} implementation used to compare {@code JoinPoints}
+	 * based on their precedence.
+	 * </p>
+	 * 
+	 * @author Tyler Treat
+	 * @version 1.0 07/15/12
+	 * @since 1.0
+	 */
+	public static class JoinPointComparator implements Comparator<JoinPoint> {
+
+		@Override
+		public int compare(JoinPoint lhs, JoinPoint rhs) {
+			if (lhs.getOrder() == rhs.getOrder())
+				return 0;
+			if (lhs.getOrder() > rhs.getOrder())
+				return -1;
+			return 1;
+		}
+
+	}
 
 }

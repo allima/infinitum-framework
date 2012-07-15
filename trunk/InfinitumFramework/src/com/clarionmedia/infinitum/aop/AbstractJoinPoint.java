@@ -45,6 +45,7 @@ public abstract class AbstractJoinPoint implements JoinPoint {
 	protected boolean mIsClassScope;
 	protected Method mAdvice;
 	protected Object mAdvisor;
+	protected int mOrder;
 
 	/**
 	 * Creates a new {@code AbstractJoinPoint}.
@@ -79,6 +80,16 @@ public abstract class AbstractJoinPoint implements JoinPoint {
 	@Override
 	public void setAdvice(Method advice) {
 		mAdvice = advice;
+	}
+	
+	@Override
+	public int getOrder() {
+		return mOrder;
+	}
+
+	@Override
+	public void setOrder(int order) {
+		mOrder = order;
 	}
 
 	@Override

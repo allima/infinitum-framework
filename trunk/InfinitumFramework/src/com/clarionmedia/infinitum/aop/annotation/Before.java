@@ -58,5 +58,15 @@ public @interface Before {
 	 * @return array of package names to create a pointcut
 	 */
 	String[] within() default {};
+	
+	/**
+	 * Declares the advice precedence. A smaller number indicates a higher
+	 * precedence, while a larger number indicates a lower precedence. The
+	 * default value is {@link Integer#MAX_VALUE}. The precedence determines the
+	 * order in which advice is executed.
+	 * 
+	 * @return the advice precedence
+	 */
+	int order() default Integer.MAX_VALUE;
 
 }

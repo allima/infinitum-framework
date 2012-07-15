@@ -106,6 +106,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 					JoinPoint joinPoint = new BasicJoinPoint(advisor, advice, Location.Before);
 					joinPoint.setBeanName(beanName);
 					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
+					joinPoint.setOrder(before.order());
 					if (isClassScope) {
 						joinPoint.setClassScope(true);
 					} else {
@@ -134,6 +135,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 					JoinPoint joinPoint = new BasicJoinPoint(advisor, advice, Location.After);
 					joinPoint.setBeanName(beanName);
 					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
+					joinPoint.setOrder(after.order());
 					if (isClassScope) {
 						joinPoint.setClassScope(true);
 					} else {
@@ -162,6 +164,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 					JoinPoint joinPoint = new BasicProceedingJoinPoint(advisor, advice);
 					joinPoint.setBeanName(beanName);
 					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
+					joinPoint.setOrder(around.order());
 					if (isClassScope) {
 						joinPoint.setClassScope(true);
 					} else {
