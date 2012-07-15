@@ -21,8 +21,8 @@ package com.clarionmedia.infinitum.aop.impl;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.clarionmedia.infinitum.aop.JdkDynamicProxy;
 import com.clarionmedia.infinitum.aop.JoinPoint;
@@ -42,8 +42,8 @@ import com.clarionmedia.infinitum.internal.Preconditions;
  */
 public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 
-	private Set<JoinPoint> mBeforeAdvice;
-	private Set<JoinPoint> mAfterAdvice;
+	private List<JoinPoint> mBeforeAdvice;
+	private List<JoinPoint> mAfterAdvice;
 	private ProceedingJoinPoint mAroundAdvice;
 	
 	/**
@@ -60,8 +60,8 @@ public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 			Class<?>[] interfaces) {
 		super(target, interfaces);
 		Preconditions.checkNotNull(pointcut);
-		mBeforeAdvice = new HashSet<JoinPoint>();
-		mAfterAdvice = new HashSet<JoinPoint>();
+		mBeforeAdvice = new ArrayList<JoinPoint>();
+		mAfterAdvice = new ArrayList<JoinPoint>();
 		ProceedingJoinPoint next = null;
 		for (JoinPoint joinPoint : pointcut.getJoinPoints()) {
 			switch (joinPoint.getLocation()) {
