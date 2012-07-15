@@ -35,6 +35,8 @@ import com.clarionmedia.infinitum.internal.Preconditions;
  * @since 1.0
  */
 public class Pointcut {
+	
+	private static final int INITIAL_QUEUE_SIZE = 11;
 
 	private Queue<JoinPoint> mJoinPoints;
 	private String mBeanName;
@@ -51,7 +53,7 @@ public class Pointcut {
 	public Pointcut(String beanName, Class<?> clazz) {
 		Preconditions.checkNotNull(beanName);
 		Preconditions.checkNotNull(clazz);
-		mJoinPoints = new PriorityQueue<JoinPoint>(11, new JoinPoint.JoinPointComparator());
+		mJoinPoints = new PriorityQueue<JoinPoint>(INITIAL_QUEUE_SIZE, new JoinPoint.JoinPointComparator());
 		mClass = clazz;
 		mBeanName = beanName;
 	}
@@ -90,7 +92,7 @@ public class Pointcut {
 	 *            the {@code JoinPoint} to add
 	 */
 	public void addJoinPoint(JoinPoint joinPoint) {
-		boolean result = mJoinPoints.add(joinPoint);
+		mJoinPoints.add(joinPoint);
 	}
 
 	/**
