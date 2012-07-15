@@ -34,6 +34,9 @@ import com.clarionmedia.infinitum.aop.annotation.Aspect;
  */
 public interface JoinPoint {
 
+	/**
+	 * Describes the location of advice relative to the join point.
+	 */
 	public static enum Location {
 		Before, After, Around
 	};

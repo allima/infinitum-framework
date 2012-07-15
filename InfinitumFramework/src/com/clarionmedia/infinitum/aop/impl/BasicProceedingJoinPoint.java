@@ -22,36 +22,33 @@ package com.clarionmedia.infinitum.aop.impl;
 import java.lang.reflect.Method;
 
 import com.clarionmedia.infinitum.aop.AbstractJoinPoint;
-import com.clarionmedia.infinitum.aop.JoinPoint;
+import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.internal.Preconditions;
 
 /**
  * <p>
- * Basic implementation of {@link JoinPoint}.
+ * Basic implementation of {@link ProceedingJoinPoint}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 07/12/12
+ * @version 1.0 07/14/12
  * @since 1.0
  */
-public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
+public class BasicProceedingJoinPoint extends AbstractJoinPoint implements ProceedingJoinPoint {
 
-	private Location mLocation;
+	private ProceedingJoinPoint mNext;
 
 	/**
-	 * Creates a new {@code BasicJoinPoint}.
+	 * Creates a new {@code BasicProceedingJoinPoint}.
 	 * 
 	 * @param advisor
 	 *            the {@link Aspect} containing the advice to apply
 	 * @param advice
 	 *            the advice {@link Method} to apply at this {link JoinPoint}
-	 * @param location
-	 *            advice location
 	 */
-	public BasicJoinPoint(Object advisor, Method advice, Location location) {
+	public BasicProceedingJoinPoint(Object advisor, Method advice) {
 		super(advisor, advice);
-		mLocation = location;
 	}
 
 	@Override
@@ -89,11 +86,17 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 	@Override
 	public void setMethod(Method method) {
 		mMethod = method;
+		ProceedingJoinPoint next = next();
+		if (next != null)
+			next.setMethod(method);
 	}
 
 	@Override
 	public void setArguments(Object[] args) {
 		mArguments = args;
+		ProceedingJoinPoint next = next();
+		if (next != null)
+			next.setArguments(args);
 	}
 
 	@Override
@@ -113,12 +116,12 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 
 	@Override
 	public Location getLocation() {
-		return mLocation;
+		return Location.Around;
 	}
 
 	@Override
 	public void setLocation(Location location) {
-		mLocation = location;
+		// Does this even make sense?
 	}
 
 	@Override
@@ -126,6 +129,24 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 		Preconditions.checkNotNull(mAdvisor);
 		Preconditions.checkNotNull(mAdvice);
 		return mAdvice.invoke(mAdvisor, this);
+	}
+
+	@Override
+	public Object proceed() throws Throwable {
+		ProceedingJoinPoint next = next();
+		if (next == null)
+			return mMethod.invoke(mTarget, mArguments);
+		return next().invoke();
+	}
+
+	@Override
+	public void setNext(ProceedingJoinPoint next) {
+		mNext = next;
+	}
+
+	@Override
+	public ProceedingJoinPoint next() {
+		return mNext;
 	}
 	
 	@Override
@@ -136,14 +157,14 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 			return false;
 		if (object.getClass() != this.getClass())
 			return false;
-		BasicJoinPoint other = (BasicJoinPoint) object;
-		return other.mLocation == this.mLocation && super.equals(other);
+		BasicProceedingJoinPoint other = (BasicProceedingJoinPoint) object;
+		return other.mNext == other.mNext && super.equals(other);
 	}
 	
 	@Override
 	public int hashCode() {
 		int hash = 7;
-		hash *= 31 + (mLocation == null ? 0 : mLocation.hashCode());
+		hash *= 31 + (mNext == null ? 0 : mNext.hashCode());
 		hash *= 31 + super.hashCode();
 		return hash;
 	}

@@ -25,12 +25,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import com.clarionmedia.infinitum.aop.JoinPoint;
+import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
 
 /**
  * <p>
  * Indicates that the annotated advice is to be executed around a
- * {@link JoinPoint}. The {@code JoinPoint} itself will be passed as an argument
- * to methods annotated with this.
+ * {@link JoinPoint}. A specialized {@link ProceedingJoinPoint} will be passed
+ * as an argument to methods annotated with this.
  * </p>
  * <p>
  * {@code Around} advice has the ability to prevent a {@code JoinPoint} from
@@ -62,5 +63,5 @@ public @interface Around {
 	 * @return array of package names to create a pointcut
 	 */
 	String[] within() default {};
-	
+
 }

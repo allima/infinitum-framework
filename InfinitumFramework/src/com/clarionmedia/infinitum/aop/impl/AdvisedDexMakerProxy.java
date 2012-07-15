@@ -22,10 +22,13 @@ package com.clarionmedia.infinitum.aop.impl;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
+
 import android.content.Context;
+
 import com.clarionmedia.infinitum.aop.DexMakerProxy;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.Pointcut;
+import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
 import com.clarionmedia.infinitum.internal.Preconditions;
 
 /**
@@ -42,7 +45,7 @@ public class AdvisedDexMakerProxy extends DexMakerProxy {
 
 	private Set<JoinPoint> mBeforeAdvice;
 	private Set<JoinPoint> mAfterAdvice;
-	private Set<JoinPoint> mAroundAdvice;
+	private ProceedingJoinPoint mAroundAdvice;
 
 	/**
 	 * Creates a new {@code AdvisedDexMakerProxy}.
@@ -60,7 +63,7 @@ public class AdvisedDexMakerProxy extends DexMakerProxy {
 		Preconditions.checkNotNull(pointcut);
 		mBeforeAdvice = new HashSet<JoinPoint>();
 		mAfterAdvice = new HashSet<JoinPoint>();
-		mAroundAdvice = new HashSet<JoinPoint>();
+		ProceedingJoinPoint next = null;
 		for (JoinPoint joinPoint : pointcut.getJoinPoints()) {
 			switch (joinPoint.getLocation()) {
 			case Before:
@@ -70,22 +73,32 @@ public class AdvisedDexMakerProxy extends DexMakerProxy {
 				mAfterAdvice.add(joinPoint);
 				break;
 			case Around:
-				mAroundAdvice.add(joinPoint);
+				ProceedingJoinPoint proceedingJoinPoint = (ProceedingJoinPoint) joinPoint;
+				if (next != null)
+					proceedingJoinPoint.setNext(next);
+				next = proceedingJoinPoint;
 				break;
 			}
 		}
+		mAroundAdvice = next;
 	}
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args)
 			throws Throwable {
-		// TODO revisit
 		for (JoinPoint joinPoint : mBeforeAdvice) {
 			joinPoint.setMethod(method);
 			joinPoint.setArguments(args);
 			joinPoint.invoke();
 		}
-		Object ret = method.invoke(mTarget, args);
+		Object ret;
+		if (mAroundAdvice == null) {
+			ret = method.invoke(mTarget, args);
+		} else {
+			mAroundAdvice.setMethod(method);
+			mAroundAdvice.setArguments(args);
+			ret = mAroundAdvice.invoke();
+		}
 		for (JoinPoint joinPoint : mAfterAdvice) {
 			joinPoint.setMethod(method);
 			joinPoint.setArguments(args);

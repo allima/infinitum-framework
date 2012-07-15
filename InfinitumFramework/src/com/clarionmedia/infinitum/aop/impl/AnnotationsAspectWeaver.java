@@ -159,7 +159,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 					} else {
 						isClassScope = true;
 					}
-					JoinPoint joinPoint = new BasicJoinPoint(advisor, advice, Location.Around);
+					JoinPoint joinPoint = new BasicProceedingJoinPoint(advisor, advice);
 					joinPoint.setBeanName(beanName);
 					joinPoint.setTarget(mBeanFactory.loadBean(beanName));
 					if (isClassScope) {
