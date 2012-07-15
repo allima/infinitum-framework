@@ -1,26 +1,23 @@
 package com.clarionmedia.infinitumtest.advice;
 
+import android.util.Log;
+
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.annotation.After;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.annotation.Before;
-import com.clarionmedia.infinitum.logging.Logger;
 
 @Aspect
 public class LoggingAdvice {
 
-	@Before(beans = { "myService" })
+	@Before(beans = { "myService", "myTokenGenerator" }, order = 1)
 	public void before(JoinPoint joinPoint) {
-		Logger logger = Logger.getInstance(joinPoint.getTarget().getClass()
-				.getName());
-		logger.debug("Entering " + joinPoint.getMethod().getName());
+		Log.d("LoggingAdvice", "Before " + joinPoint.getMethod().getName());
 	}
 
-	@After(beans = { "myService" })
+	@After(beans = { "myService", "myTokenGenerator" }, order = 1)
 	public void after(JoinPoint joinPoint) {
-		Logger logger = Logger.getInstance(joinPoint.getTarget().getClass()
-				.getName());
-		logger.debug("Exiting " + joinPoint.getMethod().getName());
+		Log.d("LoggingAdvice", "After " + joinPoint.getMethod().getName());
 	}
 
 }

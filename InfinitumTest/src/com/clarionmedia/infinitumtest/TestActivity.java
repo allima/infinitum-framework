@@ -20,26 +20,16 @@
 package com.clarionmedia.infinitumtest;
 
 import java.lang.reflect.Field;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
-import com.clarionmedia.infinitum.aop.*;
-import com.clarionmedia.infinitum.aop.impl.*;
 import android.app.Activity;
 import android.os.Bundle;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.InfinitumContext.DataSource;
-import com.clarionmedia.infinitum.orm.Session;
-import com.clarionmedia.infinitum.rest.JsonDeserializer;
-import com.clarionmedia.infinitumtest.advice.LoggingAdvice;
-import com.clarionmedia.infinitumtest.domain.Bar;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.clarionmedia.infinitum.rest.TokenGenerator;
+import com.clarionmedia.infinitumtest.service.MyService;
+import com.clarionmedia.infinitumtest.service.MyTokenGenerator;
 
 public class TestActivity extends Activity {
 
@@ -51,7 +41,7 @@ public class TestActivity extends Activity {
 		setContentView(R.layout.main);
 		InfinitumContext context = ContextFactory.getInstance().configure(this);
 		
-//		Session session = context.getSession(DataSource.Rest).registerDeserializer(Bar.class, new JsonDeserializer<Bar>() {
+//		Session session = context.getSession(DataSource.Sqlite).registerDeserializer(Bar.class, new JsonDeserializer<Bar>() {
 //			@Override
 //			public Bar deserializeObject(String json) {
 //				Gson gson = new Gson();
@@ -73,12 +63,11 @@ public class TestActivity extends Activity {
 //				return ret;
 //			}
 //		});
-//		session.open();
-//		Bar bar = session.load(Bar.class, 1);
-//		session.close();
 		
-		AspectWeaver weaver = new BasicAspectWeaver(context.getBeanFactory());
-		Set<JoinPoint> pointcut = weaver.getPointcut(LoggingAdvice.class);
+		MyService service = (MyService) context.getBean("myService");
+		service.foo();
+		//TokenGenerator gen = (TokenGenerator) context.getBean("myTokenGenerator");
+		//String token = gen.generateToken();
 		
 	}
 
