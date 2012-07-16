@@ -1,5 +1,7 @@
 package com.clarionmedia.infinitumtest.service.impl;
 
+import java.util.Date;
+
 import android.util.Log;
 
 import com.clarionmedia.infinitum.di.annotation.Autowired;
@@ -16,6 +18,16 @@ public class MyServiceImpl implements MyService {
 	@Override
 	public void foo() {
 		Log.i("MyServiceImpl", "Inside MyServiceImpl.foo()");
+	}
+
+	@Override
+	public int bar(Integer x, Date y) {
+		return 42;
+	}
+
+	@Override
+	public int bar() {
+		return 99;
 	}
 
 }
