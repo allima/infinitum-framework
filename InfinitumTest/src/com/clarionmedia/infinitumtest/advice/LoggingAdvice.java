@@ -10,14 +10,14 @@ import com.clarionmedia.infinitum.aop.annotation.Before;
 @Aspect
 public class LoggingAdvice {
 
-	@Before(beans = { "myService", "myTokenGenerator" }, order = 1)
-	public void before(JoinPoint joinPoint) {
-		Log.d("LoggingAdvice", "Before " + joinPoint.getMethod().getName());
-	}
-
-	@After(beans = { "myService", "myTokenGenerator" }, order = 1)
-	public void after(JoinPoint joinPoint) {
-		Log.d("LoggingAdvice", "After " + joinPoint.getMethod().getName());
-	}
+//	@Before(beans = { "myService", "myTokenGenerator" }, order = 1)
+//	public void before(JoinPoint joinPoint) {
+//		Log.d("LoggingAdvice", "Before advice: " + joinPoint.getMethod().getName());
+//	}
+//
+//	@After(beans = { "myService", "myTokenGenerator" }, order = 1)
+//	public void after(JoinPoint joinPoint) {
+//		Log.d("LoggingAdvice", "After advice: " + joinPoint.getMethod().getName());
+//	}
 
 }

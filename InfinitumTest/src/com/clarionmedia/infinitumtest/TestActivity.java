@@ -27,9 +27,8 @@ import android.os.Bundle;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.rest.TokenGenerator;
+import com.clarionmedia.infinitumtest.dao.MyDao;
 import com.clarionmedia.infinitumtest.service.MyService;
-import com.clarionmedia.infinitumtest.service.MyTokenGenerator;
 
 public class TestActivity extends Activity {
 
@@ -64,8 +63,13 @@ public class TestActivity extends Activity {
 //			}
 //		});
 		
-		MyService service = (MyService) context.getBean("myService");
+		MyService service = context.getBean("myService", MyService.class);
+		int bar = service.bar(32, null);
+		bar = service.bar();
 		service.foo();
+		MyDao dao = context.getBean("myDao", MyDao.class);
+		int test = dao.test();
+		dao.hello();
 		//TokenGenerator gen = (TokenGenerator) context.getBean("myTokenGenerator");
 		//String token = gen.generateToken();
 		

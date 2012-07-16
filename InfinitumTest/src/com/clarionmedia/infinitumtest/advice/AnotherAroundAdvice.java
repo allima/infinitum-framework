@@ -9,11 +9,11 @@ import com.clarionmedia.infinitum.aop.annotation.Aspect;
 @Aspect
 public class AnotherAroundAdvice {
 
-	@Around(beans = { "myService"}, order = 1)
-	public void around(ProceedingJoinPoint joinPoint) throws Throwable {
-		Log.d("LoggingAdvice", "Around before " + joinPoint.getMethod().getName());
-		joinPoint.proceed();
-		Log.d("LoggingAdvice", "Around after " + joinPoint.getMethod().getName());
-	}
+//	@Around(beans = { "myService"}, order = 1)
+//	public void around(ProceedingJoinPoint joinPoint) throws Throwable {
+//		Log.d("LoggingAdvice", "Order 1 around advice: " + joinPoint.getMethod().getName());
+//		joinPoint.proceed();
+//		Log.d("LoggingAdvice", "Order 1 around advice: " + joinPoint.getMethod().getName());
+//	}
 
 }
