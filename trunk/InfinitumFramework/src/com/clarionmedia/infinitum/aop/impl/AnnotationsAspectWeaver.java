@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import android.content.Context;
@@ -87,6 +88,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 		}
 	}
 
+	// Build a Collection of Pointcuts for the given aspects
 	private Collection<Pointcut> getPointcuts(Set<Class<?>> aspects) {
 		Map<String, Pointcut> pointcutMap = new HashMap<String, Pointcut>();
 		for (Class<?> aspect : aspects) {
@@ -103,6 +105,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 		return pointcutMap.values();
 	}
 
+	// Processes advice indicated by @Before, @After, or @Around in an aspect
 	private void processAdvice(Object advisor,
 			Class<? extends Annotation> adviceType,
 			Map<String, Pointcut> pointcutMap) {
@@ -115,6 +118,8 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 		}
 	}
 
+	// Processes JoinPoints specified by the "beans" attribute
+	// e.g. @Before(beans = { "fooBean", "barBean.method(*)" })
 	private void processBeanJoinPoints(Object advisor, Advice advice,
 			Method adviceMethod, Map<String, Pointcut> pointcutMap) {
 		for (String bean : advice.beans()) {
@@ -146,11 +151,34 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 		}
 	}
 
+	// Processes JoinPoints specified by the "within" attribute
+	// e.g. @Around(within = {"com.foo.bar.service", "com.foo.bar.dao"})
 	private void processWithinJoinPoints(Object advisor, Advice advice,
 			Method adviceMethod, Map<String, Pointcut> pointcutMap) {
-		// TODO
+		for (String pkg : advice.within()) {
+			pkg = pkg.toLowerCase().trim();
+			if (pkg.length() == 0)
+				continue;
+			Map<Object, String> invertedMap = invert(mBeanFactory.getBeanMap());
+			for (Object bean : invertedMap.keySet()) {
+				if (!bean.getClass().getName().startsWith(pkg))
+					continue;
+				JoinPoint joinPoint = advice.isAround()
+						? new BasicProceedingJoinPoint(advisor, adviceMethod)
+						: new BasicJoinPoint(advisor, adviceMethod,
+								advice.getLocation());
+				joinPoint.setBeanName(invertedMap.get(bean));
+				joinPoint.setTarget(bean);
+				joinPoint.setOrder(advice.order());
+				joinPoint.setClassScope(true);
+				putJoinPoint(pointcutMap, joinPoint);
+			}
+		}
 	}
 
+	// Processes JoinPoints specified by the "beans" attribute which indicate
+	// methods to advise
+	// e.g. @Before(beans = { "barBean.method(*)" })
 	private void processBeanMethodJoinPoint(String bean, Object beanObject,
 			Object advisor, Advice advice, JoinPoint joinPoint,
 			Map<String, Pointcut> pointcutMap) {
@@ -192,6 +220,8 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 		}
 	}
 
+	// Adds the JoinPoint to a Pointcut in pointcutMap
+	// If there's no Pointcut for the type, it will add one
 	private void putJoinPoint(Map<String, Pointcut> pointcutMap,
 			JoinPoint joinPoint) {
 		if (pointcutMap.containsKey(joinPoint.getBeanName())) {
@@ -202,6 +232,14 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			pointcut.addJoinPoint(joinPoint);
 			pointcutMap.put(joinPoint.getBeanName(), pointcut);
 		}
+	}
+
+	// Inverts the given bean Map
+	private Map<Object, String> invert(Map<String, Object> map) {
+		Map<Object, String> inv = new HashMap<Object, String>();
+		for (Entry<String, Object> entry : map.entrySet())
+			inv.put(entry.getValue(), entry.getKey());
+		return inv;
 	}
 
 }

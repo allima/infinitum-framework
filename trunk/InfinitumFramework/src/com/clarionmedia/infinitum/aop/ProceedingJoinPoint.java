@@ -35,10 +35,10 @@ public interface ProceedingJoinPoint extends JoinPoint {
 	 * Proceed with the next advice or target method invocation.
 	 * 
 	 * @return the value returned by the target method, if any
-	 * @throws Throwable
+	 * @throws Exception
 	 *             if the next advice or target method threw an exception
 	 */
-	Object proceed() throws Throwable;
+	Object proceed() throws Exception;
 
 	/**
 	 * Sets the subsequent {@link ProceedingJoinPoint} to invoke after this one.

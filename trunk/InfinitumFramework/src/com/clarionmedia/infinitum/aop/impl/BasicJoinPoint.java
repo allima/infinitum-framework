@@ -134,7 +134,7 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 	}
 
 	@Override
-	public Object invoke() throws Throwable {
+	public Object invoke() throws Exception {
 		Preconditions.checkNotNull(mAdvisor);
 		Preconditions.checkNotNull(mAdvice);
 		return mAdvice.invoke(mAdvisor, this);
