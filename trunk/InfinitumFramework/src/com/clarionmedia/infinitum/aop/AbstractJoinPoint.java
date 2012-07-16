@@ -62,6 +62,24 @@ public abstract class AbstractJoinPoint implements JoinPoint {
 		mAdvice = advice;
 	}
 
+	/**
+	 * Creates a new {@code AbstractJoinPoint} by copying from the given
+	 * {@code AbstractJoinPoint}.
+	 * 
+	 * @param joinPoint
+	 *            the {@code AbstractJoinPoint} to copy
+	 */
+	public AbstractJoinPoint(AbstractJoinPoint joinPoint) {
+		mAdvisor = joinPoint.mAdvisor;
+		mAdvice = joinPoint.mAdvice;
+		mArguments = joinPoint.mArguments;
+		mBeanName = joinPoint.mBeanName;
+		mIsClassScope = joinPoint.mIsClassScope;
+		mMethod = joinPoint.mMethod;
+		mOrder = joinPoint.mOrder;
+		mTarget = joinPoint.mTarget;
+	}
+
 	@Override
 	public Object getAdvisor() {
 		return mAdvisor;
@@ -81,7 +99,7 @@ public abstract class AbstractJoinPoint implements JoinPoint {
 	public void setAdvice(Method advice) {
 		mAdvice = advice;
 	}
-	
+
 	@Override
 	public int getOrder() {
 		return mOrder;

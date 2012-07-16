@@ -33,7 +33,8 @@ import com.clarionmedia.infinitum.aop.annotation.Before;
  * </p>
  * 
  * @author Tyler Treat
- * 
+ * @version 1.0 07/16/12
+ * @since 1.0
  */
 public class Advice {
 

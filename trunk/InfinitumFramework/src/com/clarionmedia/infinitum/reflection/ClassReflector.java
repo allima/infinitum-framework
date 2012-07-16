@@ -78,6 +78,32 @@ public interface ClassReflector {
 	List<Method> getAllMethods(Class<?> clazz);
 
 	/**
+	 * Retrieves all {@code Methods} for the given {@link Class} with the given
+	 * name.
+	 * 
+	 * @param clazz
+	 *            the {@code Class} to get {@code Methods} for
+	 * @param name
+	 *            the name of the {@code Methods} to retrieve
+	 * @return {@link List} of {@code Methods}
+	 */
+	List<Method> getMethodsByName(Class<?> clazz, String name);
+
+	/**
+	 * Retrieves the {@link Method} with the given name and parameter types from
+	 * the given {@link Class}.
+	 * 
+	 * @param name
+	 *            the name of the {@code Method}
+	 * @param clazz
+	 *            the {@code Class} containing the desired {@code Method}
+	 * @param paramTypes
+	 *            the {@code Method} parameter types
+	 * @return {@code Method}
+	 */
+	Method getMethod(Class<?> clazz, String name, Class<?>[] paramTypes);
+
+	/**
 	 * Retrieves all {@code Methods} for the given {@link Class} that have the
 	 * given {@link Annotation}.
 	 * 

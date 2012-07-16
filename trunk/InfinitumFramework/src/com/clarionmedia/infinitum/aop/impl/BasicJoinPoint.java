@@ -54,6 +54,18 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 		mLocation = location;
 	}
 
+	/**
+	 * Creates a new {@code BasicJoinPoint} by copying from the given
+	 * {@code BasicJoinPoint}.
+	 * 
+	 * @param joinPoint
+	 *            the {@code BasicJoinPoint} to copy
+	 */
+	public BasicJoinPoint(BasicJoinPoint joinPoint) {
+		super(joinPoint);
+		mLocation = joinPoint.mLocation;
+	}
+
 	@Override
 	public Method getMethod() {
 		return mMethod;
@@ -127,7 +139,7 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 		Preconditions.checkNotNull(mAdvice);
 		return mAdvice.invoke(mAdvisor, this);
 	}
-	
+
 	@Override
 	public boolean equals(Object object) {
 		if (this == object)
@@ -139,7 +151,7 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 		BasicJoinPoint other = (BasicJoinPoint) object;
 		return other.mLocation == this.mLocation && super.equals(other);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		int hash = 7;
