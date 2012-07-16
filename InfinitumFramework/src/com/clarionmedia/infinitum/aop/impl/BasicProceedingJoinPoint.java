@@ -137,14 +137,14 @@ public class BasicProceedingJoinPoint extends AbstractJoinPoint implements Proce
 	}
 
 	@Override
-	public Object invoke() throws Throwable {
+	public Object invoke() throws Exception {
 		Preconditions.checkNotNull(mAdvisor);
 		Preconditions.checkNotNull(mAdvice);
 		return mAdvice.invoke(mAdvisor, this);
 	}
 
 	@Override
-	public Object proceed() throws Throwable {
+	public Object proceed() throws Exception {
 		ProceedingJoinPoint next = next();
 		if (next == null)
 			return mMethod.invoke(mTarget, mArguments);

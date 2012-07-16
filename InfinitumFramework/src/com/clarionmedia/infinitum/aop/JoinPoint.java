@@ -198,10 +198,10 @@ public interface JoinPoint {
 	 * Executes the advice.
 	 * 
 	 * @return the advice return value, if any
-	 * @throws Throwable
+	 * @throws Exception
 	 *             if the advice throws any exceptions
 	 */
-	Object invoke() throws Throwable;
+	Object invoke() throws Exception;
 
 	/**
 	 * <p>
