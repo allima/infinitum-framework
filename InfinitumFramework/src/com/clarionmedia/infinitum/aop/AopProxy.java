@@ -20,8 +20,7 @@
 package com.clarionmedia.infinitum.aop;
 
 import java.lang.reflect.InvocationHandler;
-import com.clarionmedia.infinitum.aop.JdkDynamicProxy;
-import com.clarionmedia.infinitum.aop.DexMakerProxy;
+import java.lang.reflect.Method;
 
 /**
  * <p>
@@ -112,5 +111,36 @@ public abstract class AopProxy implements InvocationHandler {
 	 * @return {@code ProxyType}
 	 */
 	public abstract ProxyType getProxyType();
+
+	/**
+	 * Indicates if the given {@link JoinPoint} applies to the given
+	 * {@link Method}.
+	 * 
+	 * @param joinPoint
+	 *            the {@code JoinPoint} to check
+	 * @param method
+	 *            the {@code Method} to check
+	 * @return {@code true} if it applies, {@code false} if not
+	 */
+	protected boolean applies(JoinPoint joinPoint, Method method) {
+		if (joinPoint.isClassScope())
+			return true;
+		Method joinPointMethod = joinPoint.getMethod();
+		if (joinPointMethod == null)
+			return false;
+		if (!joinPointMethod.getName().equals(method.getName()))
+			return false;
+		String t1 = "";
+		for (Class<?> c : joinPointMethod.getParameterTypes()) {
+			t1 += c.getName() + "/";
+		}
+		String t2 = "";
+		for (Class<?> c : method.getParameterTypes()) {
+			t2 += c.getName() + "/";
+		}
+		if (!t1.equals(t2))
+			return false;
+		return true;
+	}
 
 }

@@ -43,6 +43,7 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  * 
  * @author Tyler Treat
  * @version 1.0 03/15/12
+ * @since 1.0
  */
 public class DefaultClassReflector implements ClassReflector {
 
@@ -110,6 +111,24 @@ public class DefaultClassReflector implements ClassReflector {
 	public List<Method> getAllMethods(Class<?> clazz) {
 		return getAllMethodsRec(clazz, new ArrayList<Method>());
 	}
+	
+	@Override
+	public List<Method> getMethodsByName(Class<?> clazz, String name) {
+		return getAllMethodsRec(clazz, new ArrayList<Method>(), name);
+	}
+
+	@Override
+	public Method getMethod(Class<?> clazz, String name, Class<?>[] paramTypes) {
+		try {
+			return clazz.getMethod(name, paramTypes);
+		} catch (SecurityException e) {
+			throw new InfinitumRuntimeException("Unable to retrieve method "
+					+ name + " from '" + clazz.getName() + "'.");
+		} catch (NoSuchMethodException e) {
+			throw new InfinitumRuntimeException("Method " + name + " in '"
+					+ clazz.getName() + "' does not exist.");
+		}
+	}
 
 	@Override
 	public List<Method> getAllMethodsAnnotatedWith(Class<?> clazz,
@@ -159,15 +178,28 @@ public class DefaultClassReflector implements ClassReflector {
 		}
 		return methods;
 	}
+	
+	private List<Method> getAllMethodsRec(Class<?> clazz, List<Method> methods, String name) {
+		Class<?> superClass = clazz.getSuperclass();
+		if (superClass != null)
+			getAllMethodsRec(superClass, methods, name);
+		for (final Method method : clazz.getDeclaredMethods()) {
+			if (method.getName().equalsIgnoreCase(name))
+				methods.add(method);
+		}
+		return methods;
+	}
 
 	@Override
 	public Object getClassInstance(Class<?> clazz) {
 		try {
 			return clazz.newInstance();
 		} catch (InstantiationException e) {
-			throw new InfinitumRuntimeException("Unable to instantiate '" + clazz.getName() + "'.");
+			throw new InfinitumRuntimeException("Unable to instantiate '"
+					+ clazz.getName() + "'.");
 		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException("Unable to instantiate '" + clazz.getName() + "'.");
+			throw new InfinitumRuntimeException("Unable to instantiate '"
+					+ clazz.getName() + "'.");
 		}
 	}
 

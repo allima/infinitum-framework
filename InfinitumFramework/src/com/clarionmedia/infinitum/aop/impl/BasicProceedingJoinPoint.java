@@ -51,6 +51,18 @@ public class BasicProceedingJoinPoint extends AbstractJoinPoint implements Proce
 		super(advisor, advice);
 	}
 
+	/**
+	 * Creates a new {@code BasicProceedingJoinPoint} by copying from the given
+	 * {@code BasicProceedingJoinPoint}.
+	 * 
+	 * @param joinPoint
+	 *            the {@code BasicProceedingJoinPoint} to copy
+	 */
+	public BasicProceedingJoinPoint(BasicProceedingJoinPoint joinPoint) {
+		super(joinPoint.mAdvisor, joinPoint.mAdvice);
+		mNext = joinPoint.mNext;
+	}
+
 	@Override
 	public Method getMethod() {
 		return mMethod;
@@ -148,7 +160,7 @@ public class BasicProceedingJoinPoint extends AbstractJoinPoint implements Proce
 	public ProceedingJoinPoint next() {
 		return mNext;
 	}
-	
+
 	@Override
 	public boolean equals(Object object) {
 		if (this == object)
@@ -160,7 +172,7 @@ public class BasicProceedingJoinPoint extends AbstractJoinPoint implements Proce
 		BasicProceedingJoinPoint other = (BasicProceedingJoinPoint) object;
 		return other.mNext == other.mNext && super.equals(other);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		int hash = 7;

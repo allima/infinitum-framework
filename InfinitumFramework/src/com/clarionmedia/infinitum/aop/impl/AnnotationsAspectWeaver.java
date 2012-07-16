@@ -26,7 +26,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import android.content.Context;
+
 import com.clarionmedia.infinitum.aop.Advice;
 import com.clarionmedia.infinitum.aop.AdvisedProxyFactory;
 import com.clarionmedia.infinitum.aop.AopProxy;
@@ -38,8 +40,11 @@ import com.clarionmedia.infinitum.aop.annotation.Around;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.annotation.Before;
 import com.clarionmedia.infinitum.di.BeanFactory;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.PackageReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
 
 /**
  * <p>
@@ -54,6 +59,7 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 public class AnnotationsAspectWeaver implements AspectWeaver {
 
 	private ClassReflector mClassReflector;
+	private PackageReflector mPackageReflector;
 	private BeanFactory mBeanFactory;
 	private AdvisedProxyFactory mProxyFactory;
 
@@ -66,6 +72,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 	 */
 	public AnnotationsAspectWeaver(BeanFactory beanFactory) {
 		mClassReflector = new DefaultClassReflector();
+		mPackageReflector = new DefaultPackageReflector();
 		mProxyFactory = new DelegatingAdvisedProxyFactory();
 		mBeanFactory = beanFactory;
 	}
@@ -103,32 +110,85 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 				advisor.getClass(), adviceType);
 		for (Method adviceMethod : methods) {
 			Advice advice = new Advice(adviceMethod.getAnnotation(adviceType));
-			for (String bean : advice.beans()) {
-				bean = bean.trim();
-				if (bean.length() == 0)
-					continue;
-				String beanName = bean;
-				boolean isClassScope = false;
-				if (bean.contains(".")) {
-					beanName = bean.substring(0, bean.indexOf('.'));
-				} else {
-					isClassScope = true;
-				}
-				JoinPoint joinPoint = advice.isAround()
-						? new BasicProceedingJoinPoint(advisor, adviceMethod)
-						: new BasicJoinPoint(advisor, adviceMethod,
-								advice.getLocation());
-				joinPoint.setBeanName(beanName);
-				joinPoint.setTarget(mBeanFactory.loadBean(beanName));
-				joinPoint.setOrder(advice.order());
-				if (isClassScope) {
-					joinPoint.setClassScope(true);
-				} else {
-					// TODO Add support for specific method join points
-				}
+			processBeanJoinPoints(advisor, advice, adviceMethod, pointcutMap);
+			processWithinJoinPoints(advisor, advice, adviceMethod, pointcutMap);
+		}
+	}
+
+	private void processBeanJoinPoints(Object advisor, Advice advice,
+			Method adviceMethod, Map<String, Pointcut> pointcutMap) {
+		for (String bean : advice.beans()) {
+			bean = bean.trim();
+			if (bean.length() == 0)
+				continue;
+			String beanName = bean;
+			boolean isClassScope = false;
+			if (bean.contains("."))
+				beanName = bean.substring(0, bean.indexOf('.'));
+			else
+				isClassScope = true;
+			Object beanObject = mBeanFactory.loadBean(beanName);
+			JoinPoint joinPoint = advice.isAround()
+					? new BasicProceedingJoinPoint(advisor, adviceMethod)
+					: new BasicJoinPoint(advisor, adviceMethod,
+							advice.getLocation());
+			joinPoint.setBeanName(beanName);
+			joinPoint.setTarget(beanObject);
+			joinPoint.setOrder(advice.order());
+			if (isClassScope) {
+				joinPoint.setClassScope(true);
 				putJoinPoint(pointcutMap, joinPoint);
+			} else {
+				// It's a specific method or methods matcher
+				processBeanMethodJoinPoint(bean, beanObject, advisor, advice,
+						joinPoint, pointcutMap);
 			}
-			// TODO Add within support
+		}
+	}
+
+	private void processWithinJoinPoints(Object advisor, Advice advice,
+			Method adviceMethod, Map<String, Pointcut> pointcutMap) {
+		// TODO
+	}
+
+	private void processBeanMethodJoinPoint(String bean, Object beanObject,
+			Object advisor, Advice advice, JoinPoint joinPoint,
+			Map<String, Pointcut> pointcutMap) {
+		if (!bean.endsWith(")"))
+			throw new InfinitumRuntimeException("Invalid join point '" + bean
+					+ "' in aspect '" + advisor.getClass().getName() + "'.");
+		String methodName;
+		String[] args;
+		try {
+			methodName = bean.substring(bean.indexOf('.') + 1,
+					bean.indexOf('('));
+			args = bean.substring(bean.indexOf('(') + 1, bean.indexOf(')'))
+					.split(",");
+		} catch (IndexOutOfBoundsException e) {
+			throw new InfinitumRuntimeException("Invalid join point '" + bean
+					+ "' in aspect '" + advisor.getClass().getName() + "'.");
+		}
+		if (args[0].trim().equals("*")) {
+			// Wildcard -- add all methods with the given name
+			for (Method method : mClassReflector.getMethodsByName(
+					beanObject.getClass(), methodName)) {
+				JoinPoint copied = advice.isAround()
+						? new BasicProceedingJoinPoint(
+								(BasicProceedingJoinPoint) joinPoint)
+						: new BasicJoinPoint((BasicJoinPoint) joinPoint);
+				copied.setMethod(method);
+				putJoinPoint(pointcutMap, copied);
+			}
+		} else {
+			// Add method with the given arguments
+			Class<?>[] argTypes = new Class<?>[args.length];
+			for (int i = 0; i < args.length; i++) {
+				argTypes[i] = mPackageReflector.getClass(args[i].trim());
+			}
+			Method method = mClassReflector.getMethod(beanObject.getClass(),
+					methodName, argTypes);
+			joinPoint.setMethod(method);
+			putJoinPoint(pointcutMap, joinPoint);
 		}
 	}
 

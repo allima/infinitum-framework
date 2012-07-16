@@ -45,7 +45,7 @@ public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 	private List<JoinPoint> mBeforeAdvice;
 	private List<JoinPoint> mAfterAdvice;
 	private ProceedingJoinPoint mAroundAdvice;
-	
+
 	/**
 	 * Creates a new {@code AdvisedJdkDynamicProxy}.
 	 * 
@@ -65,18 +65,18 @@ public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 		ProceedingJoinPoint next = null;
 		for (JoinPoint joinPoint : pointcut.getJoinPoints()) {
 			switch (joinPoint.getLocation()) {
-			case Before:
-				mBeforeAdvice.add(joinPoint);
-				break;
-			case After:
-				mAfterAdvice.add(joinPoint);
-				break;
-			case Around:
-				ProceedingJoinPoint proceedingJoinPoint = (ProceedingJoinPoint) joinPoint;
-				if (next != null)
-					proceedingJoinPoint.setNext(next);
-				next = proceedingJoinPoint;
-				break;
+				case Before :
+					mBeforeAdvice.add(joinPoint);
+					break;
+				case After :
+					mAfterAdvice.add(joinPoint);
+					break;
+				case Around :
+					ProceedingJoinPoint proceedingJoinPoint = (ProceedingJoinPoint) joinPoint;
+					if (next != null)
+						proceedingJoinPoint.setNext(next);
+					next = proceedingJoinPoint;
+					break;
 			}
 		}
 		mAroundAdvice = next;
@@ -87,12 +87,14 @@ public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 	public Object invoke(Object proxy, Method method, Object[] args)
 			throws Throwable {
 		for (JoinPoint joinPoint : mBeforeAdvice) {
-			joinPoint.setMethod(method);
-			joinPoint.setArguments(args);
-			joinPoint.invoke();
+			if (applies(joinPoint, method)) {
+				joinPoint.setMethod(method);
+				joinPoint.setArguments(args);
+				joinPoint.invoke();
+			}
 		}
 		Object ret;
-		if (mAroundAdvice == null) {
+		if (mAroundAdvice == null || !applies(mAroundAdvice, method)) {
 			ret = method.invoke(mTarget, args);
 		} else {
 			mAroundAdvice.setMethod(method);
@@ -100,9 +102,11 @@ public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 			ret = mAroundAdvice.invoke();
 		}
 		for (JoinPoint joinPoint : mAfterAdvice) {
-			joinPoint.setMethod(method);
-			joinPoint.setArguments(args);
-			joinPoint.invoke();
+			if (applies(joinPoint, method)) {
+				joinPoint.setMethod(method);
+				joinPoint.setArguments(args);
+				joinPoint.invoke();
+			}
 		}
 		return ret;
 	}
