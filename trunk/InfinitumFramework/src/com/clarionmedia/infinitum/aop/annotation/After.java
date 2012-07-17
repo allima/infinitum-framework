@@ -28,8 +28,8 @@ import com.clarionmedia.infinitum.aop.JoinPoint;
 
 /**
  * <p>
- * Indicates that the annotated advice is to be executed before a
- * {@link JoinPoint}. The {@code JoinPoint} itself will be passed as an argument
+ * Indicates that the annotated advice is to be executed after a
+ * {@link JoinPoint} completes. The {@code JoinPoint} itself will be passed as an argument
  * to methods annotated with this.
  * </p>
  * <p>
