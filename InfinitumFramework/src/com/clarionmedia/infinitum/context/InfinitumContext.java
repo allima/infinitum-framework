@@ -53,7 +53,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * @since 05/18/12
  */
 public interface InfinitumContext {
-	
+
 	/**
 	 * Represents the entity persistence configuration mode.
 	 */
@@ -352,5 +352,31 @@ public interface InfinitumContext {
 	 * @return {@code PersistencePolicy} for this application
 	 */
 	PersistencePolicy getPersistencePolicy();
+
+	/**
+	 * Sets the value indicating if component scan should be enabled or
+	 * disabled.
+	 * 
+	 * @param componentScan
+	 *            {@code true} if component scan should be enabled,
+	 *            {@code false} if not
+	 */
+	void setComponentScanEnabled(boolean componentScan);
+
+	/**
+	 * Indicates if component scan is enabled.
+	 * 
+	 * @return {@code true} if component scan is enabled, {@code false} if not
+	 */
+	boolean isComponentScanEnabled();
+
+	/**
+	 * Sets the packages to scan for components. Packages are separated by a
+	 * comma.
+	 * 
+	 * @param packages
+	 *            the packages to scan
+	 */
+	void setComponentScanPackages(String packages);
 
 }
