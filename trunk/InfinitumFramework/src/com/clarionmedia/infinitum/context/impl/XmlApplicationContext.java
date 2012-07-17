@@ -203,12 +203,33 @@ public class XmlApplicationContext extends AbstractContext {
 	protected RestfulContext getRestContext() {
 		return mRestConfig;
 	}
+	
+	@Override
+	public void setComponentScanPackages(String packages) {
+		if (mBeanContainer.mComponentScan == null)
+			mBeanContainer.mComponentScan = new BeanContainer.ComponentScan();
+		mBeanContainer.mComponentScan.mBasePackages = packages;
+	}
 
 	@Override
 	protected List<String> getScanPackages() {
 	    if (mBeanContainer.mComponentScan == null)
 	    	return new ArrayList<String>();
 		return mBeanContainer.mComponentScan.getBasePackages();
+	}
+	
+	@Override
+	public void setComponentScanEnabled(boolean componentScan) {
+		if (mBeanContainer.mComponentScan == null)
+			mBeanContainer.mComponentScan = new BeanContainer.ComponentScan();
+		mBeanContainer.mComponentScan.mIsEnabled = componentScan;
+	}
+
+	@Override
+	public boolean isComponentScanEnabled() {
+		if (mBeanContainer.mComponentScan == null)
+			return false;
+		return mBeanContainer.mComponentScan.mIsEnabled;
 	}
 	
 	/**
@@ -248,7 +269,10 @@ public class XmlApplicationContext extends AbstractContext {
 		@Root
 		private static class ComponentScan {
 			
-			@Attribute(name = "base-package")
+			@Attribute(name = "enabled", required = false)
+			private boolean mIsEnabled = true;
+			
+			@Attribute(name = "base-package", required = false)
 			private String mBasePackages;
 
 			public List<String> getBasePackages() {

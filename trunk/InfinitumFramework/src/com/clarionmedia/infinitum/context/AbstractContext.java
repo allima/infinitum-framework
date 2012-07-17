@@ -162,14 +162,14 @@ public abstract class AbstractContext implements InfinitumContext {
 	 * @return {@code Set} of {@code Classes}
 	 */
 	protected Set<Class<?>> getClasspathComponents() {
+		Set<Class<?>> components = new HashSet<Class<?>>();
 		List<String> packages = getScanPackages();
 		if (packages.size() == 0)
-			return null;
+			return components;
 		PackageReflector reflector = new DefaultPackageReflector();
 		String[] packageArr = new String[packages.size()];
 		Set<Class<?>> classes = reflector.getPackageClasses(packages
 				.toArray(packageArr));
-		Set<Class<?>> components = new HashSet<Class<?>>();
 		for (Class<?> clazz : classes) {
 			if (clazz.isAnnotationPresent(Component.class)
 					|| clazz.isAnnotationPresent(Bean.class)
@@ -187,9 +187,11 @@ public abstract class AbstractContext implements InfinitumContext {
 		mBeanFactory = new ConfigurableBeanFactory();
 		mBeanFactory.registerBeans(getBeans());
 
+		if (!isComponentScanEnabled())
+			return;
 		// Scan for Components
 		Set<Class<?>> components = getClasspathComponents();
-		if (components == null)
+		if (components.size() == 0)
 			return;
 
 		// Categorize the Components while filtering down the original Set

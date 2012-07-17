@@ -44,7 +44,8 @@
 <!ATTLIST bean src CDATA #REQUIRED>
 
 <!ELEMENT component-scan>
-<!ATTLIST component-scan base-package #REQUIRED>
+<!ATTLIST component-scan enabled #IMPLIED>
+<!ATTLIST component-scan base-package #IMPLIED>
 
 <!ELEMENT resource (#PCDATA)>
 <!ATTLIST resource name CDATA #REQUIRED>
