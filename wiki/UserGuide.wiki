@@ -71,6 +71,29 @@ The Infinitum RESTful client provides an extensible API for communicating with a
   * XmlDeserializer: tells Infinitum how to deserialize XML responses into domain model instances.
   * [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulTypeAdapter RestfulTypeAdapter]: facilitates the mapping of Java data types to RESTful web service endpoint fields.
 
+= Dependency Injection =
+
+  * BeanFactoryPostProcessor: enables an `InfinitumContext` to have its `BeanFactory` modified after it has been configured.
+  * BeanPostProcessor: allows for beans to be modified after they have been initialized by the container.
+
+== Annotations ==
+
+  * [Component]: indicates that the annotated class is a framework component, meaning it is a candidate for auto-detection.
+  * [Bean]: specialization of the `Component` annotation indicating that the annotated class is a dependency-injection bean.
+  * [Autowired]: indicates that the annotated constructor, setter, or field is to be injected by the framework.
+
+= AOP =
+
+  * JoinPoint: provides advice with contextual information about a join point.
+  * ProceedingJoinPoint: provides support for _around_ advice.
+
+== Annotations ==
+
+  * [Aspect]: separates cross-cutting concerns from core application code by providing pointcut advice.
+  * [Before]: indicates that the annotated advice is to be executed before a join point is invoked.
+  * [After]: indicates that the annotated advice is to be executed after a join point completes.
+  * [Around]: indicates that the annotated advice is to be executed around a join point.
+
 = Logging =
 
 In addition to its ORM and RESTful services, Infinitum offers an extremely lightweight logging framework which wraps Android's Logcat. This logging framework allows log statements to be made within application code but only asserted in debug environments. This means that logging code does not need any conditional statements or be removed altogether when preparing an application for release.
