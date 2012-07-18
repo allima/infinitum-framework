@@ -34,12 +34,16 @@ import org.simpleframework.xml.ElementMap;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.core.Commit;
 
+import android.app.Activity;
+
 import com.clarionmedia.infinitum.context.AbstractContext;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.AspectComponent;
 import com.clarionmedia.infinitum.di.BeanComponent;
+import com.clarionmedia.infinitum.di.Injector;
+import com.clarionmedia.infinitum.di.impl.InfinitumInjector;
 
 /**
  * <p>
@@ -69,6 +73,11 @@ public class XmlApplicationContext extends AbstractContext {
 	
 	@Element(name = "beans", required = false)
 	private BeanContainer mBeanContainer;
+	
+	@Override
+	public Injector getInjector(Activity activity) {
+		return new InfinitumInjector();
+	}
 
 	@Override
 	public boolean isDebug() {
