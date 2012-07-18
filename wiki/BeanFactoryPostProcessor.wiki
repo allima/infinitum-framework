@@ -29,3 +29,10 @@ public class BuildTargetedPostProcessor implements BeanFactoryPostProcessor {
 
 }
 }}}
+
+If we are not using component scanning, we can register this post processor in the InfinitumCfgXml:
+
+{{{
+<bean id="buildTargetedPostProcessor"
+    src="com.example.postprocessor.BuildTargetedPostProcessor" />
+}}}
