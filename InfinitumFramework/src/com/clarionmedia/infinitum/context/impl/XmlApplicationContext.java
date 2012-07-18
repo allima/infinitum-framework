@@ -38,6 +38,7 @@ import com.clarionmedia.infinitum.context.AbstractContext;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.AspectComponent;
 import com.clarionmedia.infinitum.di.BeanComponent;
 
 /**
@@ -196,7 +197,9 @@ public class XmlApplicationContext extends AbstractContext {
 	
 	@Override
 	protected List<BeanComponent> getBeans() {
-		return mBeanContainer.mBeans;
+		List<BeanComponent> beans = new ArrayList<BeanComponent>(mBeanContainer.mBeans);
+		beans.addAll(mBeanContainer.mAspects);
+		return beans;
 	}
 	
 	@Override
@@ -262,6 +265,9 @@ public class XmlApplicationContext extends AbstractContext {
 		
 		@ElementList(entry = "bean", inline = true, required = false)
 		private List<BeanComponent> mBeans;
+		
+		@ElementList(entry = "aspect", inline = true, required = false)
+		private List<AspectComponent> mAspects;
 		
 		@Element(name = "component-scan", required = false)
 		private ComponentScan mComponentScan;
