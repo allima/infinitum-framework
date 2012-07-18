@@ -182,24 +182,40 @@ public abstract class AbstractContext implements InfinitumContext {
 	/**
 	 * Must be executed after the {@link InfinitumContext} has been constructed.
 	 */
+	@SuppressWarnings("unchecked")
 	protected void postProcess() {
+		PackageReflector reflector = new DefaultPackageReflector();
 		getRestContext().setParentContext(this);
+		
+		// Register XML beans
 		mBeanFactory = new ConfigurableBeanFactory();
-		mBeanFactory.registerBeans(getBeans());
+		List<BeanComponent> beans = getBeans();
+		mBeanFactory.registerBeans(beans); // also registers aspects implicitly
+		
+		// Get XML components
+		Set<Class<BeanPostProcessor>> xmlBeanPostProcessors = new HashSet<Class<BeanPostProcessor>>();
+		Set<Class<BeanFactoryPostProcessor>> xmlBeanFactoryPostProcessors = new HashSet<Class<BeanFactoryPostProcessor>>();
+		for (BeanComponent bean : beans) {
+			Class<?> clazz = reflector.getClass(bean.getClassName());
+			if (BeanPostProcessor.class.isAssignableFrom(clazz))
+				xmlBeanPostProcessors.add((Class<BeanPostProcessor>) clazz);
+			else if (BeanFactoryPostProcessor.class.isAssignableFrom(clazz))
+				xmlBeanFactoryPostProcessors.add((Class<BeanFactoryPostProcessor>) clazz);
+		}
 
-		if (!isComponentScanEnabled())
-			return;
-		// Scan for Components
-		Set<Class<?>> components = getClasspathComponents();
-		if (components.size() == 0)
-			return;
+		// Scan for annotated components
+		Set<Class<?>> components = new HashSet<Class<?>>();
+		if (isComponentScanEnabled())
+			components.addAll(getClasspathComponents());
 
-		// Categorize the Components while filtering down the original Set
+		// Categorize the components while filtering down the original Set
 		Set<Class<?>> aspects = getAndRemoveAspects(components);
 		Set<Class<BeanPostProcessor>> beanPostProcessors = getAndRemoveBeanPostProcessors(components);
+		beanPostProcessors.addAll(xmlBeanPostProcessors);
 		Set<Class<BeanFactoryPostProcessor>> beanFactoryPostProcessors = getAndRemoveBeanFactoryPostProcessors(components);
+		beanFactoryPostProcessors.addAll(xmlBeanFactoryPostProcessors);
 
-		// Process Aspects
+		// Register scanned aspects
 		for (Class<?> aspectClass : aspects) {
 			Aspect aspect = aspectClass.getAnnotation(Aspect.class);
 			String beanName = aspect.value().trim().equals("") ? StringUtil
@@ -208,7 +224,7 @@ public abstract class AbstractContext implements InfinitumContext {
 			mBeanFactory.registerAspect(beanName, aspectClass.getName(), null);
 		}
 
-		// Register scanned Bean candidates
+		// Register scanned bean candidates
 		for (Class<?> candidate : components) {
 			if (candidate.isAnnotationPresent(Bean.class)) {
 				Bean bean = candidate.getAnnotation(Bean.class);
@@ -219,7 +235,7 @@ public abstract class AbstractContext implements InfinitumContext {
 			}
 		}
 
-		// Process Aspects
+		// Process aspects
 		Context context = ContextFactory.getInstance().getAndroidContext();
 		new AnnotationsAspectWeaver(mBeanFactory).weave(context, aspects);
 		
@@ -284,10 +300,10 @@ public abstract class AbstractContext implements InfinitumContext {
 				}
 			} catch (InstantiationException e) {
 				throw new InfinitumRuntimeException(
-						"BeanPostProcessor must have an empty constructor.");
+						"BeanPostProcessor '" + postProcessor.getName() + "' must have an empty constructor.");
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new InfinitumRuntimeException(
+						"BeanPostProcessor '" + postProcessor.getName() + "' could not be invoked.");
 			}
 		}
 	}
@@ -301,10 +317,10 @@ public abstract class AbstractContext implements InfinitumContext {
 				postProcessorInstance.postProcessBeanFactory(mBeanFactory);
 			} catch (InstantiationException e) {
 				throw new InfinitumRuntimeException(
-						"BeanFactoryPostProcessor must have an empty constructor.");
+						"BeanFactoryPostProcessor '" + postProcessor.getName() + "' must have an empty constructor.");
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new InfinitumRuntimeException(
+						"BeanFactoryPostProcessor '" + postProcessor.getName() + "' could not be invoked.");
 			}
 		}
 	}

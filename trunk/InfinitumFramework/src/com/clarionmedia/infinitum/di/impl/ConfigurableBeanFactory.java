@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.AspectComponent;
 import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanUtils;
@@ -112,6 +113,9 @@ public class ConfigurableBeanFactory implements BeanFactory {
 					propertiesMap.put(name, value);
 				}
 			}
+			// Aspects are registered both as beans and aspects
+			if (bean.getClass().equals(AspectComponent.class))
+				registerAspect(bean.getId(), bean.getClassName(), propertiesMap);
 			registerBean(bean.getId(), bean.getClassName(), propertiesMap);
 		}
 	}
