@@ -24,18 +24,17 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Field;
-
-import android.view.View;
+import android.app.Activity;
 
 /**
  * <p>
- * Indicates that the annotated {@link Field} is to be injected with an Android
- * {@link View}.
+ * Indicates that the annotated {@link Activity} is to be injected with an
+ * Android layout. This is essentially a replacement for calling
+ * {@link Activity#setContentView(int)} and is required in order for
+ * {@code Activity} injection to function properly.
  * </p>
  * <p>
- * The {@code value} attribute corresponds to the ID of the {@code View} to
- * inject.
+ * The {@code value} attribute corresponds to the ID of the layout to inject.
  * </p>
  * 
  * @author Tyler Treat
@@ -44,13 +43,13 @@ import android.view.View;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface InjectView {
+@Target(ElementType.TYPE)
+public @interface InjectLayout {
 
 	/**
-	 * Declares the ID of the Android {@link View} to inject.
+	 * Declares the ID of the Android layout to inject.
 	 * 
-	 * @return {@code View} ID
+	 * @return layout ID
 	 */
 	int value();
 

@@ -21,8 +21,22 @@ package com.clarionmedia.infinitum.di;
 
 import android.app.Activity;
 
-public interface Injector {
-	
-	void injectViews(Activity activity);
+/**
+ * <p>
+ * Responsible for injecting an {@link Activity} with Android resources and
+ * framework components.
+ * </p>
+ * 
+ * @author Tyler Treat
+ * @version 1.0 07/18/12
+ * @since 1.0
+ */
+public interface ActivityInjector {
+
+	/**
+	 * Injects the appropriate resources and components into any annotated
+	 * fields.
+	 */
+	void inject();
 
 }

@@ -26,16 +26,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 
-import android.view.View;
-
 /**
  * <p>
  * Indicates that the annotated {@link Field} is to be injected with an Android
- * {@link View}.
+ * resource.
  * </p>
  * <p>
- * The {@code value} attribute corresponds to the ID of the {@code View} to
- * inject.
+ * The {@code value} attribute corresponds to the ID of the resource to inject.
  * </p>
  * 
  * @author Tyler Treat
@@ -45,12 +42,12 @@ import android.view.View;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface InjectView {
+public @interface InjectResource {
 
 	/**
-	 * Declares the ID of the Android {@link View} to inject.
+	 * Declares the ID of the Android resource to inject.
 	 * 
-	 * @return {@code View} ID
+	 * @return resource ID
 	 */
 	int value();
 
