@@ -20,6 +20,7 @@
 package com.clarionmedia.infinitum.context.impl;
 
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.Scanner;
 
 import org.simpleframework.xml.Serializer;
@@ -27,6 +28,7 @@ import org.simpleframework.xml.core.Persister;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
@@ -112,6 +114,7 @@ public class XmlContextFactory extends ContextFactory {
 	}
 
 	private InfinitumContext configureFromXml(int configId) {
+		long start = Calendar.getInstance().getTimeInMillis();
 		Resources resources = mContext.getResources();
 		Serializer serializer = new Persister();
 		try {
@@ -120,6 +123,9 @@ public class XmlContextFactory extends ContextFactory {
 			return serializer.read(XmlApplicationContext.class, xml);
 		} catch (Exception e) {
 			throw new InfinitumConfigurationException("Unable to initialize Infinitum configuration.", e);
+		} finally {
+			long stop = Calendar.getInstance().getTimeInMillis();
+			Log.i(getClass().getSimpleName(), "Context initialized in " + (stop - start) + " milliseconds");
 		}
 	}
 

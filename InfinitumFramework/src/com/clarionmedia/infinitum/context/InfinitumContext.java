@@ -21,13 +21,11 @@ package com.clarionmedia.infinitum.context;
 
 import java.util.List;
 
-import android.app.Activity;
 import android.content.Context;
 
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.context.impl.XmlContextFactory;
 import com.clarionmedia.infinitum.di.BeanFactory;
-import com.clarionmedia.infinitum.di.Injector;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
@@ -78,15 +76,6 @@ public interface InfinitumContext {
 	public static enum DataSource {
 		Sqlite, Rest
 	}
-
-	/**
-	 * Retrieves an {@link Injector} for the given {@link Activity}.
-	 * 
-	 * @param activity
-	 *            the {@code Activity} to get the {@code Injector} for
-	 * @return {@code Injector}
-	 */
-	Injector getInjector(Activity activity);
 
 	/**
 	 * Retrieves a new {@link Session} instance for the configured data source.

@@ -23,21 +23,31 @@ import android.app.Activity;
 import android.os.Bundle;
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.di.Injector;
+import com.clarionmedia.infinitum.di.ActivityInjector;
+import com.clarionmedia.infinitum.di.impl.ContextBasedActivityInjector;
 
+/**
+ * <p>
+ * This {@link Activity} provides dependency injection support to any inheriting
+ * {@code Activity} as well as access to an {@link InfinitumContext}.
+ * </p>
+ * 
+ * @author Tyler Treat
+ * @version 1.0 07/18/12
+ * @since 1.0
+ */
 public class InfinitumActivity extends Activity {
 
 	private InfinitumContext mContext;
-
-	protected int mInfinitumConfigId;
+	private int mInfinitumConfigId;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		mContext = mInfinitumConfigId == 0 ? ContextFactory.getInstance()
-				.configure(this) : ContextFactory.getInstance().configure(this,
-				mInfinitumConfigId);
-		final Injector injector = mContext.getInjector(this);
-		injector.injectViews(this);
+		mContext = mInfinitumConfigId == 0 ? ContextFactory.getInstance().configure(this) : ContextFactory
+				.getInstance().configure(this, mInfinitumConfigId);
+		final ActivityInjector injector = new ContextBasedActivityInjector(this);
+		injector.inject();
+		super.onCreate(savedInstanceState);
 	}
 
 	/**
@@ -47,6 +57,16 @@ public class InfinitumActivity extends Activity {
 	 */
 	protected InfinitumContext getInfinitumContext() {
 		return mContext;
+	}
+
+	/**
+	 * Sets the resource ID of the Infinitum XML config to use.
+	 * 
+	 * @param configId
+	 *            Infinitum config ID
+	 */
+	protected void setInfinitumConfigId(int configId) {
+		mInfinitumConfigId = configId;
 	}
 
 }
