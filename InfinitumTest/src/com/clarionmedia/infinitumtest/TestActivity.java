@@ -19,60 +19,37 @@
 
 package com.clarionmedia.infinitumtest;
 
-import java.lang.reflect.Field;
-import java.util.List;
-
-import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
-import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitumtest.dao.MyDao;
-import com.clarionmedia.infinitumtest.service.MyService;
+import com.clarionmedia.infinitum.activity.InfinitumActivity;
+import com.clarionmedia.infinitum.di.annotation.InjectLayout;
+import com.clarionmedia.infinitum.di.annotation.InjectResource;
 
-public class TestActivity extends Activity {
+@InjectLayout(R.layout.main)
+public class TestActivity extends InfinitumActivity {
 
-	public List<Field> mPrimaryKeys;
+	@InjectResource(R.id.hello)
+	private View mView;
+	
+	
+//    <color name="my_color">#ffffff</color>
+//    
+//    <dimen name="my_dimen">10dp</dimen>
+//    
+//    <bool name="my_bool">true</bool>
+//    
+//    <integer name="my_int">42</integer>
+//    
+//    <array name="my_typed_arr">
+//        <item>@drawable/shape</item>
+//    </array>
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
-		InfinitumContext context = ContextFactory.getInstance().configure(this);
-		
-//		Session session = context.getSession(DataSource.Sqlite).registerDeserializer(Bar.class, new JsonDeserializer<Bar>() {
-//			@Override
-//			public Bar deserializeObject(String json) {
-//				Gson gson = new Gson();
-//				String formattedJson = json.substring(json.indexOf('{') + 1, json.lastIndexOf('}') + 1);
-//				formattedJson = json.substring(formattedJson.indexOf('{') + 1, formattedJson.lastIndexOf('}') + 1);
-//				return gson.fromJson(formattedJson, Bar.class);
-//			}
-//			@Override
-//			public List<Bar> deserializeObjects(String json) {
-//				List<Bar> ret = new LinkedList<Bar>();
-//				Gson gson = new Gson();
-//				json = json.substring(json.indexOf(":") + 1);
-//				json = json.substring(json.indexOf("["));
-//				json = json.substring(0, json.length() - 1);
-//				JsonElement jsonElement = new JsonParser().parse(json);
-//				JsonArray jsonArray = jsonElement.getAsJsonArray();
-//				for (JsonElement e : jsonArray)
-//						ret.add(gson.fromJson(e, Bar.class));
-//				return ret;
-//			}
-//		});
-		
-		MyService service = context.getBean("myService", MyService.class);
-		int bar = service.bar(32, null);
-		bar = service.bar();
-		service.foo();
-		MyDao dao = context.getBean("myDao", MyDao.class);
-		int test = dao.test();
-		dao.hello();
-		//TokenGenerator gen = (TokenGenerator) context.getBean("myTokenGenerator");
-		//String token = gen.generateToken();
-		
+		String hello = "hello";
+		hello.getClass();
 	}
 
 }
