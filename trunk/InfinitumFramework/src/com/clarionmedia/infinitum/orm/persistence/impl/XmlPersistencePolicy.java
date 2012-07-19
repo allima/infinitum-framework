@@ -58,8 +58,9 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 05/09/12
+ * @version 1.0 05/09/12
+ * @since 1.0
+ * @see AnnotationsPersistencePolicy
  */
 public class XmlPersistencePolicy extends PersistencePolicy {
 
@@ -105,7 +106,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getModelTableName(Class<?> c) throws IllegalArgumentException {
+	public synchronized String getModelTableName(Class<?> c) throws IllegalArgumentException {
 		if (mTableCache.containsKey(c))
 			return mTableCache.get(c);
 		String table;
@@ -141,7 +142,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public List<Field> getPersistentFields(Class<?> c) {
+	public synchronized List<Field> getPersistentFields(Class<?> c) {
 		if (mPersistenceCache.containsKey(c))
 			return mPersistenceCache.get(c);
 		if (!isPersistent(c))
@@ -192,7 +193,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
+	public synchronized Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
 		if (mPrimaryKeyCache.containsKey(c))
 			return mPrimaryKeyCache.get(c);
 		if (!isPersistent(c))
@@ -231,7 +232,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getFieldColumnName(Field f) {
+	public synchronized String getFieldColumnName(Field f) {
 		if (mColumnCache.containsKey(f))
 			return mColumnCache.get(f);
 		Class<?> c = f.getDeclaringClass();
@@ -292,7 +293,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException {
+	public synchronized boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException {
 		if (mAutoincrementCache.containsKey(f))
 			return mAutoincrementCache.get(f);
 		Class<?> c = f.getDeclaringClass();
@@ -342,7 +343,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isFieldNullable(Field f) {
+	public synchronized boolean isFieldNullable(Field f) {
 		if (mFieldNullableCache.containsKey(f))
 			return mFieldNullableCache.get(f);
 		if (isFieldPrimaryKey(f)) {
@@ -387,7 +388,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isFieldUnique(Field f) {
+	public synchronized boolean isFieldUnique(Field f) {
 		if (mFieldUniqueCache.containsKey(f))
 			return mFieldUniqueCache.get(f);
 		if (isFieldPrimaryKey(f)) {
@@ -431,7 +432,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c) {
+	public synchronized Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c) {
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
 		Set<ManyToManyRelationship> ret = new HashSet<ManyToManyRelationship>();
@@ -453,7 +454,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isCascading(Class<?> c) {
+	public synchronized boolean isCascading(Class<?> c) {
 		if (mCascadeCache.containsKey(c))
 			return mCascadeCache.get(c);
 		if (!isPersistent(c))
@@ -488,7 +489,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isRelationship(Field f) {
+	public synchronized boolean isRelationship(Field f) {
 		if (mRelationshipCheckCache.containsKey(f))
 			return mRelationshipCheckCache.get(f);
 		Class<?> c = f.getDeclaringClass();
@@ -523,7 +524,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isManyToManyRelationship(Field f) {
+	public synchronized boolean isManyToManyRelationship(Field f) {
 		if (mManyToManyCache.containsKey(f))
 			return true;
 		ModelRelationship rel = getRelationship(f);
@@ -533,7 +534,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isToOneRelationship(Field f) {
+	public synchronized boolean isToOneRelationship(Field f) {
 		if (mManyToOneCache.containsKey(f) || mOneToOneCache.containsKey(f))
 			return true;
 		ModelRelationship rel = getRelationship(f);
@@ -584,7 +585,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isLazy(Class<?> c) {
+	public synchronized boolean isLazy(Class<?> c) {
 		if (mLazyLoadingCache.containsKey(c))
 			return mLazyLoadingCache.get(c);
 		if (!isPersistent(c))
@@ -619,7 +620,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getRestEndpoint(Class<?> c) throws IllegalArgumentException {
+	public synchronized String getRestEndpoint(Class<?> c) throws IllegalArgumentException {
 		if (mRestEndpointCache.containsKey(c))
 			return mRestEndpointCache.get(c);
 		if (!isPersistent(c))
@@ -654,7 +655,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getEndpointFieldName(Field f) throws IllegalArgumentException {
+	public synchronized String getEndpointFieldName(Field f) throws IllegalArgumentException {
 		if (mRestFieldCache.containsKey(f))
 			return mRestFieldCache.get(f);
 		Class<?> c = f.getDeclaringClass();
@@ -705,7 +706,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				+ "'.");
 	}
 
-	private XmlPullParser loadXmlMapFile(Class<?> c) {
+	private synchronized XmlPullParser loadXmlMapFile(Class<?> c) {
 		Resources res = mContext.getResources();
 		int id = 0;
 		if (!mResourceCache.containsKey(c)) {
@@ -724,7 +725,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		}
 	}
 
-	private ManyToManyRelationship getManyToManyRelationship(Field f) {
+	private synchronized ManyToManyRelationship getManyToManyRelationship(Field f) {
 		if (mManyToManyCache.containsKey(f))
 			return mManyToManyCache.get(f);
 		Class<?> c = f.getDeclaringClass();
@@ -785,7 +786,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		return null;
 	}
 
-	private ManyToOneRelationship getManyToOneRelationship(Field f) {
+	private synchronized ManyToOneRelationship getManyToOneRelationship(Field f) {
 		if (mManyToOneCache.containsKey(f))
 			return mManyToOneCache.get(f);
 		Class<?> c = f.getDeclaringClass();
@@ -834,7 +835,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		return null;
 	}
 
-	private OneToManyRelationship getOneToManyRelationship(Field f) {
+	private synchronized OneToManyRelationship getOneToManyRelationship(Field f) {
 		if (mOneToManyCache.containsKey(f))
 			return mOneToManyCache.get(f);
 		Class<?> c = f.getDeclaringClass();
@@ -886,7 +887,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		return null;
 	}
 
-	private OneToOneRelationship getOneToOneRelationship(Field f) {
+	private synchronized OneToOneRelationship getOneToOneRelationship(Field f) {
 		if (mOneToOneCache.containsKey(f))
 			return mOneToOneCache.get(f);
 		Class<?> c = f.getDeclaringClass();

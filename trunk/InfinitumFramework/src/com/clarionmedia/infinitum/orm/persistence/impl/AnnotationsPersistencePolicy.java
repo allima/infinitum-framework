@@ -58,14 +58,15 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 02/12/12
+ * @version 1.0 02/12/12
+ * @since 1.0
+ * @see XmlPersistencePolicy
  */
-public class AnnotationPersistencePolicy extends PersistencePolicy {
+public class AnnotationsPersistencePolicy extends PersistencePolicy {
 
 	@Override
-	public boolean isPersistent(Class<?> c) {
-		Entity entity = c.getAnnotation(Entity.class);
+	public boolean isPersistent(Class<?> clazz) {
+		Entity entity = clazz.getAnnotation(Entity.class);
 		if (entity == null || entity.mode() == PersistenceMode.Persistent)
 			return true;
 		else
@@ -92,7 +93,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public List<Field> getPersistentFields(Class<?> c) {
+	public synchronized List<Field> getPersistentFields(Class<?> c) {
 		if (mPersistenceCache.containsKey(c))
 			return mPersistenceCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
@@ -110,7 +111,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
+	public synchronized Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
 		if (mPrimaryKeyCache.containsKey(c))
 			return mPrimaryKeyCache.get(c);
 		Field ret = null;
@@ -140,7 +141,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getFieldColumnName(Field f) {
+	public synchronized String getFieldColumnName(Field f) {
 		if (mColumnCache.containsKey(f))
 			return mColumnCache.get(f);
 		String ret;
@@ -186,7 +187,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isFieldNullable(Field f) {
+	public synchronized boolean isFieldNullable(Field f) {
 		if (mFieldNullableCache.containsKey(f))
 			return mFieldNullableCache.get(f);
 		boolean ret;
@@ -198,7 +199,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isFieldUnique(Field f) {
+	public synchronized boolean isFieldUnique(Field f) {
 		if (mFieldUniqueCache.containsKey(f))
 			return mFieldUniqueCache.get(f);
 		boolean ret;
@@ -209,7 +210,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c) {
+	public synchronized Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c) {
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
 		Set<ManyToManyRelationship> ret = new HashSet<ManyToManyRelationship>();
@@ -299,7 +300,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isLazy(Class<?> c) {
+	public synchronized boolean isLazy(Class<?> c) {
 		if (mLazyLoadingCache.containsKey(c))
 			return mLazyLoadingCache.get(c);
 		boolean ret;
@@ -314,7 +315,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getRestEndpoint(Class<?> c) throws IllegalArgumentException {
+	public synchronized String getRestEndpoint(Class<?> c) throws IllegalArgumentException {
 		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException();
 		if (mRestEndpointCache.containsKey(c))
@@ -333,7 +334,7 @@ public class AnnotationPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getEndpointFieldName(Field f) throws IllegalArgumentException {
+	public synchronized String getEndpointFieldName(Field f) throws IllegalArgumentException {
 		if (!isPersistent(f.getDeclaringClass()) || !mTypePolicy.isDomainModel(f.getDeclaringClass()))
 			throw new IllegalArgumentException();
 		if (f.isAnnotationPresent(Persistence.class)) {
