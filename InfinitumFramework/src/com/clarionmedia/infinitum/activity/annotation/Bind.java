@@ -17,41 +17,57 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.di.annotation;
+package com.clarionmedia.infinitum.activity.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Field;
-
+import com.clarionmedia.infinitum.di.ActivityInjector.Event;
+import android.view.KeyEvent;
 import android.view.View;
 
 /**
  * <p>
- * Indicates that the annotated {@link Field} is to be injected with an Android
- * {@link View}.
+ * Indicates that the annotated {@link View} is to be bound to a callback method
+ * for a given event type.
  * </p>
  * <p>
- * The {@code value} attribute corresponds to the ID of the {@code View} to
- * inject.
+ * The {@code event} attribute corresponds to the event type, while
+ * {@code callback} indicates the name of the method to be invoked. If an
+ * {@link Event} is not specified, {@code Event.OnClick} is used by default.
+ * </p>
+ * <p>
+ * The callback method should match the normal listener method in terms of its
+ * return type and arguments. For example, an {@code onClick} callback should be
+ * {@code void} and take a {@code View} as its argument, while an {@code onKey}
+ * callback must return a {@code boolean} and take a {@code View}, {@code int},
+ * and {@link KeyEvent} as its arguments.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 07/18/12
+ * @version 1.0 07/19/12
  * @since 1.0
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface InjectView {
+public @interface Bind {
 
 	/**
-	 * Declares the ID of the Android {@link View} to inject.
+	 * Declares the event type for this binding. Defaults to
+	 * {@code Event.OnClick}.
 	 * 
-	 * @return {@code View} ID
+	 * @return {@link Event} binding
 	 */
-	int value();
+	Event event() default Event.OnClick;
+
+	/**
+	 * Declares the name of the method to invoked.
+	 * 
+	 * @return method name
+	 */
+	String callback();
 
 }

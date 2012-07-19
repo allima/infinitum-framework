@@ -17,34 +17,40 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.di;
+package com.clarionmedia.infinitum.activity.annotation;
 
-import android.app.Activity;
-import android.view.View;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Field;
 
 /**
  * <p>
- * Responsible for injecting an {@link Activity} with Android resources and
- * framework components.
+ * Indicates that the annotated {@link Field} is to be injected with an Android
+ * resource.
+ * </p>
+ * <p>
+ * The {@code value} attribute corresponds to the ID of the resource to inject.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/18/12
  * @since 1.0
+ * @see InjectLayout
+ * @see InjectView
  */
-public interface ActivityInjector {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface InjectResource {
 
 	/**
-	 * Defines the type of input event that occurs on a {@link View}.
+	 * Declares the ID of the Android resource to inject.
+	 * 
+	 * @return resource ID
 	 */
-	public static enum Event {
-		OnClick, OnLongClick, OnCreateContextMenu, OnFocusChange, OnKey, OnTouch
-	};
-
-	/**
-	 * Injects the appropriate resources and components into any annotated
-	 * fields.
-	 */
-	void inject();
+	int value();
 
 }

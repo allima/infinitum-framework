@@ -20,16 +20,28 @@
 package com.clarionmedia.infinitum.di.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.res.Resources;
+import android.view.ContextMenu;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnCreateContextMenuListener;
+import android.view.View.OnFocusChangeListener;
+import android.view.View.OnKeyListener;
+import android.view.View.OnLongClickListener;
+import android.view.View.OnTouchListener;
 import android.view.animation.AnimationUtils;
 
+import com.clarionmedia.infinitum.activity.annotation.Bind;
+import com.clarionmedia.infinitum.activity.annotation.InjectLayout;
+import com.clarionmedia.infinitum.activity.annotation.InjectResource;
+import com.clarionmedia.infinitum.activity.annotation.InjectView;
 import com.clarionmedia.infinitum.di.ActivityInjector;
-import com.clarionmedia.infinitum.di.annotation.InjectLayout;
-import com.clarionmedia.infinitum.di.annotation.InjectResource;
-import com.clarionmedia.infinitum.di.annotation.InjectView;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
@@ -61,6 +73,7 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 		injectLayout();
 		injectViews();
 		injectResources();
+		injectListeners();
 	}
 
 	/**
@@ -69,7 +82,8 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	 * {@link Activity#setContentView(int)}.
 	 */
 	private void injectLayout() {
-		InjectLayout injectLayout = mActivity.getClass().getAnnotation(InjectLayout.class);
+		InjectLayout injectLayout = mActivity.getClass().getAnnotation(
+				InjectLayout.class);
 		if (injectLayout == null)
 			return;
 		mActivity.setContentView(injectLayout.value());
@@ -98,13 +112,109 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	}
 
 	/**
+	 * Injects event listeners into {@code View} fields annotated with
+	 * {@code Bind}
+	 */
+	private void injectListeners() {
+		for (Field field : mFields) {
+			if (!View.class.isAssignableFrom(field.getType())
+					|| !field.isAnnotationPresent(Bind.class))
+				continue;
+			Bind bind = field.getAnnotation(Bind.class);
+			Event event = bind.event();
+			String callback = bind.callback();
+			View view = (View) mClassReflector.getFieldValue(mActivity, field);
+			registerCallback(view, callback, event);
+		}
+	}
+
+	/**
+	 * Registers an event callback.
+	 */
+	private void registerCallback(View view, String callback, Event event) {
+		switch (event) {
+			case OnClick :
+				final Method onClick = mClassReflector.getMethod(
+						mActivity.getClass(), callback, View.class);
+				view.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						mClassReflector.invokeMethod(mActivity, onClick, v);
+					}
+				});
+				break;
+			case OnLongClick :
+				final Method onLongClick = mClassReflector.getMethod(
+						mActivity.getClass(), callback, View.class);
+				view.setOnLongClickListener(new OnLongClickListener() {
+					@Override
+					public boolean onLongClick(View v) {
+						return (Boolean) mClassReflector.invokeMethod(
+								mActivity, onLongClick, v);
+					}
+				});
+				break;
+			case OnCreateContextMenu :
+				final Method onCreateContextMenu = mClassReflector.getMethod(
+						mActivity.getClass(), callback, ContextMenu.class,
+						View.class, ContextMenu.ContextMenuInfo.class);
+				view.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
+					@Override
+					public void onCreateContextMenu(ContextMenu menu, View v,
+							ContextMenu.ContextMenuInfo menuInfo) {
+						mClassReflector.invokeMethod(mActivity,
+								onCreateContextMenu, menu, v, menuInfo);
+					}
+				});
+				break;
+			case OnFocusChange :
+				final Method onFocusChange = mClassReflector.getMethod(
+						mActivity.getClass(), callback, View.class,
+						boolean.class);
+				view.setOnFocusChangeListener(new OnFocusChangeListener() {
+					@Override
+					public void onFocusChange(View v, boolean hasFocus) {
+						mClassReflector.invokeMethod(mActivity, onFocusChange,
+								v, hasFocus);
+					}
+				});
+				break;
+			case OnKey :
+				final Method onKey = mClassReflector.getMethod(
+						mActivity.getClass(), callback, View.class,
+						int.class, KeyEvent.class);
+				view.setOnKeyListener(new OnKeyListener() {
+					@Override
+					public boolean onKey(View v, int keyCode, KeyEvent event) {
+						return (Boolean) mClassReflector.invokeMethod(
+								mActivity, onKey, v, keyCode, event);
+					}
+				});
+				break;
+			case OnTouch :
+				final Method onTouch = mClassReflector.getMethod(
+						mActivity.getClass(), callback, View.class,
+						MotionEvent.class);
+				view.setOnTouchListener(new OnTouchListener() {
+					@Override
+					public boolean onTouch(View v, MotionEvent event) {
+						return (Boolean) mClassReflector.invokeMethod(
+								mActivity, onTouch, v, event);
+					}
+				});
+				break;
+		}
+	}
+
+	/**
 	 * Injects the fields annotated with {@code @InjectResource}.
 	 */
 	private void injectResources() {
 		for (Field field : mFields) {
 			if (!field.isAnnotationPresent(InjectResource.class))
 				continue;
-			InjectResource injectResource = field.getAnnotation(InjectResource.class);
+			InjectResource injectResource = field
+					.getAnnotation(InjectResource.class);
 			int resourceId = injectResource.value();
 			field.setAccessible(true);
 			try {
@@ -144,9 +254,11 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 		if (resourceType.equalsIgnoreCase("movie"))
 			return resources.getMovie(resourceId);
 		if (resourceType.equalsIgnoreCase("array")) {
-			if (field.getType() == int[].class || field.getType() == Integer[].class)
+			if (field.getType() == int[].class
+					|| field.getType() == Integer[].class)
 				return resources.getIntArray(resourceId);
-			else if (field.getType() == String[].class || field.getType() == CharSequence[].class)
+			else if (field.getType() == String[].class
+					|| field.getType() == CharSequence[].class)
 				return resources.getStringArray(resourceId);
 			else
 				return resources.obtainTypedArray(resourceId); // TODO: convert
@@ -154,9 +266,12 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 																// array
 		}
 		if (resourceType.equalsIgnoreCase("id"))
-			throw new InfinitumRuntimeException("Unable to inject field '" + field.getName() + "' in Activity '"
-					+ mActivity.getClass().getName() + "'. Are you injecting a view?");
-		throw new InfinitumRuntimeException("Unable to inject field '" + field.getName() + "' in Activity '"
+			throw new InfinitumRuntimeException("Unable to inject field '"
+					+ field.getName() + "' in Activity '"
+					+ mActivity.getClass().getName()
+					+ "'. Are you injecting a view?");
+		throw new InfinitumRuntimeException("Unable to inject field '"
+				+ field.getName() + "' in Activity '"
 				+ mActivity.getClass().getName() + "' (unsupported type).");
 	}
 

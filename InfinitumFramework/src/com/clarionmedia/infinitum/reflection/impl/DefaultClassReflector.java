@@ -111,7 +111,7 @@ public class DefaultClassReflector implements ClassReflector {
 	public List<Method> getAllMethods(Class<?> clazz) {
 		return getAllMethodsRec(clazz, new ArrayList<Method>());
 	}
-	
+
 	@Override
 	public List<Method> getMethodsByName(Class<?> clazz, String name) {
 		return getAllMethodsRec(clazz, new ArrayList<Method>(), name);
@@ -178,8 +178,9 @@ public class DefaultClassReflector implements ClassReflector {
 		}
 		return methods;
 	}
-	
-	private List<Method> getAllMethodsRec(Class<?> clazz, List<Method> methods, String name) {
+
+	private List<Method> getAllMethodsRec(Class<?> clazz, List<Method> methods,
+			String name) {
 		Class<?> superClass = clazz.getSuperclass();
 		if (superClass != null)
 			getAllMethodsRec(superClass, methods, name);
@@ -200,6 +201,40 @@ public class DefaultClassReflector implements ClassReflector {
 		} catch (IllegalAccessException e) {
 			throw new InfinitumRuntimeException("Unable to instantiate '"
 					+ clazz.getName() + "'.");
+		}
+	}
+
+	@Override
+	public Object getFieldValue(Object object, Field field) {
+		try {
+			return field.get(object);
+		} catch (IllegalArgumentException e) {
+			throw new InfinitumRuntimeException("Unable to access field '"
+					+ field.getName() + "' for object of type '"
+					+ object.getClass().getName() + "'.", e);
+		} catch (IllegalAccessException e) {
+			throw new InfinitumRuntimeException("Unable to access field '"
+					+ field.getName() + "' for object of type '"
+					+ object.getClass().getName() + "'.", e);
+		}
+	}
+
+	@Override
+	public Object invokeMethod(Object receiver, Method method, Object... args) {
+		try {
+			return method.invoke(receiver, args);
+		} catch (IllegalArgumentException e) {
+			throw new InfinitumRuntimeException("Unable to invoke method '"
+					+ method.getName() + "' for object of type '"
+					+ receiver.getClass().getName() + "'.", e);
+		} catch (IllegalAccessException e) {
+			throw new InfinitumRuntimeException("Unable to invoke method '"
+					+ method.getName() + "' for object of type '"
+					+ receiver.getClass().getName() + "'.", e);
+		} catch (InvocationTargetException e) {
+			throw new InfinitumRuntimeException("Unable to invoke method '"
+					+ method.getName() + "' for object of type '"
+					+ receiver.getClass().getName() + "'.", e);
 		}
 	}
 

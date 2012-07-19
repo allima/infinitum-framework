@@ -139,6 +139,18 @@ public interface ClassReflector {
 	Field getField(Class<?> clazz, String name);
 
 	/**
+	 * Retrieves the value of the given {@link Field} for the given
+	 * {@link Object}.
+	 * 
+	 * @param object
+	 *            the {@code Object} to retrieve the value for
+	 * @param field
+	 *            the {@code Field} to retrieve the value for
+	 * @return {@code Field} value
+	 */
+	Object getFieldValue(Object object, Field field);
+
+	/**
 	 * Retrieves a new instance of the given {@link Class} by invoking its empty
 	 * constructor.
 	 * 
@@ -147,5 +159,19 @@ public interface ClassReflector {
 	 * @return new instance of {@code Class}
 	 */
 	Object getClassInstance(Class<?> clazz);
+
+	/**
+	 * Invokes the given {@link Method} on {@code receiver} using the provided
+	 * arguments.
+	 * 
+	 * @param receiver
+	 *            the {@link Object} to invoke the {@code Method} on
+	 * @param method
+	 *            the {@code Method} to invoke
+	 * @param args
+	 *            the arguments to use
+	 * @return the {@code Method} return value or {@code null} if there is none
+	 */
+	Object invokeMethod(Object receiver, Method method, Object... args);
 
 }
