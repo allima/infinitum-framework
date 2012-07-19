@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <color name="my_color">#ffffff</color>
+    
+    <dimen name="my_dimen">10dp</dimen>
+    
+    <bool name="my_bool">true</bool>
+    
+    <integer name="my_int">42</integer>
+    
+    <array name="my_typed_arr">
+        <item>@drawable/shape</item>
+    </array>
+    
+</resources>

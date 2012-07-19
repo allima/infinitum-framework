@@ -41,7 +41,12 @@
     
     <beans>
         <component-scan base-package="com.clarionmedia.infinitumtest" />
-<!--         <bean id="restClient" src="com.clarionmedia.infinitum.rest.impl.RestfulJsonClient" /> -->
+        <aspect id="loggingAdvice" src="com.clarionmedia.infinitumtest.advice.XmlLoggingAdvice">
+<!--             <advice id="before" type="before" pointcut="beans" value="myService.bar(java.lang.Integer, java.util.Date)" order="1" /> -->
+<!--             <advice id="after" type="after" pointcut="beans" value="myService" /> -->
+                 <advice id="around" type="around" pointcut="within" value="com.clarionmedia.infinitumtest" />
+        </aspect>
+        
 <!--         <bean id="tokenGenerator" src="com.clarionmedia.infinitumtest.service.MyTokenGenerator" /> -->
 <!--         <bean id="tokenAuthentication" src="com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication"> -->
 <!--             <property name="mTokenName" value="token" /> -->
