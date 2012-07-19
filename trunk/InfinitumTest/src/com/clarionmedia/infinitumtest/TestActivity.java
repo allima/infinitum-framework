@@ -20,36 +20,35 @@
 package com.clarionmedia.infinitumtest;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.clarionmedia.infinitum.activity.InfinitumActivity;
-import com.clarionmedia.infinitum.di.annotation.InjectLayout;
-import com.clarionmedia.infinitum.di.annotation.InjectResource;
+import com.clarionmedia.infinitum.activity.annotation.Bind;
+import com.clarionmedia.infinitum.activity.annotation.InjectLayout;
+import com.clarionmedia.infinitum.activity.annotation.InjectView;
 
 @InjectLayout(R.layout.main)
 public class TestActivity extends InfinitumActivity {
 
-	@InjectResource(R.id.hello)
-	private View mView;
+	@InjectView(R.id.hello)
+	private TextView mView;
 	
-	
-//    <color name="my_color">#ffffff</color>
-//    
-//    <dimen name="my_dimen">10dp</dimen>
-//    
-//    <bool name="my_bool">true</bool>
-//    
-//    <integer name="my_int">42</integer>
-//    
-//    <array name="my_typed_arr">
-//        <item>@drawable/shape</item>
-//    </array>
+	@InjectView(R.id.button)
+	@Bind(callback = "onClick")
+	private Button mButton;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		String hello = "hello";
 		hello.getClass();
+	}
+	
+	void onClick(View v) {
+		Log.i(TestActivity.class.getSimpleName(), "Client event fired!");
 	}
 
 }
