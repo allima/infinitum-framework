@@ -17,37 +17,42 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.di.annotation;
+package com.clarionmedia.infinitum.activity.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Field;
+import android.app.Activity;
 
 /**
  * <p>
- * Indicates that the annotated {@link Field} is to be injected with an Android
- * resource.
+ * Indicates that the annotated {@link Activity} is to be injected with an
+ * Android layout. This is essentially a replacement for calling
+ * {@link Activity#setContentView(int)} and is required in order for
+ * {@code Activity} injection to function properly if {@code setContentView} is
+ * not called explicitly before injection occurs.
  * </p>
  * <p>
- * The {@code value} attribute corresponds to the ID of the resource to inject.
+ * The {@code value} attribute corresponds to the ID of the layout to inject.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/18/12
  * @since 1.0
+ * @see InjectResource
+ * @see InjectView
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface InjectResource {
+@Target(ElementType.TYPE)
+public @interface InjectLayout {
 
 	/**
-	 * Declares the ID of the Android resource to inject.
+	 * Declares the ID of the Android layout to inject.
 	 * 
-	 * @return resource ID
+	 * @return layout ID
 	 */
 	int value();
 
