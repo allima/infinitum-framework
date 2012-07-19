@@ -20,10 +20,13 @@
 package com.clarionmedia.infinitum.internal;
 
 /**
+ * <p>
  * Contains static utility methods for dealing with strings.
+ * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/15/12
+ * @since 1.0
  */
 public class StringUtil {
 

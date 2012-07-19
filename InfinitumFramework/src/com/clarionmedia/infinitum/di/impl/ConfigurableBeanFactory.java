@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.clarionmedia.infinitum.aop.AspectComponent;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.di.AspectComponent;
 import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanUtils;

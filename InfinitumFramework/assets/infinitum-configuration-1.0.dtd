@@ -27,7 +27,7 @@
 <!ELEMENT application (property*)>
 <!ELEMENT sqlite (property+)>
 <!ELEMENT domain (model*)>
-<!ELEMENT beans (bean* , component-scan)>
+<!ELEMENT beans (component-scan , bean* , aspect*)>
 <!ELEMENT rest (property+ , authentication?)>
 <!ATTLIST rest ref CDATA #IMPLIED>
 
@@ -42,6 +42,17 @@
 <!ELEMENT bean (property*)>
 <!ATTLIST bean id CDATA #REQUIRED>
 <!ATTLIST bean src CDATA #REQUIRED>
+
+<!ELEMENT aspect (property* , advice*)>
+<!ATTLIST aspect id CDATA #REQUIRED>
+<!ATTLIST bean src CDATA #REQUIRED>
+
+<!ELEMENT advice>
+<!ATTLIST advice id CDATA #REQUIRED>
+<!ATTLIST advice type CDATA #REQUIRED>
+<!ATTLIST advice pointcut CDATA #REQUIRED>
+<!ATTLIST advice value CDATA #REQUIRED>
+<!ATTLIST advice order CDATA #IMPLIED>
 
 <!ELEMENT component-scan>
 <!ATTLIST component-scan enabled #IMPLIED>

@@ -26,8 +26,11 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import android.content.Context;
+
+import com.clarionmedia.infinitum.aop.AspectComponent;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.impl.AnnotationsAspectWeaver;
+import com.clarionmedia.infinitum.aop.impl.XmlAspectWeaver;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
@@ -73,6 +76,14 @@ public abstract class AbstractContext implements InfinitumContext {
 	protected abstract List<BeanComponent> getBeans();
 
 	/**
+	 * Returns a {@link List} of {@link AspectComponent} instances that were
+	 * registered with the context through the Infinitum XML configuration.
+	 * 
+	 * @return {@code List} of {@code AspectComponents}
+	 */
+	protected abstract List<AspectComponent> getAspects();
+
+	/**
 	 * Returns the {@link RestfulContext} that was registered with the context
 	 * through the Infinitum XML configuration.
 	 * 
@@ -88,8 +99,7 @@ public abstract class AbstractContext implements InfinitumContext {
 	protected abstract List<String> getScanPackages();
 
 	@Override
-	public Session getSession(DataSource source)
-			throws InfinitumConfigurationException {
+	public Session getSession(DataSource source) throws InfinitumConfigurationException {
 		switch (source) {
 		case Sqlite:
 			return new SqliteSession(mContext);
@@ -105,8 +115,7 @@ public abstract class AbstractContext implements InfinitumContext {
 			}
 			return session;
 		default:
-			throw new InfinitumConfigurationException(
-					"Data source not configured.");
+			throw new InfinitumConfigurationException("Data source not configured.");
 		}
 	}
 
@@ -168,11 +177,9 @@ public abstract class AbstractContext implements InfinitumContext {
 			return components;
 		PackageReflector reflector = new DefaultPackageReflector();
 		String[] packageArr = new String[packages.size()];
-		Set<Class<?>> classes = reflector.getPackageClasses(packages
-				.toArray(packageArr));
+		Set<Class<?>> classes = reflector.getPackageClasses(packages.toArray(packageArr));
 		for (Class<?> clazz : classes) {
-			if (clazz.isAnnotationPresent(Component.class)
-					|| clazz.isAnnotationPresent(Bean.class)
+			if (clazz.isAnnotationPresent(Component.class) || clazz.isAnnotationPresent(Bean.class)
 					|| clazz.isAnnotationPresent(Aspect.class))
 				components.add(clazz);
 		}
@@ -186,18 +193,21 @@ public abstract class AbstractContext implements InfinitumContext {
 	protected void postProcess() {
 		PackageReflector reflector = new DefaultPackageReflector();
 		getRestContext().setParentContext(this);
-		
+
 		// Register XML beans
 		mBeanFactory = new ConfigurableBeanFactory();
 		List<BeanComponent> beans = getBeans();
 		mBeanFactory.registerBeans(beans); // also registers aspects implicitly
-		
+
 		// Get XML components
+		Set<Class<?>> xmlAspects = new HashSet<Class<?>>();
 		Set<Class<BeanPostProcessor>> xmlBeanPostProcessors = new HashSet<Class<BeanPostProcessor>>();
 		Set<Class<BeanFactoryPostProcessor>> xmlBeanFactoryPostProcessors = new HashSet<Class<BeanFactoryPostProcessor>>();
 		for (BeanComponent bean : beans) {
 			Class<?> clazz = reflector.getClass(bean.getClassName());
-			if (BeanPostProcessor.class.isAssignableFrom(clazz))
+			if (AspectComponent.class.equals(clazz))
+				xmlAspects.add(clazz);
+			else if (BeanPostProcessor.class.isAssignableFrom(clazz))
 				xmlBeanPostProcessors.add((Class<BeanPostProcessor>) clazz);
 			else if (BeanFactoryPostProcessor.class.isAssignableFrom(clazz))
 				xmlBeanFactoryPostProcessors.add((Class<BeanFactoryPostProcessor>) clazz);
@@ -218,9 +228,8 @@ public abstract class AbstractContext implements InfinitumContext {
 		// Register scanned aspects
 		for (Class<?> aspectClass : aspects) {
 			Aspect aspect = aspectClass.getAnnotation(Aspect.class);
-			String beanName = aspect.value().trim().equals("") ? StringUtil
-					.toCamelCase(aspectClass.getSimpleName()) : aspect.value()
-					.trim();
+			String beanName = aspect.value().trim().equals("") ? StringUtil.toCamelCase(aspectClass.getSimpleName())
+					: aspect.value().trim();
 			mBeanFactory.registerAspect(beanName, aspectClass.getName(), null);
 		}
 
@@ -228,17 +237,21 @@ public abstract class AbstractContext implements InfinitumContext {
 		for (Class<?> candidate : components) {
 			if (candidate.isAnnotationPresent(Bean.class)) {
 				Bean bean = candidate.getAnnotation(Bean.class);
-				String beanName = bean.value().trim().equals("") ? StringUtil
-						.toCamelCase(candidate.getSimpleName()) : bean.value()
-						.trim();
+				String beanName = bean.value().trim().equals("") ? StringUtil.toCamelCase(candidate.getSimpleName())
+						: bean.value().trim();
 				mBeanFactory.registerBean(beanName, candidate.getName(), null);
 			}
 		}
 
 		// Process aspects
+		// Currently not supporting use of XML and annotation aspects in
+		// conjunction, only one or the other right now...
 		Context context = ContextFactory.getInstance().getAndroidContext();
-		new AnnotationsAspectWeaver(mBeanFactory).weave(context, aspects);
-		
+		if (isComponentScanEnabled())
+			new AnnotationsAspectWeaver(mBeanFactory).weave(context, aspects);
+		else
+			new XmlAspectWeaver(mBeanFactory, getAspects()).weave(context, null);
+
 		// Execute post processors
 		executeBeanPostProcessors(beanPostProcessors);
 		executeBeanFactoryPostProcessors(beanFactoryPostProcessors);
@@ -258,8 +271,7 @@ public abstract class AbstractContext implements InfinitumContext {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Set<Class<BeanFactoryPostProcessor>> getAndRemoveBeanFactoryPostProcessors(
-			Collection<Class<?>> components) {
+	private Set<Class<BeanFactoryPostProcessor>> getAndRemoveBeanFactoryPostProcessors(Collection<Class<?>> components) {
 		Set<Class<BeanFactoryPostProcessor>> postProcessors = new HashSet<Class<BeanFactoryPostProcessor>>();
 		Iterator<Class<?>> iter = components.iterator();
 		while (iter.hasNext()) {
@@ -273,8 +285,7 @@ public abstract class AbstractContext implements InfinitumContext {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Set<Class<BeanPostProcessor>> getAndRemoveBeanPostProcessors(
-			Collection<Class<?>> components) {
+	private Set<Class<BeanPostProcessor>> getAndRemoveBeanPostProcessors(Collection<Class<?>> components) {
 		Set<Class<BeanPostProcessor>> postProcessors = new HashSet<Class<BeanPostProcessor>>();
 		Iterator<Class<?>> iter = components.iterator();
 		while (iter.hasNext()) {
@@ -287,40 +298,34 @@ public abstract class AbstractContext implements InfinitumContext {
 		return postProcessors;
 	}
 
-	private void executeBeanPostProcessors(
-			Collection<Class<BeanPostProcessor>> postProcessors) {
+	private void executeBeanPostProcessors(Collection<Class<BeanPostProcessor>> postProcessors) {
 		for (Class<BeanPostProcessor> postProcessor : postProcessors) {
 			try {
-				BeanPostProcessor postProcessorInstance = postProcessor
-						.newInstance();
-				for (Entry<String, Object> bean : mBeanFactory.getBeanMap()
-						.entrySet()) {
-					postProcessorInstance.postProcessBean(mBeanFactory,
-							bean.getKey(), bean.getValue());
+				BeanPostProcessor postProcessorInstance = postProcessor.newInstance();
+				for (Entry<String, Object> bean : mBeanFactory.getBeanMap().entrySet()) {
+					postProcessorInstance.postProcessBean(mBeanFactory, bean.getKey(), bean.getValue());
 				}
 			} catch (InstantiationException e) {
-				throw new InfinitumRuntimeException(
-						"BeanPostProcessor '" + postProcessor.getName() + "' must have an empty constructor.");
+				throw new InfinitumRuntimeException("BeanPostProcessor '" + postProcessor.getName()
+						+ "' must have an empty constructor.");
 			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException(
-						"BeanPostProcessor '" + postProcessor.getName() + "' could not be invoked.");
+				throw new InfinitumRuntimeException("BeanPostProcessor '" + postProcessor.getName()
+						+ "' could not be invoked.");
 			}
 		}
 	}
 
-	private void executeBeanFactoryPostProcessors(
-			Collection<Class<BeanFactoryPostProcessor>> postProcessors) {
+	private void executeBeanFactoryPostProcessors(Collection<Class<BeanFactoryPostProcessor>> postProcessors) {
 		for (Class<BeanFactoryPostProcessor> postProcessor : postProcessors) {
 			try {
-				BeanFactoryPostProcessor postProcessorInstance = postProcessor
-						.newInstance();
+				BeanFactoryPostProcessor postProcessorInstance = postProcessor.newInstance();
 				postProcessorInstance.postProcessBeanFactory(mBeanFactory);
 			} catch (InstantiationException e) {
-				throw new InfinitumRuntimeException(
-						"BeanFactoryPostProcessor '" + postProcessor.getName() + "' must have an empty constructor.");
+				throw new InfinitumRuntimeException("BeanFactoryPostProcessor '" + postProcessor.getName()
+						+ "' must have an empty constructor.");
 			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException(
-						"BeanFactoryPostProcessor '" + postProcessor.getName() + "' could not be invoked.");
+				throw new InfinitumRuntimeException("BeanFactoryPostProcessor '" + postProcessor.getName()
+						+ "' could not be invoked.");
 			}
 		}
 	}

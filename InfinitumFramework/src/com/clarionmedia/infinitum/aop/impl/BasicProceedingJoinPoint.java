@@ -127,12 +127,12 @@ public class BasicProceedingJoinPoint extends AbstractJoinPoint implements Proce
 	}
 
 	@Override
-	public Location getLocation() {
-		return Location.Around;
+	public AdviceLocation getLocation() {
+		return AdviceLocation.Around;
 	}
 
 	@Override
-	public void setLocation(Location location) {
+	public void setLocation(AdviceLocation location) {
 		// Does this even make sense?
 	}
 

@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import android.content.Context;
@@ -42,6 +41,7 @@ import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.annotation.Before;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.CollectionUtil;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
@@ -159,7 +159,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			pkg = pkg.toLowerCase().trim();
 			if (pkg.length() == 0)
 				continue;
-			Map<Object, String> invertedMap = invert(mBeanFactory.getBeanMap());
+			Map<Object, String> invertedMap = CollectionUtil.invert(mBeanFactory.getBeanMap());
 			for (Object bean : invertedMap.keySet()) {
 				if (!bean.getClass().getName().startsWith(pkg))
 					continue;
@@ -232,14 +232,6 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			pointcut.addJoinPoint(joinPoint);
 			pointcutMap.put(joinPoint.getBeanName(), pointcut);
 		}
-	}
-
-	// Inverts the given bean Map
-	private Map<Object, String> invert(Map<String, Object> map) {
-		Map<Object, String> inv = new HashMap<Object, String>();
-		for (Entry<String, Object> entry : map.entrySet())
-			inv.put(entry.getValue(), entry.getKey());
-		return inv;
 	}
 
 }
