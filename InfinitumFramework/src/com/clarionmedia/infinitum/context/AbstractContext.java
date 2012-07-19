@@ -43,7 +43,7 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationPersistencePolicy;
+import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationsPersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
@@ -124,7 +124,7 @@ public abstract class AbstractContext implements InfinitumContext {
 		if (sPersistencePolicy == null) {
 			switch (getConfigurationMode()) {
 			case Annotation:
-				sPersistencePolicy = new AnnotationPersistencePolicy();
+				sPersistencePolicy = new AnnotationsPersistencePolicy();
 				break;
 			case Xml:
 				sPersistencePolicy = new XmlPersistencePolicy(mContext);

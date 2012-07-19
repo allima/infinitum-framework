@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
@@ -41,6 +40,8 @@ import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
+import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationsPersistencePolicy;
+import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
 
 /**
  * <p>
@@ -55,8 +56,10 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 05/09/12
+ * @version 1.0 05/09/12
+ * @since 1.0
+ * @see AnnotationsPersistencePolicy
+ * @see XmlPersistencePolicy
  */
 public abstract class PersistencePolicy {
 
@@ -120,7 +123,8 @@ public abstract class PersistencePolicy {
 		mTypePolicy = new DefaultTypeResolutionPolicy();
 		mClassReflector = new DefaultClassReflector();
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+		mPropLoader = new PropertyLoader(ContextFactory.getInstance()
+				.getAndroidContext());
 	}
 
 	/**
@@ -145,7 +149,8 @@ public abstract class PersistencePolicy {
 	 * @throws InvalidMapFileException
 	 *             if the map file for the given {@code Class} is invalid
 	 */
-	public abstract String getModelTableName(Class<?> c) throws IllegalArgumentException, InvalidMapFileException;
+	public abstract String getModelTableName(Class<?> c)
+			throws IllegalArgumentException, InvalidMapFileException;
 
 	/**
 	 * Retrieves a {@code List} of all persistent {@code Fields} for the given
@@ -168,7 +173,8 @@ public abstract class PersistencePolicy {
 	 * @throws ModelConfigurationException
 	 *             if multiple primary keys are declared in {@code c}
 	 */
-	public abstract Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException;
+	public abstract Field getPrimaryKeyField(Class<?> c)
+			throws ModelConfigurationException;
 
 	/**
 	 * Retrieves the name of the database column the specified {@code Field}
@@ -204,7 +210,8 @@ public abstract class PersistencePolicy {
 	 *             if an explicit primary key that is set to autoincrement is
 	 *             not of type int or long
 	 */
-	public abstract boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException;
+	public abstract boolean isPrimaryKeyAutoIncrement(Field f)
+			throws InfinitumRuntimeException;
 
 	/**
 	 * Checks if the specified {@code Field's} associated column is nullable.
@@ -235,7 +242,8 @@ public abstract class PersistencePolicy {
 	 *            the {@code Class} to get relationships for
 	 * @return {@code Set} of all many-to-many relationships
 	 */
-	public abstract Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c);
+	public abstract Set<ManyToManyRelationship> getManyToManyRelationships(
+			Class<?> c);
 
 	/**
 	 * Indicates if the given persistent {@link Class} has cascading enabled.
@@ -303,7 +311,8 @@ public abstract class PersistencePolicy {
 	 *            for
 	 * @return {@code Field} pertaining to the relationship or {@code null}
 	 */
-	public abstract Field findRelationshipField(Class<?> c, ModelRelationship rel);
+	public abstract Field findRelationshipField(Class<?> c,
+			ModelRelationship rel);
 
 	/**
 	 * Indicates if the given persistent {@link Class} has lazy loading enabled
@@ -325,7 +334,8 @@ public abstract class PersistencePolicy {
 	 *             if the given {@code Class} is not a domain model or
 	 *             persistent
 	 */
-	public abstract String getRestEndpoint(Class<?> c) throws IllegalArgumentException;
+	public abstract String getRestEndpoint(Class<?> c)
+			throws IllegalArgumentException;
 
 	/**
 	 * Retrieves the REST endpoint field name for the given persistent
@@ -338,7 +348,8 @@ public abstract class PersistencePolicy {
 	 *             if the containing {@link Class} of the given {@code Field} is
 	 *             transient or if the {@code Field} itself is marked transient
 	 */
-	public abstract String getEndpointFieldName(Field f) throws IllegalArgumentException;
+	public abstract String getEndpointFieldName(Field f)
+			throws IllegalArgumentException;
 
 	/**
 	 * Finds the persistent {@link Field} for the given {@link Class} which has
@@ -372,7 +383,8 @@ public abstract class PersistencePolicy {
 	 */
 	public List<Field> getUniqueFields(Class<?> c) {
 		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
+			throw new IllegalArgumentException("Class '" + c.getName()
+					+ "' is transient.");
 		List<Field> ret = new ArrayList<Field>();
 		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
@@ -403,14 +415,17 @@ public abstract class PersistencePolicy {
 		try {
 			pk = (Serializable) f.get(model);
 		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to calculate model hash for object of type '" + model.getClass().getName() + "'", e);
+			mLogger.error("Unable to calculate model hash for object of type '"
+					+ model.getClass().getName() + "'", e);
 			return 0;
 		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to calculate model hash for object of type '" + model.getClass().getName() + "'", e);
+			mLogger.error("Unable to calculate model hash for object of type '"
+					+ model.getClass().getName() + "'", e);
 			return 0;
 		} catch (ClassCastException e) {
-			throw new ModelConfigurationException("Invalid primary key specified for '" + model.getClass().getName()
-					+ "'.");
+			throw new ModelConfigurationException(
+					"Invalid primary key specified for '"
+							+ model.getClass().getName() + "'.");
 		}
 		return computeModelHash(model.getClass(), pk);
 	}
@@ -446,18 +461,22 @@ public abstract class PersistencePolicy {
 		try {
 			if (mTypePolicy.isDomainProxy(model.getClass())) {
 				// Need to invoke getter if it's a proxy
-				ret = (Serializable) mClassReflector.invokeGetter(pkField, model);
+				ret = (Serializable) mClassReflector.invokeGetter(pkField,
+						model);
 			} else {
 				// Otherwise just get it using reflection
 				ret = (Serializable) pkField.get(model);
 			}
 		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'", e);
+			mLogger.error("Unable to retrieve primary key for object of type '"
+					+ model.getClass().getName() + "'", e);
 		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to retrieve primary key for object of type '" + model.getClass().getName() + "'", e);
+			mLogger.error("Unable to retrieve primary key for object of type '"
+					+ model.getClass().getName() + "'", e);
 		} catch (ClassCastException e) {
-			throw new ModelConfigurationException("Invalid primary key specified for '" + model.getClass().getName()
-					+ "'.");
+			throw new ModelConfigurationException(
+					"Invalid primary key specified for '"
+							+ model.getClass().getName() + "'.");
 		}
 		return ret;
 	}
@@ -497,7 +516,8 @@ public abstract class PersistencePolicy {
 	protected Field findPrimaryKeyField(Class<?> c) {
 		List<Field> fields = getPersistentFields(c);
 		for (Field f : fields) {
-			if (f.getName().equals("mId") || f.getName().equals("mID") || f.getName().equalsIgnoreCase("id"))
+			if (f.getName().equals("mId") || f.getName().equals("mID")
+					|| f.getName().equalsIgnoreCase("id"))
 				return f;
 		}
 		return null;
