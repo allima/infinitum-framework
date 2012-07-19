@@ -36,11 +36,11 @@ import org.simpleframework.xml.core.Commit;
 
 import android.app.Activity;
 
+import com.clarionmedia.infinitum.aop.AspectComponent;
 import com.clarionmedia.infinitum.context.AbstractContext;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.di.AspectComponent;
 import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.Injector;
 import com.clarionmedia.infinitum.di.impl.InfinitumInjector;
@@ -58,7 +58,7 @@ import com.clarionmedia.infinitum.di.impl.InfinitumInjector;
  */
 @Root(name = "infinitum-configuration")
 public class XmlApplicationContext extends AbstractContext {
-	
+
 	@ElementMap(name = "application", entry = "property", key = "name", attribute = true, required = false)
 	private Map<String, String> mAppConfig;
 
@@ -70,10 +70,10 @@ public class XmlApplicationContext extends AbstractContext {
 
 	@Element(name = "rest", required = false, type = XmlRestfulContext.class)
 	private RestfulContext mRestConfig;
-	
+
 	@Element(name = "beans", required = false)
 	private BeanContainer mBeanContainer;
-	
+
 	@Override
 	public Injector getInjector(Activity activity) {
 		return new InfinitumInjector();
@@ -203,19 +203,30 @@ public class XmlApplicationContext extends AbstractContext {
 	public void setRestfulConfiguration(RestfulContext restContext) {
 		mRestConfig = restContext;
 	}
-	
+
 	@Override
 	protected List<BeanComponent> getBeans() {
-		List<BeanComponent> beans = new ArrayList<BeanComponent>(mBeanContainer.mBeans);
-		beans.addAll(mBeanContainer.mAspects);
-		return beans;
+		List<BeanComponent> ret = new ArrayList<BeanComponent>();
+		if (mBeanContainer.mBeans != null)
+			ret.addAll(mBeanContainer.mBeans);
+		if (mBeanContainer.mAspects != null)
+			ret.addAll(mBeanContainer.mAspects);
+		return ret;
 	}
-	
+
+	@Override
+	protected List<AspectComponent> getAspects() {
+		List<AspectComponent> ret = new ArrayList<AspectComponent>();
+		if (mBeanContainer.mAspects != null)
+			ret.addAll(mBeanContainer.mAspects);
+		return ret;
+	}
+
 	@Override
 	protected RestfulContext getRestContext() {
 		return mRestConfig;
 	}
-	
+
 	@Override
 	public void setComponentScanPackages(String packages) {
 		if (mBeanContainer.mComponentScan == null)
@@ -225,11 +236,11 @@ public class XmlApplicationContext extends AbstractContext {
 
 	@Override
 	protected List<String> getScanPackages() {
-	    if (mBeanContainer.mComponentScan == null)
-	    	return new ArrayList<String>();
+		if (mBeanContainer.mComponentScan == null)
+			return new ArrayList<String>();
 		return mBeanContainer.mComponentScan.getBasePackages();
 	}
-	
+
 	@Override
 	public void setComponentScanEnabled(boolean componentScan) {
 		if (mBeanContainer.mComponentScan == null)
@@ -243,7 +254,7 @@ public class XmlApplicationContext extends AbstractContext {
 			return false;
 		return mBeanContainer.mComponentScan.mIsEnabled;
 	}
-	
+
 	/**
 	 * Executes after the {@code XmlApplicationContext} has been constructed.
 	 */
@@ -268,25 +279,25 @@ public class XmlApplicationContext extends AbstractContext {
 		}
 
 	}
-	
+
 	@Root
 	private static class BeanContainer {
-		
+
 		@ElementList(entry = "bean", inline = true, required = false)
 		private List<BeanComponent> mBeans;
-		
+
 		@ElementList(entry = "aspect", inline = true, required = false)
 		private List<AspectComponent> mAspects;
-		
+
 		@Element(name = "component-scan", required = false)
 		private ComponentScan mComponentScan;
-		
+
 		@Root
 		private static class ComponentScan {
-			
+
 			@Attribute(name = "enabled", required = false)
 			private boolean mIsEnabled = true;
-			
+
 			@Attribute(name = "base-package", required = false)
 			private String mBasePackages;
 
@@ -296,14 +307,14 @@ public class XmlApplicationContext extends AbstractContext {
 				while (iter.hasNext()) {
 					String pkg = iter.next().trim();
 					if (pkg.length() == 0)
-					    iter.remove();
+						iter.remove();
 				}
 				packages.add("com.clarionmedia.infinitum.internal");
 				return packages;
 			}
-			
+
 		}
-		
+
 	}
 
 }

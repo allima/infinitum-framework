@@ -21,7 +21,7 @@ package com.clarionmedia.infinitum.aop;
 
 import java.lang.annotation.Annotation;
 
-import com.clarionmedia.infinitum.aop.JoinPoint.Location;
+import com.clarionmedia.infinitum.aop.JoinPoint.AdviceLocation;
 import com.clarionmedia.infinitum.aop.annotation.After;
 import com.clarionmedia.infinitum.aop.annotation.Around;
 import com.clarionmedia.infinitum.aop.annotation.Before;
@@ -51,17 +51,17 @@ public class Advice {
 	}
 
 	/**
-	 * Returns the {@code Advice} {@link Location}.
+	 * Returns the {@code Advice} {@link AdviceLocation}.
 	 * 
 	 * @return {@code Advice} {@code Location}
 	 */
-	public Location getLocation() {
+	public AdviceLocation getLocation() {
 		if (Before.class.isAssignableFrom(mAdvice.getClass()))
-			return Location.Before;
+			return AdviceLocation.Before;
 		if (After.class.isAssignableFrom(mAdvice.getClass()))
-			return Location.After;
+			return AdviceLocation.After;
 		if (Around.class.isAssignableFrom(mAdvice.getClass()))
-			return Location.Around;
+			return AdviceLocation.Around;
 		return null;
 	}
 

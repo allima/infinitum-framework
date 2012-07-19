@@ -37,7 +37,7 @@ import com.clarionmedia.infinitum.internal.Preconditions;
  */
 public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 
-	private Location mLocation;
+	private AdviceLocation mLocation;
 
 	/**
 	 * Creates a new {@code BasicJoinPoint}.
@@ -49,7 +49,7 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 	 * @param location
 	 *            advice location
 	 */
-	public BasicJoinPoint(Object advisor, Method advice, Location location) {
+	public BasicJoinPoint(Object advisor, Method advice, AdviceLocation location) {
 		super(advisor, advice);
 		mLocation = location;
 	}
@@ -124,12 +124,12 @@ public class BasicJoinPoint extends AbstractJoinPoint implements JoinPoint {
 	}
 
 	@Override
-	public Location getLocation() {
+	public AdviceLocation getLocation() {
 		return mLocation;
 	}
 
 	@Override
-	public void setLocation(Location location) {
+	public void setLocation(AdviceLocation location) {
 		mLocation = location;
 	}
 

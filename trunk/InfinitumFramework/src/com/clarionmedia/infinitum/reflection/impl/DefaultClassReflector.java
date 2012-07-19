@@ -118,14 +118,14 @@ public class DefaultClassReflector implements ClassReflector {
 	}
 
 	@Override
-	public Method getMethod(Class<?> clazz, String name, Class<?>[] paramTypes) {
+	public Method getMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
 		try {
 			return clazz.getMethod(name, paramTypes);
 		} catch (SecurityException e) {
-			throw new InfinitumRuntimeException("Unable to retrieve method "
-					+ name + " from '" + clazz.getName() + "'.");
+			throw new InfinitumRuntimeException("Unable to retrieve method '"
+					+ name + "' from '" + clazz.getName() + "'.");
 		} catch (NoSuchMethodException e) {
-			throw new InfinitumRuntimeException("Method " + name + " in '"
+			throw new InfinitumRuntimeException("Method '" + name + "' in '"
 					+ clazz.getName() + "' does not exist.");
 		}
 	}

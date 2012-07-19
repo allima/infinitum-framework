@@ -101,7 +101,7 @@ public interface ClassReflector {
 	 *            the {@code Method} parameter types
 	 * @return {@code Method}
 	 */
-	Method getMethod(Class<?> clazz, String name, Class<?>[] paramTypes);
+	Method getMethod(Class<?> clazz, String name, Class<?>... paramTypes);
 
 	/**
 	 * Retrieves all {@code Methods} for the given {@link Class} that have the

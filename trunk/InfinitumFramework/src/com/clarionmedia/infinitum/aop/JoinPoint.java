@@ -39,9 +39,16 @@ public interface JoinPoint {
 	/**
 	 * Describes the location of advice relative to the join point.
 	 */
-	public static enum Location {
+	public static enum AdviceLocation {
 		Before, After, Around
 	};
+
+	/**
+	 * Describes the type of pointcuts and how it's applied.
+	 */
+	public static enum PointcutType {
+		Beans, Within
+	}
 
 	/**
 	 * Returns the {@link Method} being invoked at this {@code JoinPoint}.
@@ -134,7 +141,7 @@ public interface JoinPoint {
 	 * 
 	 * @return advice location
 	 */
-	Location getLocation();
+	AdviceLocation getLocation();
 
 	/**
 	 * Sets the advice location.
@@ -142,7 +149,7 @@ public interface JoinPoint {
 	 * @param location
 	 *            advice location
 	 */
-	void setLocation(Location location);
+	void setLocation(AdviceLocation location);
 
 	/**
 	 * Returns the {@link Aspect} containing the advice to apply.
