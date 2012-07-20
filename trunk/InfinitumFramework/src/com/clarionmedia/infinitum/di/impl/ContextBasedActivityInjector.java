@@ -41,7 +41,13 @@ import com.clarionmedia.infinitum.activity.annotation.Bind;
 import com.clarionmedia.infinitum.activity.annotation.InjectLayout;
 import com.clarionmedia.infinitum.activity.annotation.InjectResource;
 import com.clarionmedia.infinitum.activity.annotation.InjectView;
+import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.ActivityInjector;
+import com.clarionmedia.infinitum.di.BeanFactory;
+import com.clarionmedia.infinitum.di.BeanUtils;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
@@ -70,10 +76,34 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 
 	@Override
 	public void inject() {
+		injectBeans();
 		injectLayout();
 		injectViews();
 		injectResources();
 		injectListeners();
+	}
+
+	private void injectBeans() {
+		InfinitumContext ctx = ContextFactory.getInstance().getContext();
+		BeanFactory beanFactory = ctx.getBeanFactory();
+		for (Field field : mFields) {
+			if (!field.isAnnotationPresent(Autowired.class))
+				continue;
+			field.setAccessible(true);
+			Autowired autowired = field.getAnnotation(Autowired.class);
+			String qualifier = autowired.value().trim();
+			Class<?> type = field.getType();
+			Object bean = qualifier.equals("") ? BeanUtils.findCandidateBean(
+					beanFactory, type) : ctx.getBean(qualifier);
+			if (bean == null) {
+				throw new InfinitumConfigurationException(
+						"Could not autowire property of type '"
+								+ type.getName() + "' in Activity '"
+								+ mActivity.getClass().getName()
+								+ "' (no autowire candidates found)");
+			}
+			mClassReflector.setFieldValue(mActivity, field, bean);
+		}
 	}
 
 	/**
@@ -99,16 +129,70 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 			InjectView injectView = field.getAnnotation(InjectView.class);
 			int viewId = injectView.value();
 			field.setAccessible(true);
-			try {
-				field.set(mActivity, mActivity.findViewById(viewId));
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			mClassReflector.setFieldValue(mActivity, field,
+					mActivity.findViewById(viewId));
 		}
+	}
+
+	/**
+	 * Injects the fields annotated with {@code @InjectResource}.
+	 */
+	private void injectResources() {
+		for (Field field : mFields) {
+			if (!field.isAnnotationPresent(InjectResource.class))
+				continue;
+			InjectResource injectResource = field
+					.getAnnotation(InjectResource.class);
+			int resourceId = injectResource.value();
+			field.setAccessible(true);
+			Object resource = resolveResourceForField(field, resourceId);
+			mClassReflector.setFieldValue(mActivity, field, resource);
+		}
+	}
+
+	/**
+	 * Loads the appropriate resource based on the {@link Field} type and the
+	 * given resource ID.
+	 */
+	private Object resolveResourceForField(Field field, int resourceId) {
+		Resources resources = mActivity.getResources();
+		String resourceType = resources.getResourceTypeName(resourceId);
+		if (resourceType.equalsIgnoreCase("anim"))
+			return AnimationUtils.loadAnimation(mActivity, resourceId);
+		if (resourceType.equalsIgnoreCase("drawable"))
+			return resources.getDrawable(resourceId);
+		if (resourceType.equalsIgnoreCase("color"))
+			return resources.getColor(resourceId);
+		if (resourceType.equalsIgnoreCase("string"))
+			return resources.getString(resourceId);
+		if (resourceType.equalsIgnoreCase("integer"))
+			return resources.getInteger(resourceId);
+		if (resourceType.equalsIgnoreCase("bool"))
+			return resources.getBoolean(resourceId);
+		if (resourceType.equalsIgnoreCase("dimen"))
+			return resources.getDimension(resourceId);
+		if (resourceType.equalsIgnoreCase("movie"))
+			return resources.getMovie(resourceId);
+		if (resourceType.equalsIgnoreCase("array")) {
+			if (field.getType() == int[].class
+					|| field.getType() == Integer[].class)
+				return resources.getIntArray(resourceId);
+			else if (field.getType() == String[].class
+					|| field.getType() == CharSequence[].class)
+				return resources.getStringArray(resourceId);
+			else
+				return resources.obtainTypedArray(resourceId); // TODO: convert
+																// to actual
+																// array
+		}
+		if (resourceType.equalsIgnoreCase("id"))
+			throw new InfinitumRuntimeException("Unable to inject field '"
+					+ field.getName() + "' in Activity '"
+					+ mActivity.getClass().getName()
+					+ "'. Are you injecting a view?");
+		throw new InfinitumRuntimeException("Unable to inject field '"
+				+ field.getName() + "' in Activity '"
+				+ mActivity.getClass().getName() + "' (unsupported type).");
 	}
 
 	/**
@@ -181,8 +265,8 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 				break;
 			case OnKey :
 				final Method onKey = mClassReflector.getMethod(
-						mActivity.getClass(), callback, View.class,
-						int.class, KeyEvent.class);
+						mActivity.getClass(), callback, View.class, int.class,
+						KeyEvent.class);
 				view.setOnKeyListener(new OnKeyListener() {
 					@Override
 					public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -204,75 +288,6 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 				});
 				break;
 		}
-	}
-
-	/**
-	 * Injects the fields annotated with {@code @InjectResource}.
-	 */
-	private void injectResources() {
-		for (Field field : mFields) {
-			if (!field.isAnnotationPresent(InjectResource.class))
-				continue;
-			InjectResource injectResource = field
-					.getAnnotation(InjectResource.class);
-			int resourceId = injectResource.value();
-			field.setAccessible(true);
-			try {
-				Object resource = resolveResourceForField(field, resourceId);
-				field.set(mActivity, resource);
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-
-	/**
-	 * Loads the appropriate resource based on the {@link Field} type and the
-	 * given resource ID.
-	 */
-	private Object resolveResourceForField(Field field, int resourceId) {
-		Resources resources = mActivity.getResources();
-		String resourceType = resources.getResourceTypeName(resourceId);
-		if (resourceType.equalsIgnoreCase("anim"))
-			return AnimationUtils.loadAnimation(mActivity, resourceId);
-		if (resourceType.equalsIgnoreCase("drawable"))
-			return resources.getDrawable(resourceId);
-		if (resourceType.equalsIgnoreCase("color"))
-			return resources.getColor(resourceId);
-		if (resourceType.equalsIgnoreCase("string"))
-			return resources.getString(resourceId);
-		if (resourceType.equalsIgnoreCase("integer"))
-			return resources.getInteger(resourceId);
-		if (resourceType.equalsIgnoreCase("bool"))
-			return resources.getBoolean(resourceId);
-		if (resourceType.equalsIgnoreCase("dimen"))
-			return resources.getDimension(resourceId);
-		if (resourceType.equalsIgnoreCase("movie"))
-			return resources.getMovie(resourceId);
-		if (resourceType.equalsIgnoreCase("array")) {
-			if (field.getType() == int[].class
-					|| field.getType() == Integer[].class)
-				return resources.getIntArray(resourceId);
-			else if (field.getType() == String[].class
-					|| field.getType() == CharSequence[].class)
-				return resources.getStringArray(resourceId);
-			else
-				return resources.obtainTypedArray(resourceId); // TODO: convert
-																// to actual
-																// array
-		}
-		if (resourceType.equalsIgnoreCase("id"))
-			throw new InfinitumRuntimeException("Unable to inject field '"
-					+ field.getName() + "' in Activity '"
-					+ mActivity.getClass().getName()
-					+ "'. Are you injecting a view?");
-		throw new InfinitumRuntimeException("Unable to inject field '"
-				+ field.getName() + "' in Activity '"
-				+ mActivity.getClass().getName() + "' (unsupported type).");
 	}
 
 }
