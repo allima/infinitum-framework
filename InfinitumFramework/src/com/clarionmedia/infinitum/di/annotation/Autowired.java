@@ -31,7 +31,7 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
 /**
  * <p>
  * Indicates that the annotated constructor, setter, or field is to be autowired
- * by the {@link InfinitumContext}.
+ * by Infinitum.
  * </p>
  * <p>
  * If a constructor is marked with this annotation, it will be used to

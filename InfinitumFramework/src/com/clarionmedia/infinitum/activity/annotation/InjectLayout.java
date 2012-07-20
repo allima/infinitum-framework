@@ -24,6 +24,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
 import android.app.Activity;
 
 /**
@@ -41,6 +42,7 @@ import android.app.Activity;
  * @author Tyler Treat
  * @version 1.0 07/18/12
  * @since 1.0
+ * @see Autowired
  * @see InjectResource
  * @see InjectView
  */

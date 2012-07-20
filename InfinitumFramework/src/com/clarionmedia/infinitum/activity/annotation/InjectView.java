@@ -25,7 +25,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-
+import com.clarionmedia.infinitum.di.annotation.Autowired;
 import android.view.View;
 
 /**
@@ -41,6 +41,7 @@ import android.view.View;
  * @author Tyler Treat
  * @version 1.0 07/18/12
  * @since 1.0
+ * @see Autowired
  * @see InjectLayout
  * @see InjectResource
  * @see Bind

@@ -120,7 +120,7 @@ public class DefaultClassReflector implements ClassReflector {
 	@Override
 	public Method getMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
 		try {
-			return clazz.getMethod(name, paramTypes);
+			return clazz.getDeclaredMethod(name, paramTypes);
 		} catch (SecurityException e) {
 			throw new InfinitumRuntimeException("Unable to retrieve method '"
 					+ name + "' from '" + clazz.getName() + "'.");
@@ -235,6 +235,21 @@ public class DefaultClassReflector implements ClassReflector {
 			throw new InfinitumRuntimeException("Unable to invoke method '"
 					+ method.getName() + "' for object of type '"
 					+ receiver.getClass().getName() + "'.", e);
+		}
+	}
+
+	@Override
+	public void setFieldValue(Object object, Field field, Object value) {
+		try {
+			field.set(object, value);
+		} catch (IllegalArgumentException e) {
+			throw new InfinitumRuntimeException("Unable to set field '"
+					+ field.getName() + "' for object of type '"
+					+ object.getClass().getName() + "'.", e);
+		} catch (IllegalAccessException e) {
+			throw new InfinitumRuntimeException("Unable to set field '"
+					+ field.getName() + "' for object of type '"
+					+ object.getClass().getName() + "'.", e);
 		}
 	}
 

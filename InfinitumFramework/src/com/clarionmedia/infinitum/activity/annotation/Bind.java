@@ -49,6 +49,7 @@ import android.view.View;
  * @author Tyler Treat
  * @version 1.0 07/19/12
  * @since 1.0
+ * @see InjectView
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

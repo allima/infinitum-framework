@@ -174,4 +174,16 @@ public interface ClassReflector {
 	 */
 	Object invokeMethod(Object receiver, Method method, Object... args);
 
+	/**
+	 * Sets the value of the given {@link Field} for the given {@link Object}.
+	 * 
+	 * @param object
+	 *            the {@code Object} to set the value for
+	 * @param field
+	 *            the {@code Field} to set the value for
+	 * @param value
+	 *            {@code Field} value to set
+	 */
+	void setFieldValue(Object object, Field field, Object value);
+
 }
