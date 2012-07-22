@@ -35,7 +35,7 @@ import com.clarionmedia.infinitum.internal.Preconditions;
  * @since 1.0
  */
 public class Pointcut {
-	
+
 	private static final int INITIAL_QUEUE_SIZE = 11;
 
 	private Queue<JoinPoint> mJoinPoints;
@@ -66,7 +66,17 @@ public class Pointcut {
 	public Class<?> getPointcutType() {
 		return mClass;
 	}
-	
+
+	/**
+	 * Sets the {@link Class} this {@code Pointcut} is associated with.
+	 * 
+	 * @param clazz
+	 *            {@code Class}
+	 */
+	public void setPointcutType(Class<?> clazz) {
+		mClass = clazz;
+	}
+
 	/**
 	 * Returns the bean name this {@code Pointcut} is associated with.
 	 * 
@@ -74,6 +84,16 @@ public class Pointcut {
 	 */
 	public String getBeanName() {
 		return mBeanName;
+	}
+
+	/**
+	 * Sets the bean name this {@code Pointcut} is associated with.
+	 * 
+	 * @param beanName
+	 *            bean name
+	 */
+	public void setBeanName(String beanName) {
+		mBeanName = beanName;
 	}
 
 	/**
