@@ -192,7 +192,9 @@ public abstract class AbstractContext implements InfinitumContext {
 	@SuppressWarnings("unchecked")
 	protected void postProcess() {
 		PackageReflector reflector = new DefaultPackageReflector();
-		getRestContext().setParentContext(this);
+		RestfulContext restContext = getRestContext();
+		if (restContext != null)
+		    restContext.setParentContext(this);
 
 		// Register XML beans
 		mBeanFactory = new ConfigurableBeanFactory();

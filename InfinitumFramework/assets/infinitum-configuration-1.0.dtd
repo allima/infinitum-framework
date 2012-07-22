@@ -47,16 +47,16 @@
 <!ATTLIST aspect id CDATA #REQUIRED>
 <!ATTLIST bean src CDATA #REQUIRED>
 
-<!ELEMENT advice>
+<!ELEMENT advice (#PCDATA)>
 <!ATTLIST advice id CDATA #REQUIRED>
 <!ATTLIST advice type CDATA #REQUIRED>
 <!ATTLIST advice pointcut CDATA #REQUIRED>
 <!ATTLIST advice value CDATA #REQUIRED>
 <!ATTLIST advice order CDATA #IMPLIED>
 
-<!ELEMENT component-scan>
-<!ATTLIST component-scan enabled #IMPLIED>
-<!ATTLIST component-scan base-package #IMPLIED>
+<!ELEMENT component-scan (#PCDATA)>
+<!ATTLIST component-scan enabled CDATA #IMPLIED>
+<!ATTLIST component-scan base-package CDATA #IMPLIED>
 
 <!ELEMENT resource (#PCDATA)>
 <!ATTLIST resource name CDATA #REQUIRED>

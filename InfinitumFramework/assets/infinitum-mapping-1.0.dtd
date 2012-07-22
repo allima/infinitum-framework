@@ -24,7 +24,7 @@
 
 <!ELEMENT infinitum-mapping (class+)>
 
-<!ELEMENT class (primary-key+ , property*, many-to-many* , many-to-one*, one-to-many* , one-to-one*)
+<!ELEMENT class (primary-key+ , property* , many-to-many* , many-to-one* , one-to-many* , one-to-one*)>
 <!ATTLIST class name CDATA #REQUIRED>
 <!ATTLIST class table CDATA #IMPLIED>
 <!ATTLIST class lazy CDATA #IMPLIED>
@@ -32,41 +32,41 @@
 <!ATTLIST class rest CDATA #IMPLIED>
 
 <!ELEMENT primary-key (#PCDATA)>
-<!ATTLIST primary-key name #REQUIRED>
-<!ATTLIST primary-key column #IMPLIED>
-<!ATTLIST primary-key type #REQUIRED>
-<!ATTLIST primary-key autoincrement #IMPLIED>
+<!ATTLIST primary-key name CDATA #REQUIRED>
+<!ATTLIST primary-key column CDATA #IMPLIED>
+<!ATTLIST primary-key type CDATA #REQUIRED>
+<!ATTLIST primary-key autoincrement CDATA #IMPLIED>
 
 <!ELEMENT property (#PCDATA)>
-<!ATTLIST property name #REQUIRED>
-<!ATTLIST property column #IMPLIED>
-<!ATTLIST property type #REQUIRED>
-<!ATTLIST property not-null #IMPLIED>
-<!ATTLIST property unique #IMPLIED>
-<!ATTLIST property rest #IMPLIED>
+<!ATTLIST property name CDATA #REQUIRED>
+<!ATTLIST property column CDATA #IMPLIED>
+<!ATTLIST property type CDATA #REQUIRED>
+<!ATTLIST property not-null CDATA #IMPLIED>
+<!ATTLIST property unique CDATA #IMPLIED>
+<!ATTLIST property rest CDATA #IMPLIED>
 
 <!ELEMENT many-to-many (#PCDATA)>
-<!ATTLIST many-to-many name #REQUIRED>
-<!ATTLIST many-to-many field #REQUIRED>
-<!ATTLIST many-to-many class #REQUIRED>
-<!ATTLIST many-to-many foreign-field #REQUIRED>
-<!ATTLIST many-to-many key-field #REQUIRED>
-<!ATTLIST many-to-many table #REQUIRED>
+<!ATTLIST many-to-many name CDATA #REQUIRED>
+<!ATTLIST many-to-many field CDATA #REQUIRED>
+<!ATTLIST many-to-many class CDATA #REQUIRED>
+<!ATTLIST many-to-many foreign-field CDATA #REQUIRED>
+<!ATTLIST many-to-many key-field CDATA #REQUIRED>
+<!ATTLIST many-to-many table CDATA #REQUIRED>
 
 <!ELEMENT many-to-one (#PCDATA)>
-<!ATTLIST many-to-one name #REQUIRED>
-<!ATTLIST many-to-one field #REQUIRED>
-<!ATTLIST many-to-one class #REQUIRED>
-<!ATTLIST many-to-one column #REQUIRED>
+<!ATTLIST many-to-one name CDATA #REQUIRED>
+<!ATTLIST many-to-one field CDATA #REQUIRED>
+<!ATTLIST many-to-one class CDATA #REQUIRED>
+<!ATTLIST many-to-one column CDATA #REQUIRED>
 
 <!ELEMENT one-to-many (#PCDATA)>
-<!ATTLIST one-to-many name #REQUIRED>
-<!ATTLIST one-to-many field #REQUIRED>
-<!ATTLIST one-to-many class #REQUIRED>
-<!ATTLIST one-to-many column #REQUIRED>
+<!ATTLIST one-to-many name CDATA #REQUIRED>
+<!ATTLIST one-to-many field CDATA #REQUIRED>
+<!ATTLIST one-to-many class CDATA #REQUIRED>
+<!ATTLIST one-to-many column CDATA #REQUIRED>
 
 <!ELEMENT one-to-one (#PCDATA)>
-<!ATTLIST one-to-one name #REQUIRED>
-<!ATTLIST one-to-one field #REQUIRED>
-<!ATTLIST one-to-one class #REQUIRED>
-<!ATTLIST one-to-one column #REQUIRED>
+<!ATTLIST one-to-one name CDATA #REQUIRED>
+<!ATTLIST one-to-one field CDATA #REQUIRED>
+<!ATTLIST one-to-one class CDATA #REQUIRED>
+<!ATTLIST one-to-one column CDATA #REQUIRED>
