@@ -63,6 +63,12 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 	private PackageReflector mPackageReflector;
 	private BeanFactory mBeanFactory;
 	private AdvisedProxyFactory mProxyFactory;
+	
+	/**
+	 * Creates a new {@code AnnotationsAspectWeaver}.
+	 */
+	public AnnotationsAspectWeaver() { 
+	}
 
 	/**
 	 * Creates a new {@code AnnotationsAspectWeaver} with the given
@@ -159,7 +165,8 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			pkg = pkg.toLowerCase().trim();
 			if (pkg.length() == 0)
 				continue;
-			Map<Object, String> invertedMap = CollectionUtil.invert(mBeanFactory.getBeanMap());
+			Map<Object, String> invertedMap = CollectionUtil
+					.invert(mBeanFactory.getBeanMap());
 			for (Object bean : invertedMap.keySet()) {
 				if (!bean.getClass().getName().startsWith(pkg))
 					continue;
