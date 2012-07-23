@@ -73,6 +73,17 @@ public abstract class DexMakerProxy extends AopProxy {
 		return (DexMakerProxy) ProxyBuilder.getInvocationHandler(object);
 	}
 
+	/**
+	 * Indicates if the given {@link Object} is an {@link AopProxy}.
+	 * 
+	 * @param object
+	 *            the {@code Object} to check
+	 * @return {@code true} if it is a proxy, {@code false} if not
+	 */
+	public static boolean isAopProxy(Object object) {
+		return ProxyBuilder.isProxyClass(object.getClass());
+	}
+
 	@Override
 	public Object getProxy() {
 		try {
@@ -94,7 +105,7 @@ public abstract class DexMakerProxy extends AopProxy {
 			return null;
 		return ProxyBuilder.getInvocationHandler(proxy);
 	}
-	
+
 	@Override
 	public final ProxyType getProxyType() {
 		return ProxyType.DexMaker;

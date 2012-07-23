@@ -25,37 +25,44 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
+
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.JoinPoint.AdviceLocation;
 import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
-import com.xtremelabs.robolectric.Robolectric;
 import com.xtremelabs.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
-public class AdvisedDexMakerProxyTest {
+public class AdvisedJdkDynamicProxyTest {
 
-	private AdvisedDexMakerProxy proxy;
+	private AdvisedJdkDynamicProxy proxy;
 	private Pointcut mockPointcut;
 	private BasicJoinPoint mockJoinPoint;
 	private ProceedingJoinPoint mockProceedingJoinPoint;
-	private Integer target;
+	private List<String> target;
+	private Class<?>[] interfaces;
 
 	@Before
 	public void setup() {
 		mockPointcut = mock(Pointcut.class);
 		mockJoinPoint = mock(BasicJoinPoint.class);
 		mockProceedingJoinPoint = mock(ProceedingJoinPoint.class);
-		target = new Integer(42);
+		target = new ArrayList<String>();
+		target.add("hello");
+		interfaces = new Class<?>[] { List.class };
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -63,7 +70,7 @@ public class AdvisedDexMakerProxyTest {
 		
 		// Setup
 		mockPointcut = null;
-		proxy = new AdvisedDexMakerProxy(Robolectric.application, target, mockPointcut);
+		proxy = new AdvisedJdkDynamicProxy(target, mockPointcut, interfaces);
 		
 		// Verify
 		assertTrue("Proxy constructor should have thrown an IllegalArgumentException", false);
@@ -76,7 +83,7 @@ public class AdvisedDexMakerProxyTest {
 		// Setup
 		Method method = target.getClass().getMethod("toString");
 		when(mockPointcut.getJoinPoints()).thenReturn(new PriorityQueue<JoinPoint>());
-		proxy = new AdvisedDexMakerProxy(Robolectric.application, target, mockPointcut);
+		proxy = new AdvisedJdkDynamicProxy(target, mockPointcut, interfaces);
 
 		// Run
 		Object result = proxy.invoke(proxy, method, new Object[0]);
@@ -84,7 +91,7 @@ public class AdvisedDexMakerProxyTest {
 		// Verify
 		assertNotNull("Proxy should have returned target value", result);
 		assertThat("Proxy should have returned target value", result, is(String.class));
-		assertTrue("Proxy should have returned target value", result.equals("42"));
+		assertTrue("Proxy should have returned target value", result.equals("[hello]"));
 
 	}
 	
@@ -99,7 +106,7 @@ public class AdvisedDexMakerProxyTest {
 		when(mockJoinPoint.isClassScope()).thenReturn(false);
 		when(mockJoinPoint.getMethod()).thenReturn(null);
 		when(mockPointcut.getJoinPoints()).thenReturn(advice);
-		proxy = new AdvisedDexMakerProxy(Robolectric.application, target, mockPointcut);
+		proxy = new AdvisedJdkDynamicProxy(target, mockPointcut, interfaces);
 
 		// Run
 		Object result = proxy.invoke(proxy, method, new Object[0]);
@@ -108,7 +115,7 @@ public class AdvisedDexMakerProxyTest {
 		verify(mockJoinPoint, times(0)).invoke();
 		assertNotNull("Proxy should have returned target value", result);
 		assertThat("Proxy should have returned target value", result, is(String.class));
-		assertTrue("Proxy should have returned target value", result.equals("42"));
+		assertTrue("Proxy should have returned target value", result.equals("[hello]"));
 	}
 
 
@@ -122,7 +129,7 @@ public class AdvisedDexMakerProxyTest {
 		when(mockJoinPoint.getLocation()).thenReturn(AdviceLocation.Before);
 		when(mockJoinPoint.isClassScope()).thenReturn(true);
 		when(mockPointcut.getJoinPoints()).thenReturn(advice);
-		proxy = new AdvisedDexMakerProxy(Robolectric.application, target, mockPointcut);
+		proxy = new AdvisedJdkDynamicProxy(target, mockPointcut, interfaces);
 
 		// Run
 		Object result = proxy.invoke(proxy, method, new Object[0]);
@@ -131,7 +138,7 @@ public class AdvisedDexMakerProxyTest {
 		verify(mockJoinPoint).invoke();
 		assertNotNull("Proxy should have returned target value", result);
 		assertThat("Proxy should have returned target value", result, is(String.class));
-		assertTrue("Proxy should have returned target value", result.equals("42"));
+		assertTrue("Proxy should have returned target value", result.equals("[hello]"));
 
 	}
 
@@ -145,7 +152,7 @@ public class AdvisedDexMakerProxyTest {
 		when(mockJoinPoint.getLocation()).thenReturn(AdviceLocation.After);
 		when(mockJoinPoint.isClassScope()).thenReturn(true);
 		when(mockPointcut.getJoinPoints()).thenReturn(advice);
-		proxy = new AdvisedDexMakerProxy(Robolectric.application, target, mockPointcut);
+		proxy = new AdvisedJdkDynamicProxy(target, mockPointcut, interfaces);
 
 		// Run
 		Object result = proxy.invoke(proxy, method, new Object[0]);
@@ -154,7 +161,7 @@ public class AdvisedDexMakerProxyTest {
 		verify(mockJoinPoint).invoke();
 		assertNotNull("Proxy should have returned target value", result);
 		assertThat("Proxy should have returned target value", result, is(String.class));
-		assertTrue("Proxy should have returned target value", result.equals("42"));
+		assertTrue("Proxy should have returned target value", result.equals("[hello]"));
 
 	}
 
@@ -169,7 +176,7 @@ public class AdvisedDexMakerProxyTest {
 		when(mockProceedingJoinPoint.isClassScope()).thenReturn(true);
 		when(mockProceedingJoinPoint.invoke()).thenReturn(method.invoke(target, new Object[0]));
 		when(mockPointcut.getJoinPoints()).thenReturn(advice);
-		proxy = new AdvisedDexMakerProxy(Robolectric.application, target, mockPointcut);
+		proxy = new AdvisedJdkDynamicProxy(target, mockPointcut, interfaces);
 
 		// Run
 		Object result = proxy.invoke(proxy, method, new Object[0]);
@@ -178,7 +185,7 @@ public class AdvisedDexMakerProxyTest {
 		verify(mockProceedingJoinPoint).invoke();
 		assertNotNull("Proxy should have returned target value", result);
 		assertThat("Proxy should have returned target value", result, is(String.class));
-		assertTrue("Proxy should have returned target value", result.equals("42"));
+		assertTrue("Proxy should have returned target value", result.equals("[hello]"));
 
 	}
 
@@ -193,7 +200,7 @@ public class AdvisedDexMakerProxyTest {
 		when(mockProceedingJoinPoint.isClassScope()).thenReturn(true);
 		when(mockProceedingJoinPoint.invoke()).thenReturn(null);
 		when(mockPointcut.getJoinPoints()).thenReturn(advice);
-		proxy = new AdvisedDexMakerProxy(Robolectric.application, target, mockPointcut);
+		proxy = new AdvisedJdkDynamicProxy(target, mockPointcut, interfaces);
 
 		// Run
 		Object result = proxy.invoke(proxy, method, new Object[0]);

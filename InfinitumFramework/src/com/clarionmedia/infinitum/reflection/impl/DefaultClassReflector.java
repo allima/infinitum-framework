@@ -125,8 +125,9 @@ public class DefaultClassReflector implements ClassReflector {
 			throw new InfinitumRuntimeException("Unable to retrieve method '"
 					+ name + "' from '" + clazz.getName() + "'.");
 		} catch (NoSuchMethodException e) {
-			throw new InfinitumRuntimeException("Method '" + name + "' in '"
-					+ clazz.getName() + "' does not exist.");
+			if (clazz.getSuperclass() == null)
+				throw new InfinitumRuntimeException("Method '" + name + "' in '" + clazz.getName() + "' does not exist.");
+			return getMethod(clazz.getSuperclass(), name, paramTypes);
 		}
 	}
 

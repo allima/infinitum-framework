@@ -71,6 +71,20 @@ public abstract class AopProxy implements InvocationHandler {
 	}
 
 	/**
+	 * Indicates if the given {@link Object} is an {@link AopProxy}.
+	 * 
+	 * @param object
+	 *            the {@code Object} to check
+	 * @return {@code true} if it is a proxy, {@code false} if not
+	 */
+	public static boolean isAopProxy(Object object) {
+		boolean isProxy = DexMakerProxy.isAopProxy(object);
+		if (!isProxy)
+			isProxy = JdkDynamicProxy.isAopProxy(object);
+		return isProxy;
+	}
+
+	/**
 	 * Returns the proxied {@link Object}.
 	 * 
 	 * @return target {@code Object}

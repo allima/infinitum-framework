@@ -67,6 +67,17 @@ public abstract class JdkDynamicProxy extends AopProxy {
 			return null;
 		return (JdkDynamicProxy) Proxy.getInvocationHandler(object);
 	}
+	
+	/**
+	 * Indicates if the given {@link Object} is an {@link AopProxy}.
+	 * 
+	 * @param object
+	 *            the {@code Object} to check
+	 * @return {@code true} if it is a proxy, {@code false} if not
+	 */
+	public static boolean isAopProxy(Object object) {
+		return Proxy.isProxyClass(object.getClass());
+	}
 
 	@Override
 	public final boolean isProxy(Object object) {

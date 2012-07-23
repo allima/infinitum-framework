@@ -63,6 +63,12 @@ public class XmlAspectWeaver implements AspectWeaver {
 	private List<AspectComponent> mAspects;
 
 	/**
+	 * Creates a new {@code XmlAspectWeaver}.
+	 */
+	public XmlAspectWeaver() {
+	}
+
+	/**
 	 * Creates a new {@code XmlAspectWeaver} with the given {@link BeanFactory}.
 	 * 
 	 * @param beanFactory
@@ -70,7 +76,8 @@ public class XmlAspectWeaver implements AspectWeaver {
 	 * @param aspects
 	 *            the aspects to weave
 	 */
-	public XmlAspectWeaver(BeanFactory beanFactory, List<AspectComponent> aspects) {
+	public XmlAspectWeaver(BeanFactory beanFactory,
+			List<AspectComponent> aspects) {
 		mClassReflector = new DefaultClassReflector();
 		mPackageReflector = new DefaultPackageReflector();
 		mProxyFactory = new DelegatingAdvisedProxyFactory();
@@ -88,6 +95,27 @@ public class XmlAspectWeaver implements AspectWeaver {
 		}
 	}
 
+	/**
+	 * Returns a {@link List} of {@link AspectComponent} instances for this
+	 * {@code XmlAspectWeaver}.
+	 * 
+	 * @return {@code List} of {@code AspectComponents}
+	 */
+	public List<AspectComponent> getAspects() {
+		return mAspects;
+	}
+
+	/**
+	 * Sets the {@link AspectComponent} instances for this
+	 * {@code XmlAspectWeaver}.
+	 * 
+	 * @param aspects
+	 *            the {@code AspectComponents} to set
+	 */
+	public void setAspects(List<AspectComponent> aspects) {
+		mAspects = aspects;
+	}
+
 	// Build a Collection of Pointcuts for the given aspects
 	private Collection<Pointcut> getPointcuts(List<AspectComponent> aspects) {
 		Map<String, Pointcut> pointcutMap = new HashMap<String, Pointcut>();
@@ -99,24 +127,31 @@ public class XmlAspectWeaver implements AspectWeaver {
 	}
 
 	// Processes XML advice
-	private void processAspect(AspectComponent aspect, Map<String, Pointcut> pointcutMap) {
+	private void processAspect(AspectComponent aspect,
+			Map<String, Pointcut> pointcutMap) {
 		for (AspectComponent.Advice advice : aspect.getAdvice()) {
 			String methodName = advice.getId();
-			Class<?> aspectClass = mPackageReflector.getClass(aspect.getClassName());
-			Method adviceMethod = mClassReflector.getMethod(aspectClass, methodName,
-					advice.isAround() ? ProceedingJoinPoint.class : JoinPoint.class);
+			Class<?> aspectClass = mPackageReflector.getClass(aspect
+					.getClassName());
+			Method adviceMethod = mClassReflector.getMethod(aspectClass,
+					methodName, advice.isAround()
+							? ProceedingJoinPoint.class
+							: JoinPoint.class);
 			Object advisor = mClassReflector.getClassInstance(aspectClass);
 			if (advice.getPointcutType() == PointcutType.Beans)
-				processBeanJoinPoints(advisor, advice, adviceMethod, pointcutMap);
+				processBeanJoinPoints(advisor, advice, adviceMethod,
+						pointcutMap);
 			else if (advice.getPointcutType() == PointcutType.Within)
-				processWithinJoinPoints(advisor, advice, adviceMethod, pointcutMap);
+				processWithinJoinPoints(advisor, advice, adviceMethod,
+						pointcutMap);
 		}
 	}
 
 	// Processes JoinPoints specified by the "beans" pointcut attribute value
 	// e.g. <advice id="advice" type="before" pointcut="beans"
 	// value="fooBean, barBean.method(*)" />
-	private void processBeanJoinPoints(Object advisor, AspectComponent.Advice advice, Method adviceMethod,
+	private void processBeanJoinPoints(Object advisor,
+			AspectComponent.Advice advice, Method adviceMethod,
 			Map<String, Pointcut> pointcutMap) {
 		for (String bean : advice.getSeparatedValues()) {
 			bean = bean.trim();
@@ -129,8 +164,10 @@ public class XmlAspectWeaver implements AspectWeaver {
 			else
 				isClassScope = true;
 			Object beanObject = mBeanFactory.loadBean(beanName);
-			JoinPoint joinPoint = advice.isAround() ? new BasicProceedingJoinPoint(advisor, adviceMethod)
-					: new BasicJoinPoint(advisor, adviceMethod, advice.getLocation());
+			JoinPoint joinPoint = advice.isAround()
+					? new BasicProceedingJoinPoint(advisor, adviceMethod)
+					: new BasicJoinPoint(advisor, adviceMethod,
+							advice.getLocation());
 			joinPoint.setBeanName(beanName);
 			joinPoint.setTarget(beanObject);
 			joinPoint.setOrder(advice.getOrder());
@@ -139,7 +176,8 @@ public class XmlAspectWeaver implements AspectWeaver {
 				putJoinPoint(pointcutMap, joinPoint);
 			} else {
 				// It's a specific method or methods matcher
-				processBeanMethodJoinPoint(bean, beanObject, advisor, advice, joinPoint, pointcutMap);
+				processBeanMethodJoinPoint(bean, beanObject, advisor, advice,
+						joinPoint, pointcutMap);
 			}
 		}
 	}
@@ -149,25 +187,46 @@ public class XmlAspectWeaver implements AspectWeaver {
 	// methods to advise
 	// e.g. <advice id="advice" type="before" pointcut="beans"
 	// value="barBean.method(*)" />
-	private void processBeanMethodJoinPoint(String bean, Object beanObject, Object advisor,
-			AspectComponent.Advice advice, JoinPoint joinPoint, Map<String, Pointcut> pointcutMap) {
+	private void processBeanMethodJoinPoint(String bean, Object beanObject,
+			Object advisor, AspectComponent.Advice advice, JoinPoint joinPoint,
+			Map<String, Pointcut> pointcutMap) {
 		if (!bean.endsWith(")"))
-			throw new InfinitumRuntimeException("Invalid join point '" + bean + "' in aspect '"
-					+ advisor.getClass().getName() + "'.");
+			throw new InfinitumRuntimeException("Invalid pointcut '" + bean
+					+ "' in aspect '" + advisor.getClass().getName() + "'.");
 		String methodName;
 		String[] args;
 		try {
-			methodName = bean.substring(bean.indexOf('.') + 1, bean.indexOf('('));
-			args = bean.substring(bean.indexOf('(') + 1, bean.indexOf(')')).split(",");
+			methodName = bean.substring(bean.indexOf('.') + 1,
+					bean.indexOf('('));
+			String params = bean.substring(bean.indexOf('(') + 1,
+					bean.indexOf(')'));
+			if (params.trim().length() == 0)
+				args = new String[0];
+			else
+				args = params.split(",");
 		} catch (IndexOutOfBoundsException e) {
-			throw new InfinitumRuntimeException("Invalid join point '" + bean + "' in aspect '"
-					+ advisor.getClass().getName() + "'.");
+			throw new InfinitumRuntimeException("Invalid pointcut '" + bean
+					+ "' in aspect '" + advisor.getClass().getName() + "'.");
 		}
-		if (args[0].trim().equals("*")) {
+		if (args.length == 0) {
+			// Parameterless method
+			Method method = mClassReflector.getMethod(beanObject.getClass(),
+					methodName);
+			if (method == null)
+				throw new InfinitumRuntimeException("Method '" + methodName
+						+ "' from pointcut '" + bean
+						+ "' could not be found in aspect '"
+						+ advisor.getClass().getName() + "'.");
+			joinPoint.setMethod(method);
+			putJoinPoint(pointcutMap, joinPoint);
+		} else if (args[0].trim().equals("*")) {
 			// Wildcard -- add all methods with the given name
-			for (Method method : mClassReflector.getMethodsByName(beanObject.getClass(), methodName)) {
-				JoinPoint copied = advice.isAround() ? new BasicProceedingJoinPoint(
-						(BasicProceedingJoinPoint) joinPoint) : new BasicJoinPoint((BasicJoinPoint) joinPoint);
+			for (Method method : mClassReflector.getMethodsByName(
+					beanObject.getClass(), methodName)) {
+				JoinPoint copied = advice.isAround()
+						? new BasicProceedingJoinPoint(
+								(BasicProceedingJoinPoint) joinPoint)
+						: new BasicJoinPoint((BasicJoinPoint) joinPoint);
 				copied.setMethod(method);
 				putJoinPoint(pointcutMap, copied);
 			}
@@ -177,7 +236,13 @@ public class XmlAspectWeaver implements AspectWeaver {
 			for (int i = 0; i < args.length; i++) {
 				argTypes[i] = mPackageReflector.getClass(args[i].trim());
 			}
-			Method method = mClassReflector.getMethod(beanObject.getClass(), methodName, argTypes);
+			Method method = mClassReflector.getMethod(beanObject.getClass(),
+					methodName, argTypes);
+			if (method == null)
+				throw new InfinitumRuntimeException("Method '" + methodName
+						+ "' from pointcut '" + bean
+						+ "' could not be found in aspect '"
+						+ advisor.getClass().getName() + "'.");
 			joinPoint.setMethod(method);
 			putJoinPoint(pointcutMap, joinPoint);
 		}
@@ -186,18 +251,22 @@ public class XmlAspectWeaver implements AspectWeaver {
 	// Processes JoinPoints specified by the "within" pointcut attribute value
 	// e.g. <advice id="advice" type="before" pointcut="within"
 	// value="com.foo.bar.service, com.foo.bar.dao" />
-	private void processWithinJoinPoints(Object advisor, AspectComponent.Advice advice, Method adviceMethod,
+	private void processWithinJoinPoints(Object advisor,
+			AspectComponent.Advice advice, Method adviceMethod,
 			Map<String, Pointcut> pointcutMap) {
 		for (String pkg : advice.getSeparatedValues()) {
 			pkg = pkg.toLowerCase().trim();
 			if (pkg.length() == 0)
 				continue;
-			Map<Object, String> invertedMap = CollectionUtil.invert(mBeanFactory.getBeanMap());
+			Map<Object, String> invertedMap = CollectionUtil
+					.invert(mBeanFactory.getBeanMap());
 			for (Object bean : invertedMap.keySet()) {
 				if (!bean.getClass().getName().startsWith(pkg))
 					continue;
-				JoinPoint joinPoint = advice.isAround() ? new BasicProceedingJoinPoint(advisor, adviceMethod)
-						: new BasicJoinPoint(advisor, adviceMethod, advice.getLocation());
+				JoinPoint joinPoint = advice.isAround()
+						? new BasicProceedingJoinPoint(advisor, adviceMethod)
+						: new BasicJoinPoint(advisor, adviceMethod,
+								advice.getLocation());
 				joinPoint.setBeanName(invertedMap.get(bean));
 				joinPoint.setTarget(bean);
 				joinPoint.setOrder(advice.getOrder());
@@ -209,11 +278,13 @@ public class XmlAspectWeaver implements AspectWeaver {
 
 	// Adds the JoinPoint to a Pointcut in pointcutMap
 	// If there's no Pointcut for the type, it will add one
-	private void putJoinPoint(Map<String, Pointcut> pointcutMap, JoinPoint joinPoint) {
+	private void putJoinPoint(Map<String, Pointcut> pointcutMap,
+			JoinPoint joinPoint) {
 		if (pointcutMap.containsKey(joinPoint.getBeanName())) {
 			pointcutMap.get(joinPoint.getBeanName()).addJoinPoint(joinPoint);
 		} else {
-			Pointcut pointcut = new Pointcut(joinPoint.getBeanName(), joinPoint.getTargetType());
+			Pointcut pointcut = new Pointcut(joinPoint.getBeanName(),
+					joinPoint.getTargetType());
 			pointcut.addJoinPoint(joinPoint);
 			pointcutMap.put(joinPoint.getBeanName(), pointcut);
 		}

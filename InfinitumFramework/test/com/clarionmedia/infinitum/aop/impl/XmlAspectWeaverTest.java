@@ -1,0 +1,249 @@
+/*
+ * Copyright (c) 2012 Tyler Treat
+ * 
+ * This file is part of Infinitum Framework.
+ *
+ * Infinitum Framework is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Infinitum Framework is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package com.clarionmedia.infinitum.aop.impl;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import android.content.Context;
+
+import com.clarionmedia.infinitum.aop.AdvisedProxyFactory;
+import com.clarionmedia.infinitum.aop.AopProxy;
+import com.clarionmedia.infinitum.aop.AspectComponent;
+import com.clarionmedia.infinitum.aop.JoinPoint;
+import com.clarionmedia.infinitum.aop.Pointcut;
+import com.clarionmedia.infinitum.di.BeanFactory;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.PackageReflector;
+import com.xtremelabs.robolectric.Robolectric;
+import com.xtremelabs.robolectric.RobolectricTestRunner;
+
+@RunWith(RobolectricTestRunner.class)
+public class XmlAspectWeaverTest {
+	
+	private static final String BEAN_NAME = "someBean";
+
+	@InjectMocks
+	private XmlAspectWeaver aspectWeaver = new XmlAspectWeaver();
+	
+	@Mock
+	private BeanFactory mockBeanFactory;
+	
+	@Mock
+	private ClassReflector mockClassReflector;
+	
+	@Mock
+	private PackageReflector mockPackageReflector;
+	
+	@Mock
+	private AdvisedProxyFactory mockProxyFactory;
+	
+	@Mock
+	private AopProxy mockProxy;
+	
+	private Map<String, Object> mockBeanMap;
+	private List<String> mockBean;
+	private AspectComponent mockAspect;
+	private List<AspectComponent.Advice> adviceList;
+	private AspectComponent.Advice withinAdvice;
+	private AspectComponent.Advice beansAdviceWithMethod;
+	private AspectComponent.Advice beansAdviceWithWildcardMethod;
+	private AspectComponent.Advice beansAdviceWithBadMethod;
+
+	@Before
+	public void setup() {
+		MockitoAnnotations.initMocks(this);
+		List<AspectComponent> aspects = new ArrayList<AspectComponent>();
+		mockAspect = new AspectComponent();
+		withinAdvice = new AspectComponent.Advice();
+		withinAdvice.setId("beforeAdvice_within");
+		withinAdvice.setType("before");
+		withinAdvice.setPointcut("within");
+		withinAdvice.setValue("java.util");
+		beansAdviceWithMethod = new AspectComponent.Advice();
+		beansAdviceWithMethod.setId("beforeAdvice_beans");
+		beansAdviceWithMethod.setType("before");
+		beansAdviceWithMethod.setPointcut("beans");
+		beansAdviceWithMethod.setValue(BEAN_NAME + ".toString()");
+		beansAdviceWithWildcardMethod = new AspectComponent.Advice();
+		beansAdviceWithWildcardMethod.setId("beforeAdvice_beans");
+		beansAdviceWithWildcardMethod.setType("before");
+		beansAdviceWithWildcardMethod.setPointcut("beans");
+		beansAdviceWithWildcardMethod.setValue(BEAN_NAME + ".add(*)");
+		beansAdviceWithBadMethod = new AspectComponent.Advice();
+		beansAdviceWithBadMethod.setId("beforeAdvice_beans");
+		beansAdviceWithBadMethod.setType("before");
+		beansAdviceWithBadMethod.setPointcut("beans");
+		beansAdviceWithBadMethod.setValue(BEAN_NAME + ".fakeMethod()");
+		adviceList = new ArrayList<AspectComponent.Advice>();
+		mockAspect.setAdvice(adviceList);
+		mockAspect.setClassName("com.clarionmedia.infinitum.aop.impl.XmlAspectWeaverTest$MockAspect");
+		mockAspect.setId("advice");
+		aspects.add(mockAspect);
+		aspectWeaver.setAspects(aspects);
+		mockBeanMap = new HashMap<String, Object>();
+		mockBean = new ArrayList<String>();
+		mockBean.add("hello");
+		mockBeanMap.put(BEAN_NAME, mockBean);
+	}
+	
+	@Test
+	public void testWeave_noAdvice() {
+		// Setup
+		List<AspectComponent> originalAspects = aspectWeaver.getAspects();
+		aspectWeaver.setAspects(new ArrayList<AspectComponent>());
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		verify(mockBeanFactory, times(0)).loadBean(BEAN_NAME);
+		verify(mockProxyFactory, times(0)).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
+		verify(mockBeanFactory, times(0)).getBeanMap();
+		
+		aspectWeaver.setAspects(originalAspects);
+	}
+
+	@Test
+	public void testWeave_within() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(withinAdvice);
+		Method advice = MockAspect.class.getMethod("beforeAdvice_within", JoinPoint.class);
+		when(mockClassReflector.getMethod(null, "beforeAdvice_within", JoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockProxy.getProxy()).thenReturn(mockBean);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		verify(mockBeanFactory).loadBean(BEAN_NAME);
+		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
+		verify(mockBeanFactory, times(2)).getBeanMap();
+		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
+	}
+	
+	@Test
+	public void testWeave_beansWithMethod() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(beansAdviceWithMethod);
+		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
+		Method toString = Object.class.getMethod("toString");
+		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		verify(mockBeanFactory, times(2)).loadBean(BEAN_NAME);
+		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
+		verify(mockBeanFactory).getBeanMap();
+		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
+	}
+	
+	@Test(expected = InfinitumRuntimeException.class)
+	public void testWeave_beansWithBadMethodThrowsException() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(beansAdviceWithBadMethod);
+		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
+		Method toString = Object.class.getMethod("toString");
+		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		assertTrue("Weave should have thrown an InfinitumRuntimeException", false);
+	}
+	
+	@Test
+	public void testWeave_beansWithWildcardMethod() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(beansAdviceWithWildcardMethod);
+		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
+		List<Method> methods = new ArrayList<Method>();
+		methods.add(ArrayList.class.getMethod("add", Object.class));
+		methods.add(ArrayList.class.getMethod("add", int.class, Object.class));
+		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockClassReflector.getMethodsByName(ArrayList.class, "add")).thenReturn(methods);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		verify(mockBeanFactory, times(2)).loadBean(BEAN_NAME);
+		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
+		verify(mockBeanFactory).getBeanMap();
+		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
+	}
+
+	private static class MockAspect {
+
+		@SuppressWarnings("unused")
+		public void beforeAdvice_within(JoinPoint joinPoint) {
+
+		}
+		
+		@SuppressWarnings("unused")
+		public void beforeAdvice_beans(JoinPoint joinPoint) {
+
+		}
+
+	}
+
+}
