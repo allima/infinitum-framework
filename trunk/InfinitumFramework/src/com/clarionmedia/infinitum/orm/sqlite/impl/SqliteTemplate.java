@@ -141,8 +141,7 @@ public class SqliteTemplate implements SqliteOperations {
 			return;
 		mSqliteDb.beginTransaction();
 		mTransactionStack.push(true);
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Transaction started");
+		mLogger.debug("Transaction started");
 	}
 
 	@Override
@@ -152,8 +151,7 @@ public class SqliteTemplate implements SqliteOperations {
 		mSqliteDb.setTransactionSuccessful();
 		mSqliteDb.endTransaction();
 		mTransactionStack.pop();
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Transaction committed");
+		mLogger.debug("Transaction committed");
 	}
 
 	@Override
@@ -162,8 +160,7 @@ public class SqliteTemplate implements SqliteOperations {
 			return;
 		mSqliteDb.endTransaction();
 		mTransactionStack.pop();
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Transaction rolled back");
+		mLogger.debug("Transaction rolled back");
 	}
 
 	@Override
@@ -206,12 +203,10 @@ public class SqliteTemplate implements SqliteOperations {
 		int result = mSqliteDb.delete(tableName, whereClause, null);
 		if (result == 1)
 			deleteRelationships(model);
-		if (mInfinitumContext.isDebug()) {
-			if (result == 1)
-				mLogger.debug(model.getClass().getSimpleName() + " model deleted");
-			else
-				mLogger.debug(model.getClass().getSimpleName() + " model was not deleted");
-		}
+		if (result == 1)
+			mLogger.debug(model.getClass().getSimpleName() + " model deleted");
+		else
+			mLogger.debug(model.getClass().getSimpleName() + " model was not deleted");
 		return result == 1;
 	}
 
@@ -244,16 +239,14 @@ public class SqliteTemplate implements SqliteOperations {
 		} finally {
 			cursor.close();
 		}
-		if (mInfinitumContext.isDebug())
-			mLogger.debug(c.getSimpleName() + " model loaded");
+		mLogger.debug(c.getSimpleName() + " model loaded");
 		return ret;
 	}
 
 	@Override
 	public void execute(String sql) throws SQLGrammarException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Executing SQL: " + sql);
+		mLogger.debug("Executing SQL: " + sql);
 		try {
 			mSqliteDb.execSQL(sql);
 		} catch (SQLiteException e) {
@@ -265,8 +258,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public Cursor executeForResult(String sql, boolean force) throws SQLGrammarException {
 		if (!force)
 			Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Executing SQL: " + sql);
+		mLogger.debug("Executing SQL: " + sql);
 		Cursor ret = null;
 		try {
 			ret = mSqliteDb.rawQuery(sql, null);
@@ -354,14 +346,12 @@ public class SqliteTemplate implements SqliteOperations {
 		processOneToOneRelationships(model, map, objectMap, values);
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (ret <= 0) {
-			if (mInfinitumContext.isDebug())
-				mLogger.debug(model.getClass().getSimpleName() + " model was not updated");
+			mLogger.debug(model.getClass().getSimpleName() + " model was not updated");
 			return false;
 		}
 		if (mPersistencePolicy.isCascading(model.getClass()))
 			processRelationships(map, objectMap, model);
-		if (mInfinitumContext.isDebug())
-			mLogger.debug(model.getClass().getSimpleName() + " model updated");
+		mLogger.debug(model.getClass().getSimpleName() + " model updated");
 		return true;
 	}
 
