@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -146,6 +147,11 @@ public class XmlAspectWeaverTest {
 		mockBeanMap.put(BEAN_NAME, mockBean);
 	}
 	
+	@After
+	public void tearDown() {
+		adviceList.clear();
+	}
+	
 	@Test
 	public void testWeave_noAdvice() {
 		// Setup
@@ -166,7 +172,6 @@ public class XmlAspectWeaverTest {
 	@Test
 	public void testWeave_within() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(withinAdvice);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_within", JoinPoint.class);
 		when(mockClassReflector.getMethod(null, "beforeAdvice_within", JoinPoint.class)).thenReturn(advice);
@@ -189,7 +194,6 @@ public class XmlAspectWeaverTest {
 	@Test
 	public void testWeave_beansWithMethod() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(beansAdviceWithMethod);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
 		Method toString = Object.class.getMethod("toString");
@@ -213,7 +217,6 @@ public class XmlAspectWeaverTest {
 	@Test
 	public void testWeave_beansWithParameterizedMethod() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(beansAdviceWithParameterizedMethod);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
 		Method add = ArrayList.class.getMethod("add", Object.class);
@@ -238,7 +241,6 @@ public class XmlAspectWeaverTest {
 	@Test(expected = InfinitumRuntimeException.class)
 	public void testWeave_beansWithParameterizedMethod_notFoundThrowsException() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(beansAdviceWithParameterizedMethod);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
 		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
@@ -259,7 +261,6 @@ public class XmlAspectWeaverTest {
 	@Test
 	public void testWeave_beansClassScope() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(beansAdviceClassScope);
 		Method advice = MockAspect.class.getMethod("aroundAdvice_beans", ProceedingJoinPoint.class);
 		Method toString = Object.class.getMethod("toString");
@@ -283,7 +284,6 @@ public class XmlAspectWeaverTest {
 	@Test(expected = InfinitumRuntimeException.class)
 	public void testWeave_beansWithBadMethodThrowsException() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(beansAdviceWithBadMethod);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
 		Method toString = Object.class.getMethod("toString");
@@ -304,7 +304,6 @@ public class XmlAspectWeaverTest {
 	@Test(expected = InfinitumRuntimeException.class)
 	public void testWeave_beansWithInvalidPointcutThrowsException_malformedMethod() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(beansAdviceInvalidPointcut1);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
 		Method toString = Object.class.getMethod("toString");
@@ -325,7 +324,6 @@ public class XmlAspectWeaverTest {
 	@Test(expected = InfinitumRuntimeException.class)
 	public void testWeave_beansWithInvalidPointcutThrowsException_missingMethod() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(beansAdviceInvalidPointcut2);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
 		Method toString = Object.class.getMethod("toString");
@@ -346,7 +344,6 @@ public class XmlAspectWeaverTest {
 	@Test
 	public void testWeave_beansWithWildcardMethod() throws SecurityException, NoSuchMethodException {
 		// Setup
-		adviceList.clear();
 		adviceList.add(beansAdviceWithWildcardMethod);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
 		List<Method> methods = new ArrayList<Method>();

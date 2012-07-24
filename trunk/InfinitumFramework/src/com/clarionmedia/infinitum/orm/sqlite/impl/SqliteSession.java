@@ -31,7 +31,6 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.context.impl.XmlContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.Session;
@@ -60,6 +59,14 @@ public class SqliteSession implements Session {
 	private int mCacheSize;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
+	
+	/**
+	 * Creates a new {@code SqliteSession}.
+	 */
+	@Deprecated
+	public SqliteSession() {
+		
+	}
 
 	/**
 	 * Creates a new {@code SqliteSession} with the given {@link Context}.
@@ -70,7 +77,7 @@ public class SqliteSession implements Session {
 	public SqliteSession(Context context) {
 		mContext = context;
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mInfinitumContext = XmlContextFactory.getInstance().getContext();
+		mInfinitumContext = ContextFactory.getInstance().getContext();
 		mSqlite = new SqliteTemplate(this);
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = DEFAULT_CACHE_SIZE;
@@ -144,74 +151,92 @@ public class SqliteSession implements Session {
 
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
-		reconcileCache();
-		int hash = mPolicy.computeModelHash(model);
-		// Update session cache
-		if (mSessionCache.containsKey(hash))
-			mSessionCache.put(hash, model);
-		return mSqlite.save(model);
+		long id = mSqlite.save(model);
+		if (id != -1) {
+		    // Add to session cache
+		    reconcileCache();
+		    int hash = mPolicy.computeModelHash(model);
+		    mSessionCache.put(hash, model);
+		}
+		return id;
 	}
 
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
-		int hash = mPolicy.computeModelHash(model);
-		// Update session cache
-		if (mSessionCache.containsKey(hash))
-			mSessionCache.put(hash, model);
-		return mSqlite.update(model);
+		boolean success = mSqlite.update(model);
+		if (success) {
+		    // Update session cache
+			int hash = mPolicy.computeModelHash(model);
+		    mSessionCache.put(hash, model);
+		}
+		return success;
 	}
 
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
-		int hash = mPolicy.computeModelHash(model);
-		// Remove from session cache
-		mSessionCache.remove(hash);
-		return mSqlite.delete(model);
+		boolean success = mSqlite.delete(model);
+		if (success) {
+		    // Remove from session cache
+		    int hash = mPolicy.computeModelHash(model);
+		    mSessionCache.remove(hash);
+		}
+		return success;
 	}
 
 	@Override
 	public long saveOrUpdate(Object model) throws InfinitumRuntimeException {
-		reconcileCache();
-		int hash = mPolicy.computeModelHash(model);
-		// Update session cache
-		if (mSessionCache.containsKey(hash))
+		long id = mSqlite.saveOrUpdate(model);
+		if (id >= 0) {
+			// Update session cache
+		    reconcileCache();
+		    int hash = mPolicy.computeModelHash(model);
 			mSessionCache.put(hash, model);
-		return mSqlite.saveOrUpdate(model);
+		}
+		return id;
 	}
 
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		reconcileCache();
+		int count = 0;
 		for (Object model : models) {
-			int hash = mPolicy.computeModelHash(model);
-			// Update session cache
-			if (mSessionCache.containsKey(hash))
+			if (mSqlite.saveOrUpdate(model) >= 0) {
+				count++;
+				// Update session cache
+				int hash = mPolicy.computeModelHash(model);
 				mSessionCache.put(hash, model);
+			}
 		}
-		mSqlite.saveOrUpdateAll(models);
+		return count;
 	}
 
 	@Override
 	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		reconcileCache();
+		int count = 0;
 		for (Object model : models) {
-			int hash = mPolicy.computeModelHash(model);
-			// Update session cache
-			if (mSessionCache.containsKey(hash))
+			if (mSqlite.save(model) > 0) {
+				count++;
+				// Update session cache
+			    int hash = mPolicy.computeModelHash(model);
 				mSessionCache.put(hash, model);
+			}
 		}
-		return mSqlite.saveAll(models);
+		return count;
 	}
 
 	@Override
 	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+		int count = 0;
 		for (Object model : models) {
-			int hash = mPolicy.computeModelHash(model);
-			// Remove from session cache
-			if (mSessionCache.containsKey(hash))
+			if (mSqlite.delete(model)) {
+				count++;
+				// Remove from session cache
+			    int hash = mPolicy.computeModelHash(model);
 				mSessionCache.remove(hash);
+			}
 		}
-		return mSqlite.deleteAll(models);
+		return count;
 	}
 
 	@SuppressWarnings("unchecked")

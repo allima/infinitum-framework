@@ -21,7 +21,6 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Stack;
@@ -222,48 +221,6 @@ public class SqliteTemplate implements SqliteOperations {
 		Preconditions.checkPersistenceForModify(model);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveOrUpdateRec(model, objectMap);
-	}
-
-	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Saving or updating " + models.size() + " models");
-		for (Object o : models) {
-			saveOrUpdate(o);
-		}
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Models saved or updated");
-	}
-
-	@Override
-	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		int count = 0;
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Saving " + models.size() + " models");
-		for (Object o : models) {
-			if (save(o) > 0)
-				count++;
-		}
-		if (mInfinitumContext.isDebug())
-			mLogger.debug(count + " models saved");
-		return count;
-	}
-
-	@Override
-	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
-		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		int count = 0;
-		if (mInfinitumContext.isDebug())
-			mLogger.debug("Deleting " + models.size() + " models");
-		for (Object o : models) {
-			if (delete(o))
-				count++;
-		}
-		if (mInfinitumContext.isDebug())
-			mLogger.debug(count + " models deleted");
-		return count;
 	}
 
 	@Override

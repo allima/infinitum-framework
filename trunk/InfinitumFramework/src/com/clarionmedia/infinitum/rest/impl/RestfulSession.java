@@ -312,11 +312,14 @@ public abstract class RestfulSession implements Session {
 	}
 	
 	@Override
-	public void saveOrUpdateAll(Collection<? extends Object> models)
+	public int saveOrUpdateAll(Collection<? extends Object> models)
 			throws InfinitumRuntimeException {
+		int count = 0;
 		for (Object model : models) {
-			saveOrUpdate(model);
+			if (saveOrUpdate(model) >= 0)
+				count++;
 		}
+		return count;
 	}
 	
 	@Override
