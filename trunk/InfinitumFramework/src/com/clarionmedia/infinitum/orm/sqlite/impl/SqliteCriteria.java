@@ -71,7 +71,7 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	 */
 	public SqliteCriteria(SqliteSession session, Class<T> entityClass, SqlBuilder sqlBuilder, SqliteMapper mapper)
 			throws InfinitumRuntimeException {
-		Preconditions.checkPersistenceForLoading(entityClass);
+		Preconditions.checkPersistenceForLoading(entityClass, session.getInfinitumContext());
 		mSession = session;
 		mEntityClass = entityClass;
 		mModelFactory = new SqliteModelFactoryImpl(session, mapper);

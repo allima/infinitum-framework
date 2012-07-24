@@ -85,6 +85,7 @@ public abstract class RestfulSession implements Session {
 	protected PersistencePolicy mPolicy;
 	protected Map<Integer, Object> mSessionCache;
 	protected int mCacheSize;
+	protected InfinitumContext mInfinitumContext;
 	
 	@Override
 	public abstract <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException,
@@ -93,12 +94,12 @@ public abstract class RestfulSession implements Session {
 	@Override
 	public Session open() throws SQLException {
 		mLogger = Logger.getInstance(getClass().getSimpleName());
-		InfinitumContext context = ContextFactory.getInstance().getContext();
-		mHost = context.getRestfulConfiguration().getRestHost();
+		mInfinitumContext = ContextFactory.getInstance().getContext();
+		mHost = mInfinitumContext.getRestfulConfiguration().getRestHost();
 		if (!mHost.endsWith("/"))
 			mHost += '/';
-		mIsAuthenticated = context.getRestfulConfiguration().isRestAuthenticated();
-		mAuthStrategy = context.getRestfulConfiguration().getAuthStrategy();
+		mIsAuthenticated = mInfinitumContext.getRestfulConfiguration().isRestAuthenticated();
+		mAuthStrategy = mInfinitumContext.getRestfulConfiguration().getAuthStrategy();
 		mMapper = new RestfulMapper();
 		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
 		mSessionCache = new HashMap<Integer, Object>();
@@ -170,7 +171,7 @@ public abstract class RestfulSession implements Session {
 
 	@Override
 	public long save(Object model) {
-		Preconditions.checkPersistenceForModify(model);
+		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
 		mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
@@ -206,7 +207,7 @@ public abstract class RestfulSession implements Session {
 
 	@Override
 	public boolean delete(Object model) {
-		Preconditions.checkPersistenceForModify(model);
+		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
 		mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		Serializable pk = mPolicy.getPrimaryKey(model);
@@ -232,7 +233,7 @@ public abstract class RestfulSession implements Session {
 	
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
-		Preconditions.checkPersistenceForModify(model);
+		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
 		mLogger.debug("Sending PUT request to update entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
@@ -276,7 +277,7 @@ public abstract class RestfulSession implements Session {
 	 */
 	@Override
 	public long saveOrUpdate(Object model) {
-		Preconditions.checkPersistenceForModify(model);
+		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
 		mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());

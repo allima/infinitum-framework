@@ -181,7 +181,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		Preconditions.checkPersistenceForModify(model);
+		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveRec(model, objectMap);
 	}
@@ -189,7 +189,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		Preconditions.checkPersistenceForModify(model);
+		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return updateRec(model, objectMap);
 	}
@@ -197,7 +197,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		Preconditions.checkPersistenceForModify(model);
+		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
 		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
 		String whereClause = mSqliteUtil.getWhereClause(model, mMapper);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
@@ -213,14 +213,14 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public long saveOrUpdate(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		Preconditions.checkPersistenceForModify(model);
+		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveOrUpdateRec(model, objectMap);
 	}
 
 	@Override
 	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
-		Preconditions.checkPersistenceForLoading(c);
+		Preconditions.checkPersistenceForLoading(c, mInfinitumContext);
 		if (!mTypePolicy.isValidPrimaryKey(mPersistencePolicy.getPrimaryKeyField(c), id))
 			throw new IllegalArgumentException(String.format(mPropLoader.getErrorMessage("INVALID_PK"), id.getClass()
 					.getSimpleName(), c.getName()));
