@@ -65,7 +65,7 @@ public class SqliteSession implements Session {
 	 */
 	@Deprecated
 	public SqliteSession() {
-		
+		mCacheSize = DEFAULT_CACHE_SIZE;
 	}
 
 	/**
@@ -314,7 +314,7 @@ public class SqliteSession implements Session {
 	 *            the SQL query to execute
 	 * @param force
 	 *            indicates if the query should be executed regardless of
-	 *            transaction state
+	 *            transaction state, i.e. there is no open transaction
 	 * @return {@link Cursor} containing the results of the query
 	 * @throws SQLGrammarException
 	 *             if the SQL was formatted incorrectly
