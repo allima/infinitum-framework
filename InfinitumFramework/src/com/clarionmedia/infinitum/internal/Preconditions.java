@@ -41,7 +41,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * @version 1.0 03/18/12
  */
 public class Preconditions {
-	
+
 	public static void checkNotNull(Object arg) {
 		if (arg == null)
 			throw new IllegalArgumentException("Argument may not be null.");
@@ -57,7 +57,8 @@ public class Preconditions {
 	 */
 	public static void checkForTransaction(boolean autocommit, boolean txOpen) {
 		if (!autocommit && !txOpen)
-			throw new InfinitumRuntimeException("Autocommit is disabled, but there is no open transaction.");
+			throw new InfinitumRuntimeException(
+					"Autocommit is disabled, but there is no open transaction.");
 	}
 
 	/**
@@ -66,13 +67,17 @@ public class Preconditions {
 	 * 
 	 * @param model
 	 *            model to check persistence for
+	 * @param ctx
+	 *            {@link InfinitumContext} to retrieve persistence policy from
 	 */
-	public static void checkPersistenceForModify(Object model) {
-		InfinitumContext ctx = ContextFactory.getInstance().getContext();
+	public static void checkPersistenceForModify(Object model,
+			InfinitumContext ctx) {
 		PersistencePolicy policy = ctx.getPersistencePolicy();
 		if (!policy.isPersistent(model.getClass()))
-			throw new InfinitumRuntimeException(String.format(new PropertyLoader(ctx.getAndroidContext())
-					.getErrorMessage("CANNOT_MODIFY_TRANSIENT"), model.getClass().getName()));
+			throw new InfinitumRuntimeException(String.format(
+					new PropertyLoader(ctx.getAndroidContext())
+							.getErrorMessage("CANNOT_MODIFY_TRANSIENT"), model
+							.getClass().getName()));
 	}
 
 	/**
@@ -81,13 +86,17 @@ public class Preconditions {
 	 * 
 	 * @param c
 	 *            {@code Class} to check persistence for
+	 * @param ctx
+	 *            {@link InfinitumContext} to retrieve persistence policy from
 	 */
-	public static void checkPersistenceForLoading(Class<?> c) {
-		InfinitumContext ctx = ContextFactory.getInstance().getContext();
+	public static void checkPersistenceForLoading(Class<?> c,
+			InfinitumContext ctx) {
 		PersistencePolicy policy = ctx.getPersistencePolicy();
 		if (!policy.isPersistent(c))
 			throw new InfinitumRuntimeException(String.format(
-					new PropertyLoader(ctx.getAndroidContext()).getErrorMessage("CANNOT_LOAD_TRANSIENT"), c.getName()));
+					new PropertyLoader(ctx.getAndroidContext())
+							.getErrorMessage("CANNOT_LOAD_TRANSIENT"), c
+							.getName()));
 	}
 
 	/**
@@ -100,26 +109,33 @@ public class Preconditions {
 	 *            the {@code XmlResourceParser} reading the XML file
 	 */
 	public static void checkMapFileClass(Class<?> c, XmlResourceParser parser) {
-		PropertyLoader propLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+		PropertyLoader propLoader = new PropertyLoader(ContextFactory
+				.getInstance().getAndroidContext());
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {
 				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(propLoader.getPersistenceValue("ELEM_CLASS"))) {
-					String name = parser.getAttributeValue(null, propLoader.getPersistenceValue("ATTR_NAME"));
+						&& parser.getName().equalsIgnoreCase(
+								propLoader.getPersistenceValue("ELEM_CLASS"))) {
+					String name = parser.getAttributeValue(null,
+							propLoader.getPersistenceValue("ATTR_NAME"));
 					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
+						throw new InvalidMapFileException("'" + c.getName()
+								+ "' map file does not specify class name.");
 					if (!name.equalsIgnoreCase(c.getName()))
-						throw new InvalidMapFileException("'" + c.getName() + "' map file references the wrong class.");
+						throw new InvalidMapFileException("'" + c.getName()
+								+ "' map file references the wrong class.");
 					else
 						break;
 				}
 				code = parser.next();
 			}
 		} catch (XmlPullParserException e) {
-			throw new InvalidMapFileException("Unable to parse XML map file for '" + c.getName() + "'.");
+			throw new InvalidMapFileException(
+					"Unable to parse XML map file for '" + c.getName() + "'.");
 		} catch (IOException e) {
-			throw new InvalidMapFileException("Unable to parse XML map file for '" + c.getName() + "'.");
+			throw new InvalidMapFileException(
+					"Unable to parse XML map file for '" + c.getName() + "'.");
 		}
 	}
 

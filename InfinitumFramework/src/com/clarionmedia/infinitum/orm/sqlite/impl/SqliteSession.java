@@ -59,7 +59,7 @@ public class SqliteSession implements Session {
 	private int mCacheSize;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
-	
+
 	/**
 	 * Creates a new {@code SqliteSession}.
 	 */
@@ -153,10 +153,10 @@ public class SqliteSession implements Session {
 	public long save(Object model) throws InfinitumRuntimeException {
 		long id = mSqlite.save(model);
 		if (id != -1) {
-		    // Add to session cache
-		    reconcileCache();
-		    int hash = mPolicy.computeModelHash(model);
-		    mSessionCache.put(hash, model);
+			// Add to session cache
+			reconcileCache();
+			int hash = mPolicy.computeModelHash(model);
+			mSessionCache.put(hash, model);
 		}
 		return id;
 	}
@@ -165,9 +165,9 @@ public class SqliteSession implements Session {
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		boolean success = mSqlite.update(model);
 		if (success) {
-		    // Update session cache
+			// Update session cache
 			int hash = mPolicy.computeModelHash(model);
-		    mSessionCache.put(hash, model);
+			mSessionCache.put(hash, model);
 		}
 		return success;
 	}
@@ -176,9 +176,9 @@ public class SqliteSession implements Session {
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		boolean success = mSqlite.delete(model);
 		if (success) {
-		    // Remove from session cache
-		    int hash = mPolicy.computeModelHash(model);
-		    mSessionCache.remove(hash);
+			// Remove from session cache
+			int hash = mPolicy.computeModelHash(model);
+			mSessionCache.remove(hash);
 		}
 		return success;
 	}
@@ -188,15 +188,16 @@ public class SqliteSession implements Session {
 		long id = mSqlite.saveOrUpdate(model);
 		if (id >= 0) {
 			// Update session cache
-		    reconcileCache();
-		    int hash = mPolicy.computeModelHash(model);
+			reconcileCache();
+			int hash = mPolicy.computeModelHash(model);
 			mSessionCache.put(hash, model);
 		}
 		return id;
 	}
 
 	@Override
-	public int saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int saveOrUpdateAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		reconcileCache();
 		int count = 0;
 		for (Object model : models) {
@@ -211,14 +212,15 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		reconcileCache();
 		int count = 0;
 		for (Object model : models) {
 			if (mSqlite.save(model) > 0) {
 				count++;
 				// Update session cache
-			    int hash = mPolicy.computeModelHash(model);
+				int hash = mPolicy.computeModelHash(model);
 				mSessionCache.put(hash, model);
 			}
 		}
@@ -226,13 +228,14 @@ public class SqliteSession implements Session {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models)
+			throws InfinitumRuntimeException {
 		int count = 0;
 		for (Object model : models) {
 			if (mSqlite.delete(model)) {
 				count++;
 				// Remove from session cache
-			    int hash = mPolicy.computeModelHash(model);
+				int hash = mPolicy.computeModelHash(model);
 				mSessionCache.remove(hash);
 			}
 		}
@@ -241,7 +244,8 @@ public class SqliteSession implements Session {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T load(Class<T> c, Serializable id)
+			throws InfinitumRuntimeException, IllegalArgumentException {
 		int hash = mPolicy.computeModelHash(c, id);
 		if (mSessionCache.containsKey(hash))
 			return (T) mSessionCache.get(hash);
@@ -299,7 +303,7 @@ public class SqliteSession implements Session {
 	public boolean isAutocommit() {
 		return mSqlite.isAutocommit();
 	}
-	
+
 	@Override
 	public <T> Session registerDeserializer(Class<T> type,
 			Deserializer<T> deserializer) {
@@ -319,7 +323,8 @@ public class SqliteSession implements Session {
 	 * @throws SQLGrammarException
 	 *             if the SQL was formatted incorrectly
 	 */
-	public Cursor executeForResult(String sql, boolean force) throws SQLGrammarException {
+	public Cursor executeForResult(String sql, boolean force)
+			throws SQLGrammarException {
 		return mSqlite.executeForResult(sql, force);
 	}
 
@@ -406,6 +411,16 @@ public class SqliteSession implements Session {
 	 */
 	public SQLiteDatabase getDatabase() {
 		return mSqlite.getDatabase();
+	}
+
+	/**
+	 * Returns the {@link InfinitumContext} associated with this
+	 * {@code SqliteSession}.
+	 * 
+	 * @return {@code InfinitumContext}
+	 */
+	public InfinitumContext getInfinitumContext() {
+		return mInfinitumContext;
 	}
 
 }
