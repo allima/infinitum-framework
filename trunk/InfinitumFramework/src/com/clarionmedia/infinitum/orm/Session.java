@@ -216,7 +216,7 @@ public interface Session {
 	 * 
 	 * @param model
 	 *            {@code Object} to save or update in the database
-	 * @return the row ID of the newly inserted row or 0 if the row was updated
+	 * @return the row ID of the newly inserted row, 0 if the row was updated, or -1 if the operation failed.
 	 * @throws InfinitumRuntimeException
 	 *             if the model is marked transient
 	 */
