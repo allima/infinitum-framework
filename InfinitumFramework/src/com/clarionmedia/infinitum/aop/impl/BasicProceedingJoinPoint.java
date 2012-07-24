@@ -148,7 +148,7 @@ public class BasicProceedingJoinPoint extends AbstractJoinPoint implements Proce
 		ProceedingJoinPoint next = next();
 		if (next == null)
 			return mMethod.invoke(mTarget, mArguments);
-		return next().invoke();
+		return next.invoke();
 	}
 
 	@Override

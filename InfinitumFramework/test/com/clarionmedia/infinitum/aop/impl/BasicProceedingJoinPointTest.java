@@ -24,66 +24,86 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.clarionmedia.infinitum.aop.JoinPoint;
-import com.clarionmedia.infinitum.aop.JoinPoint.AdviceLocation;
+import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
 import com.xtremelabs.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
-public class BasicJoinPointTest {
+public class BasicProceedingJoinPointTest {
 	
-	private BasicJoinPoint joinPoint;
-	private AdviceLocation location = AdviceLocation.Before;
+	private BasicProceedingJoinPoint proceedingJoinPoint;
 	private MockAspect mockAdvisor;
+	private Method advice;
 	private Method method;
 	private Object[] args;
 	private String beanName;
-	private Object target;
+	private List<String> target;
 	
 	@Before
 	public void setup() throws NoSuchMethodException, SecurityException {
 		mockAdvisor = new MockAspect();
 		args = new Object[0];
 		beanName = "someBean";
-		target = new Object();
-		method = mockAdvisor.getClass().getMethod("advice", JoinPoint.class);
-		joinPoint = new BasicJoinPoint(mockAdvisor, method, location);
-		joinPoint.setArguments(args);
-		joinPoint.setBeanName(beanName);
-		joinPoint.setMethod(method);
-		joinPoint.setTarget(target);
+		target = new ArrayList<String>();
+		target.add("hello");
+		advice = mockAdvisor.getClass().getMethod("firstAdvice", ProceedingJoinPoint.class);
+		method = ArrayList.class.getMethod("toString");
+		proceedingJoinPoint = new BasicProceedingJoinPoint(mockAdvisor, advice);
+		proceedingJoinPoint.setArguments(args);
+		proceedingJoinPoint.setBeanName(beanName);
+		proceedingJoinPoint.setMethod(method);
+		proceedingJoinPoint.setTarget(target);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructor() {
 		new BasicJoinPoint(null, null, null);
-		assertTrue("BasicJoinPoint constructor should have thrown an IllegalArgumentException", false);
+		assertTrue("BasicProceedingJoinPoint constructor should have thrown an IllegalArgumentException", false);
 	}
 	
 	@Test
-	public void testInvoke() throws Exception {
+	public void testInvoke_notChained() throws Exception {
 		// Run
-		String result = (String) joinPoint.invoke();
+		String result = (String) proceedingJoinPoint.invoke();
 		
 		// Verify
-		assertEquals("invoke should have returned \"invoked\"", "invoked", result);
+		assertEquals("invoke should have returned target return value", "[hello]", result);
+	}
+	
+	@Test
+	public void testInvoke_chained() throws Exception {
+		// Setup
+		BasicProceedingJoinPoint otherJoinPoint = new BasicProceedingJoinPoint(mockAdvisor, advice);
+		otherJoinPoint.setArguments(args);
+		otherJoinPoint.setBeanName(beanName);
+		otherJoinPoint.setMethod(method);
+		otherJoinPoint.setTarget(target);
+		otherJoinPoint.setNext(proceedingJoinPoint);
+		
+		// Run
+		String result = (String) otherJoinPoint.invoke();
+		
+		// Verify
+		assertEquals("invoke should have returned target return value", "[hello]", result);
 	}
 	
 	@Test
 	public void testHashCode_equal() {
 		// Setup
-		BasicJoinPoint otherJoinPoint = new BasicJoinPoint(mockAdvisor, method, location);
+		BasicProceedingJoinPoint otherJoinPoint = new BasicProceedingJoinPoint(mockAdvisor, advice);
 		otherJoinPoint.setArguments(args);
 		otherJoinPoint.setBeanName(beanName);
 		otherJoinPoint.setMethod(method);
 		otherJoinPoint.setTarget(target);
 		
 		// Run
-		int firstHash = joinPoint.hashCode();
+		int firstHash = proceedingJoinPoint.hashCode();
 		int secondHash = otherJoinPoint.hashCode();
 		
 		// Verify
@@ -93,14 +113,14 @@ public class BasicJoinPointTest {
 	@Test
 	public void testHashCode_notEqual() {
 		// Setup
-		BasicJoinPoint otherJoinPoint = new BasicJoinPoint(new Object(), method, AdviceLocation.After);
+		BasicProceedingJoinPoint otherJoinPoint = new BasicProceedingJoinPoint(new Object(), advice);
 		otherJoinPoint.setArguments(args);
 		otherJoinPoint.setBeanName(beanName);
 		otherJoinPoint.setMethod(method);
 		otherJoinPoint.setTarget(target);
 		
 		// Run
-		int firstHash = joinPoint.hashCode();
+		int firstHash = proceedingJoinPoint.hashCode();
 		int secondHash = otherJoinPoint.hashCode();
 		
 		// Verify
@@ -110,14 +130,14 @@ public class BasicJoinPointTest {
 	@Test
 	public void testEquals_equal() {
 		// Setup
-		BasicJoinPoint otherJoinPoint = new BasicJoinPoint(mockAdvisor, method, location);
+		BasicProceedingJoinPoint otherJoinPoint = new BasicProceedingJoinPoint(mockAdvisor, advice);
 		otherJoinPoint.setArguments(args);
 		otherJoinPoint.setBeanName(beanName);
 		otherJoinPoint.setMethod(method);
 		otherJoinPoint.setTarget(target);
 		
 		// Run
-		boolean result = joinPoint.equals(otherJoinPoint);
+		boolean result = proceedingJoinPoint.equals(otherJoinPoint);
 		
 		// Verify
 		assertTrue("BasicJoinPoints should be equal", result);
@@ -126,14 +146,14 @@ public class BasicJoinPointTest {
 	@Test
 	public void testEquals_notEqual() {
 		// Setup
-		BasicJoinPoint otherJoinPoint = new BasicJoinPoint(mockAdvisor, method, AdviceLocation.After);
+		BasicProceedingJoinPoint otherJoinPoint = new BasicProceedingJoinPoint(mockAdvisor, advice);
 		otherJoinPoint.setArguments(args);
-		otherJoinPoint.setBeanName(beanName);
+		otherJoinPoint.setBeanName("differentBean");
 		otherJoinPoint.setMethod(method);
 		otherJoinPoint.setTarget(target);
 		
 		// Run
-		boolean result = joinPoint.equals(otherJoinPoint);
+		boolean result = proceedingJoinPoint.equals(otherJoinPoint);
 		
 		// Verify
 		assertFalse("BasicJoinPoints should not be equal", result);
@@ -142,8 +162,13 @@ public class BasicJoinPointTest {
 	private static class MockAspect {
 		
 		@SuppressWarnings("unused")
-		public String advice(JoinPoint joinPoint) {
-			return "invoked";
+		public Object firstAdvice(ProceedingJoinPoint joinPoint) throws Exception {
+			return joinPoint.proceed();
+		}
+		
+		@SuppressWarnings("unused")
+		public Object secondAdvice(ProceedingJoinPoint joinPoint) throws Exception {
+			return joinPoint.proceed();
 		}
 		
 	}
