@@ -215,8 +215,7 @@ public class XmlAspectWeaver implements AspectWeaver {
 			if (method == null)
 				throw new InfinitumRuntimeException("Method '" + methodName
 						+ "' from pointcut '" + bean
-						+ "' could not be found in aspect '"
-						+ advisor.getClass().getName() + "'.");
+						+ "' could not be found.");
 			joinPoint.setMethod(method);
 			putJoinPoint(pointcutMap, joinPoint);
 		} else if (args[0].trim().equals("*")) {
@@ -241,8 +240,7 @@ public class XmlAspectWeaver implements AspectWeaver {
 			if (method == null)
 				throw new InfinitumRuntimeException("Method '" + methodName
 						+ "' from pointcut '" + bean
-						+ "' could not be found in aspect '"
-						+ advisor.getClass().getName() + "'.");
+						+ "' could not be found.");
 			joinPoint.setMethod(method);
 			putJoinPoint(pointcutMap, joinPoint);
 		}

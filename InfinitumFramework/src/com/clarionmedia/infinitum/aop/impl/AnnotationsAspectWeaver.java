@@ -197,13 +197,27 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 		try {
 			methodName = bean.substring(bean.indexOf('.') + 1,
 					bean.indexOf('('));
-			args = bean.substring(bean.indexOf('(') + 1, bean.indexOf(')'))
-					.split(",");
+			String params = bean.substring(bean.indexOf('(') + 1,
+					bean.indexOf(')'));
+			if (params.trim().length() == 0)
+				args = new String[0];
+			else
+				args = params.split(",");
 		} catch (IndexOutOfBoundsException e) {
 			throw new InfinitumRuntimeException("Invalid join point '" + bean
 					+ "' in aspect '" + advisor.getClass().getName() + "'.");
 		}
-		if (args[0].trim().equals("*")) {
+		if (args.length == 0) {
+			// Parameterless method
+			Method method = mClassReflector.getMethod(beanObject.getClass(),
+					methodName);
+			if (method == null)
+				throw new InfinitumRuntimeException("Method '" + methodName
+						+ "' from pointcut '" + bean
+						+ "' could not be found.");
+			joinPoint.setMethod(method);
+			putJoinPoint(pointcutMap, joinPoint);
+		} else if (args[0].trim().equals("*")) {
 			// Wildcard -- add all methods with the given name
 			for (Method method : mClassReflector.getMethodsByName(
 					beanObject.getClass(), methodName)) {
@@ -222,6 +236,10 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			}
 			Method method = mClassReflector.getMethod(beanObject.getClass(),
 					methodName, argTypes);
+			if (method == null)
+				throw new InfinitumRuntimeException("Method '" + methodName
+						+ "' from pointcut '" + bean
+						+ "' could not be found.");
 			joinPoint.setMethod(method);
 			putJoinPoint(pointcutMap, joinPoint);
 		}

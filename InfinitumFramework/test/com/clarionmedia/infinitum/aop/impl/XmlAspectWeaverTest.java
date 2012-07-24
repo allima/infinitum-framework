@@ -45,6 +45,7 @@ import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.aop.AspectComponent;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.Pointcut;
+import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
@@ -81,8 +82,12 @@ public class XmlAspectWeaverTest {
 	private List<AspectComponent.Advice> adviceList;
 	private AspectComponent.Advice withinAdvice;
 	private AspectComponent.Advice beansAdviceWithMethod;
+	private AspectComponent.Advice beansAdviceWithParameterizedMethod;
 	private AspectComponent.Advice beansAdviceWithWildcardMethod;
 	private AspectComponent.Advice beansAdviceWithBadMethod;
+	private AspectComponent.Advice beansAdviceClassScope;
+	private AspectComponent.Advice beansAdviceInvalidPointcut1;
+	private AspectComponent.Advice beansAdviceInvalidPointcut2;
 
 	@Before
 	public void setup() {
@@ -99,6 +104,11 @@ public class XmlAspectWeaverTest {
 		beansAdviceWithMethod.setType("before");
 		beansAdviceWithMethod.setPointcut("beans");
 		beansAdviceWithMethod.setValue(BEAN_NAME + ".toString()");
+		beansAdviceWithParameterizedMethod = new AspectComponent.Advice();
+		beansAdviceWithParameterizedMethod.setId("beforeAdvice_beans");
+		beansAdviceWithParameterizedMethod.setType("before");
+		beansAdviceWithParameterizedMethod.setPointcut("beans");
+		beansAdviceWithParameterizedMethod.setValue(BEAN_NAME + ".add(java.lang.Object)");
 		beansAdviceWithWildcardMethod = new AspectComponent.Advice();
 		beansAdviceWithWildcardMethod.setId("beforeAdvice_beans");
 		beansAdviceWithWildcardMethod.setType("before");
@@ -109,6 +119,21 @@ public class XmlAspectWeaverTest {
 		beansAdviceWithBadMethod.setType("before");
 		beansAdviceWithBadMethod.setPointcut("beans");
 		beansAdviceWithBadMethod.setValue(BEAN_NAME + ".fakeMethod()");
+		beansAdviceClassScope = new AspectComponent.Advice();
+		beansAdviceClassScope.setId("aroundAdvice_beans");
+		beansAdviceClassScope.setType("around");
+		beansAdviceClassScope.setPointcut("beans");
+		beansAdviceClassScope.setValue(BEAN_NAME);
+		beansAdviceInvalidPointcut1 = new AspectComponent.Advice();
+		beansAdviceInvalidPointcut1.setId("beforeAdvice_beans");
+		beansAdviceInvalidPointcut1.setType("before");
+		beansAdviceInvalidPointcut1.setPointcut("beans");
+		beansAdviceInvalidPointcut1.setValue(BEAN_NAME + ".invalidMethod(");
+		beansAdviceInvalidPointcut2 = new AspectComponent.Advice();
+		beansAdviceInvalidPointcut2.setId("beforeAdvice_beans");
+		beansAdviceInvalidPointcut2.setType("before");
+		beansAdviceInvalidPointcut2.setPointcut("beans");
+		beansAdviceInvalidPointcut2.setValue(BEAN_NAME + ".)");
 		adviceList = new ArrayList<AspectComponent.Advice>();
 		mockAspect.setAdvice(adviceList);
 		mockAspect.setClassName("com.clarionmedia.infinitum.aop.impl.XmlAspectWeaverTest$MockAspect");
@@ -185,11 +210,123 @@ public class XmlAspectWeaverTest {
 		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
 	}
 	
+	@Test
+	public void testWeave_beansWithParameterizedMethod() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(beansAdviceWithParameterizedMethod);
+		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
+		Method add = ArrayList.class.getMethod("add", Object.class);
+		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockPackageReflector.getClass("java.lang.Object")).thenReturn(null);
+		when(mockClassReflector.getMethod(ArrayList.class, "add", (Class<?>) null)).thenReturn(add);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		verify(mockBeanFactory, times(2)).loadBean(BEAN_NAME);
+		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
+		verify(mockBeanFactory).getBeanMap();
+		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
+	}
+	
+	@Test(expected = InfinitumRuntimeException.class)
+	public void testWeave_beansWithParameterizedMethod_notFoundThrowsException() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(beansAdviceWithParameterizedMethod);
+		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
+		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockPackageReflector.getClass("java.lang.Object")).thenReturn(null);
+		when(mockClassReflector.getMethod(ArrayList.class, "add", (Class<?>) null)).thenReturn(null);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		assertTrue("Weave should have thrown an InfinitumRuntimeException", false);
+	}
+	
+	@Test
+	public void testWeave_beansClassScope() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(beansAdviceClassScope);
+		Method advice = MockAspect.class.getMethod("aroundAdvice_beans", ProceedingJoinPoint.class);
+		Method toString = Object.class.getMethod("toString");
+		when(mockClassReflector.getMethod(null, "aroundAdvice_beans", ProceedingJoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		verify(mockBeanFactory, times(2)).loadBean(BEAN_NAME);
+		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
+		verify(mockBeanFactory).getBeanMap();
+		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
+	}
+	
 	@Test(expected = InfinitumRuntimeException.class)
 	public void testWeave_beansWithBadMethodThrowsException() throws SecurityException, NoSuchMethodException {
 		// Setup
 		adviceList.clear();
 		adviceList.add(beansAdviceWithBadMethod);
+		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
+		Method toString = Object.class.getMethod("toString");
+		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		assertTrue("Weave should have thrown an InfinitumRuntimeException", false);
+	}
+	
+	@Test(expected = InfinitumRuntimeException.class)
+	public void testWeave_beansWithInvalidPointcutThrowsException_malformedMethod() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(beansAdviceInvalidPointcut1);
+		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
+		Method toString = Object.class.getMethod("toString");
+		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
+		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
+		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
+		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
+		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		
+		// Run
+		aspectWeaver.weave(Robolectric.application, null);
+		
+		// Verify
+		assertTrue("Weave should have thrown an InfinitumRuntimeException", false);
+	}
+	
+	@Test(expected = InfinitumRuntimeException.class)
+	public void testWeave_beansWithInvalidPointcutThrowsException_missingMethod() throws SecurityException, NoSuchMethodException {
+		// Setup
+		adviceList.clear();
+		adviceList.add(beansAdviceInvalidPointcut2);
 		Method advice = MockAspect.class.getMethod("beforeAdvice_beans", JoinPoint.class);
 		Method toString = Object.class.getMethod("toString");
 		when(mockClassReflector.getMethod(null, "beforeAdvice_beans", JoinPoint.class)).thenReturn(advice);
@@ -242,6 +379,11 @@ public class XmlAspectWeaverTest {
 		@SuppressWarnings("unused")
 		public void beforeAdvice_beans(JoinPoint joinPoint) {
 
+		}
+		
+		@SuppressWarnings("unused")
+		public void aroundAdvice_beans(ProceedingJoinPoint joinPoint) {
+			
 		}
 
 	}
