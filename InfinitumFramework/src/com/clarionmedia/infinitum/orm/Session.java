@@ -228,10 +228,11 @@ public interface Session {
 	 * 
 	 * @param models
 	 *            {@code Objects} to save or update in the database
+	 * @return the number of records saved or updated
 	 * @throws InfinitumRuntimeException
 	 *             if one or more of the models is marked transient
 	 */
-	void saveOrUpdateAll(Collection<? extends Object> models)
+	int saveOrUpdateAll(Collection<? extends Object> models)
 			throws InfinitumRuntimeException;
 
 	/**

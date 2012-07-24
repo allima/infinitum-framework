@@ -20,7 +20,6 @@
 package com.clarionmedia.infinitum.orm;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
@@ -88,45 +87,11 @@ public interface DatastoreOperations {
 	 * 
 	 * @param model
 	 *            {@code Object} to save or update in the database
-	 * @return the row ID of the newly inserted row or 0 if the row was updated
+	 * @return the row ID of the newly inserted row, 0 if the row was updated, or -1 if the operation failed
 	 * @throws InfinitumRuntimeException
 	 *             if the model is marked transient
 	 */
 	long saveOrUpdate(Object model) throws InfinitumRuntimeException;
-
-	/**
-	 * Persists or updates the entire collection of {@code Objects} in the
-	 * database.
-	 * 
-	 * @param models
-	 *            {@code Objects} to save or update in the database
-	 * @throws InfinitumRuntimeException
-	 *             if one or more of the models is marked transient
-	 */
-	void saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
-
-	/**
-	 * Persists the entire collection of {@code Objects} to the database.
-	 * 
-	 * @param models
-	 *            {@code Objects} to persist to the database
-	 * @return the number of records saved
-	 * @throws InfinitumRuntimeException
-	 *             if one or more of the models is marked transient
-	 */
-	int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
-
-	/**
-	 * Deletes the entire collection of {@code Objects} from the database if
-	 * they exist.
-	 * 
-	 * @param models
-	 *            {@code Objects} to delete from the database
-	 * @return the number of records deleted
-	 * @throws InfinitumRuntimeException
-	 *             if one or more of the models is marked transient
-	 */
-	int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException;
 
 	/**
 	 * Returns an instance of the given persistent model {@link Class} as
