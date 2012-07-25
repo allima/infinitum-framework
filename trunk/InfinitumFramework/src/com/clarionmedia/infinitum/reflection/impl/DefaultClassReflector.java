@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -51,9 +52,13 @@ public class DefaultClassReflector implements ClassReflector {
 
 	/**
 	 * Constructs a new {@code DefaultClassReflector}.
+	 * 
+	 * @param context
+	 *            the {@link InfinitumContext} to use for this
+	 *            {@code DefaultClassReflector}
 	 */
-	public DefaultClassReflector() {
-		mTypePolicy = new DefaultTypeResolutionPolicy();
+	public DefaultClassReflector(InfinitumContext context) {
+		mTypePolicy = new DefaultTypeResolutionPolicy(context);
 	}
 
 	@Override
@@ -126,7 +131,8 @@ public class DefaultClassReflector implements ClassReflector {
 					+ name + "' from '" + clazz.getName() + "'.");
 		} catch (NoSuchMethodException e) {
 			if (clazz.getSuperclass() == null)
-				throw new InfinitumRuntimeException("Method '" + name + "' in '" + clazz.getName() + "' does not exist.");
+				throw new InfinitumRuntimeException("Method '" + name
+						+ "' in '" + clazz.getName() + "' does not exist.");
 			return getMethod(clazz.getSuperclass(), name, paramTypes);
 		}
 	}

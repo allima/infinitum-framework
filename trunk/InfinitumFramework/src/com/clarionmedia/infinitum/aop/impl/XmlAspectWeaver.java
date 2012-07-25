@@ -36,6 +36,7 @@ import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
 import com.clarionmedia.infinitum.aop.JoinPoint.PointcutType;
 import com.clarionmedia.infinitum.aop.Pointcut;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.CollectionUtil;
@@ -61,27 +62,25 @@ public class XmlAspectWeaver implements AspectWeaver {
 	private BeanFactory mBeanFactory;
 	private AdvisedProxyFactory mProxyFactory;
 	private List<AspectComponent> mAspects;
-
-	/**
-	 * Creates a new {@code XmlAspectWeaver}.
-	 */
+	
+	@Deprecated
 	public XmlAspectWeaver() {
 	}
 
 	/**
-	 * Creates a new {@code XmlAspectWeaver} with the given {@link BeanFactory}.
+	 * Creates a new {@code XmlAspectWeaver} with the given {@link InfinitumContext}.
 	 * 
-	 * @param beanFactory
-	 *            the {@code BeanFactory} to retrieve beans from
+	 * @param context
+	 *            the {@code InfinitumContext} to retrieve beans from
 	 * @param aspects
 	 *            the aspects to weave
 	 */
-	public XmlAspectWeaver(BeanFactory beanFactory,
+	public XmlAspectWeaver(InfinitumContext context,
 			List<AspectComponent> aspects) {
-		mClassReflector = new DefaultClassReflector();
+		mClassReflector = new DefaultClassReflector(context);
 		mPackageReflector = new DefaultPackageReflector();
 		mProxyFactory = new DelegatingAdvisedProxyFactory();
-		mBeanFactory = beanFactory;
+		mBeanFactory = context.getBeanFactory();
 		mAspects = aspects;
 	}
 

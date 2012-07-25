@@ -56,28 +56,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  */
 public class XmlContextFactory extends ContextFactory {
 
-	private static XmlContextFactory sContextFactory;
 	private static InfinitumContext sInfinitumContext;
-
-	/**
-	 * Constructs a new {@code SimpleXmlContextFactory}. This is marked
-	 * {@code private} to prevent direct instantiation.
-	 * {@code XmlContextFactory} should be retrieved as a singleton.
-	 */
-	private XmlContextFactory() {
-
-	}
-
-	/**
-	 * Retrieves an {@code XmlContextFactory} singleton.
-	 * 
-	 * @return {@code SimpleContextFactory}
-	 */
-	public static XmlContextFactory instance() {
-		if (sContextFactory == null)
-			sContextFactory = new XmlContextFactory();
-		return sContextFactory;
-	}
 
 	@Override
 	public InfinitumContext configure(Context context) throws InfinitumConfigurationException {
@@ -87,7 +66,7 @@ public class XmlContextFactory extends ContextFactory {
 		if (id == 0)
 			throw new InfinitumConfigurationException("Configuration infinitum.cfg.xml could not be found.");
 		sInfinitumContext = configureFromXml(id);
-		sInfinitumContext.setContext(context);
+		sInfinitumContext.postProcess(context);
 		return sInfinitumContext;
 	}
 
@@ -95,7 +74,7 @@ public class XmlContextFactory extends ContextFactory {
 	public InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException {
 		mContext = context;
 		sInfinitumContext = configureFromXml(configId);
-		sInfinitumContext.setContext(context);
+		sInfinitumContext.postProcess(context);
 		return sInfinitumContext;
 	}
 

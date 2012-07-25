@@ -26,13 +26,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.clarionmedia.infinitum.context.ContextFactory;
+
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
+import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationsPersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
+import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
@@ -40,8 +43,6 @@ import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
-import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationsPersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
 
 /**
  * <p>
@@ -103,11 +104,18 @@ public abstract class PersistencePolicy {
 	protected ClassReflector mClassReflector;
 	protected Logger mLogger;
 	protected PropertyLoader mPropLoader;
+	protected InfinitumContext mContext;
 
 	/**
-	 * Constructs a new {@code PersistencePolicy}.
+	 * Constructs a new {@code PersistencePolicy} with the given
+	 * {@link InfinitumContext}.
+	 * 
+	 * @param context
+	 *            the {@code InfinitumContext} for this
+	 *            {@code PersistencePolicy}
 	 */
-	public PersistencePolicy() {
+	public PersistencePolicy(InfinitumContext context) {
+		mContext = context;
 		mPersistenceCache = new HashMap<Class<?>, List<Field>>();
 		mColumnCache = new HashMap<Field, String>();
 		mPrimaryKeyCache = new HashMap<Class<?>, Field>();
@@ -120,11 +128,10 @@ public abstract class PersistencePolicy {
 		mLazyLoadingCache = new HashMap<Class<?>, Boolean>();
 		mRestEndpointCache = new HashMap<Class<?>, String>();
 		mRestFieldCache = new HashMap<Field, String>();
-		mTypePolicy = new DefaultTypeResolutionPolicy();
-		mClassReflector = new DefaultClassReflector();
-		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance()
-				.getAndroidContext());
+		mTypePolicy = new DefaultTypeResolutionPolicy(mContext);
+		mClassReflector = new DefaultClassReflector(context);
+		mLogger = Logger.getInstance(context, getClass().getSimpleName());
+		mPropLoader = new PropertyLoader(mContext.getAndroidContext());
 	}
 
 	/**

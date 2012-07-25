@@ -19,6 +19,9 @@
 
 package com.clarionmedia.infinitum.logging;
 
+import android.app.Activity;
+
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.logging.impl.LoggerImpl;
 
 /**
@@ -28,18 +31,21 @@ import com.clarionmedia.infinitum.logging.impl.LoggerImpl;
  * 
  * @author Tyler Treat
  * @version 1.0 04/10/12
+ * @since 1.0
  */
 public abstract class Logger {
 
 	/**
 	 * Retrieves a new {@code Logger} instance.
 	 * 
+	 * @param context
+	 *            the {@link InfinitumContext} to use for this {@code Logger}
 	 * @param tag
 	 *            the tag to assign to the {@code Logger}
 	 * @return {@code Logger} instance
 	 */
-	public static Logger getInstance(String tag) {
-		return new LoggerImpl(tag);
+	public static Logger getInstance(InfinitumContext context, String tag) {
+		return new LoggerImpl(context, tag);
 	}
 
 	/**

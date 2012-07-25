@@ -23,7 +23,6 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -54,16 +53,15 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 	 * and {@link SqliteMapper}.
 	 * 
 	 * @param context
-	 *            the {@code Context} of the {@code SqliteDbHelper}
+	 *            the {link InfinitumContext} of the {@code SqliteDbHelper}
 	 * @param mapper
 	 *            the {@code SqliteMapper} to use for {@link Object} mapping
 	 */
-	public SqliteDbHelper(Context context, SqliteMapper mapper) {
-		super(context, ContextFactory.getInstance().getContext().getSqliteDbName(), null, ContextFactory.getInstance()
-				.getContext().getSqliteDbVersion());
-		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mInfinitumContext = ContextFactory.getInstance().getContext();
-		mSqlBuilder = new SqliteBuilder(mapper);
+	public SqliteDbHelper(InfinitumContext context, SqliteMapper mapper) {
+		super(context.getAndroidContext(), context.getSqliteDbName(), null, context.getSqliteDbVersion());
+		mLogger = Logger.getInstance(context, getClass().getSimpleName());
+		mInfinitumContext = context;
+		mSqlBuilder = new SqliteBuilder(context, mapper);
 		mPropLoader = new PropertyLoader(mInfinitumContext.getAndroidContext());
 	}
 

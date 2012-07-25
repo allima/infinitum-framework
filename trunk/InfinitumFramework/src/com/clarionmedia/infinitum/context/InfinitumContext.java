@@ -78,6 +78,14 @@ public interface InfinitumContext {
 	}
 
 	/**
+	 * Must be executed after the {@code InfinitumContext} has been initialized.
+	 * 
+	 * @param context
+	 *            the {@link Context} used for post processing
+	 */
+	void postProcess(Context context);
+
+	/**
 	 * Retrieves a new {@link Session} instance for the configured data source.
 	 * 
 	 * @param source

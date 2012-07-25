@@ -42,7 +42,6 @@ import com.clarionmedia.infinitum.activity.annotation.Bind;
 import com.clarionmedia.infinitum.activity.annotation.InjectLayout;
 import com.clarionmedia.infinitum.activity.annotation.InjectResource;
 import com.clarionmedia.infinitum.activity.annotation.InjectView;
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.ActivityInjector;
@@ -68,10 +67,12 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	private Context mContext;
 	private ClassReflector mClassReflector;
 	private List<Field> mFields;
+	private InfinitumContext mInfinitumContext;
 
-	public ContextBasedActivityInjector(Context context) {
-		mContext = context;
-		mClassReflector = new DefaultClassReflector();
+	public ContextBasedActivityInjector(InfinitumContext context) {
+		mInfinitumContext = context;
+		mContext = mInfinitumContext.getAndroidContext();
+		mClassReflector = new DefaultClassReflector(context);
 		mFields = mClassReflector.getAllFields(context.getClass());
 	}
 
@@ -87,8 +88,7 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	}
 
 	private void injectBeans() {
-		InfinitumContext ctx = ContextFactory.getInstance().getContext();
-		BeanFactory beanFactory = ctx.getBeanFactory();
+		BeanFactory beanFactory = mInfinitumContext.getBeanFactory();
 		for (Field field : mFields) {
 			if (!field.isAnnotationPresent(Autowired.class))
 				continue;
@@ -96,7 +96,7 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 			Autowired autowired = field.getAnnotation(Autowired.class);
 			String qualifier = autowired.value().trim();
 			Class<?> type = field.getType();
-			Object bean = qualifier.equals("") ? BeanUtils.findCandidateBean(beanFactory, type) : ctx
+			Object bean = qualifier.equals("") ? BeanUtils.findCandidateBean(beanFactory, type) : mInfinitumContext
 					.getBean(qualifier);
 			if (bean == null) {
 				throw new InfinitumConfigurationException("Could not autowire property of type '" + type.getName()

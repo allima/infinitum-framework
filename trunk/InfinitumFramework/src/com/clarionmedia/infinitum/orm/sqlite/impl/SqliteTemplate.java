@@ -31,7 +31,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
@@ -97,16 +96,16 @@ public class SqliteTemplate implements SqliteOperations {
 	 *            attached to
 	 */
 	public SqliteTemplate(SqliteSession session) {
-		mSqliteUtil = new SqliteUtil();
-		mClassReflector = new DefaultClassReflector();
-		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
-		mTypePolicy = new DefaultTypeResolutionPolicy();
+		mInfinitumContext = session.getInfinitumContext();
+		mSqliteUtil = new SqliteUtil(mInfinitumContext);
+		mClassReflector = new DefaultClassReflector(mInfinitumContext);
+		mPersistencePolicy = mInfinitumContext.getPersistencePolicy();
+		mTypePolicy = new DefaultTypeResolutionPolicy(mInfinitumContext);
 		mSession = session;
-		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mInfinitumContext = ContextFactory.getInstance().getContext();
+		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
 		mIsAutocommit = mInfinitumContext.isAutocommit();
-		mMapper = new SqliteMapper();
-		mSqlBuilder = new SqliteBuilder(mMapper);
+		mMapper = new SqliteMapper(mInfinitumContext);
+		mSqlBuilder = new SqliteBuilder(mInfinitumContext, mMapper);
 		mTransactionStack = new Stack<Boolean>();
 		mPropLoader = new PropertyLoader(mInfinitumContext.getAndroidContext());
 	}
@@ -118,7 +117,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public void open() throws SQLException {
-		mDbHelper = new SqliteDbHelper(mSession.getContext(), mMapper);
+		mDbHelper = new SqliteDbHelper(mInfinitumContext, mMapper);
 		mSqliteDb = mDbHelper.getWritableDatabase();
 		mModelFactory = new SqliteModelFactoryImpl(mSession, mMapper);
 		mIsOpen = true;

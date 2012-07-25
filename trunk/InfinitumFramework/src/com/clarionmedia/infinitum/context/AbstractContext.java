@@ -97,12 +97,83 @@ public abstract class AbstractContext implements InfinitumContext {
 	 * @return {@code List} of package names
 	 */
 	protected abstract List<String> getScanPackages();
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public void postProcess(Context context) {
+		mContext = context;
+		PackageReflector reflector = new DefaultPackageReflector();
+		RestfulContext restContext = getRestContext();
+		if (restContext != null)
+		    restContext.setParentContext(this);
+
+		// Register XML beans
+		mBeanFactory = new ConfigurableBeanFactory(this);
+		List<BeanComponent> beans = getBeans();
+		mBeanFactory.registerBeans(beans); // also registers aspects implicitly
+
+		// Get XML components
+		Set<Class<?>> xmlAspects = new HashSet<Class<?>>();
+		Set<Class<BeanPostProcessor>> xmlBeanPostProcessors = new HashSet<Class<BeanPostProcessor>>();
+		Set<Class<BeanFactoryPostProcessor>> xmlBeanFactoryPostProcessors = new HashSet<Class<BeanFactoryPostProcessor>>();
+		for (BeanComponent bean : beans) {
+			Class<?> clazz = reflector.getClass(bean.getClassName());
+			if (AspectComponent.class.equals(clazz))
+				xmlAspects.add(clazz);
+			else if (BeanPostProcessor.class.isAssignableFrom(clazz))
+				xmlBeanPostProcessors.add((Class<BeanPostProcessor>) clazz);
+			else if (BeanFactoryPostProcessor.class.isAssignableFrom(clazz))
+				xmlBeanFactoryPostProcessors.add((Class<BeanFactoryPostProcessor>) clazz);
+		}
+
+		// Scan for annotated components
+		Set<Class<?>> components = new HashSet<Class<?>>();
+		if (isComponentScanEnabled())
+			components.addAll(getClasspathComponents());
+
+		// Categorize the components while filtering down the original Set
+		Set<Class<?>> aspects = getAndRemoveAspects(components);
+		Set<Class<BeanPostProcessor>> beanPostProcessors = getAndRemoveBeanPostProcessors(components);
+		beanPostProcessors.addAll(xmlBeanPostProcessors);
+		Set<Class<BeanFactoryPostProcessor>> beanFactoryPostProcessors = getAndRemoveBeanFactoryPostProcessors(components);
+		beanFactoryPostProcessors.addAll(xmlBeanFactoryPostProcessors);
+
+		// Register scanned aspects
+		for (Class<?> aspectClass : aspects) {
+			Aspect aspect = aspectClass.getAnnotation(Aspect.class);
+			String beanName = aspect.value().trim().equals("") ? StringUtil.toCamelCase(aspectClass.getSimpleName())
+					: aspect.value().trim();
+			mBeanFactory.registerAspect(beanName, aspectClass.getName(), null);
+		}
+
+		// Register scanned bean candidates
+		for (Class<?> candidate : components) {
+			if (candidate.isAnnotationPresent(Bean.class)) {
+				Bean bean = candidate.getAnnotation(Bean.class);
+				String beanName = bean.value().trim().equals("") ? StringUtil.toCamelCase(candidate.getSimpleName())
+						: bean.value().trim();
+				mBeanFactory.registerBean(beanName, candidate.getName(), null);
+			}
+		}
+
+		// Process aspects
+		// Currently not supporting use of XML and annotation aspects in
+		// conjunction, only one or the other right now...
+		if (isComponentScanEnabled())
+			new AnnotationsAspectWeaver(this).weave(mContext, aspects);
+		else
+			new XmlAspectWeaver(this, getAspects()).weave(mContext, null);
+
+		// Execute post processors
+		executeBeanPostProcessors(beanPostProcessors);
+		executeBeanFactoryPostProcessors(beanFactoryPostProcessors);
+	}
 
 	@Override
 	public Session getSession(DataSource source) throws InfinitumConfigurationException {
 		switch (source) {
 		case Sqlite:
-			return new SqliteSession(mContext);
+			return new SqliteSession(this);
 		case Rest:
 			String client = getRestfulConfiguration().getClientBean();
 			RestfulSession session;
@@ -124,10 +195,10 @@ public abstract class AbstractContext implements InfinitumContext {
 		if (sPersistencePolicy == null) {
 			switch (getConfigurationMode()) {
 			case Annotation:
-				sPersistencePolicy = new AnnotationsPersistencePolicy();
+				sPersistencePolicy = new AnnotationsPersistencePolicy(this);
 				break;
 			case Xml:
-				sPersistencePolicy = new XmlPersistencePolicy(mContext);
+				sPersistencePolicy = new XmlPersistencePolicy(this);
 				break;
 			}
 		}
@@ -186,79 +257,6 @@ public abstract class AbstractContext implements InfinitumContext {
 		return components;
 	}
 
-	/**
-	 * Must be executed after the {@link InfinitumContext} has been constructed.
-	 */
-	@SuppressWarnings("unchecked")
-	protected void postProcess() {
-		PackageReflector reflector = new DefaultPackageReflector();
-		RestfulContext restContext = getRestContext();
-		if (restContext != null)
-		    restContext.setParentContext(this);
-
-		// Register XML beans
-		mBeanFactory = new ConfigurableBeanFactory();
-		List<BeanComponent> beans = getBeans();
-		mBeanFactory.registerBeans(beans); // also registers aspects implicitly
-
-		// Get XML components
-		Set<Class<?>> xmlAspects = new HashSet<Class<?>>();
-		Set<Class<BeanPostProcessor>> xmlBeanPostProcessors = new HashSet<Class<BeanPostProcessor>>();
-		Set<Class<BeanFactoryPostProcessor>> xmlBeanFactoryPostProcessors = new HashSet<Class<BeanFactoryPostProcessor>>();
-		for (BeanComponent bean : beans) {
-			Class<?> clazz = reflector.getClass(bean.getClassName());
-			if (AspectComponent.class.equals(clazz))
-				xmlAspects.add(clazz);
-			else if (BeanPostProcessor.class.isAssignableFrom(clazz))
-				xmlBeanPostProcessors.add((Class<BeanPostProcessor>) clazz);
-			else if (BeanFactoryPostProcessor.class.isAssignableFrom(clazz))
-				xmlBeanFactoryPostProcessors.add((Class<BeanFactoryPostProcessor>) clazz);
-		}
-
-		// Scan for annotated components
-		Set<Class<?>> components = new HashSet<Class<?>>();
-		if (isComponentScanEnabled())
-			components.addAll(getClasspathComponents());
-
-		// Categorize the components while filtering down the original Set
-		Set<Class<?>> aspects = getAndRemoveAspects(components);
-		Set<Class<BeanPostProcessor>> beanPostProcessors = getAndRemoveBeanPostProcessors(components);
-		beanPostProcessors.addAll(xmlBeanPostProcessors);
-		Set<Class<BeanFactoryPostProcessor>> beanFactoryPostProcessors = getAndRemoveBeanFactoryPostProcessors(components);
-		beanFactoryPostProcessors.addAll(xmlBeanFactoryPostProcessors);
-
-		// Register scanned aspects
-		for (Class<?> aspectClass : aspects) {
-			Aspect aspect = aspectClass.getAnnotation(Aspect.class);
-			String beanName = aspect.value().trim().equals("") ? StringUtil.toCamelCase(aspectClass.getSimpleName())
-					: aspect.value().trim();
-			mBeanFactory.registerAspect(beanName, aspectClass.getName(), null);
-		}
-
-		// Register scanned bean candidates
-		for (Class<?> candidate : components) {
-			if (candidate.isAnnotationPresent(Bean.class)) {
-				Bean bean = candidate.getAnnotation(Bean.class);
-				String beanName = bean.value().trim().equals("") ? StringUtil.toCamelCase(candidate.getSimpleName())
-						: bean.value().trim();
-				mBeanFactory.registerBean(beanName, candidate.getName(), null);
-			}
-		}
-
-		// Process aspects
-		// Currently not supporting use of XML and annotation aspects in
-		// conjunction, only one or the other right now...
-		Context context = ContextFactory.getInstance().getAndroidContext();
-		if (isComponentScanEnabled())
-			new AnnotationsAspectWeaver(mBeanFactory).weave(context, aspects);
-		else
-			new XmlAspectWeaver(mBeanFactory, getAspects()).weave(context, null);
-
-		// Execute post processors
-		executeBeanPostProcessors(beanPostProcessors);
-		executeBeanFactoryPostProcessors(beanFactoryPostProcessors);
-	}
-
 	private Set<Class<?>> getAndRemoveAspects(Collection<Class<?>> components) {
 		Set<Class<?>> aspects = new HashSet<Class<?>>();
 		Iterator<Class<?>> iter = components.iterator();
@@ -305,7 +303,7 @@ public abstract class AbstractContext implements InfinitumContext {
 			try {
 				BeanPostProcessor postProcessorInstance = postProcessor.newInstance();
 				for (Entry<String, Object> bean : mBeanFactory.getBeanMap().entrySet()) {
-					postProcessorInstance.postProcessBean(mBeanFactory, bean.getKey(), bean.getValue());
+					postProcessorInstance.postProcessBean(this, bean.getKey(), bean.getValue());
 				}
 			} catch (InstantiationException e) {
 				throw new InfinitumRuntimeException("BeanPostProcessor '" + postProcessor.getName()

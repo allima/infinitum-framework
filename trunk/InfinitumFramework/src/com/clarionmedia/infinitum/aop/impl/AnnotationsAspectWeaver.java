@@ -39,6 +39,7 @@ import com.clarionmedia.infinitum.aop.annotation.After;
 import com.clarionmedia.infinitum.aop.annotation.Around;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.annotation.Before;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.CollectionUtil;
@@ -63,25 +64,19 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 	private PackageReflector mPackageReflector;
 	private BeanFactory mBeanFactory;
 	private AdvisedProxyFactory mProxyFactory;
-	
-	/**
-	 * Creates a new {@code AnnotationsAspectWeaver}.
-	 */
-	public AnnotationsAspectWeaver() { 
-	}
 
 	/**
 	 * Creates a new {@code AnnotationsAspectWeaver} with the given
-	 * {@link BeanFactory}.
+	 * {@link InfinitumContext}.
 	 * 
-	 * @param beanFactory
-	 *            the {@code BeanFactory} to retrieve beans from
+	 * @param context
+	 *            the {@code InfinitumContext} to retrieve beans from
 	 */
-	public AnnotationsAspectWeaver(BeanFactory beanFactory) {
-		mClassReflector = new DefaultClassReflector();
+	public AnnotationsAspectWeaver(InfinitumContext context) {
+		mClassReflector = new DefaultClassReflector(context);
 		mPackageReflector = new DefaultPackageReflector();
 		mProxyFactory = new DelegatingAdvisedProxyFactory();
-		mBeanFactory = beanFactory;
+		mBeanFactory = context.getBeanFactory();
 	}
 
 	@Override

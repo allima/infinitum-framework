@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.clarionmedia.infinitum.aop.AopProxy;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
@@ -49,23 +50,17 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
 	private ClassReflector mClassReflector;
 
-	/**
-	 * Constructs a new {@code AutowiredBeanPostProcessor}.
-	 */
-	public AutowiredBeanPostProcessor() {
-		mClassReflector = new DefaultClassReflector();
-	}
-
 	@Override
-	public void postProcessBean(BeanFactory beanFactory, String beanName, Object bean) {
+	public void postProcessBean(InfinitumContext context, String beanName, Object bean) {
+		mClassReflector = new DefaultClassReflector(context);
 		Object target;
 		AopProxy proxy = AopProxy.getProxy(bean);
 		if (proxy != null)
 			target = proxy.getTarget();
 		else
 			target = bean;
-		injectFields(beanFactory, target);
-		injectSetters(beanFactory, target);
+		injectFields(context.getBeanFactory(), target);
+		injectSetters(context.getBeanFactory(), target);
 	}
 
 	private void injectFields(BeanFactory beanFactory, Object bean) {

@@ -26,7 +26,7 @@ import java.util.Map;
 
 import android.content.ContentValues;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.SqliteTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
@@ -45,6 +45,7 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
  * 
  * @author Tyler Treat
  * @version 1.0 02/13/12
+ * @since 1.0
  */
 public class SqliteMapper extends ObjectMapper {
 
@@ -53,9 +54,14 @@ public class SqliteMapper extends ObjectMapper {
 
 	/**
 	 * Constructs a new {@code SqliteMapper}.
+	 * 
+	 * @param context
+	 *            the {@link InfinitumContext} to use for this
+	 *            {@code SqliteUtil}
 	 */
-	public SqliteMapper() {
-		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
+	public SqliteMapper(InfinitumContext context) {
+		super(context);
+		mPolicy = context.getPersistencePolicy();
 		mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, SqliteTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, SqliteTypeAdapters.BYTE);
@@ -71,7 +77,8 @@ public class SqliteMapper extends ObjectMapper {
 	}
 
 	@Override
-	public SqliteModelMap mapModel(Object model) throws InvalidMappingException, ModelConfigurationException {
+	public SqliteModelMap mapModel(Object model)
+			throws InvalidMappingException, ModelConfigurationException {
 		// We do not map transient classes!
 		if (!mPolicy.isPersistent(model.getClass()))
 			return null;
@@ -79,7 +86,8 @@ public class SqliteMapper extends ObjectMapper {
 		ContentValues values = new ContentValues();
 		for (Field f : mPolicy.getPersistentFields(model.getClass())) {
 			// Don't map primary keys if they are autoincrementing
-			if (mPolicy.isFieldPrimaryKey(f) && mPolicy.isPrimaryKeyAutoIncrement(f))
+			if (mPolicy.isFieldPrimaryKey(f)
+					&& mPolicy.isPrimaryKeyAutoIncrement(f))
 				continue;
 			try {
 				f.setAccessible(true);
@@ -91,11 +99,13 @@ public class SqliteMapper extends ObjectMapper {
 				// Map Field values
 				mapField(values, model, f);
 			} catch (IllegalArgumentException e) {
-				mLogger.error("Unable to map field " + f.getName() + " for object of type '"
-						+ model.getClass().getName() + "'", e);
+				mLogger.error("Unable to map field " + f.getName()
+						+ " for object of type '" + model.getClass().getName()
+						+ "'", e);
 			} catch (IllegalAccessException e) {
-				mLogger.error("Unable to map field " + f.getName() + " for object of type '"
-						+ model.getClass().getName() + "'", e);
+				mLogger.error("Unable to map field " + f.getName()
+						+ " for object of type '" + model.getClass().getName()
+						+ "'", e);
 			}
 		}
 		ret.setContentValues(values);
@@ -114,11 +124,13 @@ public class SqliteMapper extends ObjectMapper {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> SqliteTypeAdapter<T> resolveType(Class<T> type) throws InvalidMappingException {
+	public <T> SqliteTypeAdapter<T> resolveType(Class<T> type)
+			throws InvalidMappingException {
 		type = Primitives.unwrap(type);
 		if (mTypeAdapters.containsKey(type))
 			return (SqliteTypeAdapter<T>) mTypeAdapters.get(type);
-		throw new InvalidMappingException(String.format(mPropLoader.getErrorMessage("CANNOT_MAP_TYPE"),
+		throw new InvalidMappingException(String.format(
+				mPropLoader.getErrorMessage("CANNOT_MAP_TYPE"),
 				type.getSimpleName()));
 	}
 
@@ -173,8 +185,9 @@ public class SqliteMapper extends ObjectMapper {
 	}
 
 	// Map Field value to ContentValues
-	private void mapField(ContentValues values, Object model, Field field) throws InvalidMappingException,
-			IllegalArgumentException, IllegalAccessException {
+	private void mapField(ContentValues values, Object model, Field field)
+			throws InvalidMappingException, IllegalArgumentException,
+			IllegalAccessException {
 		Object val = null;
 		// We need to use the Field's getter if model is a proxy
 		if (mTypePolicy.isDomainProxy(model.getClass()))
