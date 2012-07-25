@@ -70,7 +70,7 @@ public class RestfulJsonSession extends RestfulSession {
 	@Override
 	public <T> T load(Class<T> type, Serializable id)
 			throws InfinitumRuntimeException, IllegalArgumentException {
-		Preconditions.checkPersistenceForLoading(type, mInfinitumContext);
+		Preconditions.checkPersistenceForLoading(type, mPolicy);
 		mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
 		String uri = mHost + mPolicy.getRestEndpoint(type) + "/" + id;

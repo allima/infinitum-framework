@@ -50,6 +50,8 @@ import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationTyp
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteHelperFactory;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactory;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
@@ -75,7 +77,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected SqliteDbHelper mDbHelper;
 	protected SQLiteDatabase mSqliteDb;
 	protected SqliteMapper mMapper;
-	protected SqliteModelFactoryImpl mModelFactory;
+	protected SqliteModelFactory mModelFactory;
 	protected SqlBuilder mSqlBuilder;
 	protected boolean mIsOpen;
 	protected Stack<Boolean> mTransactionStack;
@@ -86,6 +88,11 @@ public class SqliteTemplate implements SqliteOperations {
 	protected ClassReflector mClassReflector;
 	protected Logger mLogger;
 	protected PropertyLoader mPropLoader;
+	protected SqliteHelperFactory mHelperFactory;
+	
+	@Deprecated
+	public SqliteTemplate() {
+	}
 
 	/**
 	 * Constructs a new {@code SqliteTemplate} attached to the given
@@ -108,18 +115,19 @@ public class SqliteTemplate implements SqliteOperations {
 		mSqlBuilder = new SqliteBuilder(mInfinitumContext, mMapper);
 		mTransactionStack = new Stack<Boolean>();
 		mPropLoader = new PropertyLoader(mInfinitumContext.getAndroidContext());
+		mHelperFactory = new SqliteHelperFactoryImpl();
 	}
 
 	@Override
 	public <T> Criteria<T> createCriteria(Class<T> entityClass) {
-		return new SqliteCriteria<T>(mSession, entityClass, mSqlBuilder, mMapper);
+		return mHelperFactory.createCriteria(mSession, entityClass, mSqlBuilder, mMapper);
 	}
 
 	@Override
 	public void open() throws SQLException {
-		mDbHelper = new SqliteDbHelper(mInfinitumContext, mMapper);
+		mDbHelper = mHelperFactory.createSqliteDbHelper(mInfinitumContext, mMapper);
 		mSqliteDb = mDbHelper.getWritableDatabase();
-		mModelFactory = new SqliteModelFactoryImpl(mSession, mMapper);
+		mModelFactory = mHelperFactory.createSqliteModelFactory(mSession, mMapper);
 		mIsOpen = true;
 	}
 
@@ -180,7 +188,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
+		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveRec(model, objectMap);
 	}
@@ -188,7 +196,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
+		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return updateRec(model, objectMap);
 	}
@@ -196,7 +204,7 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
+		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
 		String whereClause = mSqliteUtil.getWhereClause(model, mMapper);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
@@ -212,14 +220,14 @@ public class SqliteTemplate implements SqliteOperations {
 	@Override
 	public long saveOrUpdate(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
-		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
+		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
 		return saveOrUpdateRec(model, objectMap);
 	}
 
 	@Override
 	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
-		Preconditions.checkPersistenceForLoading(c, mInfinitumContext);
+		Preconditions.checkPersistenceForLoading(c, mPersistencePolicy);
 		if (!mTypePolicy.isValidPrimaryKey(mPersistencePolicy.getPrimaryKeyField(c), id))
 			throw new IllegalArgumentException(String.format(mPropLoader.getErrorMessage("INVALID_PK"), id.getClass()
 					.getSimpleName(), c.getName()));
@@ -310,13 +318,13 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	private long saveRec(Object model, Map<Integer, Object> objectMap) {
-		SqliteModelMap map = mMapper.mapModel(model);
-		ContentValues values = map.getContentValues();
-		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
 		int objHash = mPersistencePolicy.computeModelHash(model);
 		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return 0;
 		objectMap.put(objHash, model);
+		SqliteModelMap map = mMapper.mapModel(model);
+		ContentValues values = map.getContentValues();
+		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
 		processOneToOneRelationships(model, map, objectMap, values);
 		long rowId = mSqliteDb.insert(tableName, null, values);
 		if (rowId <= 0) {
@@ -332,14 +340,14 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	private boolean updateRec(Object model, Map<Integer, Object> objectMap) {
-		SqliteModelMap map = mMapper.mapModel(model);
-		ContentValues values = map.getContentValues();
-		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
-		String whereClause = mSqliteUtil.getWhereClause(model, mMapper);
 		int objHash = mPersistencePolicy.computeModelHash(model);
 		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return true;
 		objectMap.put(objHash, model);
+		SqliteModelMap map = mMapper.mapModel(model);
+		ContentValues values = map.getContentValues();
+		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
+		String whereClause = mSqliteUtil.getWhereClause(model, mMapper);
 		if (values.size() == 0)
 			return false;
 		processOneToOneRelationships(model, map, objectMap, values);

@@ -69,7 +69,6 @@ public class AnnotationsAspectWeaverTest {
 	@Mock
 	private ClassReflector mockClassReflector;
 	
-	@SuppressWarnings("unused")
 	@Mock
 	private PackageReflector mockPackageReflector;
 	
@@ -257,31 +256,26 @@ public class AnnotationsAspectWeaverTest {
 	@Aspect
 	private static class MockAspect {
 
-		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Before(within = { "java.util" })
 		public void beforeAdvice_within(JoinPoint joinPoint) {
 
 		}
 		
-		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Before(beans = { BEAN_NAME + ".toString()" })
 		public void beforeAdvice_beans(JoinPoint joinPoint) {
 
 		}
 		
-		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Before(beans = { BEAN_NAME + ".add(*)" })
 		public void beforeAdvice_beansWildcard(JoinPoint joinPoint) {
 
 		}
 		
-		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Around(beans = { BEAN_NAME + ".fakeMethod()" })
 		public void aroundAdvice_beansInvalidMethod(ProceedingJoinPoint joinPoint) {
 			
 		}
 		
-		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Around(beans = { BEAN_NAME + ".add(java.lang.Object)" })
 		public void aroundAdvice_beansWithMethod(ProceedingJoinPoint joinPoint) {
 

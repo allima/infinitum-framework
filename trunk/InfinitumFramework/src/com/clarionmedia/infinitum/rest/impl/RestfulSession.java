@@ -171,7 +171,7 @@ public abstract class RestfulSession implements Session {
 
 	@Override
 	public long save(Object model) {
-		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
+		Preconditions.checkPersistenceForModify(model, mPolicy);
 		mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
@@ -207,7 +207,7 @@ public abstract class RestfulSession implements Session {
 
 	@Override
 	public boolean delete(Object model) {
-		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
+		Preconditions.checkPersistenceForModify(model, mPolicy);
 		mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		Serializable pk = mPolicy.getPrimaryKey(model);
@@ -233,7 +233,7 @@ public abstract class RestfulSession implements Session {
 	
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
-		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
+		Preconditions.checkPersistenceForModify(model, mPolicy);
 		mLogger.debug("Sending PUT request to update entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
@@ -277,7 +277,7 @@ public abstract class RestfulSession implements Session {
 	 */
 	@Override
 	public long saveOrUpdate(Object model) {
-		Preconditions.checkPersistenceForModify(model, mInfinitumContext);
+		Preconditions.checkPersistenceForModify(model, mPolicy);
 		mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
