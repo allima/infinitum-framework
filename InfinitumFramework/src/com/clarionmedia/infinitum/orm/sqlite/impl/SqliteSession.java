@@ -57,6 +57,11 @@ public class SqliteSession implements Session {
 	private int mCacheSize;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
+	
+	@Deprecated
+	public SqliteSession() {
+		mCacheSize = DEFAULT_CACHE_SIZE;
+	}
 
 	/**
 	 * Creates a new {@code SqliteSession} with the given {@link InfinitumContext}.

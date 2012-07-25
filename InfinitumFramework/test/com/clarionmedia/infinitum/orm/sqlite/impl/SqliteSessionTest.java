@@ -64,9 +64,9 @@ public class SqliteSessionTest {
 	private static final int BAR_MODEL_HASH = 38;
 	private static final int BAZ_MODEL_HASH = 176;
 	private static final long FOO_MODEL_ID = 120;
-	private static final long BAR_MODEL_ID = 189;
 	private static final long BAZ_MODEL_ID = 211;
 	
+	@Mock
 	private InfinitumContext mockInfinitumContext = mock(InfinitumContext.class);
 	
 	@Mock
@@ -96,8 +96,9 @@ public class SqliteSessionTest {
 	@Mock
 	private SQLiteDatabase mockSqliteDatabase;
 	
+	@SuppressWarnings("deprecation")
 	@InjectMocks
-	private SqliteSession sqliteSession = new SqliteSession(mockInfinitumContext);
+	private SqliteSession sqliteSession = new SqliteSession();
 	
 	@Before
 	public void setup() {
@@ -751,11 +752,9 @@ public class SqliteSessionTest {
 	}
 	
 	private static class BarModel {
-		private long id;
 	}
 	
     private static class BazModel {
-		private long id;
 	}
 
 }

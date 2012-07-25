@@ -27,7 +27,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import android.content.res.XmlResourceParser;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
-import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -67,17 +66,15 @@ public class Preconditions {
 	 * 
 	 * @param model
 	 *            model to check persistence for
-	 * @param ctx
-	 *            {@link InfinitumContext} to retrieve persistence policy from
+	 * @param policy
+	 *            {@link PersistencePolicy} to use
 	 */
 	public static void checkPersistenceForModify(Object model,
-			InfinitumContext ctx) {
-		PersistencePolicy policy = ctx.getPersistencePolicy();
+			PersistencePolicy policy) {
 		if (!policy.isPersistent(model.getClass()))
 			throw new InfinitumRuntimeException(String.format(
-					new PropertyLoader(ctx.getAndroidContext())
-							.getErrorMessage("CANNOT_MODIFY_TRANSIENT"), model
-							.getClass().getName()));
+					"Cannot modify transient class '%s'.", model.getClass()
+							.getName()));
 	}
 
 	/**
@@ -86,17 +83,14 @@ public class Preconditions {
 	 * 
 	 * @param c
 	 *            {@code Class} to check persistence for
-	 * @param ctx
-	 *            {@link InfinitumContext} to retrieve persistence policy from
+	 * @param policy
+	 *            {@link PersistencePolicy} to use
 	 */
 	public static void checkPersistenceForLoading(Class<?> c,
-			InfinitumContext ctx) {
-		PersistencePolicy policy = ctx.getPersistencePolicy();
+			PersistencePolicy policy) {
 		if (!policy.isPersistent(c))
 			throw new InfinitumRuntimeException(String.format(
-					new PropertyLoader(ctx.getAndroidContext())
-							.getErrorMessage("CANNOT_LOAD_TRANSIENT"), c
-							.getName()));
+					"Cannot load transient class '%s'.", c.getName()));
 	}
 
 	/**
