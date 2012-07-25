@@ -20,35 +20,25 @@
 package com.clarionmedia.infinitumtest;
 
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.clarionmedia.infinitum.activity.InfinitumActivity;
-import com.clarionmedia.infinitum.activity.annotation.Bind;
-import com.clarionmedia.infinitum.activity.annotation.InjectLayout;
-import com.clarionmedia.infinitum.activity.annotation.InjectView;
+import com.clarionmedia.infinitum.context.InfinitumContext.DataSource;
+import com.clarionmedia.infinitum.orm.Session;
+import com.clarionmedia.infinitumtest.domain.X;
+import com.clarionmedia.infinitumtest.domain.Y;
 
-@InjectLayout(R.layout.main)
 public class TestActivity extends InfinitumActivity {
-
-	@InjectView(R.id.hello)
-	private TextView mView;
-	
-	@InjectView(R.id.button)
-	@Bind(callback = "onClick")
-	private Button mButton;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		String hello = "hello";
-		hello.getClass();
-	}
-	
-	void onClick(View v) {
-		Log.i(TestActivity.class.getSimpleName(), "Client event fired!");
+		Session session = getInfinitumContext().getSession(DataSource.Sqlite);
+		
+		X x = new X();
+		x.setY(new Y());
+		session.open();
+		session.save(x);
+		session.close();
 	}
 
 }
