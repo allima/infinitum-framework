@@ -77,8 +77,9 @@ public class SqliteCriteria<T> implements Criteria<T> {
 		mModelFactory = new SqliteModelFactoryImpl(session, mapper);
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
-		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+		ContextFactory contextFactory = ContextFactory.newInstance();
+		mPersistencePolicy = contextFactory.getPersistencePolicy();
+		mPropLoader = new PropertyLoader(contextFactory.getAndroidContext());
 	}
 
 	@Override

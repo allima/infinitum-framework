@@ -24,7 +24,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Mockito.mock;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +48,7 @@ import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
@@ -59,10 +60,9 @@ import com.xtremelabs.robolectric.RobolectricTestRunner;
 public class AnnotationsAspectWeaverTest {
 	
 	private static final String BEAN_NAME = "someBean";
-
-	@InjectMocks
-	private AnnotationsAspectWeaver aspectWeaver = new AnnotationsAspectWeaver();
 	
+	private InfinitumContext mockInfinitumContext = mock(InfinitumContext.class);
+
 	@Mock
 	private BeanFactory mockBeanFactory;
 	
@@ -78,6 +78,9 @@ public class AnnotationsAspectWeaverTest {
 	
 	@Mock
 	private AopProxy mockProxy;
+	
+	@InjectMocks
+	private AnnotationsAspectWeaver aspectWeaver = new AnnotationsAspectWeaver(mockInfinitumContext);
 	
 	private Map<String, Object> mockBeanMap;
 	

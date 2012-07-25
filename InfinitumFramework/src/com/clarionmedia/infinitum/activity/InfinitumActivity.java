@@ -38,14 +38,15 @@ import com.clarionmedia.infinitum.di.impl.ContextBasedActivityInjector;
  */
 public class InfinitumActivity extends Activity {
 
-	private InfinitumContext mContext;
+	private InfinitumContext mInfinitumContext;
 	private int mInfinitumConfigId;
+	private ContextFactory mContextFactory;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		mContext = mInfinitumConfigId == 0 ? ContextFactory.getInstance().configure(this) : ContextFactory
-				.getInstance().configure(this, mInfinitumConfigId);
-		final ActivityInjector injector = new ContextBasedActivityInjector(this);
+		mContextFactory = ContextFactory.newInstance();
+		mInfinitumContext = mInfinitumConfigId == 0 ? mContextFactory.configure(this) : mContextFactory.configure(this, mInfinitumConfigId);
+		final ActivityInjector injector = new ContextBasedActivityInjector(mInfinitumContext);
 		injector.inject();
 		super.onCreate(savedInstanceState);
 	}
@@ -56,7 +57,7 @@ public class InfinitumActivity extends Activity {
 	 * @return {@code InfinitumContext}
 	 */
 	protected InfinitumContext getInfinitumContext() {
-		return mContext;
+		return mInfinitumContext;
 	}
 
 	/**

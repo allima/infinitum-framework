@@ -20,7 +20,6 @@
 package com.clarionmedia.infinitum.orm.criteria.criterion;
 
 import java.io.Serializable;
-
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
@@ -41,7 +40,8 @@ public abstract class Criterion implements Serializable {
 
 	protected String mFieldName;
 	protected PropertyLoader mPropLoader;
-
+	protected ContextFactory mContextFactory;
+	
 	/**
 	 * Constructs a new {@code Criterion} with the given {@link Field} name.
 	 * 
@@ -49,8 +49,9 @@ public abstract class Criterion implements Serializable {
 	 *            the name of the {@code Field} to apply the condition to
 	 */
 	public Criterion(String fieldName) {
+		mContextFactory = ContextFactory.newInstance();
 		mFieldName = fieldName;
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+		mPropLoader = new PropertyLoader(mContextFactory.getAndroidContext());
 	}
 
 	/**
@@ -62,7 +63,8 @@ public abstract class Criterion implements Serializable {
 	 * @throws InvalidCriteriaException
 	 *             if there was a problem creating the {@code Criteria} instance
 	 */
-	public abstract String toSql(Criteria<?> criteria) throws InvalidCriteriaException;
+	public abstract String toSql(Criteria<?> criteria)
+			throws InvalidCriteriaException;
 
 	/**
 	 * Returns the name of the {@link Field} this {@code Criterion} is being

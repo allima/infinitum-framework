@@ -36,7 +36,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * </p>
  * <p>
  * {@code ContextFactory} instances can be retrieved by calling
- * {@link ContextFactory#getInstance()}.
+ * {@link ContextFactory#newInstance()}.
  * </p>
  * 
  * @author Tyler Treat
@@ -52,8 +52,8 @@ public abstract class ContextFactory {
 	 * 
 	 * @return {@code ContextFactory}
 	 */
-	public static ContextFactory getInstance() {
-		return XmlContextFactory.instance();
+	public static ContextFactory newInstance() {
+		return new XmlContextFactory();
 	}
 
 	/**

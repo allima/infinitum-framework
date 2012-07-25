@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Matchers.any;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -66,18 +67,13 @@ public class SqliteSessionTest {
 	private static final long BAR_MODEL_ID = 189;
 	private static final long BAZ_MODEL_ID = 211;
 	
-	@SuppressWarnings("deprecation")
-	@InjectMocks
-	private SqliteSession sqliteSession = new SqliteSession();
+	private InfinitumContext mockInfinitumContext = mock(InfinitumContext.class);
 	
 	@Mock
 	private SqliteTemplate mockSqliteTemplate;
 	
 	@Mock
 	private PersistencePolicy mockPersistencePolicy;
-	
-	@Mock
-	private InfinitumContext mockInfinitumContext;
 	
 	@Mock
 	private Logger mockLogger;
@@ -100,9 +96,13 @@ public class SqliteSessionTest {
 	@Mock
 	private SQLiteDatabase mockSqliteDatabase;
 	
+	@InjectMocks
+	private SqliteSession sqliteSession = new SqliteSession(mockInfinitumContext);
+	
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
+		when(mockInfinitumContext.getPersistencePolicy()).thenReturn(mockPersistencePolicy);
 		sqliteSession.open();
 	}
 	

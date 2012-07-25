@@ -22,7 +22,7 @@ package com.clarionmedia.infinitum.orm.persistence.impl;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 
@@ -36,6 +36,20 @@ import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
  * @version 1.0 02/14/12
  */
 public class DefaultTypeResolutionPolicy implements TypeResolutionPolicy {
+
+	private InfinitumContext mContext;
+
+	/**
+	 * Creates a new {@code DefaultTypeResolutionPolicy} with the given
+	 * {@link InfinitumContext}.
+	 * 
+	 * @param context
+	 *            the {@code InfinitumContext} for this
+	 *            {@code TypeResolutionPolicy}
+	 */
+	public DefaultTypeResolutionPolicy(InfinitumContext context) {
+		mContext = context;
+	}
 
 	@Override
 	public boolean isValidPrimaryKey(Field pkField, Serializable pk) {
@@ -53,7 +67,7 @@ public class DefaultTypeResolutionPolicy implements TypeResolutionPolicy {
 
 	@Override
 	public boolean isDomainModel(Class<?> c) {
-		for (String s : ContextFactory.getInstance().getContext().getDomainModels()) {
+		for (String s : mContext.getDomainModels()) {
 			if (c.getName().equalsIgnoreCase(s))
 				return true;
 		}
@@ -62,7 +76,7 @@ public class DefaultTypeResolutionPolicy implements TypeResolutionPolicy {
 
 	@Override
 	public boolean isDomainProxy(Class<?> c) {
-		for (String s : ContextFactory.getInstance().getContext().getDomainModels()) {
+		for (String s : mContext.getDomainModels()) {
 			String name = s;
 			if (name.contains("."))
 				name = name.substring(name.lastIndexOf('.') + 1);

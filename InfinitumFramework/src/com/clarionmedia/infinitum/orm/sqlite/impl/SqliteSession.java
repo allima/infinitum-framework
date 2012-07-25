@@ -29,7 +29,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -53,7 +52,6 @@ import com.clarionmedia.infinitum.rest.Deserializer;
 public class SqliteSession implements Session {
 
 	private SqliteTemplate mSqlite;
-	private Context mContext;
 	private InfinitumContext mInfinitumContext;
 	private Map<Integer, Object> mSessionCache;
 	private int mCacheSize;
@@ -61,44 +59,31 @@ public class SqliteSession implements Session {
 	private Logger mLogger;
 
 	/**
-	 * Creates a new {@code SqliteSession}.
-	 */
-	@Deprecated
-	public SqliteSession() {
-		mCacheSize = DEFAULT_CACHE_SIZE;
-	}
-
-	/**
-	 * Creates a new {@code SqliteSession} with the given {@link Context}.
+	 * Creates a new {@code SqliteSession} with the given {@link InfinitumContext}.
 	 * 
 	 * @param context
-	 *            the {@code Context} of the {@code Session}
+	 *            the {@code InfinitumContext} of the {@code Session}
 	 */
-	public SqliteSession(Context context) {
-		mContext = context;
-		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mInfinitumContext = ContextFactory.getInstance().getContext();
-		mSqlite = new SqliteTemplate(this);
-		mSessionCache = new HashMap<Integer, Object>();
-		mCacheSize = DEFAULT_CACHE_SIZE;
-		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
+	public SqliteSession(InfinitumContext context) {
+		this(context, DEFAULT_CACHE_SIZE);
 	}
 
 	/**
-	 * Creates a new {@code SqliteSession} with the given {@link Context} and
+	 * Creates a new {@code SqliteSession} with the given {@link InfinitumContext} and
 	 * cache size.
 	 * 
 	 * @param context
-	 *            the {@code Context} of the {@code Session}
+	 *            the {@code InfinitumContext} of the {@code Session}
 	 * @param cacheSize
 	 *            the maximum number of {@code Objects} the {@code Session}
 	 *            cache can store
 	 */
-	public SqliteSession(Context context, int cacheSize) {
-		mContext = context;
-		mInfinitumContext = ContextFactory.getInstance().getContext();
+	public SqliteSession(InfinitumContext context, int cacheSize) {
+		mLogger = Logger.getInstance(context, getClass().getSimpleName());
+		mInfinitumContext = context;
 		mSqlite = new SqliteTemplate(this);
-		mSessionCache = new HashMap<Integer, Object>();
+		mSessionCache = new HashMap<Integer, Object>(cacheSize);
+		mPolicy = context.getPersistencePolicy();
 		mCacheSize = cacheSize;
 	}
 
@@ -374,7 +359,7 @@ public class SqliteSession implements Session {
 	 * @return {@code Context}
 	 */
 	public Context getContext() {
-		return mContext;
+		return mInfinitumContext.getAndroidContext();
 	}
 
 	/**

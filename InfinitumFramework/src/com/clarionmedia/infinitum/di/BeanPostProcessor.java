@@ -19,6 +19,8 @@
 
 package com.clarionmedia.infinitum.di;
 
+import com.clarionmedia.infinitum.context.InfinitumContext;
+
 /**
  * <p>
  * Allows for beans to be modified after they are initialized by the container.
@@ -26,20 +28,20 @@ package com.clarionmedia.infinitum.di;
  * 
  * @author Tyler Treat
  * @version 1.0 07/05/12
- * @since 07/05/12
+ * @since 1.0
  */
 public interface BeanPostProcessor {
 
 	/**
 	 * Invoked on the given bean after it has been initialized.
 	 * 
-	 * @param beanFactory
-	 *            the {@link BeanFactory} the given bean is registered with
+	 * @param context
+	 *            the {@link InfinitumContext} the given bean is registered with
 	 * @param beanName
 	 *            the name of the bean to process
 	 * @param bean
 	 *            the bean to process
 	 */
-	void postProcessBean(BeanFactory beanFactory, String beanName, Object bean);
+	void postProcessBean(InfinitumContext context, String beanName, Object bean);
 
 }

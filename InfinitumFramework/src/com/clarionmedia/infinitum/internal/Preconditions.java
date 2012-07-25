@@ -110,7 +110,7 @@ public class Preconditions {
 	 */
 	public static void checkMapFileClass(Class<?> c, XmlResourceParser parser) {
 		PropertyLoader propLoader = new PropertyLoader(ContextFactory
-				.getInstance().getAndroidContext());
+				.newInstance().getAndroidContext());
 		try {
 			int code = parser.getEventType();
 			while (code != XmlPullParser.END_DOCUMENT) {

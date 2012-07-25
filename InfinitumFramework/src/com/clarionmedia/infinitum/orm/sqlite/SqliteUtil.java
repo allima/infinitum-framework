@@ -22,6 +22,7 @@ package com.clarionmedia.infinitum.orm.sqlite;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -41,6 +42,7 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  * 
  * @author Tyler Treat
  * @version 1.0 02/15/12
+ * @since 1.0
  */
 public class SqliteUtil {
 
@@ -50,11 +52,15 @@ public class SqliteUtil {
 
 	/**
 	 * Constructs a new {@code SqliteUtil}.
+	 * 
+	 * @param context
+	 *            the {@link InfinitumContext} to use for this
+	 *            {@code SqliteUtil}
 	 */
-	public SqliteUtil() {
-		mTypePolicy = new DefaultTypeResolutionPolicy();
-		mClassReflector = new DefaultClassReflector();
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+	public SqliteUtil(InfinitumContext context) {
+		mTypePolicy = new DefaultTypeResolutionPolicy(context);
+		mClassReflector = new DefaultClassReflector(context);
+		mPropLoader = new PropertyLoader(context.getAndroidContext());
 	}
 
 	/**
@@ -75,8 +81,10 @@ public class SqliteUtil {
 	 * @throws InfinitumRuntimeException
 	 *             if there is an error generating the SQL
 	 */
-	public String getWhereClause(Object model, SqliteMapper mapper) throws InfinitumRuntimeException {
-		PersistencePolicy policy = ContextFactory.getInstance().getPersistencePolicy();
+	public String getWhereClause(Object model, SqliteMapper mapper)
+			throws InfinitumRuntimeException {
+		PersistencePolicy policy = ContextFactory.newInstance()
+				.getPersistencePolicy();
 		Field pk = policy.getPrimaryKeyField(model.getClass());
 		StringBuilder sb = new StringBuilder();
 		pk.setAccessible(true);
@@ -89,14 +97,17 @@ public class SqliteUtil {
 			try {
 				pkVal = (Serializable) pk.get(model);
 			} catch (IllegalArgumentException e) {
-				throw new InfinitumRuntimeException(String.format(mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
+				throw new InfinitumRuntimeException(String.format(
+						mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
 						model.getClass().getName()));
 			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException(String.format(mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
+				throw new InfinitumRuntimeException(String.format(
+						mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
 						model.getClass().getName()));
 			} catch (ClassCastException e) {
-				throw new ModelConfigurationException("Invalid primary key specified for type '"
-						+ model.getClass().getName() + "'.");
+				throw new ModelConfigurationException(
+						"Invalid primary key specified for type '"
+								+ model.getClass().getName() + "'.");
 			}
 		}
 		if (t == SqliteDataType.TEXT)
@@ -128,11 +139,14 @@ public class SqliteUtil {
 	 *             if there is a mismatch between the {@code Class}'s primary
 	 *             key type and the type of the given primary key
 	 */
-	public String getWhereClause(Class<?> c, Serializable id, SqliteMapper mapper) throws IllegalArgumentException {
-		PersistencePolicy policy = ContextFactory.getInstance().getPersistencePolicy();
+	public String getWhereClause(Class<?> c, Serializable id,
+			SqliteMapper mapper) throws IllegalArgumentException {
+		PersistencePolicy policy = ContextFactory.newInstance()
+				.getPersistencePolicy();
 		Field pk = policy.getPrimaryKeyField(c);
 		if (!mTypePolicy.isValidPrimaryKey(pk, id))
-			throw new IllegalArgumentException(String.format(mPropLoader.getErrorMessage("INVALID_PK"), id.getClass()
+			throw new IllegalArgumentException(String.format(mPropLoader
+					.getErrorMessage("INVALID_PK"), id.getClass()
 					.getSimpleName(), c.getName()));
 		StringBuilder sb = new StringBuilder();
 		sb.append(policy.getFieldColumnName(pk)).append(" = ");

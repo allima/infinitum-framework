@@ -33,10 +33,10 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
@@ -64,7 +64,7 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  */
 public class XmlPersistencePolicy extends PersistencePolicy {
 
-	private Context mContext;
+	private InfinitumContext mContext;
 
 	// This Map caches the resource ID for each persistent class's map file
 	private Map<Class<?>, Integer> mResourceCache;
@@ -84,13 +84,13 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	/**
 	 * Constructs a new {@code XmlPersistencePolicy} with the given
-	 * {@link Context}.
+	 * {@link InfinitumContext}.
 	 * 
 	 * @param context
-	 *            the {@code Context} to use for this policy
+	 *            the {@code InfinitumContext} to use for this policy
 	 */
-	public XmlPersistencePolicy(Context context) {
-		super();
+	public XmlPersistencePolicy(InfinitumContext context) {
+		super(context);
 		mContext = context;
 		mResourceCache = new HashMap<Class<?>, Integer>();
 		mTableCache = new HashMap<Class<?>, String>();
@@ -707,11 +707,11 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	private synchronized XmlPullParser loadXmlMapFile(Class<?> c) {
-		Resources res = mContext.getResources();
+		Resources res = mContext.getAndroidContext().getResources();
 		int id = 0;
 		if (!mResourceCache.containsKey(c)) {
 			String fileName = c.getSimpleName().toLowerCase();
-			id = res.getIdentifier(fileName, "raw", mContext.getPackageName());
+			id = res.getIdentifier(fileName, "raw", mContext.getAndroidContext().getPackageName());
 			mResourceCache.put(c, id);
 		}
 		try {

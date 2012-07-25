@@ -29,7 +29,6 @@ import java.util.List;
 import android.content.Context;
 import android.database.Cursor;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
@@ -66,7 +65,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	private SqliteMapper mMapper;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
-	private InfinitumContext mCtx;
+	private InfinitumContext mContext;
 	private PropertyLoader mPropLoader;
 
 	/**
@@ -77,15 +76,14 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	 *            the {@code Context} for this model factory
 	 */
 	public SqliteModelFactoryImpl(SqliteSession session, SqliteMapper mapper) {
+		mContext = session.getInfinitumContext();
 		mExecutor = new SqliteExecutor(session.getDatabase());
-		mSqlBuilder = new SqliteBuilder(mapper);
+		mSqlBuilder = new SqliteBuilder(mContext, mapper);
 		mSession = session;
 		mMapper = mapper;
-		mCtx = ContextFactory.getInstance().getContext();
-		mPolicy = mCtx.getPersistencePolicy();
-		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance()
-				.getAndroidContext());
+		mPolicy = mContext.getPersistencePolicy();
+		mLogger = Logger.getInstance(mContext, getClass().getSimpleName());
+		mPropLoader = new PropertyLoader(mContext.getAndroidContext());
 	}
 
 	@Override

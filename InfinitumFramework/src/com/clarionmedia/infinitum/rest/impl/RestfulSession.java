@@ -93,15 +93,15 @@ public abstract class RestfulSession implements Session {
 	
 	@Override
 	public Session open() throws SQLException {
-		mLogger = Logger.getInstance(getClass().getSimpleName());
-		mInfinitumContext = ContextFactory.getInstance().getContext();
+		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
+		mInfinitumContext = ContextFactory.newInstance().getContext();
 		mHost = mInfinitumContext.getRestfulConfiguration().getRestHost();
 		if (!mHost.endsWith("/"))
 			mHost += '/';
 		mIsAuthenticated = mInfinitumContext.getRestfulConfiguration().isRestAuthenticated();
 		mAuthStrategy = mInfinitumContext.getRestfulConfiguration().getAuthStrategy();
-		mMapper = new RestfulMapper();
-		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
+		mMapper = new RestfulMapper(mInfinitumContext);
+		mPolicy = ContextFactory.newInstance().getPersistencePolicy();
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = DEFAULT_CACHE_SIZE;
 		mIsOpen = true;
@@ -374,7 +374,7 @@ public abstract class RestfulSession implements Session {
 	 */
 	protected HttpParams getHttpParams() {
 		HttpParams httpParams = new BasicHttpParams();
-		InfinitumContext context = ContextFactory.getInstance().getContext();
+		InfinitumContext context = ContextFactory.newInstance().getContext();
 		HttpConnectionParams.setConnectionTimeout(httpParams, context.getRestfulConfiguration().getConnectionTimeout());
 		HttpConnectionParams.setSoTimeout(httpParams, context.getRestfulConfiguration().getResponseTimeout());
 		HttpConnectionParams.setTcpNoDelay(httpParams, true);

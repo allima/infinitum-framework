@@ -32,7 +32,6 @@ import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.ElementMap;
 import org.simpleframework.xml.Root;
-import org.simpleframework.xml.core.Commit;
 
 import com.clarionmedia.infinitum.aop.AspectComponent;
 import com.clarionmedia.infinitum.context.AbstractContext;
@@ -244,15 +243,6 @@ public class XmlApplicationContext extends AbstractContext {
 		if (mBeanContainer.mComponentScan == null)
 			return false;
 		return mBeanContainer.mComponentScan.mIsEnabled;
-	}
-
-	/**
-	 * Executes after the {@code XmlApplicationContext} has been constructed.
-	 */
-	@Override
-	@Commit
-	protected void postProcess() {
-		super.postProcess();
 	}
 
 	@Root

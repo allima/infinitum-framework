@@ -45,6 +45,7 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.rest.RestResponse;
 import com.clarionmedia.infinitum.rest.RestfulClient;
@@ -68,8 +69,8 @@ public class BasicRestfulClient implements RestfulClient {
 	 * {@link ContextFactory#configure(android.content.Context, int)} before
 	 * invoking this constructor.
 	 */
-	public BasicRestfulClient() {
-		mLogger = Logger.getInstance(getClass().getSimpleName());
+	public BasicRestfulClient(InfinitumContext context) {
+		mLogger = Logger.getInstance(context, getClass().getSimpleName());
 		mHttpParams = new BasicHttpParams();
 	}
 

@@ -47,6 +47,7 @@ import com.clarionmedia.infinitum.aop.AspectComponent;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
@@ -58,10 +59,10 @@ import com.xtremelabs.robolectric.RobolectricTestRunner;
 public class XmlAspectWeaverTest {
 	
 	private static final String BEAN_NAME = "someBean";
-
-	@InjectMocks
-	private XmlAspectWeaver aspectWeaver = new XmlAspectWeaver();
 	
+	@Mock
+	private InfinitumContext mockInfinitumContext;
+
 	@Mock
 	private BeanFactory mockBeanFactory;
 	
@@ -76,6 +77,10 @@ public class XmlAspectWeaverTest {
 	
 	@Mock
 	private AopProxy mockProxy;
+	
+	@SuppressWarnings("deprecation")
+	@InjectMocks
+	private XmlAspectWeaver aspectWeaver = new XmlAspectWeaver();
 	
 	private Map<String, Object> mockBeanMap;
 	private List<String> mockBean;

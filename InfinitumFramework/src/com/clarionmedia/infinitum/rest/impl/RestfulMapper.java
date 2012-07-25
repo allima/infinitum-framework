@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.RestfulTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
@@ -42,14 +43,24 @@ import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
  * 
  * @author Tyler Treat
  * @version 1.0 03/21/12
+ * @since 1.0
  */
 public class RestfulMapper extends ObjectMapper {
 
 	private Map<Class<?>, RestfulTypeAdapter<?>> mTypeAdapters;
 	private PersistencePolicy mPolicy;
 
-	public RestfulMapper() {
-		mPolicy = ContextFactory.getInstance().getPersistencePolicy();
+	/**
+	 * Creates a new {@code RestfulMapper} with the given
+	 * {@link InfinitumContext}.
+	 * 
+	 * @param context
+	 *            the {@code InfinitumContext} to use with this
+	 *            {@code RestfulMapper}
+	 */
+	public RestfulMapper(InfinitumContext context) {
+		super(context);
+		mPolicy = ContextFactory.newInstance().getPersistencePolicy();
 		mTypeAdapters = new HashMap<Class<?>, RestfulTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, RestfulTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, RestfulTypeAdapters.BYTE);
@@ -65,14 +76,16 @@ public class RestfulMapper extends ObjectMapper {
 	}
 
 	@Override
-	public RestfulModelMap mapModel(Object model) throws InvalidMappingException, ModelConfigurationException {
+	public RestfulModelMap mapModel(Object model)
+			throws InvalidMappingException, ModelConfigurationException {
 		// We do not map transient classes!
 		if (!mPolicy.isPersistent(model.getClass()))
 			return null;
 		RestfulModelMap ret = new RestfulModelMap(model);
 		for (Field f : mPolicy.getPersistentFields(model.getClass())) {
 			// Don't map primary keys if they are autoincrementing
-			if (mPolicy.isFieldPrimaryKey(f) && mPolicy.isPrimaryKeyAutoIncrement(f))
+			if (mPolicy.isFieldPrimaryKey(f)
+					&& mPolicy.isPrimaryKeyAutoIncrement(f))
 				continue;
 			try {
 				f.setAccessible(true);
@@ -84,11 +97,13 @@ public class RestfulMapper extends ObjectMapper {
 				// Map Field values
 				mapField(ret, model, f);
 			} catch (IllegalArgumentException e) {
-				mLogger.error("Unable to map field " + f.getName() + " for object of type '"
-						+ model.getClass().getName() + "'", e);
+				mLogger.error("Unable to map field " + f.getName()
+						+ " for object of type '" + model.getClass().getName()
+						+ "'", e);
 			} catch (IllegalAccessException e) {
-				mLogger.error("Unable to map field " + f.getName() + " for object of type '"
-						+ model.getClass().getName() + "'", e);
+				mLogger.error("Unable to map field " + f.getName()
+						+ " for object of type '" + model.getClass().getName()
+						+ "'", e);
 			}
 		}
 		return ret;
@@ -111,11 +126,13 @@ public class RestfulMapper extends ObjectMapper {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> RestfulTypeAdapter<T> resolveType(Class<T> type) throws InvalidMappingException {
+	public <T> RestfulTypeAdapter<T> resolveType(Class<T> type)
+			throws InvalidMappingException {
 		type = Primitives.unwrap(type);
 		if (mTypeAdapters.containsKey(type))
 			return (RestfulTypeAdapter<T>) mTypeAdapters.get(type);
-		throw new InvalidMappingException(String.format(mPropLoader.getErrorMessage("CANNOT_MAP_TYPE"),
+		throw new InvalidMappingException(String.format(
+				mPropLoader.getErrorMessage("CANNOT_MAP_TYPE"),
 				type.getSimpleName()));
 	}
 
@@ -125,8 +142,9 @@ public class RestfulMapper extends ObjectMapper {
 	}
 
 	// Map Field value to NameValuePair
-	private void mapField(RestfulModelMap map, Object model, Field field) throws InvalidMappingException,
-			IllegalArgumentException, IllegalAccessException {
+	private void mapField(RestfulModelMap map, Object model, Field field)
+			throws InvalidMappingException, IllegalArgumentException,
+			IllegalAccessException {
 		Object val = null;
 		// We need to use the Field's getter if model is a proxy
 		if (mTypePolicy.isDomainProxy(model.getClass()))
@@ -135,7 +153,8 @@ public class RestfulMapper extends ObjectMapper {
 		else
 			val = field.get(model);
 		String fieldName = mPolicy.getEndpointFieldName(field);
-		resolveType(field.getType()).mapObjectToField(val, fieldName, map.getNameValuePairs());
+		resolveType(field.getType()).mapObjectToField(val, fieldName,
+				map.getNameValuePairs());
 	}
 
 }

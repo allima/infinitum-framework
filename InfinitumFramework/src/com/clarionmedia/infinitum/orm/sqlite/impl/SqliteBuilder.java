@@ -25,7 +25,7 @@ import java.util.List;
 
 import android.database.sqlite.SQLiteDatabase;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
@@ -62,25 +62,29 @@ public class SqliteBuilder implements SqlBuilder {
 	/**
 	 * Constructs a new {@code SqliteBuilder}.
 	 * 
+	 * @param context
+	 *            the {@link InfinitumContext} to use for this
+	 *            {@code SqliteBuilder}
 	 * @param mapper
 	 *            the {@link SqliteMapper} to use for this {@code SqliteBuilder}
 	 */
-	public SqliteBuilder(SqliteMapper mapper) {
+	public SqliteBuilder(InfinitumContext context, SqliteMapper mapper) {
 		mMapper = mapper;
-		mPersistencePolicy = ContextFactory.getInstance().getPersistencePolicy();
+		mPersistencePolicy = context.getPersistencePolicy();
 		mPackageReflector = new DefaultPackageReflector();
-		mPropLoader = new PropertyLoader(ContextFactory.getInstance().getAndroidContext());
+		mPropLoader = new PropertyLoader(context.getAndroidContext());
 	}
 
 	@Override
-	public int createTables(SqliteDbHelper dbHelper) throws ModelConfigurationException,
-			InfinitumConfigurationException {
+	public int createTables(SqliteDbHelper dbHelper)
+			throws ModelConfigurationException, InfinitumConfigurationException {
 		int count = 0;
 		SQLiteDatabase db = dbHelper.getDatabase();
 		for (String m : dbHelper.getInfinitumContext().getDomainModels()) {
 			Class<?> c = mPackageReflector.getClass(m);
 			if (c == null)
-				throw new InfinitumConfigurationException("No such class '" + m + "'.");
+				throw new InfinitumConfigurationException("No such class '" + m
+						+ "'.");
 			String sql = createModelTableString(c);
 			if (sql != null) {
 				db.execSQL(sql);
@@ -88,7 +92,8 @@ public class SqliteBuilder implements SqlBuilder {
 			}
 			mPersistencePolicy.getManyToManyRelationships(c);
 		}
-		for (ManyToManyRelationship r : mPersistencePolicy.getManyToManyCache().values()) {
+		for (ManyToManyRelationship r : mPersistencePolicy.getManyToManyCache()
+				.values()) {
 			String sql = createManyToManyTableString(r);
 			if (sql != null) {
 				db.execSQL(sql);
@@ -105,7 +110,8 @@ public class SqliteBuilder implements SqlBuilder {
 		for (String m : dbHelper.getInfinitumContext().getDomainModels()) {
 			Class<?> c = mPackageReflector.getClass(m);
 			if (c == null)
-				throw new InfinitumConfigurationException("No such class '" + m + "'.");
+				throw new InfinitumConfigurationException("No such class '" + m
+						+ "'.");
 			String sql = dropModelTableString(c);
 			if (sql != null) {
 				db.execSQL(sql);
@@ -116,11 +122,13 @@ public class SqliteBuilder implements SqlBuilder {
 	}
 
 	@Override
-	public String createModelTableString(Class<?> c) throws ModelConfigurationException {
+	public String createModelTableString(Class<?> c)
+			throws ModelConfigurationException {
 		if (!mPersistencePolicy.isPersistent(c))
 			return null;
-		StringBuilder sb = new StringBuilder(SqlConstants.CREATE_TABLE).append(' ')
-				.append(mPersistencePolicy.getModelTableName(c)).append(" (");
+		StringBuilder sb = new StringBuilder(SqlConstants.CREATE_TABLE)
+				.append(' ').append(mPersistencePolicy.getModelTableName(c))
+				.append(" (");
 		appendColumns(c, sb);
 		appendUniqueColumns(c, sb);
 		sb.append(')');
@@ -128,17 +136,19 @@ public class SqliteBuilder implements SqlBuilder {
 	}
 
 	@Override
-	public String dropModelTableString(Class<?> c) throws ModelConfigurationException {
+	public String dropModelTableString(Class<?> c)
+			throws ModelConfigurationException {
 		if (!mPersistencePolicy.isPersistent(c))
 			return null;
-		return SqlConstants.DROP_TABLE + ' ' + mPersistencePolicy.getModelTableName(c);
+		return SqlConstants.DROP_TABLE + ' '
+				+ mPersistencePolicy.getModelTableName(c);
 	}
 
 	@Override
 	public String createQuery(Criteria<?> criteria) {
 		Class<?> c = criteria.getEntityClass();
-		StringBuilder query = new StringBuilder(SqlConstants.SELECT_ALL_FROM).append(mPersistencePolicy
-				.getModelTableName(c));
+		StringBuilder query = new StringBuilder(SqlConstants.SELECT_ALL_FROM)
+				.append(mPersistencePolicy.getModelTableName(c));
 		String prefix = " WHERE ";
 		for (Criterion criterion : criteria.getCriterion()) {
 			query.append(prefix);
@@ -146,17 +156,19 @@ public class SqliteBuilder implements SqlBuilder {
 			query.append(criterion.toSql(criteria));
 		}
 		if (criteria.getLimit() > 0)
-			query.append(' ').append(SqlConstants.LIMIT).append(' ').append(criteria.getLimit());
+			query.append(' ').append(SqlConstants.LIMIT).append(' ')
+					.append(criteria.getLimit());
 		if (criteria.getOffset() > 0)
-			query.append(' ').append(SqlConstants.OFFSET).append(' ').append(criteria.getOffset());
+			query.append(' ').append(SqlConstants.OFFSET).append(' ')
+					.append(criteria.getOffset());
 		return query.toString();
 	}
 
 	@Override
 	public String createCountQuery(Criteria<?> criteria) {
 		Class<?> c = criteria.getEntityClass();
-		StringBuilder query = new StringBuilder(SqlConstants.SELECT_COUNT_FROM).append(mPersistencePolicy
-				.getModelTableName(c));
+		StringBuilder query = new StringBuilder(SqlConstants.SELECT_COUNT_FROM)
+				.append(mPersistencePolicy.getModelTableName(c));
 		String prefix = " WHERE ";
 		for (Criterion criterion : criteria.getCriterion()) {
 			query.append(prefix);
@@ -164,122 +176,177 @@ public class SqliteBuilder implements SqlBuilder {
 			query.append(criterion.toSql(criteria));
 		}
 		if (criteria.getLimit() > 0)
-			query.append(' ').append(SqlConstants.LIMIT).append(' ').append(criteria.getLimit());
+			query.append(' ').append(SqlConstants.LIMIT).append(' ')
+					.append(criteria.getLimit());
 		if (criteria.getOffset() > 0)
-			query.append(' ').append(SqlConstants.OFFSET).append(' ').append(criteria.getOffset());
+			query.append(' ').append(SqlConstants.OFFSET).append(' ')
+					.append(criteria.getOffset());
 		return query.toString();
 	}
 
 	@Override
-	public String createManyToManyJoinQuery(ManyToManyRelationship rel, Serializable id, Class<?> direction)
+	public String createManyToManyJoinQuery(ManyToManyRelationship rel,
+			Serializable id, Class<?> direction)
 			throws InfinitumRuntimeException {
 		if (!rel.contains(direction))
-			throw new InfinitumRuntimeException(String.format(
-					"'%s' is not a valid direction for relationship '%s'<=>'%s'.", direction.getName(), rel
-							.getFirstType().getName(), rel.getSecondType().getName()));
-		StringBuilder query = new StringBuilder(String.format(SqlConstants.ALIASED_SELECT_ALL_FROM, 'x')).append(
-				mPersistencePolicy.getModelTableName(rel.getFirstType())).append(' ');
+			throw new InfinitumRuntimeException(
+					String.format(
+							"'%s' is not a valid direction for relationship '%s'<=>'%s'.",
+							direction.getName(), rel.getFirstType().getName(),
+							rel.getSecondType().getName()));
+		StringBuilder query = new StringBuilder(String.format(
+				SqlConstants.ALIASED_SELECT_ALL_FROM, 'x')).append(
+				mPersistencePolicy.getModelTableName(rel.getFirstType()))
+				.append(' ');
 		if (direction == rel.getFirstType())
 			query.append("x, ");
 		else
 			query.append("y, ");
-		query.append(mPersistencePolicy.getModelTableName(rel.getSecondType())).append(' ');
+		query.append(mPersistencePolicy.getModelTableName(rel.getSecondType()))
+				.append(' ');
 		if (direction == rel.getSecondType())
 			query.append("x, ");
 		else
 			query.append("y, ");
-		query.append(rel.getTableName()).append(" z ").append(SqlConstants.WHERE).append(' ').append("z.");
+		query.append(rel.getTableName()).append(" z ")
+				.append(SqlConstants.WHERE).append(' ').append("z.");
 		if (direction == rel.getFirstType()) {
-			query.append(mPersistencePolicy.getModelTableName(rel.getFirstType())).append('_')
-					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(" = ").append("x.")
-					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(' ')
-					.append(SqlConstants.AND).append(" z.")
-					.append(mPersistencePolicy.getModelTableName(rel.getSecondType())).append('_')
-					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(" = ").append("y.")
-					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(' ')
-					.append(SqlConstants.AND).append(" y.")
-					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(" = ");
+			query.append(
+					mPersistencePolicy.getModelTableName(rel.getFirstType()))
+					.append('_')
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getFirstField()))
+					.append(" = ")
+					.append("x.")
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getFirstField()))
+					.append(' ')
+					.append(SqlConstants.AND)
+					.append(" z.")
+					.append(mPersistencePolicy.getModelTableName(rel
+							.getSecondType()))
+					.append('_')
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getSecondField()))
+					.append(" = ")
+					.append("y.")
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getSecondField()))
+					.append(' ')
+					.append(SqlConstants.AND)
+					.append(" y.")
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getSecondField())).append(" = ");
 			switch (mMapper.getSqliteDataType(id)) {
-			case TEXT:
-				query.append("'").append(id).append("'");
-				break;
-			default:
-				query.append(id);
+				case TEXT :
+					query.append("'").append(id).append("'");
+					break;
+				default :
+					query.append(id);
 			}
 		} else {
-			query.append(mPersistencePolicy.getModelTableName(rel.getSecondType())).append('_')
-					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(" = ").append("x.")
-					.append(mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(' ')
-					.append(SqlConstants.AND).append(" z.")
-					.append(mPersistencePolicy.getModelTableName(rel.getFirstType())).append('_')
-					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(" = ").append("y.")
-					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(' ')
-					.append(SqlConstants.AND).append(" y.")
-					.append(mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(" = ");
+			query.append(
+					mPersistencePolicy.getModelTableName(rel.getSecondType()))
+					.append('_')
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getSecondField()))
+					.append(" = ")
+					.append("x.")
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getSecondField()))
+					.append(' ')
+					.append(SqlConstants.AND)
+					.append(" z.")
+					.append(mPersistencePolicy.getModelTableName(rel
+							.getFirstType()))
+					.append('_')
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getFirstField()))
+					.append(" = ")
+					.append("y.")
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getFirstField()))
+					.append(' ')
+					.append(SqlConstants.AND)
+					.append(" y.")
+					.append(mPersistencePolicy.getFieldColumnName(rel
+							.getFirstField())).append(" = ");
 			switch (mMapper.getSqliteDataType(id)) {
-			case TEXT:
-				query.append("'").append(id).append("'");
-				break;
-			default:
-				query.append(id);
+				case TEXT :
+					query.append("'").append(id).append("'");
+					break;
+				default :
+					query.append(id);
 			}
 		}
 		return query.toString();
 	}
 
 	@Override
-	public StringBuilder createInitialStaleRelationshipQuery(ManyToManyRelationship rel, Object model) {
+	public StringBuilder createInitialStaleRelationshipQuery(
+			ManyToManyRelationship rel, Object model) {
 		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
-		StringBuilder ret = new StringBuilder(SqlConstants.DELETE_FROM).append(rel.getTableName()).append(' ')
+		StringBuilder ret = new StringBuilder(SqlConstants.DELETE_FROM)
+				.append(rel.getTableName()).append(' ')
 				.append(SqlConstants.WHERE).append(' ');
 		Field col;
 		if (model.getClass() == rel.getFirstType()) {
 			ret.append(
-					mPersistencePolicy.getModelTableName(rel.getFirstType()) + '_'
-							+ mPersistencePolicy.getFieldColumnName(rel.getFirstField())).append(" = ");
+					mPersistencePolicy.getModelTableName(rel.getFirstType())
+							+ '_'
+							+ mPersistencePolicy.getFieldColumnName(rel
+									.getFirstField())).append(" = ");
 			col = rel.getFirstField();
 		} else {
 			ret.append(
-					mPersistencePolicy.getModelTableName(rel.getSecondType()) + '_'
-							+ mPersistencePolicy.getFieldColumnName(rel.getSecondField())).append(" = ");
+					mPersistencePolicy.getModelTableName(rel.getSecondType())
+							+ '_'
+							+ mPersistencePolicy.getFieldColumnName(rel
+									.getSecondField())).append(" = ");
 			col = rel.getSecondField();
 		}
 		switch (mMapper.getSqliteDataType(col)) {
-		case TEXT:
-			ret.append("'").append(pk).append("'");
-			break;
-		default:
-			ret.append(pk);
+			case TEXT :
+				ret.append("'").append(pk).append("'");
+				break;
+			default :
+				ret.append(pk);
 		}
 		ret.append(' ').append(SqlConstants.AND).append(' ');
 		if (model.getClass() == rel.getFirstType())
-			ret.append(mPersistencePolicy.getModelTableName(rel.getSecondType()) + '_'
-					+ mPersistencePolicy.getFieldColumnName(rel.getSecondField()));
+			ret.append(mPersistencePolicy.getModelTableName(rel.getSecondType())
+					+ '_'
+					+ mPersistencePolicy.getFieldColumnName(rel
+							.getSecondField()));
 		else
-			ret.append(mPersistencePolicy.getModelTableName(rel.getFirstType()) + '_'
+			ret.append(mPersistencePolicy.getModelTableName(rel.getFirstType())
+					+ '_'
 					+ mPersistencePolicy.getFieldColumnName(rel.getFirstField()));
 		return ret.append(' ').append(SqlConstants.NOT_IN).append(" (");
 	}
 
 	@Override
-	public StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel, Object model) {
-		StringBuilder ret = new StringBuilder(SqlConstants.UPDATE).append(' ')
-				.append(mPersistencePolicy.getModelTableName(rel.getManyType())).append(' ').append(SqlConstants.SET)
-				.append(' ').append(rel.getColumn()).append(" = ");
+	public StringBuilder createInitialUpdateForeignKeyQuery(
+			OneToManyRelationship rel, Object model) {
+		StringBuilder ret = new StringBuilder(SqlConstants.UPDATE)
+				.append(' ')
+				.append(mPersistencePolicy.getModelTableName(rel.getManyType()))
+				.append(' ').append(SqlConstants.SET).append(' ')
+				.append(rel.getColumn()).append(" = ");
 		Field pkField = mPersistencePolicy.getPrimaryKeyField(model.getClass());
 		pkField.setAccessible(true);
 		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
 		switch (mMapper.getSqliteDataType(pkField)) {
-		case TEXT:
-			ret.append("'").append(pk).append("'");
-			break;
-		default:
-			ret.append(pk);
+			case TEXT :
+				ret.append("'").append(pk).append("'");
+				break;
+			default :
+				ret.append(pk);
 		}
 		ret.append(' ').append(SqlConstants.WHERE).append(' ');
 		pkField = mPersistencePolicy.getPrimaryKeyField(rel.getManyType());
-		return ret.append(mPersistencePolicy.getFieldColumnName(pkField)).append(' ').append(SqlConstants.IN)
-				.append(" (");
+		return ret.append(mPersistencePolicy.getFieldColumnName(pkField))
+				.append(' ').append(SqlConstants.IN).append(" (");
 	}
 
 	@Override
@@ -288,33 +355,40 @@ public class SqliteBuilder implements SqlBuilder {
 		Field pkField = mPersistencePolicy.getPrimaryKeyField(o.getClass());
 		Serializable pk = mPersistencePolicy.getPrimaryKey(o);
 		switch (mMapper.getSqliteDataType(pkField)) {
-		case TEXT:
-			sb.append("'").append(pk).append("'");
-			break;
-		default:
-			sb.append(pk);
+			case TEXT :
+				sb.append("'").append(pk).append("'");
+				break;
+			default :
+				sb.append(pk);
 		}
 	}
 
 	@Override
-	public String createManyToManyDeleteQuery(Object obj, ManyToManyRelationship rel) {
-		StringBuilder query = new StringBuilder(String.format(SqlConstants.DELETE_FROM_WHERE, rel.getTableName()));
+	public String createManyToManyDeleteQuery(Object obj,
+			ManyToManyRelationship rel) {
+		StringBuilder query = new StringBuilder(String.format(
+				SqlConstants.DELETE_FROM_WHERE, rel.getTableName()));
 		if (obj.getClass() == rel.getFirstType())
-			query.append(mPersistencePolicy.getModelTableName(rel.getFirstType()) + '_'
+			query.append(mPersistencePolicy.getModelTableName(rel
+					.getFirstType())
+					+ '_'
 					+ mPersistencePolicy.getFieldColumnName(rel.getFirstField()));
 		else
-			query.append(mPersistencePolicy.getModelTableName(rel.getSecondType()) + '_'
-					+ mPersistencePolicy.getFieldColumnName(rel.getSecondField()));
+			query.append(mPersistencePolicy.getModelTableName(rel
+					.getSecondType())
+					+ '_'
+					+ mPersistencePolicy.getFieldColumnName(rel
+							.getSecondField()));
 		query.append(" = ");
 		Field pkField = mPersistencePolicy.getPrimaryKeyField(obj.getClass());
 		pkField.setAccessible(true);
 		Serializable pk = mPersistencePolicy.getPrimaryKey(obj);
 		switch (mMapper.getSqliteDataType(pkField)) {
-		case TEXT:
-			query.append("'").append(pk).append("'");
-			break;
-		default:
-			query.append(pk);
+			case TEXT :
+				query.append("'").append(pk).append("'");
+				break;
+			default :
+				query.append(pk);
 		}
 		return query.toString();
 	}
@@ -322,61 +396,80 @@ public class SqliteBuilder implements SqlBuilder {
 	@Override
 	public String createUpdateQuery(Object model, Object related, String column) {
 		Serializable pk = mPersistencePolicy.getPrimaryKey(related);
-		StringBuilder update = new StringBuilder(SqlConstants.UPDATE).append(" ").append(
+		StringBuilder update = new StringBuilder(SqlConstants.UPDATE).append(
+				" ").append(
 				mPersistencePolicy.getModelTableName(model.getClass()));
-		update.append(" ").append(SqlConstants.SET).append(" ").append(column).append(" = ");
-		switch (mMapper.getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(related.getClass()))) {
-		case TEXT:
-			update.append("'").append(pk).append("'");
-			break;
-		default:
-			update.append(pk);
+		update.append(" ").append(SqlConstants.SET).append(" ").append(column)
+				.append(" = ");
+		switch (mMapper.getSqliteDataType(mPersistencePolicy
+				.getPrimaryKeyField(related.getClass()))) {
+			case TEXT :
+				update.append("'").append(pk).append("'");
+				break;
+			default :
+				update.append(pk);
 		}
-		update.append(" ").append(SqlConstants.WHERE).append(" ")
-				.append(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.getPrimaryKeyField(model.getClass())))
+		update.append(" ")
+				.append(SqlConstants.WHERE)
+				.append(" ")
+				.append(mPersistencePolicy
+						.getFieldColumnName(mPersistencePolicy
+								.getPrimaryKeyField(model.getClass())))
 				.append(" = ");
 		pk = mPersistencePolicy.getPrimaryKey(model);
-		switch (mMapper.getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(model.getClass()))) {
-		case TEXT:
-			update.append("'").append(pk).append("'");
-			break;
-		default:
-			update.append(pk);
+		switch (mMapper.getSqliteDataType(mPersistencePolicy
+				.getPrimaryKeyField(model.getClass()))) {
+			case TEXT :
+				update.append("'").append(pk).append("'");
+				break;
+			default :
+				update.append(pk);
 		}
 		return update.toString();
 	}
 
-	private String createManyToManyTableString(ManyToManyRelationship rel) throws ModelConfigurationException {
+	private String createManyToManyTableString(ManyToManyRelationship rel)
+			throws ModelConfigurationException {
 		if (!mPersistencePolicy.isPersistent(rel.getFirstType())
 				|| !mPersistencePolicy.isPersistent(rel.getSecondType()))
 			return null;
-		StringBuilder sb = new StringBuilder(SqlConstants.CREATE_TABLE).append(' ').append(rel.getTableName())
-				.append(" (");
+		StringBuilder sb = new StringBuilder(SqlConstants.CREATE_TABLE)
+				.append(' ').append(rel.getTableName()).append(" (");
 		Field first = rel.getFirstField();
 		if (first == null)
-			throw new ModelConfigurationException(String.format(mPropLoader.getErrorMessage("MM_RELATIONSHIP_ERROR"),
-					rel.getFirstType().getName(), rel.getSecondType().getName()));
+			throw new ModelConfigurationException(String.format(mPropLoader
+					.getErrorMessage("MM_RELATIONSHIP_ERROR"), rel
+					.getFirstType().getName(), rel.getSecondType().getName()));
 		Field second = rel.getSecondField();
 		if (second == null)
-			throw new ModelConfigurationException(String.format(mPropLoader.getErrorMessage("MM_RELATIONSHIP_ERROR"),
-					rel.getFirstType().getName(), rel.getSecondType().getName()));
-		String firstCol = mPersistencePolicy.getModelTableName(rel.getFirstType()) + '_'
+			throw new ModelConfigurationException(String.format(mPropLoader
+					.getErrorMessage("MM_RELATIONSHIP_ERROR"), rel
+					.getFirstType().getName(), rel.getSecondType().getName()));
+		String firstCol = mPersistencePolicy.getModelTableName(rel
+				.getFirstType())
+				+ '_'
 				+ mPersistencePolicy.getFieldColumnName(first);
-		String secondCol = mPersistencePolicy.getModelTableName(rel.getSecondType()) + '_'
+		String secondCol = mPersistencePolicy.getModelTableName(rel
+				.getSecondType())
+				+ '_'
 				+ mPersistencePolicy.getFieldColumnName(second);
-		sb.append(firstCol).append(' ').append(mMapper.getSqliteDataType(first).toString()).append(' ').append(", ")
-				.append(secondCol).append(' ').append(mMapper.getSqliteDataType(second).toString()).append(", ")
-				.append(SqlConstants.PRIMARY_KEY).append('(').append(firstCol).append(", ").append(secondCol)
-				.append("))");
+		sb.append(firstCol).append(' ')
+				.append(mMapper.getSqliteDataType(first).toString())
+				.append(' ').append(", ").append(secondCol).append(' ')
+				.append(mMapper.getSqliteDataType(second).toString())
+				.append(", ").append(SqlConstants.PRIMARY_KEY).append('(')
+				.append(firstCol).append(", ").append(secondCol).append("))");
 		return sb.toString();
 	}
 
-	private void appendColumns(Class<?> c, StringBuilder sb) throws ModelConfigurationException {
+	private void appendColumns(Class<?> c, StringBuilder sb)
+			throws ModelConfigurationException {
 		List<Field> fields = mPersistencePolicy.getPersistentFields(c);
 
 		// Throw a runtime exception if there are no persistent fields
 		if (fields.size() == 0)
-			throw new ModelConfigurationException(String.format(mPropLoader.getErrorMessage("NO_PERSISTENT_FIELDS"),
+			throw new ModelConfigurationException(String.format(
+					mPropLoader.getErrorMessage("NO_PERSISTENT_FIELDS"),
 					c.getName()));
 
 		String prefix = "";
@@ -391,7 +484,8 @@ public class SqliteBuilder implements SqlBuilder {
 			prefix = ", ";
 
 			// Append column name and data type, e.g. "foo INTEGER"
-			sb.append(mPersistencePolicy.getFieldColumnName(f)).append(' ').append(type.toString());
+			sb.append(mPersistencePolicy.getFieldColumnName(f)).append(' ')
+					.append(type.toString());
 
 			// Check if the column is a PRIMARY KEY
 			if (mPersistencePolicy.isFieldPrimaryKey(f)) {
