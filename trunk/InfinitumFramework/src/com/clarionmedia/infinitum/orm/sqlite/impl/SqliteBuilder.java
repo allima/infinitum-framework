@@ -48,6 +48,7 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
  * 
  * @author Tyler Treat
  * @version 1.0 03/03/12
+ * @since 1.0
  */
 public class SqliteBuilder implements SqlBuilder {
 
@@ -130,7 +131,7 @@ public class SqliteBuilder implements SqlBuilder {
 				.append(' ').append(mPersistencePolicy.getModelTableName(c))
 				.append(" (");
 		appendColumns(c, sb);
-		appendUniqueColumns(c, sb);
+		appendUniqueConstraints(c, sb);
 		sb.append(')');
 		return sb.toString();
 	}
@@ -500,7 +501,7 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 	}
 
-	private void appendUniqueColumns(Class<?> c, StringBuilder sb) {
+	private void appendUniqueConstraints(Class<?> c, StringBuilder sb) {
 		List<Field> fields = mPersistencePolicy.getUniqueFields(c);
 
 		// Append any unique constraints, e.g. UNIQUE(foo, bar)

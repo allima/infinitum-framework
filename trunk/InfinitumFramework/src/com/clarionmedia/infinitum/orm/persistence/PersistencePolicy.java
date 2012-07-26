@@ -283,6 +283,16 @@ public abstract class PersistencePolicy {
 	 *         {@code false} if not
 	 */
 	public abstract boolean isManyToManyRelationship(Field f);
+	
+	/**
+	 * Indicates if the given persistent {@link Field} is part of a one-to-one entity relationship.
+	 * 
+	 * @param f
+	 * 			 the {@code Field} to check
+	 * @return {@code true} if it is part of a one-to-one relationship, 
+	 * 		   {@code false} if not
+	 */
+	public abstract boolean isOneToOneRelationship(Field f);
 
 	/**
 	 * Indicates if the given persistent {@link Field} is part of a many-to-one

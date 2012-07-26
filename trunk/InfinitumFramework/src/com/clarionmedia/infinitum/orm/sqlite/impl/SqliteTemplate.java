@@ -68,7 +68,7 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  * 
  * @author Tyler Treat
  * @version 1.0 02/11/12
- * 
+ * @since 1.0
  */
 public class SqliteTemplate implements SqliteOperations {
 
