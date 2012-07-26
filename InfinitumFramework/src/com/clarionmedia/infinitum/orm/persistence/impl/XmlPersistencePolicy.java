@@ -63,6 +63,9 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  * @see AnnotationsPersistencePolicy
  */
 public class XmlPersistencePolicy extends PersistencePolicy {
+	
+	// TODO This code is disgusting and I am ashamed of it
+	// This should be re-implemented sometime...
 
 	private InfinitumContext mContext;
 
@@ -419,6 +422,13 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 							return isUnique;
 						}
 					}
+				} else if (code == XmlPullParser.START_TAG
+						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO"))) {
+					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
+					if (field.equals(f.getName())) {
+						mFieldUniqueCache.put(f, true);
+						return true;
+					}
 				}
 				code = parser.next();
 			}
@@ -531,6 +541,16 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		if (rel == null)
 			return false;
 		return rel.getRelationType() == RelationType.ManyToMany;
+	}
+	
+	@Override
+	public synchronized boolean isOneToOneRelationship(Field f) {
+		if (mOneToOneCache.containsKey(f))
+			return true;
+		ModelRelationship rel = getRelationship(f);
+		if (rel == null)
+			return false;
+		return rel.getRelationType() == RelationType.OneToOne;
 	}
 
 	@Override

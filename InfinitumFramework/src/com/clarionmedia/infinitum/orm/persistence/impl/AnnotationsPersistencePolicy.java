@@ -211,9 +211,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 		if (mFieldNullableCache.containsKey(f))
 			return mFieldNullableCache.get(f);
 		boolean ret;
-		ret = f.isAnnotationPresent(NotNull.class) ? false : true;
-		if (f.isAnnotationPresent(OneToOne.class))
-			ret = false;
+		ret = !f.isAnnotationPresent(NotNull.class);
 		mFieldNullableCache.put(f, ret);
 		return ret;
 	}
@@ -222,9 +220,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	public synchronized boolean isFieldUnique(Field f) {
 		if (mFieldUniqueCache.containsKey(f))
 			return mFieldUniqueCache.get(f);
-		boolean ret;
-		Unique u = f.getAnnotation(Unique.class);
-		ret = u == null ? false : true;
+		boolean ret = f.isAnnotationPresent(Unique.class) || f.isAnnotationPresent(OneToOne.class);
 		mFieldUniqueCache.put(f, ret);
 		return ret;
 	}
@@ -272,6 +268,11 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	@Override
 	public boolean isManyToManyRelationship(Field f) {
 		return f.isAnnotationPresent(ManyToMany.class);
+	}
+	
+	@Override
+	public boolean isOneToOneRelationship(Field f) {
+		return f.isAnnotationPresent(OneToOne.class);
 	}
 
 	@Override
