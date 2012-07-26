@@ -325,7 +325,6 @@ public class SqliteTemplate implements SqliteOperations {
 		SqliteModelMap map = mMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
 		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
-		processOneToOneRelationships(model, map, objectMap, values);
 		long rowId = mSqliteDb.insert(tableName, null, values);
 		if (rowId <= 0) {
 			mLogger.debug(model.getClass().getSimpleName() + " model was not saved");
@@ -350,7 +349,6 @@ public class SqliteTemplate implements SqliteOperations {
 		String whereClause = mSqliteUtil.getWhereClause(model, mMapper);
 		if (values.size() == 0)
 			return false;
-		processOneToOneRelationships(model, map, objectMap, values);
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (ret <= 0) {
 			mLogger.debug(model.getClass().getSimpleName() + " model was not updated");
@@ -366,6 +364,7 @@ public class SqliteTemplate implements SqliteOperations {
 		processManyToManyRelationships(model, map, objectMap);
 		processManyToOneRelationships(model, map, objectMap);
 		processOneToManyRelationships(model, map, objectMap);
+		processOneToOneRelationships(model, map, objectMap);
 	}
 
 	private void processManyToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
@@ -394,20 +393,23 @@ public class SqliteTemplate implements SqliteOperations {
 		}
 	}
 
-	private void processOneToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap,
-			ContentValues values) {
-		for (Pair<OneToOneRelationship, Object> p : map.getOneToOneRelationships()) {
-			Object o = p.getSecond();
-			if (mClassReflector.isNull(o))
+	private void processOneToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
+		for (Pair<OneToOneRelationship, Object> relationshipPair : map.getOneToOneRelationships()) {
+			OneToOneRelationship relationship = relationshipPair.getFirst();
+			Object relatedEntity = relationshipPair.getSecond();
+			if (mClassReflector.isNull(relatedEntity)) {
+				// Related entity is null, nothing to do here...
 				continue;
-			long id = saveOrUpdateRec(o, objectMap);
+			}
+			// Save or update the related entity
+			long id = saveOrUpdateRec(relatedEntity, objectMap);
 			if (id > 0) {
-				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(
-						model.getClass(), p.getFirst())), id);
+				// Related entity was saved, so we need to set the FK using its new PK
+				// TODO We need to execute SQL to do the FK update
 			} else if (id == 0) {
-				Serializable pk = mPersistencePolicy.getPrimaryKey(p.getSecond());
-				values.put(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.findRelationshipField(
-						model.getClass(), p.getFirst())), (Long) pk);
+				// Related entity was updated, so we need to set the FK using its existing PK
+				Serializable pk = mPersistencePolicy.getPrimaryKey(relatedEntity);
+				// TODO We need to execute SQL to do the FK update
 			}
 		}
 	}
