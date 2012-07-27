@@ -220,9 +220,16 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	public synchronized boolean isFieldUnique(Field f) {
 		if (mFieldUniqueCache.containsKey(f))
 			return mFieldUniqueCache.get(f);
-		boolean ret = f.isAnnotationPresent(Unique.class) || f.isAnnotationPresent(OneToOne.class);
-		mFieldUniqueCache.put(f, ret);
-		return ret;
+		if (f.isAnnotationPresent(OneToOne.class)) {
+			OneToOne oto = f.getAnnotation(OneToOne.class);
+			if (oto.owner() == f.getDeclaringClass()) {
+				mFieldUniqueCache.put(f, true);
+				return true;
+			}
+		}
+		boolean unique = f.isAnnotationPresent(Unique.class);
+		mFieldUniqueCache.put(f, unique);
+		return unique;
 	}
 
 	@Override

@@ -425,7 +425,8 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 				} else if (code == XmlPullParser.START_TAG
 						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO"))) {
 					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
-					if (field.equals(f.getName())) {
+					String owner = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_OWNER"));
+					if (field.equals(f.getName()) && owner.equals(f.getDeclaringClass().getName())) {
 						mFieldUniqueCache.put(f, true);
 						return true;
 					}

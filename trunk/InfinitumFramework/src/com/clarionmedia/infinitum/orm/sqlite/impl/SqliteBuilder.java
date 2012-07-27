@@ -36,6 +36,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
@@ -327,8 +328,7 @@ public class SqliteBuilder implements SqlBuilder {
 	}
 
 	@Override
-	public StringBuilder createInitialUpdateForeignKeyQuery(
-			OneToManyRelationship rel, Object model) {
+	public StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel, Object model) {
 		StringBuilder ret = new StringBuilder(SqlConstants.UPDATE)
 				.append(' ')
 				.append(mPersistencePolicy.getModelTableName(rel.getManyType()))
@@ -348,6 +348,38 @@ public class SqliteBuilder implements SqlBuilder {
 		pkField = mPersistencePolicy.getPrimaryKeyField(rel.getManyType());
 		return ret.append(mPersistencePolicy.getFieldColumnName(pkField))
 				.append(' ').append(SqlConstants.IN).append(" (");
+	}
+	
+	@Override
+	public String createUpdateOneToOneForeignKeyQuery(OneToOneRelationship relationship, Object model, Object related) {
+		StringBuilder sb = new StringBuilder(SqlConstants.UPDATE)
+				.append(' ')
+				.append(mPersistencePolicy.getModelTableName(model.getClass()))
+				.append(' ').append(SqlConstants.SET).append(' ')
+				.append(relationship.getColumn()).append(" = ");
+		Field pkField = mPersistencePolicy.getPrimaryKeyField(related.getClass());
+		pkField.setAccessible(true);
+		Serializable pk = mPersistencePolicy.getPrimaryKey(related);
+		switch (mMapper.getSqliteDataType(pkField)) {
+		case TEXT :
+			sb.append("'").append(pk).append("'");
+			break;
+		default :
+			sb.append(pk);
+		}
+		sb.append(' ').append(SqlConstants.WHERE).append(' ');
+		pkField = mPersistencePolicy.getPrimaryKeyField(model.getClass());
+		sb.append(mPersistencePolicy.getFieldColumnName(pkField))
+				.append(" = ");
+		pk = mPersistencePolicy.getPrimaryKey(model);
+		switch (mMapper.getSqliteDataType(pkField)) {
+		case TEXT :
+			sb.append("'").append(pk).append("'");
+			break;
+		default : 
+			sb.append(pk);
+		}
+		return sb.toString();
 	}
 
 	@Override
@@ -428,7 +460,7 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 		return update.toString();
 	}
-
+	
 	private String createManyToManyTableString(ManyToManyRelationship rel)
 			throws ModelConfigurationException {
 		if (!mPersistencePolicy.isPersistent(rel.getFirstType())
@@ -478,6 +510,12 @@ public class SqliteBuilder implements SqlBuilder {
 			// M:M relationships are stored in a join table
 			if (mPersistencePolicy.isManyToManyRelationship(f))
 				continue;
+			if (mPersistencePolicy.isOneToOneRelationship(f)) {
+				OneToOneRelationship oto = new OneToOneRelationship(f);
+				// The owner contains the FK
+				if (oto.getOwner() != c)
+					continue;
+			}
 			SqliteDataType type = mMapper.getSqliteDataType(f);
 			if (type == null)
 				continue;

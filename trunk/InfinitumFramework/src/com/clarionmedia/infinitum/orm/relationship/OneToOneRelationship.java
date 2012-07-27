@@ -44,6 +44,7 @@ public class OneToOneRelationship extends ForeignKeyRelationship {
 		mSecond = mPackageReflector.getClass(oto.className());
 		mName = oto.name();
 		setColumn(oto.column());
+		setOwner(oto.owner());
 		
 	}
 

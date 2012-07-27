@@ -49,12 +49,19 @@ public @interface OneToOne {
 
 	/**
 	 * Returns the name of the column representing the foreign key in this
-	 * relationship. This column needs to be non-null and unique to maintain
+	 * relationship. This column needs to be unique to maintain
 	 * one-to-one integrity.
 	 * 
 	 * @return name of foreign key column
 	 */
 	String column();
+	
+	/**
+	 * Returns the owner of the relationship. This is the class which contains the foreign key.
+	 * 
+	 * @return owner of the relationship
+	 */
+	Class<?> owner();
 	
 	/**
 	 * Returns the name of this relationship.

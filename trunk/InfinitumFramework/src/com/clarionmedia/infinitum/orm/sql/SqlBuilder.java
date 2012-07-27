@@ -27,6 +27,7 @@ import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteDbHelper;
 
 /**
@@ -178,6 +179,19 @@ public interface SqlBuilder {
 	 * @return {@code StringBuilder} containing the initial query segment
 	 */
 	StringBuilder createInitialUpdateForeignKeyQuery(OneToManyRelationship rel, Object model);
+	
+	/**
+	 * Generates a SQL statement for updating the foreign key in a one-to-one relationship.
+	 * 
+	 * @param relationship
+	 *            the {@link OneToOneRelationship} for this relationship query
+	 * @param model
+	 *            the model containing the foreign key to update
+	 * @param related
+	 *            the related entity
+	 * @return SQL update query
+	 */
+	String createUpdateOneToOneForeignKeyQuery(OneToOneRelationship relationship, Object model, Object related);
 
 	/**
 	 * Adds the given {@code Object's} primary key to the specified query. This
