@@ -275,10 +275,6 @@ public class SqliteTemplate implements SqliteOperations {
 		return ret;
 	}
 
-	// private Cursor executeQueryForResult(String sql) {
-
-	// }
-
 	@Override
 	public <T> void registerTypeAdapter(Class<T> type, SqliteTypeAdapter<T> adapter) {
 		mMapper.registerTypeAdapter(type, (SqliteTypeAdapter<T>) adapter);
@@ -311,7 +307,6 @@ public class SqliteTemplate implements SqliteOperations {
 
 	private long saveOrUpdateRec(Object model, Map<Integer, Object> objectMap) {
 		if (!updateRec(model, objectMap)) {
-			objectMap.clear();
 			return saveRec(model, objectMap);
 		} else
 			return 0;
@@ -321,7 +316,6 @@ public class SqliteTemplate implements SqliteOperations {
 		int objHash = mPersistencePolicy.computeModelHash(model);
 		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return 0;
-		objectMap.put(objHash, model);
 		SqliteModelMap map = mMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
 		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
@@ -331,6 +325,8 @@ public class SqliteTemplate implements SqliteOperations {
 			return rowId;
 		}
 		setPrimaryKey(model, rowId);
+		objHash = mPersistencePolicy.computeModelHash(model);
+		objectMap.put(objHash, model);
 		if (rowId > 0 && mPersistencePolicy.isCascading(model.getClass())) {
 			processRelationships(map, objectMap, model);
 			mLogger.debug(model.getClass().getSimpleName() + " model saved");
@@ -342,7 +338,6 @@ public class SqliteTemplate implements SqliteOperations {
 		int objHash = mPersistencePolicy.computeModelHash(model);
 		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return true;
-		objectMap.put(objHash, model);
 		SqliteModelMap map = mMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
 		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
@@ -354,6 +349,7 @@ public class SqliteTemplate implements SqliteOperations {
 			mLogger.debug(model.getClass().getSimpleName() + " model was not updated");
 			return false;
 		}
+		objectMap.put(objHash, model);
 		if (mPersistencePolicy.isCascading(model.getClass()))
 			processRelationships(map, objectMap, model);
 		mLogger.debug(model.getClass().getSimpleName() + " model updated");
@@ -402,14 +398,9 @@ public class SqliteTemplate implements SqliteOperations {
 				continue;
 			}
 			// Save or update the related entity
-			long id = saveOrUpdateRec(relatedEntity, objectMap);
-			if (id > 0) {
-				// Related entity was saved, so we need to set the FK using its new PK
-				// TODO We need to execute SQL to do the FK update
-			} else if (id == 0) {
-				// Related entity was updated, so we need to set the FK using its existing PK
-				Serializable pk = mPersistencePolicy.getPrimaryKey(relatedEntity);
-				// TODO We need to execute SQL to do the FK update
+			if (saveOrUpdateRec(relatedEntity, objectMap) >= 0 && relationship.getOwner() == model.getClass()) {
+				String sql = mSqlBuilder.createUpdateOneToOneForeignKeyQuery(relationship, model, relatedEntity);
+				mSqliteDb.execSQL(sql);
 			}
 		}
 	}

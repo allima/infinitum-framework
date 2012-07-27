@@ -28,10 +28,12 @@ package com.clarionmedia.infinitum.orm.relationship;
  * 
  * @author Tyler Treat
  * @version 1.0 03/11/12
+ * @since 1.0
  */
 public abstract class ForeignKeyRelationship extends ModelRelationship {
 
 	protected String mColumn;
+	protected Class<?> mOwner;
 
 	public String getColumn() {
 		return mColumn;
@@ -39,6 +41,14 @@ public abstract class ForeignKeyRelationship extends ModelRelationship {
 
 	public void setColumn(String column) {
 		mColumn = column;
+	}
+	
+	public Class<?> getOwner() {
+		return mOwner;
+	}
+	
+	public void setOwner(Class<?> owner) {
+		mOwner = owner;
 	}
 
 }
