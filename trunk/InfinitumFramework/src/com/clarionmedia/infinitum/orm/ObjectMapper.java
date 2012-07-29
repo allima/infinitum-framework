@@ -71,7 +71,7 @@ public abstract class ObjectMapper {
 	 */
 	public ObjectMapper(InfinitumContext context) {
 		mTypePolicy = new DefaultTypeResolutionPolicy(context);
-		mClassReflector = new DefaultClassReflector(context);
+		mClassReflector = new DefaultClassReflector();
 		mLogger = Logger.getInstance(context, getClass().getSimpleName());
 		mPropLoader = new PropertyLoader(ContextFactory.newInstance()
 				.getAndroidContext());

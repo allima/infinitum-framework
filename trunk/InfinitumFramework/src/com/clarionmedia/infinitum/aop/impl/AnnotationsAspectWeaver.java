@@ -73,7 +73,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 	 *            the {@code InfinitumContext} to retrieve beans from
 	 */
 	public AnnotationsAspectWeaver(InfinitumContext context) {
-		mClassReflector = new DefaultClassReflector(context);
+		mClassReflector = new DefaultClassReflector();
 		mPackageReflector = new DefaultPackageReflector();
 		mProxyFactory = new DelegatingAdvisedProxyFactory();
 		mBeanFactory = context.getBeanFactory();

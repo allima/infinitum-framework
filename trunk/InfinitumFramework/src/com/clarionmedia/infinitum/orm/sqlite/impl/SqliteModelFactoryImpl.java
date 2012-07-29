@@ -194,7 +194,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 
 	private <T> void lazilyLoadOneToOne(final OneToOneRelationship rel,
 			Field f, T model) {
-		final String sql = getEntityQuery(model, rel.getSecondType(), f, rel);
+		final String sql = getOneToOneEntityQuery(model, rel.getSecondType(), f, rel);
 		Object related = null;
 		if (mExecutor.count(sql.replace("*", "count(*)")) > 0) {
 			related = new LazyLoadDexMakerProxy(mSession.getContext(),
@@ -224,7 +224,7 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	}
 
 	private <T> void loadOneToOne(OneToOneRelationship rel, Field f, T model) {
-		String sql = getEntityQuery(model, rel.getSecondType(), f, rel);
+		String sql = getOneToOneEntityQuery(model, rel.getSecondType(), f, rel);
 		SqliteResult result = (SqliteResult) mExecutor.execute(sql);
 		while (result.getCursor().moveToNext())
 			try {
@@ -446,6 +446,35 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			sql.append(getForeignKey(model, rel));
 		}
 		return sql.append(" LIMIT 1").toString();
+	}
+	
+	private String getOneToOneEntityQuery(Object model, Class<?> relatedClass, Field f, OneToOneRelationship rel) {
+		boolean isOwner = rel.getOwner() == model.getClass();
+		StringBuilder sql = new StringBuilder("SELECT * FROM ")
+				.append(mPolicy.getModelTableName(relatedClass))
+				.append(" WHERE ");
+		if (isOwner) {
+		    sql.append(mPolicy.getFieldColumnName(mPolicy.getPrimaryKeyField(relatedClass)));
+		} else {
+			sql.append(rel.getColumn());
+		}
+		sql.append(" = ");
+		switch (mMapper.getSqliteDataType(f)) {
+		case TEXT:
+			sql.append("'").append(getOneToOneKey(model, isOwner, rel)).append("'");
+			break;
+		default:
+			sql.append(getOneToOneKey(model, isOwner, rel));
+		}
+		return sql.append(" LIMIT 1").toString();
+	}
+	
+	private Serializable getOneToOneKey(Object model, boolean isOwner, OneToOneRelationship rel) {
+		if (isOwner) {
+			return getForeignKey(model, rel);
+		} else {
+			return mPolicy.getPrimaryKey(model);
+		}
 	}
 
 	private Serializable getForeignKey(Object model, ForeignKeyRelationship rel) {

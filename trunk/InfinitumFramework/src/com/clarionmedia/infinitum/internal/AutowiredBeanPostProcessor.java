@@ -52,7 +52,7 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
 	@Override
 	public void postProcessBean(InfinitumContext context, String beanName, Object bean) {
-		mClassReflector = new DefaultClassReflector(context);
+		mClassReflector = new DefaultClassReflector();
 		Object target;
 		AopProxy proxy = AopProxy.getProxy(bean);
 		if (proxy != null)

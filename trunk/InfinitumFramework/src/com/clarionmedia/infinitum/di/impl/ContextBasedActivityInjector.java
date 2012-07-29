@@ -72,7 +72,7 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	public ContextBasedActivityInjector(InfinitumContext context) {
 		mInfinitumContext = context;
 		mContext = mInfinitumContext.getAndroidContext();
-		mClassReflector = new DefaultClassReflector(context);
+		mClassReflector = new DefaultClassReflector();
 		mFields = mClassReflector.getAllFields(context.getClass());
 	}
 

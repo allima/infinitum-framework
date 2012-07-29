@@ -85,6 +85,14 @@ public abstract class LazyLoadDexMakerProxy extends DexMakerProxy {
 			throw new InfinitumRuntimeException("DEX cache was not writeable.");
 		}
 	}
+	
+	@Override
+	public Object getTarget() {
+		if (mTarget == null) {
+		    mTarget = loadObject();
+		}
+		return mTarget;
+	}
 
 	/**
 	 * Loads the proxied {@link Object}.

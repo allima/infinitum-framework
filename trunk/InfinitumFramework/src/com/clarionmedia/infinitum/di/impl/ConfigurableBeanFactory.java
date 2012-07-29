@@ -66,7 +66,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	 *            the parent {@link InfinitumContext}
 	 */
 	public ConfigurableBeanFactory(InfinitumContext context) {
-		mClassReflector = new DefaultClassReflector(context);
+		mClassReflector = new DefaultClassReflector();
 		mBeanDefinitions = new HashMap<String, Pair<Class<?>, Map<String, Object>>>();
 		mBeanMap = new HashMap<String, Object>();
 		mAspectMap = new HashMap<String, Object>();
