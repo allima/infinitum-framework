@@ -21,6 +21,8 @@ package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+
+import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -31,8 +33,6 @@ import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
-import com.clarionmedia.infinitum.reflection.ClassReflector;
-import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -47,7 +47,6 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 public class SqliteUtil {
 
 	private TypeResolutionPolicy mTypePolicy;
-	private ClassReflector mClassReflector;
 	private PropertyLoader mPropLoader;
 
 	/**
@@ -59,7 +58,6 @@ public class SqliteUtil {
 	 */
 	public SqliteUtil(InfinitumContext context) {
 		mTypePolicy = new DefaultTypeResolutionPolicy(context);
-		mClassReflector = new DefaultClassReflector(context);
 		mPropLoader = new PropertyLoader(context.getAndroidContext());
 	}
 
@@ -83,6 +81,9 @@ public class SqliteUtil {
 	 */
 	public String getWhereClause(Object model, SqliteMapper mapper)
 			throws InfinitumRuntimeException {
+		if (AopProxy.isAopProxy(model)) {
+			model = AopProxy.getProxy(model).getTarget();
+		}
 		PersistencePolicy policy = ContextFactory.newInstance()
 				.getPersistencePolicy();
 		Field pk = policy.getPrimaryKeyField(model.getClass());
@@ -91,24 +92,20 @@ public class SqliteUtil {
 		sb.append(policy.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = mapper.getSqliteDataType(pk);
 		Serializable pkVal = null;
-		if (mTypePolicy.isDomainProxy(model.getClass())) {
-			pkVal = (Serializable) mClassReflector.invokeGetter(pk, model);
-		} else {
-			try {
-				pkVal = (Serializable) pk.get(model);
-			} catch (IllegalArgumentException e) {
-				throw new InfinitumRuntimeException(String.format(
-						mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
-						model.getClass().getName()));
-			} catch (IllegalAccessException e) {
-				throw new InfinitumRuntimeException(String.format(
-						mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
-						model.getClass().getName()));
-			} catch (ClassCastException e) {
-				throw new ModelConfigurationException(
-						"Invalid primary key specified for type '"
-								+ model.getClass().getName() + "'.");
-			}
+		try {
+			pkVal = (Serializable) pk.get(model);
+		} catch (IllegalArgumentException e) {
+			throw new InfinitumRuntimeException(String.format(
+					mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
+					model.getClass().getName()));
+		} catch (IllegalAccessException e) {
+			throw new InfinitumRuntimeException(String.format(
+					mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
+					model.getClass().getName()));
+		} catch (ClassCastException e) {
+			throw new ModelConfigurationException(
+					"Invalid primary key specified for type '"
+							+ model.getClass().getName() + "'.");
 		}
 		if (t == SqliteDataType.TEXT)
 			sb.append("'").append(pkVal).append("'");

@@ -176,8 +176,8 @@ public interface Session {
 
 	/**
 	 * Persists the given {@link Object} to the database. This method is
-	 * idempotent, meaning if the record already exists, it will not be
-	 * effected.
+	 * not idempotent, meaning if the record already exists, a new one will
+	 * attempt to persist.
 	 * 
 	 * @param model
 	 *            {@code Object} to persist to the database

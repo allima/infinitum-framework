@@ -48,6 +48,7 @@ public class OneToManyRelationship extends ForeignKeyRelationship {
 		setOneType(mFirst);
 		mSecond = mPackageReflector.getClass(otm.className());
 		setManyType(mSecond);
+		setOwner(mSecond);
 		mName = otm.name();
 		mColumn = otm.column();
 	}

@@ -31,6 +31,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
+import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
@@ -105,7 +106,7 @@ public class SqliteTemplate implements SqliteOperations {
 	public SqliteTemplate(SqliteSession session) {
 		mInfinitumContext = session.getInfinitumContext();
 		mSqliteUtil = new SqliteUtil(mInfinitumContext);
-		mClassReflector = new DefaultClassReflector(mInfinitumContext);
+		mClassReflector = new DefaultClassReflector();
 		mPersistencePolicy = mInfinitumContext.getPersistencePolicy();
 		mTypePolicy = new DefaultTypeResolutionPolicy(mInfinitumContext);
 		mSession = session;
@@ -203,6 +204,9 @@ public class SqliteTemplate implements SqliteOperations {
 
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
+		if (AopProxy.isAopProxy(model)) {
+			model = AopProxy.getProxy(model).getTarget();
+		}
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
@@ -313,6 +317,9 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	private long saveRec(Object model, Map<Integer, Object> objectMap) {
+		if (AopProxy.isAopProxy(model)) {
+			model = AopProxy.getProxy(model).getTarget();
+		}
 		int objHash = mPersistencePolicy.computeModelHash(model);
 		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return 0;
@@ -335,6 +342,9 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	private boolean updateRec(Object model, Map<Integer, Object> objectMap) {
+		if (AopProxy.isAopProxy(model)) {
+			model = AopProxy.getProxy(model).getTarget();
+		}
 		int objHash = mPersistencePolicy.computeModelHash(model);
 		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return true;

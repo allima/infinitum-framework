@@ -27,13 +27,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.internal.StringUtil;
-import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
@@ -48,62 +43,14 @@ import com.clarionmedia.infinitum.reflection.ClassReflector;
  */
 public class DefaultClassReflector implements ClassReflector {
 
-	private TypeResolutionPolicy mTypePolicy;
-
-	/**
-	 * Constructs a new {@code DefaultClassReflector}.
-	 * 
-	 * @param context
-	 *            the {@link InfinitumContext} to use for this
-	 *            {@code DefaultClassReflector}
-	 */
-	public DefaultClassReflector(InfinitumContext context) {
-		mTypePolicy = new DefaultTypeResolutionPolicy(context);
-	}
-
-	@Override
-	public Object invokeGetter(Field field, Object object) {
-		field.setAccessible(true);
-		String name = field.getName();
-		if (name.startsWith("m") && name.length() > 1) {
-			if (Character.isUpperCase(name.charAt(1)))
-				name = name.substring(1);
-		}
-		try {
-			Method getter = object.getClass().getMethod(
-					StringUtil.getterName(name));
-			return getter.invoke(object);
-		} catch (SecurityException e) {
-			throw new InfinitumRuntimeException(
-					"Unable to invoke getter for object of type '"
-							+ object.getClass().getName() + "'");
-		} catch (NoSuchMethodException e) {
-			throw new ModelConfigurationException("Field '" + field.getName()
-					+ "' in model '" + object.getClass().getName()
-					+ "' does not have an associated getter method.");
-		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException(
-					"Unable to invoke getter for object of type '"
-							+ object.getClass().getName()
-							+ "' (illegal argument)");
-		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(
-					"Unable to invoke getter for object of type '"
-							+ object.getClass().getName()
-							+ "' (illegal access)");
-		} catch (InvocationTargetException e) {
-			throw new InfinitumRuntimeException(
-					"Unable to invoke getter for object of type '"
-							+ object.getClass().getName() + "'");
-		}
-	}
-
 	@Override
 	public boolean isNull(Object object) {
 		if (object == null)
 			return true;
-		if (mTypePolicy.isDomainProxy(object.getClass()))
-			return object.getClass().isInstance(object);
+		if (AopProxy.isAopProxy(object)) {
+			AopProxy proxy = AopProxy.getProxy(object);
+			return proxy.getTarget() == null;
+		}
 		return false;
 	}
 

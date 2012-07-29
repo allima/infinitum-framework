@@ -37,18 +37,6 @@ import java.util.List;
 public interface ClassReflector {
 
 	/**
-	 * Retrieves the value of the given {@link Field} for the specified
-	 * {@link Object} by invoking its getter method.
-	 * 
-	 * @param field
-	 *            the {@code Field} to retrieve the value for
-	 * @param object
-	 *            the {@code Object} to retrieve the value for
-	 * @return {@code Field} value
-	 */
-	Object invokeGetter(Field field, Object object);
-
-	/**
 	 * Indicates if the given {@link Object} or {@code Object} proxy is
 	 * {@code null}.
 	 * 

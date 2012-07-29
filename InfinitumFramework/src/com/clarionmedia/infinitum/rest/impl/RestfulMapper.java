@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.internal.Primitives;
@@ -145,13 +146,10 @@ public class RestfulMapper extends ObjectMapper {
 	private void mapField(RestfulModelMap map, Object model, Field field)
 			throws InvalidMappingException, IllegalArgumentException,
 			IllegalAccessException {
-		Object val = null;
-		// We need to use the Field's getter if model is a proxy
-		if (mTypePolicy.isDomainProxy(model.getClass()))
-			val = mClassReflector.invokeGetter(field, model);
-		// Otherwise just use normal reflection...
-		else
-			val = field.get(model);
+		if (AopProxy.isAopProxy(model)) {
+			model = AopProxy.getProxy(model).getTarget();
+		}
+		Object val = field.get(model);
 		String fieldName = mPolicy.getEndpointFieldName(field);
 		resolveType(field.getType()).mapObjectToField(val, fieldName,
 				map.getNameValuePairs());

@@ -77,7 +77,7 @@ public class XmlAspectWeaver implements AspectWeaver {
 	 */
 	public XmlAspectWeaver(InfinitumContext context,
 			List<AspectComponent> aspects) {
-		mClassReflector = new DefaultClassReflector(context);
+		mClassReflector = new DefaultClassReflector();
 		mPackageReflector = new DefaultPackageReflector();
 		mProxyFactory = new DelegatingAdvisedProxyFactory();
 		mBeanFactory = context.getBeanFactory();

@@ -26,6 +26,7 @@ import java.util.Map;
 
 import android.content.ContentValues;
 
+import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.SqliteTypeAdapters;
@@ -188,13 +189,10 @@ public class SqliteMapper extends ObjectMapper {
 	private void mapField(ContentValues values, Object model, Field field)
 			throws InvalidMappingException, IllegalArgumentException,
 			IllegalAccessException {
-		Object val = null;
-		// We need to use the Field's getter if model is a proxy
-		if (mTypePolicy.isDomainProxy(model.getClass()))
-			val = mClassReflector.invokeGetter(field, model);
-		// Otherwise just use normal reflection...
-		else
-			val = field.get(model);
+		if (AopProxy.isAopProxy(model)) {
+			model = AopProxy.getProxy(model).getTarget();
+		}
+		Object val = field.get(model);
 		String colName = mPolicy.getFieldColumnName(field);
 		resolveType(field.getType()).mapObjectToColumn(val, colName, values);
 	}

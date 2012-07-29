@@ -31,19 +31,6 @@ package com.clarionmedia.infinitum.internal;
 public class StringUtil {
 
 	/**
-	 * Returns the getter method name for the given field name.
-	 * 
-	 * @param valName
-	 *            the name of the field to get the getter method name for
-	 * @return name of getter method
-	 */
-	public static String getterName(String valName) {
-		if (valName == null)
-			return null;
-		return "get" + capitalizeString(valName);
-	}
-
-	/**
 	 * Capitalizes the first letter of the given {@link String}.
 	 * 
 	 * @param string

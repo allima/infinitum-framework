@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
@@ -129,7 +130,7 @@ public abstract class PersistencePolicy {
 		mRestEndpointCache = new HashMap<Class<?>, String>();
 		mRestFieldCache = new HashMap<Field, String>();
 		mTypePolicy = new DefaultTypeResolutionPolicy(mContext);
-		mClassReflector = new DefaultClassReflector(context);
+		mClassReflector = new DefaultClassReflector();
 		mLogger = Logger.getInstance(context, getClass().getSimpleName());
 		mPropLoader = new PropertyLoader(mContext.getAndroidContext());
 	}
@@ -473,17 +474,13 @@ public abstract class PersistencePolicy {
 	 */
 	public Serializable getPrimaryKey(Object model) {
 		Serializable ret = null;
+		if (AopProxy.isAopProxy(model)) {
+			model = AopProxy.getProxy(model).getTarget();
+		}
 		Field pkField = getPrimaryKeyField(model.getClass());
 		pkField.setAccessible(true);
 		try {
-			if (mTypePolicy.isDomainProxy(model.getClass())) {
-				// Need to invoke getter if it's a proxy
-				ret = (Serializable) mClassReflector.invokeGetter(pkField,
-						model);
-			} else {
-				// Otherwise just get it using reflection
-				ret = (Serializable) pkField.get(model);
-			}
+		    ret = (Serializable) pkField.get(model);
 		} catch (IllegalArgumentException e) {
 			mLogger.error("Unable to retrieve primary key for object of type '"
 					+ model.getClass().getName() + "'", e);
