@@ -45,7 +45,7 @@ public class SqliteCriteria<T> implements Criteria<T> {
 
 	private Class<T> mEntityClass;
 	private SqliteSession mSession;
-	private SqliteModelFactoryImpl mModelFactory;
+	private SqliteModelFactory mModelFactory;
 	private List<Criterion> mCriterion;
 	private int mLimit;
 	private int mOffset;
@@ -73,7 +73,7 @@ public class SqliteCriteria<T> implements Criteria<T> {
 		Preconditions.checkPersistenceForLoading(entityClass, session.getInfinitumContext().getPersistencePolicy());
 		mSession = session;
 		mEntityClass = entityClass;
-		mModelFactory = new SqliteModelFactoryImpl(session, mapper);
+		mModelFactory = new SqliteModelFactory(session, mapper);
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
 		mPersistencePolicy = session.getInfinitumContext().getPersistencePolicy();

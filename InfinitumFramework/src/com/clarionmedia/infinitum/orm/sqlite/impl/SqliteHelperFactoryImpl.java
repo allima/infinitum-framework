@@ -21,9 +21,9 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.ModelFactory;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteHelperFactory;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactory;
 
 /**
  * <p>
@@ -49,9 +49,9 @@ public class SqliteHelperFactoryImpl implements SqliteHelperFactory {
 	}
 
 	@Override
-	public SqliteModelFactory createSqliteModelFactory(SqliteSession session,
+	public ModelFactory createSqliteModelFactory(SqliteSession session,
 			SqliteMapper mapper) {
-		return new SqliteModelFactoryImpl(session, mapper);
+		return new SqliteModelFactory(session, mapper);
 	}
 
 }
