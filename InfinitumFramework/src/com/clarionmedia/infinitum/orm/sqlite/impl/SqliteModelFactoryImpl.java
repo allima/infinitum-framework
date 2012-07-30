@@ -20,9 +20,7 @@
 package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,7 +29,6 @@ import android.database.Cursor;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.LazyLoadDexMakerProxy;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -43,7 +40,6 @@ import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
-import com.clarionmedia.infinitum.orm.sql.SqlExecutor;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactory;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 
@@ -59,14 +55,12 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 
 	private static final String INSTANTIATION_ERROR = "Could not instantiate Object of type '%s'.";
 
-	private SqlExecutor mExecutor;
 	private SqlBuilder mSqlBuilder;
 	private SqliteSession mSession;
 	private SqliteMapper mMapper;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
 	private InfinitumContext mContext;
-	private PropertyLoader mPropLoader;
 
 	/**
 	 * Constructs a {@code SqliteModelFactoryImpl} with the given
@@ -77,25 +71,15 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 	 */
 	public SqliteModelFactoryImpl(SqliteSession session, SqliteMapper mapper) {
 		mContext = session.getInfinitumContext();
-		mExecutor = new SqliteExecutor(session.getDatabase());
 		mSqlBuilder = new SqliteBuilder(mContext, mapper);
 		mSession = session;
 		mMapper = mapper;
 		mPolicy = mContext.getPersistencePolicy();
 		mLogger = Logger.getInstance(mContext, getClass().getSimpleName());
-		mPropLoader = new PropertyLoader(mContext.getAndroidContext());
 	}
-
+	
 	@Override
-	public <T> T createFromResult(SqliteResult result, Class<T> modelClass)
-			throws ModelConfigurationException, InfinitumRuntimeException {
-		mSession.reconcileCache();
-		return createFromCursorRec(result.getCursor(), modelClass);
-	}
-
-	@Override
-	public <T> T createFromCursor(Cursor cursor, Class<T> modelClass)
-			throws ModelConfigurationException, InfinitumRuntimeException {
+	public <T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException, InfinitumRuntimeException {
 		mSession.reconcileCache();
 		return createFromCursorRec(cursor, modelClass);
 	}
@@ -106,45 +90,24 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		T ret = null;
 		SqliteResult result = new SqliteResult(cursor);
 		try {
-			Constructor<T> ctor = modelClass.getConstructor();
-			ctor.setAccessible(true);
-			ret = ctor.newInstance();
-		} catch (SecurityException e) {
-			throw new InfinitumRuntimeException(String.format(
-					INSTANTIATION_ERROR, modelClass.getName()));
-		} catch (NoSuchMethodException e) {
-			throw new ModelConfigurationException(String.format(
-					mPropLoader.getErrorMessage("NO_EMPTY_CONSTRUCTOR"),
-					modelClass.getName()));
-		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException(String.format(
-					INSTANTIATION_ERROR, modelClass.getName()));
+			ret = modelClass.newInstance();
 		} catch (InstantiationException e) {
-			throw new InfinitumRuntimeException(String.format(
-					INSTANTIATION_ERROR, modelClass.getName()));
+			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(String.format(
-					INSTANTIATION_ERROR, modelClass.getName()));
-		} catch (InvocationTargetException e) {
-			throw new InfinitumRuntimeException(String.format(
-					INSTANTIATION_ERROR, modelClass.getName()));
+			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
 		}
 		List<Field> fields = mPolicy.getPersistentFields(modelClass);
 		for (Field f : fields) {
 			f.setAccessible(true);
 			if (!mPolicy.isRelationship(f)) {
-				SqliteTypeAdapter<?> resolver = mMapper
-						.resolveType(f.getType());
-				int index = result
-						.getColumnIndex(mPolicy.getFieldColumnName(f));
+				SqliteTypeAdapter<?> resolver = mMapper.resolveType(f.getType());
+				int index = result.getColumnIndex(mPolicy.getFieldColumnName(f));
 				try {
 					resolver.mapToObject(result, index, f, ret);
 				} catch (IllegalArgumentException e) {
-					throw new InfinitumRuntimeException("Could not map '"
-							+ f.getType().getName() + "'");
+					throw new InfinitumRuntimeException("Could not map '" + f.getType().getName() + "'");
 				} catch (IllegalAccessException e) {
-					throw new InfinitumRuntimeException("Could not map '"
-							+ f.getType().getName() + "'");
+					throw new InfinitumRuntimeException("Could not map '" + f.getType().getName() + "'");
 				}
 			}
 		}
@@ -196,15 +159,15 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			Field f, T model) {
 		final String sql = getOneToOneEntityQuery(model, rel.getSecondType(), f, rel);
 		Object related = null;
-		if (mExecutor.count(sql.replace("*", "count(*)")) > 0) {
+		if (mSession.count(sql.replace("*", "count(*)")) > 0) {
 			related = new LazyLoadDexMakerProxy(mSession.getContext(),
 					rel.getSecondType()) {
 				@Override
 				protected Object loadObject() {
 					Object ret = null;
-					SqliteResult result = (SqliteResult) mExecutor.execute(sql);
-					while (result.getCursor().moveToNext())
-						ret = createFromResult(result, rel.getSecondType());
+					Cursor result = mSession.executeForResult(sql, true);
+					while (result.moveToNext())
+						ret = createFromCursor(result, rel.getSecondType());
 					result.close();
 					return ret;
 				}
@@ -225,10 +188,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 
 	private <T> void loadOneToOne(OneToOneRelationship rel, Field f, T model) {
 		String sql = getOneToOneEntityQuery(model, rel.getSecondType(), f, rel);
-		SqliteResult result = (SqliteResult) mExecutor.execute(sql);
-		while (result.getCursor().moveToNext())
+		Cursor result = mSession.executeForResult(sql, true);
+		while (result.moveToNext())
 			try {
-				f.set(model, createFromResult(result, rel.getSecondType()));
+				f.set(model, createFromCursor(result, rel.getSecondType()));
 			} catch (IllegalArgumentException e) {
 				mLogger.error(
 						"Unable to set relationship field for object of type '"
@@ -262,11 +225,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			Collection<Object> related = (Collection<Object>) new LazyLoadDexMakerProxy(mSession.getContext(), collection.getClass()) {
 				@Override
 				protected Object loadObject() {
-					SqliteResult result = (SqliteResult) mExecutor
-							.execute(sql.toString());
-					while (result.getCursor().moveToNext())
-						collection.add(createFromResult(result,
-								rel.getManyType()));
+					Cursor result = mSession.executeForResult(sql.toString(), true);
+					while (result.moveToNext())
+						collection.add(createFromCursor(result, rel.getManyType()));
 					result.close();
 					return collection;
 				}
@@ -296,12 +257,12 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		default:
 			sql.append(pk);
 		}
-		SqliteResult result = (SqliteResult) mExecutor.execute(sql.toString());
+		Cursor result = mSession.executeForResult(sql.toString(), true);
 		try {
 			@SuppressWarnings("unchecked")
 			Collection<Object> related = (Collection<Object>) f.get(model);
-			while (result.getCursor().moveToNext())
-				related.add(createFromResult(result, rel.getManyType()));
+			while (result.moveToNext())
+				related.add(createFromCursor(result, rel.getManyType()));
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
 			mLogger.error(
@@ -321,15 +282,14 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 				.getSecondType() : rel.getFirstType();
 		final String sql = getEntityQuery(model, direction, f, rel);
 		Object related = null;
-		if (mExecutor.count(sql.replace("*", "count(*)")) > 0) {
+		if (mSession.count(sql.replace("*", "count(*)")) > 0) {
 			related = new LazyLoadDexMakerProxy(mSession.getContext(), rel.getSecondType()) {
 				@Override
 				protected Object loadObject() {
 					Object ret = null;
-					SqliteResult result = (SqliteResult) mExecutor
-							.execute(sql);
-					while (result.getCursor().moveToNext())
-						ret = createFromResult(result, direction);
+					Cursor result = mSession.executeForResult(sql, true);
+					while (result.moveToNext())
+						ret = createFromCursor(result, direction);
 					result.close();
 					return ret;
 				}
@@ -352,10 +312,10 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		Class<?> direction = model.getClass() == rel.getFirstType() ? rel
 				.getSecondType() : rel.getFirstType();
 		String sql = getEntityQuery(model, direction, f, rel);
-		SqliteResult result = (SqliteResult) mExecutor.execute(sql);
-		while (result.getCursor().moveToNext())
+		Cursor result = mSession.executeForResult(sql, true);
+		while (result.moveToNext())
 			try {
-				f.set(model, createFromResult(result, direction));
+				f.set(model, createFromCursor(result, direction));
 			} catch (IllegalArgumentException e) {
 				mLogger.error(
 						"Unable to set relationship field for object of type '"
@@ -383,11 +343,9 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			Collection<Object> related = (Collection<Object>) new LazyLoadDexMakerProxy(mSession.getContext(), collection.getClass()) {
 				@Override
 				protected Object loadObject() {
-					SqliteResult result = (SqliteResult) mExecutor
-							.execute(sql);
-					while (result.getCursor().moveToNext())
-						collection.add(createFromResult(result,
-								direction));
+					Cursor result = mSession.executeForResult(sql, true);
+					while (result.moveToNext())
+						collection.add(createFromCursor(result, direction));
 					result.close();
 					return collection;
 				}
@@ -413,11 +371,11 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 			Serializable pk = mPolicy.getPrimaryKey(model);
 			String sql = mSqlBuilder.createManyToManyJoinQuery(rel, pk,
 					direction);
-			SqliteResult result = (SqliteResult) mExecutor.execute(sql);
+			Cursor result = mSession.executeForResult(sql, true);
 			@SuppressWarnings("unchecked")
 			Collection<Object> related = (Collection<Object>) f.get(model);
-			while (result.getCursor().moveToNext())
-				related.add(createFromResult(result, direction));
+			while (result.moveToNext())
+				related.add(createFromCursor(result, direction));
 			result.close();
 			f.set(model, related);
 		} catch (IllegalArgumentException e) {
@@ -493,16 +451,16 @@ public class SqliteModelFactoryImpl implements SqliteModelFactory {
 		default:
 			q.append(pk);
 		}
-		SqliteResult res = (SqliteResult) mExecutor.execute(q.toString());
-		res.getCursor().moveToFirst();
+		Cursor result = mSession.executeForResult(q.toString(), true);
+		result.moveToFirst();
 		Serializable id;
 		try {
-			id = res.getString(0);
+			id = result.getString(0);
 		} catch (ClassCastException e) {
 			throw new ModelConfigurationException(
 					"Invalid primary key specified for model.");
 		} finally {
-			res.close();
+			result.close();
 		}
 		return id;
 	}

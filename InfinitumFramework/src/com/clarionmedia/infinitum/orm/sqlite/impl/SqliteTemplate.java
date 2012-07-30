@@ -21,16 +21,15 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
-
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-
 import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -47,7 +46,6 @@ import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
-import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationType;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
@@ -186,46 +184,57 @@ public class SqliteTemplate implements SqliteOperations {
 		return mIsAutocommit;
 	}
 
+	@SuppressLint("UseSparseArrays")
 	@Override
 	public long save(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
-		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
-		return saveRec(model, objectMap);
+		Map<Integer, Object> objectMap = new HashMap<Integer, Object>();
+		long result = saveRec(model, objectMap);
+		if (result > 0)
+			mLogger.debug(model.getClass().getSimpleName() + " model saved");
+		else
+			mLogger.debug(model.getClass().getSimpleName() + " model was not saved");
+		return result;
 	}
 
+	@SuppressLint("UseSparseArrays")
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
-		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
-		return updateRec(model, objectMap);
+		Map<Integer, Object> objectMap = new HashMap<Integer, Object>();
+		boolean result = updateRec(model, objectMap);
+		if (result)
+			mLogger.debug(model.getClass().getSimpleName() + " model updated");
+		else
+			mLogger.debug(model.getClass().getSimpleName() + " model was not updated");
+		return result;
 	}
 
 	@Override
 	public boolean delete(Object model) throws InfinitumRuntimeException {
-		if (AopProxy.isAopProxy(model)) {
-			model = AopProxy.getProxy(model).getTarget();
-		}
+		model = AopProxy.getTarget(model);
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
 		String whereClause = mSqliteUtil.getWhereClause(model, mMapper);
 		int result = mSqliteDb.delete(tableName, whereClause, null);
-		if (result == 1)
+		if (result == 1) {
 			deleteRelationships(model);
-		if (result == 1)
 			mLogger.debug(model.getClass().getSimpleName() + " model deleted");
-		else
+		} else {
 			mLogger.debug(model.getClass().getSimpleName() + " model was not deleted");
+		}
 		return result == 1;
 	}
 
+	@SuppressLint("UseSparseArrays")
 	@Override
 	public long saveOrUpdate(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
-		Map<Integer, Object> objectMap = new Hashtable<Integer, Object>();
+		Map<Integer, Object> objectMap = new HashMap<Integer, Object>();
 		return saveOrUpdateRec(model, objectMap);
 	}
 
@@ -299,52 +308,37 @@ public class SqliteTemplate implements SqliteOperations {
 		return mMapper;
 	}
 
-	/**
-	 * Returns the {@link SQLiteDatabase} instance attached to this
-	 * {@code SqliteTemplate}.
-	 * 
-	 * @return {@code SQLiteDatabase} instance
-	 */
-	public SQLiteDatabase getDatabase() {
-		return mSqliteDb;
-	}
-
 	private long saveOrUpdateRec(Object model, Map<Integer, Object> objectMap) {
-		if (!updateRec(model, objectMap)) {
-			return saveRec(model, objectMap);
-		} else
-			return 0;
+		// First try to update the entity, then try to save it if needed
+		return updateRec(model, objectMap) ? 0 : saveRec(model, objectMap);
 	}
 
 	private long saveRec(Object model, Map<Integer, Object> objectMap) {
-		if (AopProxy.isAopProxy(model)) {
-			model = AopProxy.getProxy(model).getTarget();
-		}
+		model = AopProxy.getTarget(model);
+		// Check if the entity has already been persisted
 		int objHash = mPersistencePolicy.computeModelHash(model);
 		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return 0;
+		// Persist it
 		SqliteModelMap map = mMapper.mapModel(model);
 		ContentValues values = map.getContentValues();
 		String tableName = mPersistencePolicy.getModelTableName(model.getClass());
 		long rowId = mSqliteDb.insert(tableName, null, values);
 		if (rowId <= 0) {
-			mLogger.debug(model.getClass().getSimpleName() + " model was not saved");
+			// Persist failed
 			return rowId;
 		}
+		// Persist succeeded
 		setPrimaryKey(model, rowId);
 		objHash = mPersistencePolicy.computeModelHash(model);
 		objectMap.put(objHash, model);
-		if (rowId > 0 && mPersistencePolicy.isCascading(model.getClass())) {
+		if (rowId > 0 && mPersistencePolicy.isCascading(model.getClass()))
 			processRelationships(map, objectMap, model);
-			mLogger.debug(model.getClass().getSimpleName() + " model saved");
-		}
 		return rowId;
 	}
 
 	private boolean updateRec(Object model, Map<Integer, Object> objectMap) {
-		if (AopProxy.isAopProxy(model)) {
-			model = AopProxy.getProxy(model).getTarget();
-		}
+		model = AopProxy.getTarget(model);
 		int objHash = mPersistencePolicy.computeModelHash(model);
 		if (objectMap.containsKey(objHash) && !mPersistencePolicy.isPKNullOrZero(model))
 			return true;
@@ -356,13 +350,11 @@ public class SqliteTemplate implements SqliteOperations {
 			return false;
 		long ret = mSqliteDb.update(tableName, values, whereClause, null);
 		if (ret <= 0) {
-			mLogger.debug(model.getClass().getSimpleName() + " model was not updated");
 			return false;
 		}
 		objectMap.put(objHash, model);
 		if (mPersistencePolicy.isCascading(model.getClass()))
 			processRelationships(map, objectMap, model);
-		mLogger.debug(model.getClass().getSimpleName() + " model updated");
 		return true;
 	}
 
@@ -453,121 +445,88 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	private void insertManyToManyRelationship(Object model, Object related, ManyToManyRelationship mtm) {
-		// TODO Revisit this method
-		ContentValues relData = new ContentValues();
-		Class<?> first = mtm.getFirstType();
-		Class<?> second = mtm.getSecondType();
+		ContentValues relationshipData = new ContentValues();
+		Class<?> firstType = mtm.getFirstType();
+		Class<?> secondType = mtm.getSecondType();
 		// TODO Doesn't support reflexive relationships
 		try {
-			Field f;
-			Field s;
-			Serializable fPk;
-			Serializable sPk;
-			if (model.getClass() == first) {
-				f = mPersistencePolicy.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
-				s = mPersistencePolicy.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
-				fPk = (Serializable) f.get(model);
-				sPk = (Serializable) s.get(related);
-			} else if (model.getClass() == second) {
-				s = mPersistencePolicy.findPersistentField(mtm.getFirstType(), mtm.getFirstFieldName());
-				f = mPersistencePolicy.findPersistentField(mtm.getSecondType(), mtm.getSecondFieldName());
-				fPk = (Serializable) f.get(related);
-				sPk = (Serializable) s.get(model);
+			Field firstField;
+			Field secondField;
+			Serializable firstPk;
+			Serializable secondPk;
+			if (model.getClass() == firstType) {
+				firstField = mPersistencePolicy.findPersistentField(firstType, mtm.getFirstFieldName());
+				secondField = mPersistencePolicy.findPersistentField(secondType, mtm.getSecondFieldName());
+				firstPk = (Serializable) mClassReflector.getFieldValue(model, firstField);
+				secondPk = (Serializable) mClassReflector.getFieldValue(related, secondField);
+			} else if (model.getClass() == secondType) {
+				secondField = mPersistencePolicy.findPersistentField(firstType, mtm.getFirstFieldName());
+				firstField = mPersistencePolicy.findPersistentField(secondType, mtm.getSecondFieldName());
+				firstPk = (Serializable) mClassReflector.getFieldValue(related, firstField);
+				secondPk = (Serializable) mClassReflector.getFieldValue(model, secondField);
 			} else {
 				throw new InfinitumRuntimeException("Invalid many-to-many relationship");
 			}
-			String fCol = mPersistencePolicy.getModelTableName(first) + '_' + mPersistencePolicy.getFieldColumnName(f);
-			String sCol = mPersistencePolicy.getModelTableName(second) + '_' + mPersistencePolicy.getFieldColumnName(s);
-			switch (mMapper.getSqliteDataType(f)) {
-			case INTEGER:
-				if (Primitives.unwrap(f.getType()) == int.class)
-					relData.put(fCol, (Integer) fPk);
-				else
-					relData.put(fCol, (Long) fPk);
-				break;
-			case TEXT:
-				relData.put(fCol, (String) fPk);
-				break;
-			case REAL:
-				if (Primitives.unwrap(f.getType()) == float.class)
-					relData.put(fCol, (Float) fPk);
-				else
-					relData.put(fCol, (Double) fPk);
-				break;
-			case BLOB:
-				relData.put(fCol, (byte[]) fPk);
-				break;
-			default:
-				throw new InfinitumRuntimeException("Invalid relational key type");
-			}
-			switch (mMapper.getSqliteDataType(s)) {
-			case INTEGER:
-				if (Primitives.unwrap(s.getType()) == int.class)
-					relData.put(sCol, (Integer) sPk);
-				else
-					relData.put(sCol, (Long) sPk);
-				break;
-			case TEXT:
-				relData.put(sCol, (String) sPk);
-				break;
-			case REAL:
-				if (Primitives.unwrap(s.getType()) == float.class)
-					relData.put(sCol, (Float) sPk);
-				else
-					relData.put(sCol, (Double) sPk);
-				break;
-			case BLOB:
-				relData.put(sCol, (byte[]) sPk);
-				break;
-			default:
-				throw new InfinitumRuntimeException("Invalid relational key type");
-			}
+			String firstCol = mPersistencePolicy.getModelTableName(firstType) + '_' + mPersistencePolicy.getFieldColumnName(firstField);
+			String secondCol = mPersistencePolicy.getModelTableName(secondType) + '_' + mPersistencePolicy.getFieldColumnName(secondField);
+			putRelationalKey(relationshipData, firstCol, firstField, firstPk);
+			putRelationalKey(relationshipData, secondCol, secondField, secondPk);
 			boolean result = false;
 			try {
-				result = mSqliteDb.insertOrThrow(mtm.getTableName(), null, relData) > 0;
+				result = mSqliteDb.insertOrThrow(mtm.getTableName(), null, relationshipData) > 0;
 			} catch (SQLException e) {
 				return;
 			}
 			if (result)
-				mLogger.debug(first.getSimpleName() + "-" + second.getSimpleName() + " relationship saved");
+				mLogger.debug(firstType.getSimpleName() + "-" + secondType.getSimpleName() + " relationship saved");
 			else
-				mLogger.error(first.getSimpleName() + "-" + second.getSimpleName() + " relationship was not saved");
-		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to insert many-to-many relationship", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to insert many-to-many relationship", e);
+				mLogger.error(firstType.getSimpleName() + "-" + secondType.getSimpleName() + " relationship was not saved");
 		} catch (ClassCastException e) {
-			throw new ModelConfigurationException("Invalid primary key.");
+			throw new ModelConfigurationException("Invalid primary key.", e);
 		}
 	}
 
 	private void deleteRelationships(Object model) {
 		SqliteModelMap map = mMapper.mapModel(model);
-		for (Pair<ManyToManyRelationship, Iterable<Object>> p : map.getManyToManyRelationships()) {
-			ManyToManyRelationship rel = p.getFirst();
-			if (rel.getRelationType() == RelationType.ManyToMany)
-				mSqliteDb.rawQuery(mSqlBuilder.createManyToManyDeleteQuery(model, rel), null);
+		for (Pair<ManyToManyRelationship, Iterable<Object>> relationshipPair : map.getManyToManyRelationships()) {
+			ManyToManyRelationship relationship = relationshipPair.getFirst();
+			mSqliteDb.execSQL(mSqlBuilder.createManyToManyDeleteQuery(model, relationship), null);
 		}
-		// TODO Update non M:M relationships
+		// TODO Update non M:M relationships?
 	}
 
 	private void setPrimaryKey(Object model, long rowId) {
-		Field f = mPersistencePolicy.getPrimaryKeyField(model.getClass());
-		f.setAccessible(true);
-		Class<?> pkType = Primitives.unwrap(f.getType());
+		Field pkField = mPersistencePolicy.getPrimaryKeyField(model.getClass());
+		Class<?> pkType = Primitives.unwrap(pkField.getType());
 		// The row ID is not a PK if the PK type is not int or long
 		if (pkType != int.class && pkType != long.class)
 			return;
-		try {
-			if (pkType == int.class)
-				f.set(model, (int) rowId);
-			else
-				f.set(model, rowId);
-		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to set primary key field for object of type '" + model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to set primary key field for object of type '" + model.getClass().getName() + "'", e);
-		}
+		mClassReflector.setFieldValue(model, pkField, rowId);
+	}
+	
+	private void putRelationalKey(ContentValues relationshipData, String column, Field field, Serializable value) {
+		switch (mMapper.getSqliteDataType(field)) {
+			case INTEGER:
+				if (Primitives.unwrap(field.getType()) == int.class)
+					relationshipData.put(column, (Integer) value);
+				else
+					relationshipData.put(column, (Long) value);
+				break;
+			case TEXT:
+				relationshipData.put(column, (String) value);
+				break;
+			case REAL:
+				if (Primitives.unwrap(field.getType()) == float.class)
+					relationshipData.put(column, (Float) value);
+				else
+					relationshipData.put(column, (Double) value);
+				break;
+			case BLOB:
+				relationshipData.put(column, (byte[]) value);
+				break;
+			default:
+				throw new InfinitumRuntimeException("Invalid relational key type");
+	    }
 	}
 
 }

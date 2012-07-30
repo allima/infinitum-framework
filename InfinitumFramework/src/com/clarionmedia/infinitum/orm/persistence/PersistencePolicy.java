@@ -152,13 +152,13 @@ public abstract class PersistencePolicy {
 	 *            the {@code Class} to retrieve the table name for
 	 * @return the name of the database table for the specified domain model
 	 *         {@code Class}
-	 * @throws IllegalArgumentException
+	 * @throws InfinitumRuntimeException
 	 *             if the given {@code Class} is transient
 	 * @throws InvalidMapFileException
 	 *             if the map file for the given {@code Class} is invalid
 	 */
 	public abstract String getModelTableName(Class<?> c)
-			throws IllegalArgumentException, InvalidMapFileException;
+			throws InfinitumRuntimeException, InvalidMapFileException;
 
 	/**
 	 * Retrieves a {@code List} of all persistent {@code Fields} for the given

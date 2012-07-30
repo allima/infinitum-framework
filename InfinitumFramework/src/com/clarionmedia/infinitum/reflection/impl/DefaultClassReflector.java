@@ -196,6 +196,7 @@ public class DefaultClassReflector implements ClassReflector {
 	@Override
 	public void setFieldValue(Object object, Field field, Object value) {
 		try {
+			field.setAccessible(true);
 			field.set(object, value);
 		} catch (IllegalArgumentException e) {
 			throw new InfinitumRuntimeException("Unable to set field '"

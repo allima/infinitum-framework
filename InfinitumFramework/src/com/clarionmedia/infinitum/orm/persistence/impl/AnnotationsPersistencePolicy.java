@@ -87,9 +87,9 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public String getModelTableName(Class<?> c) throws IllegalArgumentException {
+	public String getModelTableName(Class<?> c) {
 		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
-			throw new IllegalArgumentException("Class '" + c.getName()
+			throw new InfinitumRuntimeException("Class '" + c.getName()
 					+ "' is transient.");
 		String ret;
 		Table table = c.getAnnotation(Table.class);
