@@ -109,12 +109,12 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized String getModelTableName(Class<?> c) throws IllegalArgumentException {
+	public synchronized String getModelTableName(Class<?> c) {
 		if (mTableCache.containsKey(c))
 			return mTableCache.get(c);
 		String table;
 		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
+			throw new InfinitumRuntimeException("Class '" + c.getName() + "' is transient.");
 		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();

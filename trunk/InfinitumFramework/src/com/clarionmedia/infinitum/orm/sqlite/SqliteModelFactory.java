@@ -20,10 +20,11 @@
 package com.clarionmedia.infinitum.orm.sqlite;
 
 import java.lang.reflect.Field;
+
 import android.database.Cursor;
+
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteResult;
 
 /**
  * <p>
@@ -39,27 +40,6 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteResult;
  * @version 1.0 02/20/12
  */
 public interface SqliteModelFactory {
-
-	/**
-	 * Constructs a domain model instance and populates its {@link Field}'s from
-	 * the given {@link SqliteResult}. The precondition for this method is that
-	 * the {@code SqliteResult} is currently at the row to convert to an
-	 * {@link Object} from the correct table.
-	 * 
-	 * @param result
-	 *            the {@code SqliteResult} containing the row to convert to an
-	 *            {@code Object}
-	 * @param modelClass
-	 *            the {@code Class} of the {@code Object} being instantiated
-	 * @return a populated instance of the specified {@code Class}
-	 * @throws ModelConfigurationException
-	 *             if the specified model {@code Class} does not contain an
-	 *             empty constructor
-	 * @throws InfinitumRuntimeException
-	 *             if the model could not be instantiated
-	 */
-	<T> T createFromResult(SqliteResult result, Class<T> modelClass)
-			throws ModelConfigurationException, InfinitumRuntimeException;
 
 	/**
 	 * Constructs a domain model instance and populates its {@link Field}'s from

@@ -29,6 +29,7 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
  * 
  * @author Tyler Treat
  * @version 1.0 02/13/12
+ * @since 1.0
  */
 public class ModelConfigurationException extends InfinitumRuntimeException {
 
@@ -39,10 +40,23 @@ public class ModelConfigurationException extends InfinitumRuntimeException {
 	 * message.
 	 * 
 	 * @param error
-	 *            the error message for the {@link InfinitumRuntimeException}
+	 *            the error message for the {@link ModelConfigurationException}
 	 */
 	public ModelConfigurationException(String error) {
 		super(error);
+	}
+	
+	/**
+	 * Constructs a new {@code ModelConfigurationException} with the given error
+	 * message.
+	 * 
+	 * @param error
+	 *            the error message for the {@link ModelConfigurationException}
+	 * @param throwable
+	 *            the cause of this exception
+	 */
+	public ModelConfigurationException(String error, Throwable throwable) {
+		super(error, throwable);
 	}
 
 }

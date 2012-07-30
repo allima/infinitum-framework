@@ -24,10 +24,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -57,14 +57,15 @@ public class SqliteSession implements Session {
 	private int mCacheSize;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
-	
+
 	@Deprecated
 	public SqliteSession() {
 		mCacheSize = DEFAULT_CACHE_SIZE;
 	}
 
 	/**
-	 * Creates a new {@code SqliteSession} with the given {@link InfinitumContext}.
+	 * Creates a new {@code SqliteSession} with the given
+	 * {@link InfinitumContext}.
 	 * 
 	 * @param context
 	 *            the {@code InfinitumContext} of the {@code Session}
@@ -74,8 +75,8 @@ public class SqliteSession implements Session {
 	}
 
 	/**
-	 * Creates a new {@code SqliteSession} with the given {@link InfinitumContext} and
-	 * cache size.
+	 * Creates a new {@code SqliteSession} with the given
+	 * {@link InfinitumContext} and cache size.
 	 * 
 	 * @param context
 	 *            the {@code InfinitumContext} of the {@code Session}
@@ -83,6 +84,7 @@ public class SqliteSession implements Session {
 	 *            the maximum number of {@code Objects} the {@code Session}
 	 *            cache can store
 	 */
+	@SuppressLint("UseSparseArrays")
 	public SqliteSession(InfinitumContext context, int cacheSize) {
 		mLogger = Logger.getInstance(context, getClass().getSimpleName());
 		mInfinitumContext = context;
@@ -319,6 +321,30 @@ public class SqliteSession implements Session {
 	}
 
 	/**
+	 * Executes the given count query and returns the number of rows resulting
+	 * from it.
+	 * 
+	 * @param sql
+	 *            the SQL count query to execute
+	 * @return number of rows
+	 * @throws SQLGrammarException
+	 *             if the SQL was formatted incorrectly
+	 */
+	public int count(String sql) throws SQLGrammarException {
+		Cursor result = null;
+		try {
+			result = mSqlite.executeForResult(sql, true);
+			if (result.moveToFirst())
+				return result.getInt(0);
+			else
+				return 0;
+		} finally {
+			if (result != null)
+				result.close();
+		}
+	}
+
+	/**
 	 * Caches the given model identified by the given hash code.
 	 * 
 	 * @param hash
@@ -391,16 +417,6 @@ public class SqliteSession implements Session {
 	 */
 	public SqliteMapper getSqliteMapper() {
 		return mSqlite.getSqliteMapper();
-	}
-
-	/**
-	 * Returns the {@link SQLiteDatabase} associated with this
-	 * {@code SqliteSession}.
-	 * 
-	 * @return {@code SQLiteDatabase}
-	 */
-	public SQLiteDatabase getDatabase() {
-		return mSqlite.getDatabase();
 	}
 
 	/**

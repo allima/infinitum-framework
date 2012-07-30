@@ -734,19 +734,6 @@ public class SqliteSessionTest {
 		assertEquals("SqliteMapper returned from getSqliteMapper should be equal to the expected SqliteMapper", mockSqliteMapper, actual);
 	}
 	
-	@Test
-	public void testGetDatabase() {
-		// Setup
-		when(mockSqliteTemplate.getDatabase()).thenReturn(mockSqliteDatabase);
-		
-		// Run
-		SQLiteDatabase actual = sqliteSession.getDatabase();
-		
-		// Verify
-		verify(mockSqliteTemplate).getDatabase();
-		assertEquals("SqliteMapper returned from getSqliteMapper should be equal to the expected SqliteMapper", mockSqliteDatabase, actual);
-	}
-	
 	private static class FooModel {
 		private long id;
 	}

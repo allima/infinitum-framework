@@ -26,6 +26,7 @@ package com.clarionmedia.infinitum.exception;
  * 
  * @author Tyler Treat
  * @version 1.0 02/15/12
+ * @since 1.0
  */
 public class InfinitumRuntimeException extends RuntimeException {
 

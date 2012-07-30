@@ -85,6 +85,19 @@ public abstract class AopProxy implements InvocationHandler {
 	}
 
 	/**
+	 * Retrieves the proxied {@link Object}.
+	 * 
+	 * @param object
+	 *            the proxy to retrieve the target {@code Object} for
+	 * @return target {@code Object} or {@code object} if it is not a proxy
+	 */
+	public static Object getTarget(Object object) {
+		if (!isAopProxy(object))
+			return object;
+		return getProxy(object).getTarget();
+	}
+
+	/**
 	 * Returns the proxied {@link Object}.
 	 * 
 	 * @return target {@code Object}
