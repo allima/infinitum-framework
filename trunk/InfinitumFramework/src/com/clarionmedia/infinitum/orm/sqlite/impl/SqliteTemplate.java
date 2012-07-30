@@ -374,26 +374,25 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	private void processManyToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
-		for (Pair<ManyToManyRelationship, Iterable<Object>> p : map.getManyToManyRelationships()) {
-			ManyToManyRelationship rel = p.getFirst();
-			StringBuilder staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery(rel, model);
+		for (Pair<ManyToManyRelationship, Iterable<Object>> relationshipPair : map.getManyToManyRelationships()) {
+			ManyToManyRelationship relationship = relationshipPair.getFirst();
+			StringBuilder staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery(relationship, model);
 			String prefix = "";
-			for (Object o : p.getSecond()) {
-				boolean success;
-				int oHash = mPersistencePolicy.computeModelHash(o);
-				if (objectMap.containsKey(oHash) && !mPersistencePolicy.isPKNullOrZero(o)) {
-					mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
+			for (Object relatedEntity : relationshipPair.getSecond()) {
+				int relatedHash = mPersistencePolicy.computeModelHash(relatedEntity);
+				if (objectMap.containsKey(relatedHash) && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
+					mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
 					prefix = ", ";
 					continue;
 				}
-				success = saveOrUpdateRec(o, objectMap) >= 0;
-				if (success) {
-					insertManyToManyRelationship(model, o, rel);
-					mSqlBuilder.addPrimaryKeyToQuery(o, staleQuery, prefix);
+				if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
+					insertManyToManyRelationship(model, relatedEntity, relationship);
+					mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
 					prefix = ", ";
 				}
 			}
 			staleQuery.append(')');
+			// Delete stale relationships
 			if (!staleQuery.toString().contains("NOT IN ()"))
 				mSqliteDb.execSQL(staleQuery.toString());
 		}
@@ -409,6 +408,7 @@ public class SqliteTemplate implements SqliteOperations {
 			}
 			// Save or update the related entity
 			if (saveOrUpdateRec(relatedEntity, objectMap) >= 0 && relationship.getOwner() == model.getClass()) {
+				// Update the relationship owner's foreign key
 				String sql = mSqlBuilder.createUpdateOneToOneForeignKeyQuery(relationship, model, relatedEntity);
 				mSqliteDb.execSQL(sql);
 			}
@@ -416,30 +416,39 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	private void processOneToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
-		for (Pair<OneToManyRelationship, Iterable<Object>> p : map.getOneToManyRelationships()) {
-			StringBuilder updateQuery = mSqlBuilder.createInitialUpdateForeignKeyQuery(p.getFirst(), model);
+		for (Pair<OneToManyRelationship, Iterable<Object>> relationshipPair : map.getOneToManyRelationships()) {
+			StringBuilder updateQuery = mSqlBuilder.createInitialUpdateForeignKeyQuery(relationshipPair.getFirst(), model);
 			String prefix = "";
-			for (Object o : p.getSecond()) {
-				int oHash = mPersistencePolicy.computeModelHash(o);
-				if (objectMap.containsKey(oHash) && !mPersistencePolicy.isPKNullOrZero(o))
+			for (Object relatedEntity : relationshipPair.getSecond()) {
+				int relatedHash = mPersistencePolicy.computeModelHash(relatedEntity);
+				if (objectMap.containsKey(relatedHash) && !mPersistencePolicy.isPKNullOrZero(relatedEntity))
 					continue;
-				saveOrUpdateRec(o, objectMap);
-				mSqlBuilder.addPrimaryKeyToQuery(o, updateQuery, prefix);
-				prefix = ", ";
+				// Save or update the related entity
+				if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
+					// Include its foreign key to be updated
+				    mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, updateQuery, prefix);
+				    prefix = ", ";
+				}
 			}
 			updateQuery.append(')');
+			// Update the foreign keys
 			mSqliteDb.execSQL(updateQuery.toString());
 		}
 	}
 
 	private void processManyToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
-		for (Pair<ManyToOneRelationship, Object> p : map.getManyToOneRelationships()) {
-			Object o = p.getSecond();
-			if (mClassReflector.isNull(o))
+		for (Pair<ManyToOneRelationship, Object> relationshipPair : map.getManyToOneRelationships()) {
+			Object relatedEntity = relationshipPair.getSecond();
+			if (mClassReflector.isNull(relatedEntity)) {
+				// Related entity is null, nothing to do here...
 				continue;
-			saveOrUpdateRec(o, objectMap);
-			String update = mSqlBuilder.createUpdateQuery(model, o, p.getFirst().getColumn());
-			mSqliteDb.execSQL(update);
+			}
+			// Save or update the related entity
+			if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
+				// Update the foreign key
+			    String update = mSqlBuilder.createUpdateQuery(model, relatedEntity, relationshipPair.getFirst().getColumn());
+			    mSqliteDb.execSQL(update);
+			}
 		}
 	}
 
