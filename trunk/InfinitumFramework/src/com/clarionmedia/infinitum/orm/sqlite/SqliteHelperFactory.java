@@ -21,6 +21,7 @@ package com.clarionmedia.infinitum.orm.sqlite;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.orm.ModelFactory;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteCriteria;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteDbHelper;
@@ -73,7 +74,7 @@ public interface SqliteHelperFactory {
 			SqliteMapper mapper);
 
 	/**
-	 * Creates a new {@link SqliteModelFactory}.
+	 * Creates a new {@link ModelFactory}.
 	 * 
 	 * @param session
 	 *            the {@link SqliteSession} this {@code SqliteCriteria} is
@@ -82,7 +83,7 @@ public interface SqliteHelperFactory {
 	 *            the {@link SqliteMapper} to use for {@link Object} mapping
 	 * @return {@code SqliteModelFactory}
 	 */
-	SqliteModelFactory createSqliteModelFactory(SqliteSession session,
+	ModelFactory createSqliteModelFactory(SqliteSession session,
 			SqliteMapper mapper);
 
 }

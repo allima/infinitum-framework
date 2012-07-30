@@ -38,6 +38,7 @@ import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
+import com.clarionmedia.infinitum.orm.ModelFactory;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
@@ -50,7 +51,6 @@ import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteHelperFactory;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactory;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
@@ -76,7 +76,7 @@ public class SqliteTemplate implements SqliteOperations {
 	protected SqliteDbHelper mDbHelper;
 	protected SQLiteDatabase mSqliteDb;
 	protected SqliteMapper mMapper;
-	protected SqliteModelFactory mModelFactory;
+	protected ModelFactory mModelFactory;
 	protected SqlBuilder mSqlBuilder;
 	protected boolean mIsOpen;
 	protected Stack<Boolean> mTransactionStack;
@@ -251,13 +251,14 @@ public class SqliteTemplate implements SqliteOperations {
 			return null;
 		}
 		cursor.moveToFirst();
+		SqliteResult result = new SqliteResult(cursor);
 		T ret = null;
 		try {
-			ret = mModelFactory.createFromCursor(cursor, c);
+			ret = mModelFactory.createFromResult(result, c);
 		} catch (InfinitumRuntimeException e) {
 			throw e;
 		} finally {
-			cursor.close();
+			result.close();
 		}
 		mLogger.debug(c.getSimpleName() + " model loaded");
 		return ret;

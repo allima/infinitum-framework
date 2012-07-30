@@ -48,12 +48,12 @@ import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.logging.Logger;
+import com.clarionmedia.infinitum.orm.ModelFactory;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteHelperFactory;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactory;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.xtremelabs.robolectric.RobolectricTestRunner;
@@ -129,7 +129,7 @@ public class SqliteTemplateTest {
 	private SqliteUtil mockSqliteUtil;
 	
 	@Mock
-	private SqliteModelFactory mockSqliteModelFactory;
+	private ModelFactory mockSqliteModelFactory;
 	
 	@Mock
 	private SqlBuilder mockSqlBuilder;
