@@ -51,6 +51,7 @@ import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
+import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteHelperFactory;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteModelFactory;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
@@ -96,9 +97,6 @@ public class SqliteTemplateTest {
 	
 	@Mock
 	private SqliteMapper mockSqliteMapper;
-	
-	@Mock
-	private SQLiteDatabase mockSqliteDatabase;
 
 	@Mock
 	private SqliteDbHelper mockDbHelper;
@@ -111,9 +109,6 @@ public class SqliteTemplateTest {
 	
 	@Mock
 	private SqliteHelperFactory mockHelperFactory;
-	
-	@Mock
-	private SqliteBuilder mockSqliteBuilder;
 	
 	@Mock
 	private SqliteCriteria<FooModel> mockCriteria;
@@ -135,6 +130,9 @@ public class SqliteTemplateTest {
 	
 	@Mock
 	private SqliteModelFactory mockSqliteModelFactory;
+	
+	@Mock
+	private SqlBuilder mockSqlBuilder;
 	
 	private Field mockFooPkField;
 	private Field mockBarPkField;
@@ -191,14 +189,14 @@ public class SqliteTemplateTest {
 	@Test
 	public void testCreateCriteria() {
 		// Setup
-		when(mockHelperFactory.createCriteria(mockSqliteSession, FooModel.class, mockSqliteBuilder, mockSqliteMapper))
+		when(mockHelperFactory.createCriteria(mockSqliteSession, FooModel.class, mockSqlBuilder, mockSqliteMapper))
 			.thenReturn(mockCriteria);
 		
 		// Run
 		Criteria<FooModel> actualCriteria = sqliteTemplate.createCriteria(FooModel.class);
 		
 		// Verify
-		verify(mockHelperFactory).createCriteria(mockSqliteSession, FooModel.class, mockSqliteBuilder, mockSqliteMapper);
+		verify(mockHelperFactory).createCriteria(mockSqliteSession, FooModel.class, mockSqlBuilder, mockSqliteMapper);
 		assertEquals("Criteria returned from createCriteria should be equal to the expected Criteria", mockCriteria, actualCriteria);
 	}
 	
@@ -332,184 +330,28 @@ public class SqliteTemplateTest {
 	
 	@Test
 	public void testSave_noRelationships_success() {
-		// Setup
-		when(mockPersistencePolicy.isPersistent(FooModel.class)).thenReturn(true);
-		when(mockFooModelMap.getOneToOneRelationships()).thenReturn(new ArrayList<Pair<OneToOneRelationship, Object>>());
-		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn(FOO_MODEL_ID);
-		when(mockPersistencePolicy.isCascading(FooModel.class)).thenReturn(false);
-		
-		// Run
-		long actualId = sqliteTemplate.save(foo);
-		
-		// Verify
-		verify(mockPersistencePolicy).isPersistent(FooModel.class);
-		verify(mockSqliteMapper).mapModel(foo);
-		verify(mockFooModelMap).getOneToOneRelationships();
-		verify(mockSqliteDb).insert(FOO_MODEL_TABLE, null, mockContentValues);
-		verify(mockPersistencePolicy).isCascading(FooModel.class);
-	    assertEquals("ID returned from save should be equal to the expected ID", FOO_MODEL_ID, actualId);
+		// TODO
 	}
 	
 	@Test
 	public void testSave_noRelationships_fail() {
-		// Setup
-		when(mockPersistencePolicy.isPersistent(FooModel.class)).thenReturn(true);
-		when(mockFooModelMap.getOneToOneRelationships()).thenReturn(new ArrayList<Pair<OneToOneRelationship, Object>>());
-		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn((long) -1);
-		when(mockPersistencePolicy.isCascading(FooModel.class)).thenReturn(false);
-		
-		// Run
-		long actualId = sqliteTemplate.save(foo);
-		
-		// Verify
-		verify(mockPersistencePolicy).isPersistent(FooModel.class);
-		verify(mockSqliteMapper).mapModel(foo);
-		verify(mockFooModelMap).getOneToOneRelationships();
-		verify(mockSqliteDb).insert(FOO_MODEL_TABLE, null, mockContentValues);
-		verify(mockPersistencePolicy, times(0)).isCascading(FooModel.class);
-	    assertEquals("ID returned from save should be -1", -1, actualId);
+		// TODO
 	}
 	
 	@Test
 	public void testSave_oneToOneRelationship_updateRelated_success() {
-		// Setup
-		OneToOneRelationship rel = new OneToOneRelationship();
-		List<Pair<OneToOneRelationship, Object>> fooRelationships = new ArrayList<Pair<OneToOneRelationship, Object>>();
-		fooRelationships.add(new Pair<OneToOneRelationship, Object>(rel, bar));
-		List<Pair<OneToOneRelationship, Object>> barRelationships = new ArrayList<Pair<OneToOneRelationship, Object>>();
-		barRelationships.add(new Pair<OneToOneRelationship, Object>(rel, foo));
-		when(mockPersistencePolicy.isPersistent(FooModel.class)).thenReturn(true);
-		when(mockPersistencePolicy.isPKNullOrZero(foo)).thenReturn(false);
-		when(mockFooModelMap.getOneToOneRelationships()).thenReturn(fooRelationships);
-		when(mockClassReflector.isNull(bar)).thenReturn(false);
-		when(mockSqliteUtil.getWhereClause(bar, mockSqliteMapper)).thenReturn(WHERE_CLAUSE);
-		when(mockPersistencePolicy.isPKNullOrZero(bar)).thenReturn(false);
-		when(mockBarModelMap.getOneToOneRelationships()).thenReturn(barRelationships);
-		when(mockClassReflector.isNull(foo)).thenReturn(false);
-		when(mockPersistencePolicy.findRelationshipField(BarModel.class, rel)).thenReturn(mockFooPkField);
-		when(mockSqliteDb.update(BAR_MODEL_TABLE, mockContentValues, WHERE_CLAUSE, null)).thenReturn(1);
-		when(mockPersistencePolicy.isCascading(BarModel.class)).thenReturn(false);
-		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn(FOO_MODEL_ID);
-		when(mockPersistencePolicy.isCascading(FooModel.class)).thenReturn(false);
-		
-		// Run
-		long actualId = sqliteTemplate.save(foo);
-		
-		// Verify
-		verify(mockPersistencePolicy).isPersistent(FooModel.class);
-		verify(mockSqliteMapper).mapModel(foo);
-		verify(mockPersistencePolicy, times(2)).computeModelHash(foo);
-		verify(mockPersistencePolicy).isPKNullOrZero(foo);
-		verify(mockFooModelMap).getOneToOneRelationships();
-		verify(mockClassReflector).isNull(bar);
-		verify(mockSqliteMapper).mapModel(bar);
-		verify(mockSqliteUtil).getWhereClause(bar, mockSqliteMapper);
-		verify(mockPersistencePolicy).computeModelHash(bar);
-		verify(mockBarModelMap).getOneToOneRelationships();
-		verify(mockClassReflector).isNull(foo);
-		verify(mockPersistencePolicy).getPrimaryKey(foo);
-		verify(mockPersistencePolicy).findRelationshipField(BarModel.class, rel);
-		verify(mockPersistencePolicy).getFieldColumnName(mockFooPkField);
-		verify(mockSqliteDb).update(BAR_MODEL_TABLE, mockContentValues, WHERE_CLAUSE, null);
-		verify(mockPersistencePolicy).isCascading(BarModel.class);
-		verify(mockSqliteDb).insert(FOO_MODEL_TABLE, null, mockContentValues);
-		verify(mockPersistencePolicy).isCascading(FooModel.class);
-	    assertEquals("ID assigned to model should be equal to the expected ID", FOO_MODEL_ID, actualId);
+		// TODO
 	}
 	
 	@Test
 	public void testSave_oneToOneRelationship_updateRelated_fail() {
-		// Setup
-		OneToOneRelationship rel = new OneToOneRelationship();
-		List<Pair<OneToOneRelationship, Object>> fooRelationships = new ArrayList<Pair<OneToOneRelationship, Object>>();
-		fooRelationships.add(new Pair<OneToOneRelationship, Object>(rel, bar));
-		List<Pair<OneToOneRelationship, Object>> barRelationships = new ArrayList<Pair<OneToOneRelationship, Object>>();
-		barRelationships.add(new Pair<OneToOneRelationship, Object>(rel, foo));
-		when(mockPersistencePolicy.isPersistent(FooModel.class)).thenReturn(true);
-		when(mockPersistencePolicy.isPKNullOrZero(foo)).thenReturn(false);
-		when(mockFooModelMap.getOneToOneRelationships()).thenReturn(fooRelationships);
-		when(mockClassReflector.isNull(bar)).thenReturn(false);
-		when(mockSqliteUtil.getWhereClause(bar, mockSqliteMapper)).thenReturn(WHERE_CLAUSE);
-		when(mockPersistencePolicy.isPKNullOrZero(bar)).thenReturn(false);
-		when(mockBarModelMap.getOneToOneRelationships()).thenReturn(barRelationships);
-		when(mockClassReflector.isNull(foo)).thenReturn(false);
-		when(mockPersistencePolicy.findRelationshipField(BarModel.class, rel)).thenReturn(mockFooPkField);
-		when(mockSqliteDb.update(BAR_MODEL_TABLE, mockContentValues, WHERE_CLAUSE, null)).thenReturn(1);
-		when(mockPersistencePolicy.isCascading(BarModel.class)).thenReturn(false);
-		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn((long) -1);
-		when(mockPersistencePolicy.isCascading(FooModel.class)).thenReturn(false);
-		
-		// Run
-		long actualId = sqliteTemplate.save(foo);
-		
-		// Verify
-		verify(mockPersistencePolicy).isPersistent(FooModel.class);
-		verify(mockSqliteMapper).mapModel(foo);
-		verify(mockPersistencePolicy, times(2)).computeModelHash(foo);
-		verify(mockPersistencePolicy).isPKNullOrZero(foo);
-		verify(mockFooModelMap).getOneToOneRelationships();
-		verify(mockClassReflector).isNull(bar);
-		verify(mockSqliteMapper).mapModel(bar);
-		verify(mockSqliteUtil).getWhereClause(bar, mockSqliteMapper);
-		verify(mockPersistencePolicy).computeModelHash(bar);
-		verify(mockBarModelMap).getOneToOneRelationships();
-		verify(mockClassReflector).isNull(foo);
-		verify(mockPersistencePolicy).getPrimaryKey(foo);
-		verify(mockPersistencePolicy).findRelationshipField(BarModel.class, rel);
-		verify(mockPersistencePolicy).getFieldColumnName(mockFooPkField);
-		verify(mockSqliteDb).update(BAR_MODEL_TABLE, mockContentValues, WHERE_CLAUSE, null);
-		verify(mockPersistencePolicy).isCascading(BarModel.class);
-		verify(mockSqliteDb).insert(FOO_MODEL_TABLE, null, mockContentValues);
-		verify(mockPersistencePolicy, times(0)).isCascading(FooModel.class);
-		 assertEquals("ID returned from save should be -1", -1, actualId);
+		// TODO
 	}
 	
-//	@Test
-//	public void testSave_oneToOneRelationship_saveRelated_success() {
-//		// Setup
-//		OneToOneRelationship rel = new OneToOneRelationship();
-//		List<Pair<OneToOneRelationship, Object>> fooRelationships = new ArrayList<Pair<OneToOneRelationship, Object>>();
-//		fooRelationships.add(new Pair<OneToOneRelationship, Object>(rel, bar));
-//		List<Pair<OneToOneRelationship, Object>> barRelationships = new ArrayList<Pair<OneToOneRelationship, Object>>();
-//		barRelationships.add(new Pair<OneToOneRelationship, Object>(rel, foo));
-//		when(mockPersistencePolicy.isPersistent(FooModel.class)).thenReturn(true);
-//		when(mockPersistencePolicy.isPKNullOrZero(foo)).thenReturn(false);
-//		when(mockFooModelMap.getOneToOneRelationships()).thenReturn(fooRelationships);
-//		when(mockClassReflector.isNull(bar)).thenReturn(false);
-//		when(mockSqliteUtil.getWhereClause(bar, mockSqliteMapper)).thenReturn(WHERE_CLAUSE);
-//		when(mockPersistencePolicy.isPKNullOrZero(bar)).thenReturn(false);
-//		when(mockBarModelMap.getOneToOneRelationships()).thenReturn(barRelationships);
-//		when(mockClassReflector.isNull(foo)).thenReturn(false);
-//		when(mockPersistencePolicy.findRelationshipField(BarModel.class, rel)).thenReturn(mockFooPkField);
-//		when(mockSqliteDb.update(BAR_MODEL_TABLE, mockContentValues, WHERE_CLAUSE, null)).thenReturn(-1);
-//		when(mockPersistencePolicy.isCascading(BarModel.class)).thenReturn(false);
-//		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn(FOO_MODEL_ID);
-//		when(mockPersistencePolicy.isCascading(FooModel.class)).thenReturn(false);
-//		
-//		// Run
-//		long actualId = sqliteTemplate.save(foo);
-//		
-//		// Verify
-//		verify(mockPersistencePolicy).isPersistent(FooModel.class);
-//		verify(mockSqliteMapper).mapModel(foo);
-//		verify(mockPersistencePolicy, times(2)).computeModelHash(foo);
-//		verify(mockPersistencePolicy).isPKNullOrZero(foo);
-//		verify(mockFooModelMap).getOneToOneRelationships();
-//		verify(mockClassReflector).isNull(bar);
-//		verify(mockSqliteMapper, times(2)).mapModel(bar);
-//		verify(mockSqliteUtil).getWhereClause(bar, mockSqliteMapper);
-//		verify(mockPersistencePolicy, times(2)).computeModelHash(bar);
-//		verify(mockBarModelMap).getOneToOneRelationships();
-//		verify(mockClassReflector).isNull(foo);
-//		verify(mockPersistencePolicy).getPrimaryKey(foo);
-//		verify(mockPersistencePolicy).findRelationshipField(BarModel.class, rel);
-//		verify(mockPersistencePolicy).getFieldColumnName(mockFooPkField);
-//		verify(mockSqliteDb).update(BAR_MODEL_TABLE, mockContentValues, WHERE_CLAUSE, null);
-//		verify(mockPersistencePolicy).isCascading(BarModel.class);
-//		verify(mockSqliteDb).insert(FOO_MODEL_TABLE, null, mockContentValues);
-//		verify(mockPersistencePolicy).isCascading(FooModel.class);
-//	    assertEquals("ID assigned to model should be equal to the expected ID", FOO_MODEL_ID, actualId);
-//	}
+	@Test
+	public void testSave_oneToOneRelationship_saveRelated_success() {
+		// TODO
+	}
 	
 	private static class FooModel {
 		public long id;

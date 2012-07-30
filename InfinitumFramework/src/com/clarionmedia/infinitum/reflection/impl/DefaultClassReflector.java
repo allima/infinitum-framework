@@ -176,6 +176,7 @@ public class DefaultClassReflector implements ClassReflector {
 	@Override
 	public Object invokeMethod(Object receiver, Method method, Object... args) {
 		try {
+			method.setAccessible(true);
 			return method.invoke(receiver, args);
 		} catch (IllegalArgumentException e) {
 			throw new InfinitumRuntimeException("Unable to invoke method '"

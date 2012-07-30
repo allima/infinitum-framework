@@ -22,6 +22,7 @@ package com.clarionmedia.infinitum.di.impl;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanUtils;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
+import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Preconditions;
@@ -189,6 +191,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	}
 
 	private Object instantiateBean(String name, Class<?> clazz) {
+		Object bean;
 		Constructor<?> target = null;
 		for (Constructor<?> ctor : mClassReflector.getAllConstructors(clazz)) {
 			if (ctor.isAnnotationPresent(Autowired.class)) {
@@ -201,7 +204,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		}
 		if (target == null) {
 			try {
-				return clazz.newInstance();
+				bean = clazz.newInstance();
 			} catch (IllegalAccessException e) {
 				throw new InfinitumConfigurationException("Bean '" + name
 						+ "' could not be constructed");
@@ -209,38 +212,52 @@ public class ConfigurableBeanFactory implements BeanFactory {
 				throw new InfinitumConfigurationException("Bean '" + name
 						+ "' could not be constructed");
 			}
-		}
-		if (target.getParameterTypes().length > 1)
-			throw new InfinitumConfigurationException(
-					"Autowired constructor in bean '" + name
-							+ "' may only have 1 argument.");
-		try {
-			target.setAccessible(true);
-			if (target.getParameterTypes().length == 1) {
-				Class<?> paramType = target.getParameterTypes()[0];
-				Object argument = BeanUtils.findCandidateBean(this, paramType);
-				if (argument == null)
-					throw new InfinitumConfigurationException(
-							"Could not autowire property of type '"
-									+ clazz.getName() + "' in bean '" + name
-									+ "' (no autowire candidates found)");
-				return target.newInstance(argument);
-			} else {
-				return target.newInstance();
+		} else {
+			if (target.getParameterTypes().length > 1)
+				throw new InfinitumConfigurationException(
+						"Autowired constructor in bean '" + name
+								+ "' may only have 1 argument.");
+			try {
+				target.setAccessible(true);
+				if (target.getParameterTypes().length == 1) {
+					Class<?> paramType = target.getParameterTypes()[0];
+					Object argument = BeanUtils.findCandidateBean(this,
+							paramType);
+					if (argument == null)
+						throw new InfinitumConfigurationException(
+								"Could not autowire property of type '"
+										+ clazz.getName() + "' in bean '"
+										+ name
+										+ "' (no autowire candidates found)");
+					bean = target.newInstance(argument);
+				} else {
+					bean = target.newInstance();
+				}
+			} catch (IllegalArgumentException e) {
+				throw new InfinitumConfigurationException(
+						"Unable to instantiate bean '" + name + "'.");
+			} catch (InstantiationException e) {
+				throw new InfinitumConfigurationException(
+						"Unable to instantiate bean '" + name + "'.");
+			} catch (IllegalAccessException e) {
+				throw new InfinitumConfigurationException(
+						"Unable to instantiate bean '" + name + "'.");
+			} catch (InvocationTargetException e) {
+				throw new InfinitumConfigurationException(
+						"Unable to instantiate bean '" + name + "'.");
 			}
-		} catch (IllegalArgumentException e) {
-			throw new InfinitumConfigurationException(
-					"Unable to instantiate bean '" + name + "'.");
-		} catch (InstantiationException e) {
-			throw new InfinitumConfigurationException(
-					"Unable to instantiate bean '" + name + "'.");
-		} catch (IllegalAccessException e) {
-			throw new InfinitumConfigurationException(
-					"Unable to instantiate bean '" + name + "'.");
-		} catch (InvocationTargetException e) {
-			throw new InfinitumConfigurationException(
-					"Unable to instantiate bean '" + name + "'.");
 		}
+		// Invoke PostConstruct method
+		List<Method> postConstructs = mClassReflector
+				.getAllMethodsAnnotatedWith(clazz, PostConstruct.class);
+		if (postConstructs.size() > 1)
+			throw new InfinitumRuntimeException(
+					"Only 1 method may be annotated with PostConstruct (found "
+							+ postConstructs.size() + " in '" + clazz.getName()
+							+ "')");
+		if (postConstructs.size() == 1)
+			mClassReflector.invokeMethod(bean, postConstructs.get(0));
+		return bean;
 	}
 
 	private void setFields(Object bean, Map<String, Object> params) {
