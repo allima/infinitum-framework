@@ -51,6 +51,7 @@ import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.ModelFactory;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy.Cascade;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
@@ -339,7 +340,7 @@ public class SqliteTemplateTest {
 		when(mockSqliteMapper.mapModel(foo)).thenReturn(mockFooModelMap);
 		when(mockPersistencePolicy.getModelTableName(FooModel.class)).thenReturn(FOO_MODEL_TABLE);
 		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn(FOO_MODEL_ID);
-		when(mockPersistencePolicy.isCascading(FooModel.class)).thenReturn(false);
+		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.None);
 		
 		// Run
 		long actualId = sqliteTemplate.save(foo);
@@ -350,7 +351,7 @@ public class SqliteTemplateTest {
 		verify(mockSqliteMapper).mapModel(foo);
 		verify(mockPersistencePolicy).getModelTableName(FooModel.class);
 		verify(mockSqliteDb).insert(FOO_MODEL_TABLE, null, mockContentValues);
-		verify(mockPersistencePolicy).isCascading(FooModel.class);
+		verify(mockPersistencePolicy).getCascadeMode(FooModel.class);
 		assertEquals("ID returned by save should be equal to the expected ID", FOO_MODEL_ID, actualId);
 	}
 	
@@ -366,7 +367,7 @@ public class SqliteTemplateTest {
 		when(mockSqliteMapper.mapModel(foo)).thenReturn(mockFooModelMap);
 		when(mockPersistencePolicy.getModelTableName(FooModel.class)).thenReturn(FOO_MODEL_TABLE);
 		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn(FOO_MODEL_ID);
-		when(mockPersistencePolicy.isCascading(FooModel.class)).thenReturn(true);
+		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.All);
 		when(mockFooModelMap.getManyToManyRelationships()).thenReturn(mtmRels);
 		when(mockFooModelMap.getManyToOneRelationships()).thenReturn(mtoRels);
 		when(mockFooModelMap.getOneToManyRelationships()).thenReturn(otmRels);
@@ -381,7 +382,7 @@ public class SqliteTemplateTest {
 		verify(mockSqliteMapper).mapModel(foo);
 		verify(mockPersistencePolicy).getModelTableName(FooModel.class);
 		verify(mockSqliteDb).insert(FOO_MODEL_TABLE, null, mockContentValues);
-		verify(mockPersistencePolicy).isCascading(FooModel.class);
+		verify(mockPersistencePolicy).getCascadeMode(FooModel.class);
 		verify(mockFooModelMap).getManyToManyRelationships();
 		verify(mockFooModelMap).getOneToManyRelationships();
 		verify(mockFooModelMap).getManyToOneRelationships();
@@ -408,7 +409,7 @@ public class SqliteTemplateTest {
 		when(mockSqliteMapper.mapModel(foo)).thenReturn(mockFooModelMap);
 		when(mockPersistencePolicy.getModelTableName(FooModel.class)).thenReturn(FOO_MODEL_TABLE);
 		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn((long) -1);
-		when(mockPersistencePolicy.isCascading(FooModel.class)).thenReturn(true);
+		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.All);
 		when(mockFooModelMap.getManyToManyRelationships()).thenReturn(mtmRels);
 		when(mockFooModelMap.getManyToOneRelationships()).thenReturn(mtoRels);
 		when(mockFooModelMap.getOneToManyRelationships()).thenReturn(otmRels);
@@ -423,7 +424,7 @@ public class SqliteTemplateTest {
 		verify(mockSqliteMapper).mapModel(foo);
 		verify(mockPersistencePolicy).getModelTableName(FooModel.class);
 		verify(mockSqliteDb).insert(FOO_MODEL_TABLE, null, mockContentValues);
-		verify(mockPersistencePolicy, times(0)).isCascading(FooModel.class);
+		verify(mockPersistencePolicy, times(0)).getCascadeMode(FooModel.class);
 		verify(mockFooModelMap, times(0)).getManyToManyRelationships();
 		verify(mockFooModelMap, times(0)).getOneToManyRelationships();
 		verify(mockFooModelMap, times(0)).getManyToOneRelationships();

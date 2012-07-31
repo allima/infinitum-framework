@@ -65,6 +65,15 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  */
 public abstract class PersistencePolicy {
 
+	/**
+	 * Used to indicate an entity's cascade mode. {@code All} means every
+	 * related entity is cascaded, {@code None} means no related entities are
+	 * cascaded, and {@code Keys} means only foreign keys will be cascaded.
+	 */
+	public static enum Cascade {
+		All, None, Keys
+	};
+
 	// This Map caches which fields are persistent
 	protected Map<Class<?>, List<Field>> mPersistenceCache;
 
@@ -152,13 +161,13 @@ public abstract class PersistencePolicy {
 	 *            the {@code Class} to retrieve the table name for
 	 * @return the name of the database table for the specified domain model
 	 *         {@code Class}
-	 * @throws InfinitumRuntimeException
+	 * @throws IllegalArgumentException
 	 *             if the given {@code Class} is transient
 	 * @throws InvalidMapFileException
 	 *             if the map file for the given {@code Class} is invalid
 	 */
 	public abstract String getModelTableName(Class<?> c)
-			throws InfinitumRuntimeException, InvalidMapFileException;
+			throws IllegalArgumentException, InvalidMapFileException;
 
 	/**
 	 * Retrieves a {@code List} of all persistent {@code Fields} for the given
@@ -254,13 +263,14 @@ public abstract class PersistencePolicy {
 			Class<?> c);
 
 	/**
-	 * Indicates if the given persistent {@link Class} has cascading enabled.
+	 * Retrieves the {@link Cascade} mode for the given persistent {@link Class}
+	 * .
 	 * 
 	 * @param c
-	 *            the {@code Class} to check for cascading
-	 * @return {@code true} if it is cascading, {@code false} if not
+	 *            the {@code Class} to retrieve {@code Cascade} mode for
+	 * @return {@code Cascade} mode
 	 */
-	public abstract boolean isCascading(Class<?> c);
+	public abstract Cascade getCascadeMode(Class<?> c);
 
 	/**
 	 * Indicates if the given persistent {@link Field} is part of an entity
@@ -284,14 +294,15 @@ public abstract class PersistencePolicy {
 	 *         {@code false} if not
 	 */
 	public abstract boolean isManyToManyRelationship(Field f);
-	
+
 	/**
-	 * Indicates if the given persistent {@link Field} is part of a one-to-one entity relationship.
+	 * Indicates if the given persistent {@link Field} is part of a one-to-one
+	 * entity relationship.
 	 * 
 	 * @param f
-	 * 			 the {@code Field} to check
-	 * @return {@code true} if it is part of a one-to-one relationship, 
-	 * 		   {@code false} if not
+	 *            the {@code Field} to check
+	 * @return {@code true} if it is part of a one-to-one relationship,
+	 *         {@code false} if not
 	 */
 	public abstract boolean isOneToOneRelationship(Field f);
 
@@ -480,7 +491,7 @@ public abstract class PersistencePolicy {
 		Field pkField = getPrimaryKeyField(model.getClass());
 		pkField.setAccessible(true);
 		try {
-		    ret = (Serializable) pkField.get(model);
+			ret = (Serializable) pkField.get(model);
 		} catch (IllegalArgumentException e) {
 			mLogger.error("Unable to retrieve primary key for object of type '"
 					+ model.getClass().getName() + "'", e);

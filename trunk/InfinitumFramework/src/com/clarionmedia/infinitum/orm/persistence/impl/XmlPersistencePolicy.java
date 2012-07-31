@@ -76,7 +76,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	private Map<Class<?>, String> mTableCache;
 
 	// This Map caches the cascade value for each persistent class
-	private Map<Class<?>, Boolean> mCascadeCache;
+	private Map<Class<?>, Cascade> mCascadeCache;
 
 	// This Map caches the autoincrement value for each persistent class's
 	// primary key
@@ -97,7 +97,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		mContext = context;
 		mResourceCache = new HashMap<Class<?>, Integer>();
 		mTableCache = new HashMap<Class<?>, String>();
-		mCascadeCache = new HashMap<Class<?>, Boolean>();
+		mCascadeCache = new HashMap<Class<?>, Cascade>();
 		mAutoincrementCache = new HashMap<Field, Boolean>();
 		mRelationshipCheckCache = new HashMap<Field, Boolean>();
 	}
@@ -114,7 +114,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 			return mTableCache.get(c);
 		String table;
 		if (!isPersistent(c))
-			throw new InfinitumRuntimeException("Class '" + c.getName() + "' is transient.");
+			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
 		XmlPullParser parser = loadXmlMapFile(c);
 		try {
 			int code = parser.getEventType();
@@ -465,7 +465,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized boolean isCascading(Class<?> c) {
+	public synchronized Cascade getCascadeMode(Class<?> c) {
 		if (mCascadeCache.containsKey(c))
 			return mCascadeCache.get(c);
 		if (!isPersistent(c))
@@ -481,12 +481,18 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
 					String cascade = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CASCADE"));
 					if (cascade == null) {
-						mCascadeCache.put(c, true);
-						return true;
+						mCascadeCache.put(c, Cascade.All);
+						return Cascade.All;
 					} else {
-						boolean isCascade = Boolean.parseBoolean(cascade);
-						mCascadeCache.put(c, isCascade);
-						return isCascade;
+						Cascade mode;
+						if (cascade.equalsIgnoreCase("none"))
+							mode = Cascade.None;
+						else if (cascade.equalsIgnoreCase("keys"))
+							mode = Cascade.Keys;
+						else
+							mode = Cascade.All;
+						mCascadeCache.put(c, mode);
+						return mode;
 					}
 				}
 				code = parser.next();
@@ -626,7 +632,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 						return true;
 					} else {
 						boolean isLazy = Boolean.parseBoolean(lazy);
-						mCascadeCache.put(c, isLazy);
+						mLazyLoadingCache.put(c, isLazy);
 						return isLazy;
 					}
 				}

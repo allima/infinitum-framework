@@ -89,7 +89,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	@Override
 	public String getModelTableName(Class<?> c) {
 		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
-			throw new InfinitumRuntimeException("Class '" + c.getName()
+			throw new IllegalArgumentException("Class '" + c.getName()
 					+ "' is transient.");
 		String ret;
 		Table table = c.getAnnotation(Table.class);
@@ -257,9 +257,9 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public boolean isCascading(Class<?> c) {
+	public Cascade getCascadeMode(Class<?> c) {
 		if (!c.isAnnotationPresent(Entity.class))
-			return true;
+			return Cascade.All;
 		Entity entity = c.getAnnotation(Entity.class);
 		return entity.cascade();
 	}

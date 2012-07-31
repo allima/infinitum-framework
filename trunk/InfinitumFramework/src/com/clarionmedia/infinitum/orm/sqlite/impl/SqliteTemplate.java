@@ -43,6 +43,7 @@ import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy.Cascade;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
@@ -333,8 +334,7 @@ public class SqliteTemplate implements SqliteOperations {
 		setPrimaryKey(model, rowId);
 		objHash = mPersistencePolicy.computeModelHash(model);
 		objectMap.put(objHash, model);
-		if (rowId > 0 && mPersistencePolicy.isCascading(model.getClass()))
-			processRelationships(map, objectMap, model);
+		processRelationships(map, objectMap, model, mPersistencePolicy.getCascadeMode(model.getClass()));
 		return rowId;
 	}
 
@@ -354,34 +354,50 @@ public class SqliteTemplate implements SqliteOperations {
 			return false;
 		}
 		objectMap.put(objHash, model);
-		if (mPersistencePolicy.isCascading(model.getClass()))
-			processRelationships(map, objectMap, model);
+		processRelationships(map, objectMap, model, mPersistencePolicy.getCascadeMode(model.getClass()));
 		return true;
 	}
 
-	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model) {
-		processManyToManyRelationships(model, map, objectMap);
-		processManyToOneRelationships(model, map, objectMap);
-		processOneToManyRelationships(model, map, objectMap);
-		processOneToOneRelationships(model, map, objectMap);
+	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model, Cascade cascade) {
+		if (cascade == Cascade.None)
+			return;
+		processManyToManyRelationships(model, map, objectMap, cascade);
+		processManyToOneRelationships(model, map, objectMap, cascade);
+		processOneToManyRelationships(model, map, objectMap, cascade);
+		processOneToOneRelationships(model, map, objectMap, cascade);
 	}
 
-	private void processManyToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
+	private void processManyToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, Cascade cascade) {
 		for (Pair<ManyToManyRelationship, Iterable<Object>> relationshipPair : map.getManyToManyRelationships()) {
 			ManyToManyRelationship relationship = relationshipPair.getFirst();
 			StringBuilder staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery(relationship, model);
 			String prefix = "";
 			for (Object relatedEntity : relationshipPair.getSecond()) {
+				if (relatedEntity == null) {
+					// Related entity is null, nothing to do here...
+					continue;
+				}
 				int relatedHash = mPersistencePolicy.computeModelHash(relatedEntity);
 				if (objectMap.containsKey(relatedHash) && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 					mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
 					prefix = ", ";
 					continue;
 				}
-				if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
-					insertManyToManyRelationship(model, relatedEntity, relationship);
-					mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
-					prefix = ", ";
+				// Cascade.All means we persist/update related entities
+				if (cascade == Cascade.All) {
+				    // Save or update the related entity
+				    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
+					    // Persist relationship to many-to-many table
+					    insertManyToManyRelationship(model, relatedEntity, relationship);
+					    mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
+					    prefix = ", ";
+				    }
+				// Cascade.Keys means we persist/update foreign keys
+				} else if (cascade == Cascade.Keys && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
+					// Persist relationship to many-to-many table
+				    insertManyToManyRelationship(model, relatedEntity, relationship);
+				    mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
+				    prefix = ", ";
 				}
 			}
 			staleQuery.append(')');
@@ -391,7 +407,7 @@ public class SqliteTemplate implements SqliteOperations {
 		}
 	}
 
-	private void processOneToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
+	private void processOneToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, Cascade cascade) {
 		for (Pair<OneToOneRelationship, Object> relationshipPair : map.getOneToOneRelationships()) {
 			OneToOneRelationship relationship = relationshipPair.getFirst();
 			Object relatedEntity = relationshipPair.getSecond();
@@ -399,28 +415,48 @@ public class SqliteTemplate implements SqliteOperations {
 				// Related entity is null, nothing to do here...
 				continue;
 			}
-			// Save or update the related entity
-			if (saveOrUpdateRec(relatedEntity, objectMap) >= 0 && relationship.getOwner() == model.getClass()) {
+			// Cascade.All means we persist/update related entities
+			if (cascade == Cascade.All) {
+			    // Save or update the related entity
+			    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0 && relationship.getOwner() == model.getClass()) {
+				    // Update the relationship owner's foreign key
+				    String sql = mSqlBuilder.createUpdateOneToOneForeignKeyQuery(relationship, model, relatedEntity);
+				    mSqliteDb.execSQL(sql);
+			    }
+			// Cascade.Keys means we persist/update foreign keys
+			} else if (cascade == Cascade.Keys && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 				// Update the relationship owner's foreign key
-				String sql = mSqlBuilder.createUpdateOneToOneForeignKeyQuery(relationship, model, relatedEntity);
-				mSqliteDb.execSQL(sql);
+			    String sql = mSqlBuilder.createUpdateOneToOneForeignKeyQuery(relationship, model, relatedEntity);
+			    mSqliteDb.execSQL(sql);
 			}
 		}
 	}
 
-	private void processOneToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
+	private void processOneToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, Cascade cascade) {
 		for (Pair<OneToManyRelationship, Iterable<Object>> relationshipPair : map.getOneToManyRelationships()) {
 			StringBuilder updateQuery = mSqlBuilder.createInitialUpdateForeignKeyQuery(relationshipPair.getFirst(), model);
 			String prefix = "";
 			for (Object relatedEntity : relationshipPair.getSecond()) {
+				if (relatedEntity == null) {
+					// Related entity is null, nothing to do here...
+					continue;
+				}
 				int relatedHash = mPersistencePolicy.computeModelHash(relatedEntity);
 				if (objectMap.containsKey(relatedHash) && !mPersistencePolicy.isPKNullOrZero(relatedEntity))
 					continue;
-				// Save or update the related entity
-				if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
+				// Cascade.All means we persist/update related entities
+				if (cascade == Cascade.All) {
+				    // Save or update the related entity
+				    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
+					    // Include its foreign key to be updated
+				        mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, updateQuery, prefix);
+				        prefix = ", ";
+				    }
+			    // Cascade.Keys means we persist/update foreign keys
+				} else if (cascade == Cascade.Keys && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 					// Include its foreign key to be updated
-				    mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, updateQuery, prefix);
-				    prefix = ", ";
+			        mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, updateQuery, prefix);
+			        prefix = ", ";
 				}
 			}
 			updateQuery.append(')');
@@ -429,18 +465,26 @@ public class SqliteTemplate implements SqliteOperations {
 		}
 	}
 
-	private void processManyToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap) {
+	private void processManyToOneRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, Cascade cascade) {
 		for (Pair<ManyToOneRelationship, Object> relationshipPair : map.getManyToOneRelationships()) {
 			Object relatedEntity = relationshipPair.getSecond();
 			if (mClassReflector.isNull(relatedEntity)) {
 				// Related entity is null, nothing to do here...
 				continue;
 			}
-			// Save or update the related entity
-			if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
+			// Cascade.All means we persist/update related entities
+			if (cascade == Cascade.All) {
+			    // Save or update the related entity
+			    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
+				    // Update the foreign key
+			        String update = mSqlBuilder.createUpdateQuery(model, relatedEntity, relationshipPair.getFirst().getColumn());
+			        mSqliteDb.execSQL(update);
+			    }
+			// Cascade.Keys means we persist/update foreign keys
+			} else if (cascade == Cascade.Keys && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 				// Update the foreign key
-			    String update = mSqlBuilder.createUpdateQuery(model, relatedEntity, relationshipPair.getFirst().getColumn());
-			    mSqliteDb.execSQL(update);
+		        String update = mSqlBuilder.createUpdateQuery(model, relatedEntity, relationshipPair.getFirst().getColumn());
+		        mSqliteDb.execSQL(update);
 			}
 		}
 	}
