@@ -26,6 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
+import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy.Cascade;
 
 /**
  * <p>
@@ -62,13 +63,15 @@ public @interface Entity {
 	PersistenceMode mode() default PersistenceMode.Persistent;
 
 	/**
-	 * Indicates if the entity has cascading enabled. If it is, when its state
-	 * is changed in the database, any entities related to it will also be
-	 * updated.
+	 * Indicates the entity's cascade mode. {@link Cascade#All} means that when
+	 * the entity's state is changed in the database, all entities related to it
+	 * will also be updated. {@link Cascade#None} means that no related entities
+	 * will be cascaded. {@link Cascade#Keys} means that only foreign keys will
+	 * be cascaded.
 	 * 
 	 * @return {@code true} if cascading is enabled, {@code false} if not
 	 */
-	boolean cascade() default true;
+	Cascade cascade() default Cascade.All;
 
 	/**
 	 * Indicates if the entity has lazy loading enabled. If it is, related
