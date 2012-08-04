@@ -66,11 +66,11 @@ public class RestfulXmlSession extends RestfulSession {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
-		Preconditions.checkPersistenceForLoading(type, mPolicy);
+	public <T> T loadEntity(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+		Preconditions.checkPersistenceForLoading(type, mPersistencePolicy);
 		mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
-		String uri = mHost + mPolicy.getRestEndpoint(type) + "/" + id;
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(type) + "/" + id;
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpGet httpGet = new HttpGet(uri);
@@ -88,9 +88,15 @@ public class RestfulXmlSession extends RestfulSession {
 				entity.writeTo(out);
 				out.close();
 				String xmlResponse = out.toString();
+				T ret = null;
 				if (mXmlDeserializers.containsKey(type))
-					return (T) mXmlDeserializers.get(type).deserializeObject(xmlResponse);
+					ret = (T) mXmlDeserializers.get(type).deserializeObject(xmlResponse);
 				// TODO try to deserialize it ourselves
+				if (ret != null) {
+				    int objHash = mPersistencePolicy.computeModelHash(ret);
+				    cache(objHash, ret);
+				}
+				return ret;
 			}
 		} catch (ClientProtocolException e) {
 			mLogger.error("Unable to send GET request", e);

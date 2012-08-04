@@ -36,7 +36,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.rest.Deserializer;
 import com.clarionmedia.infinitum.rest.JsonDeserializer;
@@ -68,12 +67,11 @@ public class RestfulJsonSession extends RestfulSession {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T load(Class<T> type, Serializable id)
+	public <T> T loadEntity(Class<T> type, Serializable id)
 			throws InfinitumRuntimeException, IllegalArgumentException {
-		Preconditions.checkPersistenceForLoading(type, mPolicy);
 		mLogger.debug("Sending GET request to retrieve entity");
 		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
-		String uri = mHost + mPolicy.getRestEndpoint(type) + "/" + id;
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(type) + "/" + id;
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpGet httpGet = new HttpGet(uri);
@@ -92,12 +90,16 @@ public class RestfulJsonSession extends RestfulSession {
 				entity.writeTo(out);
 				out.close();
 				String jsonResponse = out.toString();
+				T ret;
 				// Attempt to use a registered deserializer
 				if (mJsonDeserializers.containsKey(type))
-					return (T) mJsonDeserializers.get(type).deserializeObject(
-							jsonResponse);
+					ret = (T) mJsonDeserializers.get(type).deserializeObject(jsonResponse);
 				// Otherwise fallback to Gson
-				return new Gson().fromJson(jsonResponse, type);
+				else
+				    ret = new Gson().fromJson(jsonResponse, type);
+				int objHash = mPersistencePolicy.computeModelHash(ret);
+				cache(objHash, ret);
+				return ret;
 			}
 		} catch (ClientProtocolException e) {
 			mLogger.error("Unable to send GET request", e);

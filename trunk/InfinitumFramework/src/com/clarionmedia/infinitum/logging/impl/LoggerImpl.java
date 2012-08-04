@@ -31,6 +31,7 @@ import com.clarionmedia.infinitum.logging.Logger;
  * 
  * @author Tyler Treat
  * @version 1.0 04/10/12
+ * @since 1.0
  */
 public class LoggerImpl extends Logger {
 

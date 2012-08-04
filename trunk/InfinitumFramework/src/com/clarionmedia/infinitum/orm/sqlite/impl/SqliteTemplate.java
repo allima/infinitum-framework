@@ -236,17 +236,24 @@ public class SqliteTemplate implements SqliteOperations {
 		Preconditions.checkForTransaction(mIsAutocommit, isTransactionOpen());
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		Map<Integer, Object> objectMap = new HashMap<Integer, Object>();
-		return saveOrUpdateRec(model, objectMap);
+		long result = saveOrUpdateRec(model, objectMap);
+		if (result == 0)
+			mLogger.debug(model.getClass().getSimpleName() + " model updated");
+		else if (result > 0)
+			mLogger.debug(model.getClass().getSimpleName() + " model saved");
+		else
+			mLogger.debug(model.getClass().getSimpleName() + " model was not saved or updated");
+		return result;
 	}
 
 	@Override
-	public <T> T load(Class<T> c, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
-		Preconditions.checkPersistenceForLoading(c, mPersistencePolicy);
-		if (!mTypePolicy.isValidPrimaryKey(mPersistencePolicy.getPrimaryKeyField(c), id))
+	public <T> T load(Class<T> clazz, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+		Preconditions.checkPersistenceForLoading(clazz, mPersistencePolicy);
+		if (!mTypePolicy.isValidPrimaryKey(mPersistencePolicy.getPrimaryKeyField(clazz), id))
 			throw new IllegalArgumentException(String.format(mPropLoader.getErrorMessage("INVALID_PK"), id.getClass()
-					.getSimpleName(), c.getName()));
-		Cursor cursor = mSqliteDb.query(mPersistencePolicy.getModelTableName(c), null,
-				mSqliteUtil.getWhereClause(c, id, mMapper), null, null, null, null, "1");
+					.getSimpleName(), clazz.getName()));
+		Cursor cursor = mSqliteDb.query(mPersistencePolicy.getModelTableName(clazz), null,
+				mSqliteUtil.getWhereClause(clazz, id, mMapper), null, null, null, null, "1");
 		if (cursor.getCount() == 0) {
 			cursor.close();
 			return null;
@@ -255,13 +262,13 @@ public class SqliteTemplate implements SqliteOperations {
 		SqliteResult result = new SqliteResult(cursor);
 		T ret = null;
 		try {
-			ret = mModelFactory.createFromResult(result, c);
+			ret = mModelFactory.createFromResult(result, clazz);
 		} catch (InfinitumRuntimeException e) {
 			throw e;
 		} finally {
 			result.close();
 		}
-		mLogger.debug(c.getSimpleName() + " model loaded");
+		mLogger.debug(clazz.getSimpleName() + " model loaded");
 		return ret;
 	}
 

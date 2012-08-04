@@ -302,6 +302,24 @@ public class SqliteSession implements Session {
 		// TODO SqliteSession does not currently utilize Deserializers
 		return this;
 	}
+	
+	@Override
+	public boolean cache(int hash, Object model) {
+		if (mSessionCache.size() >= mCacheSize)
+			return false;
+		mSessionCache.put(hash, model);
+		return true;
+	}
+
+	@Override
+	public boolean checkCache(int hash) {
+		return mSessionCache.containsKey(hash);
+	}
+
+	@Override
+	public Object searchCache(int hash) {
+		return mSessionCache.get(hash);
+	}
 
 	/**
 	 * Executes the given SQL query on the database for a result.
@@ -342,46 +360,6 @@ public class SqliteSession implements Session {
 			if (result != null)
 				result.close();
 		}
-	}
-
-	/**
-	 * Caches the given model identified by the given hash code.
-	 * 
-	 * @param hash
-	 *            the hash code which maps to the model
-	 * @param model
-	 *            the {@link Object} to cache
-	 * @return {@code true} if the model was cached, {@code false} if not
-	 */
-	public boolean cache(int hash, Object model) {
-		if (mSessionCache.size() >= mCacheSize)
-			return false;
-		mSessionCache.put(hash, model);
-		return true;
-	}
-
-	/**
-	 * Indicates if the session cache contains the given hash code.
-	 * 
-	 * @param hash
-	 *            the hash code to check for
-	 * @return {@code true} if the cache contains the hash code, {@code false}
-	 *         if not
-	 */
-	public boolean checkCache(int hash) {
-		return mSessionCache.containsKey(hash);
-	}
-
-	/**
-	 * Returns the model with the given hash code from the session cache.
-	 * 
-	 * @param hash
-	 *            the hash code of the model to retrieve
-	 * @return the model {@link Object} identified by the given hash code or
-	 *         {@code null} if no such entity exists in the cache
-	 */
-	public Object searchCache(int hash) {
-		return mSessionCache.get(hash);
 	}
 
 	/**
