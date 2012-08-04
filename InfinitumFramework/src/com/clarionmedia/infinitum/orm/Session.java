@@ -173,6 +173,37 @@ public interface Session {
 	 * @return the maximum number of {@code Objects} the cache can store
 	 */
 	int getCacheSize();
+	
+	/**
+	 * Caches the given model identified by the given hash code.
+	 * 
+	 * @param hash
+	 *            the hash code which maps to the model
+	 * @param model
+	 *            the {@link Object} to cache
+	 * @return {@code true} if the model was cached, {@code false} if not
+	 */
+	boolean cache(int hash, Object model);
+	
+	/**
+	 * Indicates if the session cache contains the given hash code.
+	 * 
+	 * @param hash
+	 *            the hash code to check for
+	 * @return {@code true} if the cache contains the hash code, {@code false}
+	 *         if not
+	 */
+	boolean checkCache(int hash);
+	
+	/**
+	 * Returns the model with the given hash code from the session cache.
+	 * 
+	 * @param hash
+	 *            the hash code of the model to retrieve
+	 * @return the model {@link Object} identified by the given hash code or
+	 *         {@code null} if no such entity exists in the cache
+	 */
+	Object searchCache(int hash);
 
 	/**
 	 * Persists the given {@link Object} to the database. This method is

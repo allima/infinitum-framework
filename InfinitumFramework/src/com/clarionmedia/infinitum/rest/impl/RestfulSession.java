@@ -82,26 +82,46 @@ public abstract class RestfulSession implements Session {
 	protected AuthenticationStrategy mAuthStrategy;
 	protected Logger mLogger;
 	protected RestfulMapper mMapper;
-	protected PersistencePolicy mPolicy;
+	protected PersistencePolicy mPersistencePolicy;
 	protected Map<Integer, Object> mSessionCache;
 	protected int mCacheSize;
 	protected InfinitumContext mInfinitumContext;
 	
+	/**
+	 * Returns an instance of the given persistent model {@link Class} as
+	 * identified by the specified primary key or {@code null} if no such entity
+	 * exists.
+	 * 
+	 * @param c
+	 *            the {@code Class} of the persistent instance to load
+	 * @param id
+	 *            the primary key value of the persistent instance to load
+	 * @return the persistent instance
+	 */
+	protected abstract <T> T loadEntity(Class<T> type, Serializable id);
+	
+	@SuppressWarnings("unchecked")
 	@Override
-	public abstract <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException,
-			IllegalArgumentException;
+	public <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
+		Preconditions.checkPersistenceForLoading(type, mPersistencePolicy);
+		// TODO Validate primary key
+		int objHash = mPersistencePolicy.computeModelHash(type, id);
+		if (checkCache(objHash))
+			return (T) searchCache(objHash);
+		return loadEntity(type, id);
+	}
 	
 	@Override
 	public Session open() throws SQLException {
-		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
 		mInfinitumContext = ContextFactory.newInstance().getContext();
+		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
 		mHost = mInfinitumContext.getRestfulConfiguration().getRestHost();
 		if (!mHost.endsWith("/"))
 			mHost += '/';
 		mIsAuthenticated = mInfinitumContext.getRestfulConfiguration().isRestAuthenticated();
 		mAuthStrategy = mInfinitumContext.getRestfulConfiguration().getAuthStrategy();
 		mMapper = new RestfulMapper(mInfinitumContext);
-		mPolicy = ContextFactory.newInstance().getPersistencePolicy();
+		mPersistencePolicy = ContextFactory.newInstance().getPersistencePolicy();
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = DEFAULT_CACHE_SIZE;
 		mIsOpen = true;
@@ -168,13 +188,31 @@ public abstract class RestfulSession implements Session {
 	public int getCacheSize() {
 		return mCacheSize;
 	}
+	
+	@Override
+	public boolean cache(int hash, Object model) {
+		if (mSessionCache.size() >= mCacheSize)
+			return false;
+		mSessionCache.put(hash, model);
+		return true;
+	}
+
+	@Override
+	public boolean checkCache(int hash) {
+		return mSessionCache.containsKey(hash);
+	}
+
+	@Override
+	public Object searchCache(int hash) {
+		return mSessionCache.get(hash);
+	}
 
 	@Override
 	public long save(Object model) {
-		Preconditions.checkPersistenceForModify(model, mPolicy);
+		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending POST request to save entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPost httpPost = new HttpPost(uri);
@@ -207,11 +245,11 @@ public abstract class RestfulSession implements Session {
 
 	@Override
 	public boolean delete(Object model) {
-		Preconditions.checkPersistenceForModify(model, mPolicy);
+		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending DELETE request to delete entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		Serializable pk = mPolicy.getPrimaryKey(model);
-		String uri = mHost + mPolicy.getRestEndpoint(model.getClass()) + "/" + pk.toString();
+		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass()) + "/" + pk.toString();
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpDelete httpDelete = new HttpDelete(uri);
@@ -233,10 +271,10 @@ public abstract class RestfulSession implements Session {
 	
 	@Override
 	public boolean update(Object model) throws InfinitumRuntimeException {
-		Preconditions.checkPersistenceForModify(model, mPolicy);
+		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending PUT request to update entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPut httpPut = new HttpPut(uri);
@@ -277,10 +315,10 @@ public abstract class RestfulSession implements Session {
 	 */
 	@Override
 	public long saveOrUpdate(Object model) {
-		Preconditions.checkPersistenceForModify(model, mPolicy);
+		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending PUT request to save or update entity");
 		HttpClient httpClient = new DefaultHttpClient();
-		String uri = mHost + mPolicy.getRestEndpoint(model.getClass());
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		HttpPut httpPut = new HttpPut(uri);
