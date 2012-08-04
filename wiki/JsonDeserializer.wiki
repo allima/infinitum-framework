@@ -38,7 +38,7 @@ public class FooDeserializer extends JsonDeserializer<Foo> {
         Gson gson = new Gson();
         // {"foo":{"id":"328","val":"42"}} => {"id":"328","val":"42"}
         json = json.substring(json.indexOf('{') + 1, json.lastIndexOf('}') + 1);
-        json = json.substring(json.indexOf('{') + 1, json.lastIndexOf('}') + 1);
+        json = json.substring(json.indexOf('{'), json.lastIndexOf('}'));
         return gson.fromJson(json, Foo.class);
     }
 
