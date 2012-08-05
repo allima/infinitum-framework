@@ -24,23 +24,15 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import com.clarionmedia.infinitum.context.InfinitumContext;
-import com.clarionmedia.infinitum.di.BeanFactory;
 
 /**
  * <p>
- * Specialization of the {@link Component} annotation indicating that the
- * annotated {@link Class} is a dependency-injection bean, meaning it is a
- * candidate for auto-detection by the framework if classpath scanning is
- * enabled.
+ * Indicates the scope, or lifecycle, of the annotated bean, such as
+ * {@code prototype} or {@code singleton}. This annotation is used in
+ * conjunction with {@link Bean} or {@link Component}.
  * </p>
  * <p>
- * {@code Beans} that are picked up during auto-detection are registered with
- * the {@link InfinitumContext} and stored in its {@link BeanFactory}. If a bean
- * name is not suggested, the bean will be registered using the camelcase
- * version of its {@code Class} name. For example, an annotated {@code Class}
- * {@code FooBar} will use the bean name {@code fooBar} unless otherwise
- * specified.
+ * If a scope is not provided, {@code singleton} is used by default.
  * </p>
  * 
  * @author Tyler Treat
@@ -50,13 +42,13 @@ import com.clarionmedia.infinitum.di.BeanFactory;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Bean {
-	
+public @interface Scope {
+
 	/**
-	 * Declares the {@code Bean} name to be used.
+	 * Declares the {@link Bean} scope.
 	 * 
-	 * @return the suggested {@code Bean} name
+	 * @return the desired {@code Bean} scope
 	 */
-	String value() default "";
+	String value() default "singleton";
 
 }

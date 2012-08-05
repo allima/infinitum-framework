@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import android.content.Context;
 
 import com.clarionmedia.infinitum.aop.AspectComponent;
@@ -33,12 +34,15 @@ import com.clarionmedia.infinitum.aop.impl.AnnotationsAspectWeaver;
 import com.clarionmedia.infinitum.aop.impl.XmlAspectWeaver;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
 import com.clarionmedia.infinitum.di.BeanComponent;
+import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanFactoryPostProcessor;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
 import com.clarionmedia.infinitum.di.annotation.Bean;
 import com.clarionmedia.infinitum.di.annotation.Component;
+import com.clarionmedia.infinitum.di.annotation.Scope;
 import com.clarionmedia.infinitum.di.impl.ConfigurableBeanFactory;
+import com.clarionmedia.infinitum.di.impl.GenericBeanDefinitionBuilder;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.Session;
@@ -143,7 +147,12 @@ public abstract class AbstractContext implements InfinitumContext {
 			Aspect aspect = aspectClass.getAnnotation(Aspect.class);
 			String beanName = aspect.value().trim().equals("") ? StringUtil.toCamelCase(aspectClass.getSimpleName())
 					: aspect.value().trim();
-			mBeanFactory.registerAspect(beanName, aspectClass.getName(), null);
+			Scope scope = aspectClass.getAnnotation(Scope.class);
+			String scopeVal = "singleton";
+			if (scope != null)
+				scopeVal = scope.value();
+			AbstractBeanDefinition beanDefinition = new GenericBeanDefinitionBuilder(mBeanFactory).setName(beanName).setType(aspectClass).setProperties(null).setScope(scopeVal).build();
+			mBeanFactory.registerAspect(beanDefinition);
 		}
 
 		// Register scanned bean candidates
@@ -152,7 +161,12 @@ public abstract class AbstractContext implements InfinitumContext {
 				Bean bean = candidate.getAnnotation(Bean.class);
 				String beanName = bean.value().trim().equals("") ? StringUtil.toCamelCase(candidate.getSimpleName())
 						: bean.value().trim();
-				mBeanFactory.registerBean(beanName, candidate.getName(), null);
+				Scope scope = candidate.getAnnotation(Scope.class);
+				String scopeVal = "singleton";
+				if (scope != null)
+					scopeVal = scope.value();
+				AbstractBeanDefinition beanDefinition = new GenericBeanDefinitionBuilder(mBeanFactory).setName(beanName).setType(candidate).setProperties(null).setScope(scopeVal).build();
+				mBeanFactory.registerBean(beanDefinition);
 			}
 		}
 
@@ -302,8 +316,8 @@ public abstract class AbstractContext implements InfinitumContext {
 		for (Class<BeanPostProcessor> postProcessor : postProcessors) {
 			try {
 				BeanPostProcessor postProcessorInstance = postProcessor.newInstance();
-				for (Entry<String, Object> bean : mBeanFactory.getBeanMap().entrySet()) {
-					postProcessorInstance.postProcessBean(this, bean.getKey(), bean.getValue());
+				for (Entry<String, AbstractBeanDefinition> bean : mBeanFactory.getBeanMap().entrySet()) {
+					postProcessorInstance.postProcessBean(this, bean.getValue());
 				}
 			} catch (InstantiationException e) {
 				throw new InfinitumRuntimeException("BeanPostProcessor '" + postProcessor.getName()

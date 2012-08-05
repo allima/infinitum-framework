@@ -22,8 +22,10 @@ package com.clarionmedia.infinitum.di;
 import java.util.List;
 import java.util.Map;
 
+import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.annotation.Bean;
 
 /**
  * <p>
@@ -102,43 +104,29 @@ public interface BeanFactory {
 	void registerBeans(List<BeanComponent> beans);
 
 	/**
-	 * Registers the bean with the given name and class name with the
-	 * {@code BeanFactory}.
+	 * Registers the bean with the {@code BeanFactory}.
 	 * 
-	 * @param name
-	 *            the name of the bean
-	 * @param beanClass
-	 *            the class name of the bean
-	 * @param args
-	 *            a {@link Map} of {@link Field} names and their values
-	 */
-	void registerBean(String name, String beanClass, Map<String, Object> args);
-	
-	/**
-	 * Registers the {@link Aspect} bean with the given name and class name with the
-	 * {@code BeanFactory}.
+	 * @param beanDefinition
+	 *            the {@link AbstractBeanDefinition} to register
 	 * 
-	 * @param name
-	 *            the name of the aspect bean
-	 * @param beanClass
-	 *            the class name of the bean
-	 * @param args
-	 *            a {@link Map} of {@link Field} names and their values
 	 */
-	void registerAspect(String name, String beanClass, Map<String, Object> args);
+	void registerBean(AbstractBeanDefinition beanDefinition);
 
 	/**
-	 * Retrieves the bean definitions for this {@code BeanFactory}.
+	 * Registers the aspect with the {@code BeanFactory}.
 	 * 
-	 * @return {@code Map} of bean names and their corresponding type
+	 * @param beanDefinition
+	 *            the {@link AbstractBeanDefinition} to register
+	 * 
 	 */
-	Map<String, Class<?>> getBeanDefinitions();
+	void registerAspect(AbstractBeanDefinition beanDefinition);
 
 	/**
 	 * Retrieves the bean {@link Map} for this {@code BeanFactory}.
 	 * 
-	 * @return {@code Map} of bean names and their corresponding instances
+	 * @return {@code Map} of bean names and their corresponding
+	 *         {@link BeanDefinition} instances
 	 */
-	Map<String, Object> getBeanMap();
+	Map<String, AbstractBeanDefinition> getBeanMap();
 
 }

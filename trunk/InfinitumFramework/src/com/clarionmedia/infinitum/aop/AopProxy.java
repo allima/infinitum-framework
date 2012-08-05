@@ -98,15 +98,6 @@ public abstract class AopProxy implements InvocationHandler {
 	}
 
 	/**
-	 * Returns the proxied {@link Object}.
-	 * 
-	 * @return target {@code Object}
-	 */
-	public Object getTarget() {
-		return mTarget;
-	}
-
-	/**
 	 * Indicates if the given {@link Object} is a proxy or not
 	 * 
 	 * @param object
@@ -138,6 +129,32 @@ public abstract class AopProxy implements InvocationHandler {
 	 * @return {@code ProxyType}
 	 */
 	public abstract ProxyType getProxyType();
+
+	/**
+	 * Creates a copy of the {@code AopProxy}.
+	 * 
+	 * @return copied {@code AopProxy}
+	 */
+	public abstract AopProxy clone();
+
+	/**
+	 * Returns the proxied {@link Object}.
+	 * 
+	 * @return target {@code Object}
+	 */
+	public Object getTarget() {
+		return mTarget;
+	}
+
+	/**
+	 * Sets the proxied {@link Object}.
+	 * 
+	 * @param target
+	 *            {@code Object}
+	 */
+	public void setTarget(Object target) {
+		mTarget = target;
+	}
 
 	/**
 	 * Indicates if the given {@link JoinPoint} applies to the given

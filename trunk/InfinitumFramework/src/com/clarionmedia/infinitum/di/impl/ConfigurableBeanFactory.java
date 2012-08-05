@@ -19,29 +19,18 @@
 
 package com.clarionmedia.infinitum.di.impl;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.clarionmedia.infinitum.aop.AspectComponent;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
 import com.clarionmedia.infinitum.di.BeanComponent;
 import com.clarionmedia.infinitum.di.BeanFactory;
-import com.clarionmedia.infinitum.di.BeanUtils;
-import com.clarionmedia.infinitum.di.annotation.Autowired;
-import com.clarionmedia.infinitum.di.annotation.PostConstruct;
-import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.internal.Pair;
-import com.clarionmedia.infinitum.internal.Preconditions;
-import com.clarionmedia.infinitum.internal.Primitives;
-import com.clarionmedia.infinitum.reflection.ClassReflector;
-import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
+import com.clarionmedia.infinitum.reflection.PackageReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
 
 /**
  * <p>
@@ -56,10 +45,9 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  */
 public class ConfigurableBeanFactory implements BeanFactory {
 
-	private ClassReflector mClassReflector;
-	private Map<String, Pair<Class<?>, Map<String, Object>>> mBeanDefinitions;
-	private Map<String, Object> mBeanMap;
-	private Map<String, Object> mAspectMap;
+	private PackageReflector mPackageReflector;
+	private Map<String, AbstractBeanDefinition> mBeanMap;
+	private Map<String, AbstractBeanDefinition> mAspectMap;
 
 	/**
 	 * Constructs a new {@code ConfigurableBeanFactory}.
@@ -68,10 +56,9 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	 *            the parent {@link InfinitumContext}
 	 */
 	public ConfigurableBeanFactory(InfinitumContext context) {
-		mClassReflector = new DefaultClassReflector();
-		mBeanDefinitions = new HashMap<String, Pair<Class<?>, Map<String, Object>>>();
-		mBeanMap = new HashMap<String, Object>();
-		mAspectMap = new HashMap<String, Object>();
+		mPackageReflector = new DefaultPackageReflector();
+		mBeanMap = new HashMap<String, AbstractBeanDefinition>();
+		mAspectMap = new HashMap<String, AbstractBeanDefinition>();
 	}
 
 	@Override
@@ -79,7 +66,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		if (!mBeanMap.containsKey(name))
 			throw new InfinitumConfigurationException("Bean '" + name
 					+ "' could not be resolved");
-		return mBeanMap.get(name);
+		return mBeanMap.get(name).getBeanInstance();
 	}
 
 	@Override
@@ -88,7 +75,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 		if (!mAspectMap.containsKey(name))
 			throw new InfinitumConfigurationException("Aspect '" + name
 					+ "' could not be resolved");
-		return mAspectMap.get(name);
+		return mAspectMap.get(name).getBeanInstance();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -104,7 +91,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 
 	@Override
 	public boolean beanExists(String name) {
-		return mBeanDefinitions.containsKey(name);
+		return mBeanMap.containsKey(name);
 	}
 
 	@Override
@@ -123,189 +110,30 @@ public class ConfigurableBeanFactory implements BeanFactory {
 					propertiesMap.put(name, value);
 				}
 			}
+			Class<?> clazz = mPackageReflector.getClass(bean.getClassName());
+			AbstractBeanDefinition beanDefinition = new GenericBeanDefinitionBuilder(this).setName(bean.getId()).setType(clazz).setProperties(propertiesMap).setScope(bean.getScope()).build();
 			// Aspects are registered both as beans and aspects
 			if (bean.getClass().equals(AspectComponent.class))
-				registerAspect(bean.getId(), bean.getClassName(), propertiesMap);
-			registerBean(bean.getId(), bean.getClassName(), propertiesMap);
+				registerAspect(beanDefinition);
+			else
+			    registerBean(beanDefinition);
 		}
 	}
 
 	@Override
-	public void registerBean(String name, String beanClass,
-			Map<String, Object> args) {
-		// args: Map<fieldName, fieldValue>
-		Class<?> clazz;
-		try {
-			clazz = Class.forName(beanClass);
-		} catch (ClassNotFoundException e) {
-			throw new InfinitumConfigurationException("Bean '" + name
-					+ "' could not be resolved ('" + beanClass + "' not found)");
-		}
-		Pair<Class<?>, Map<String, Object>> pair = new Pair<Class<?>, Map<String, Object>>(
-				clazz, args);
-		// pair: Pair<bean, beanArgsMap>
-		mBeanDefinitions.put(name, pair);
-		// First we construct an instance of the bean
-		Object bean = instantiateBean(name, clazz);
-		// Then we populate its fields
-		setFields(bean, args);
-		mBeanMap.put(name, bean);
+	public void registerBean(AbstractBeanDefinition beanDefinition) {
+		mBeanMap.put(beanDefinition.getName(), beanDefinition);
 	}
 
 	@Override
-	public void registerAspect(String name, String beanClass,
-			Map<String, Object> args) {
-		// args: Map<fieldName, fieldValue>
-		Class<?> clazz;
-		try {
-			clazz = Class.forName(beanClass);
-		} catch (ClassNotFoundException e) {
-			throw new InfinitumConfigurationException("Bean '" + name
-					+ "' could not be resolved ('" + beanClass + "' not found)");
-		}
-		Pair<Class<?>, Map<String, Object>> pair = new Pair<Class<?>, Map<String, Object>>(
-				clazz, args);
-		// pair: Pair<bean, beanArgsMap>
-		mBeanDefinitions.put(name, pair);
-		// First we construct an instance of the bean
-		Object bean = instantiateBean(name, clazz);
-		// Then we populate its fields
-		setFields(bean, args);
-		mAspectMap.put(name, bean);
-		mBeanMap.put(name, bean);
+	public void registerAspect(AbstractBeanDefinition beanDefinition) {
+		mAspectMap.put(beanDefinition.getName(), beanDefinition);
+		mBeanMap.put(beanDefinition.getName(), beanDefinition);
 	}
 
 	@Override
-	public Map<String, Class<?>> getBeanDefinitions() {
-		Map<String, Class<?>> beanDefinitions = new HashMap<String, Class<?>>();
-		for (Entry<String, Pair<Class<?>, Map<String, Object>>> entry : mBeanDefinitions
-				.entrySet()) {
-			beanDefinitions.put(entry.getKey(), entry.getValue().getFirst());
-		}
-		return beanDefinitions;
-	}
-
-	@Override
-	public Map<String, Object> getBeanMap() {
+	public Map<String, AbstractBeanDefinition> getBeanMap() {
 		return mBeanMap;
-	}
-
-	private Object instantiateBean(String name, Class<?> clazz) {
-		Object bean;
-		Constructor<?> target = null;
-		for (Constructor<?> ctor : mClassReflector.getAllConstructors(clazz)) {
-			if (ctor.isAnnotationPresent(Autowired.class)) {
-				if (target != null)
-					throw new InfinitumConfigurationException(
-							"Only 1 constructor may be autowired (found more than 1 in class '"
-									+ clazz.getName() + "').");
-				target = ctor;
-			}
-		}
-		if (target == null) {
-			try {
-				bean = clazz.newInstance();
-			} catch (IllegalAccessException e) {
-				throw new InfinitumConfigurationException("Bean '" + name
-						+ "' could not be constructed");
-			} catch (InstantiationException e) {
-				throw new InfinitumConfigurationException("Bean '" + name
-						+ "' could not be constructed");
-			}
-		} else {
-			if (target.getParameterTypes().length > 1)
-				throw new InfinitumConfigurationException(
-						"Autowired constructor in bean '" + name
-								+ "' may only have 1 argument.");
-			try {
-				target.setAccessible(true);
-				if (target.getParameterTypes().length == 1) {
-					Class<?> paramType = target.getParameterTypes()[0];
-					Object argument = BeanUtils.findCandidateBean(this,
-							paramType);
-					if (argument == null)
-						throw new InfinitumConfigurationException(
-								"Could not autowire property of type '"
-										+ clazz.getName() + "' in bean '"
-										+ name
-										+ "' (no autowire candidates found)");
-					bean = target.newInstance(argument);
-				} else {
-					bean = target.newInstance();
-				}
-			} catch (IllegalArgumentException e) {
-				throw new InfinitumConfigurationException(
-						"Unable to instantiate bean '" + name + "'.");
-			} catch (InstantiationException e) {
-				throw new InfinitumConfigurationException(
-						"Unable to instantiate bean '" + name + "'.");
-			} catch (IllegalAccessException e) {
-				throw new InfinitumConfigurationException(
-						"Unable to instantiate bean '" + name + "'.");
-			} catch (InvocationTargetException e) {
-				throw new InfinitumConfigurationException(
-						"Unable to instantiate bean '" + name + "'.");
-			}
-		}
-		// Invoke PostConstruct method
-		List<Method> postConstructs = mClassReflector
-				.getAllMethodsAnnotatedWith(clazz, PostConstruct.class);
-		if (postConstructs.size() > 1)
-			throw new InfinitumRuntimeException(
-					"Only 1 method may be annotated with PostConstruct (found "
-							+ postConstructs.size() + " in '" + clazz.getName()
-							+ "')");
-		if (postConstructs.size() == 1)
-			mClassReflector.invokeMethod(bean, postConstructs.get(0));
-		return bean;
-	}
-
-	private void setFields(Object bean, Map<String, Object> params) {
-		Preconditions.checkNotNull(bean);
-		if (params == null || params.size() == 0)
-			return;
-		for (Entry<String, Object> e : params.entrySet()) {
-			try {
-				// Find the field
-				Field f = mClassReflector.getField(bean.getClass(), e.getKey());
-				if (f == null)
-					continue;
-				f.setAccessible(true);
-				Class<?> type = Primitives.unwrap(f.getType());
-				Object val = e.getValue();
-				String argStr = null;
-				if (val.getClass() == String.class)
-					argStr = (String) val;
-				Object arg = null;
-				// Parse the string value into the proper type
-				if (type == int.class)
-					arg = Integer.parseInt(argStr);
-				else if (type == double.class)
-					arg = Double.parseDouble(argStr);
-				else if (type == float.class)
-					arg = Float.parseFloat(argStr);
-				else if (type == long.class)
-					arg = Long.parseLong(argStr);
-				else if (type == char.class)
-					arg = argStr.charAt(0);
-				else
-					arg = val;
-				// Populate the field's value
-				f.set(bean, arg);
-			} catch (SecurityException e1) {
-				throw new InfinitumRuntimeException(
-						"Could not set field in object of type '"
-								+ bean.getClass().getName() + "'");
-			} catch (IllegalArgumentException e1) {
-				throw new InfinitumRuntimeException(
-						"Could not set field in object of type '"
-								+ bean.getClass().getName() + "'");
-			} catch (IllegalAccessException e1) {
-				throw new InfinitumRuntimeException(
-						"Could not set field in object of type '"
-								+ bean.getClass().getName() + "'");
-			}
-		}
 	}
 
 }
