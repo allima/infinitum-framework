@@ -45,6 +45,7 @@ public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 	private List<JoinPoint> mBeforeAdvice;
 	private List<JoinPoint> mAfterAdvice;
 	private ProceedingJoinPoint mAroundAdvice;
+	private Pointcut mPointcut;
 
 	/**
 	 * Creates a new {@code AdvisedJdkDynamicProxy}.
@@ -60,6 +61,7 @@ public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 			Class<?>[] interfaces) {
 		super(target, interfaces);
 		Preconditions.checkNotNull(pointcut);
+		mPointcut = pointcut;
 		mBeforeAdvice = new ArrayList<JoinPoint>();
 		mAfterAdvice = new ArrayList<JoinPoint>();
 		ProceedingJoinPoint next = null;
@@ -109,6 +111,11 @@ public final class AdvisedJdkDynamicProxy extends JdkDynamicProxy {
 			}
 		}
 		return ret;
+	}
+	
+	@Override
+	public AdvisedJdkDynamicProxy clone() {
+		return new AdvisedJdkDynamicProxy(mTarget, mPointcut, mInterfaces);
 	}
 
 }

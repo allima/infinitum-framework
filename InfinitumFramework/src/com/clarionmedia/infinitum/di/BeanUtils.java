@@ -52,18 +52,18 @@ public class BeanUtils {
 	 *             if more than one autowire candidate is found
 	 */
 	public static Object findCandidateBean(BeanFactory beanFactory, Class<?> clazz) {
-		Class<?> candidate = null;
-		Map<Class<?>, String> invertedBeanMap = invert(beanFactory.getBeanDefinitions());
-		for (Class<?> type : invertedBeanMap.keySet()) {
-			if (clazz.isAssignableFrom(type)) {
+		AbstractBeanDefinition candidate = null;
+		Map<AbstractBeanDefinition, String> invertedBeanMap = invert(beanFactory.getBeanMap());
+		for (AbstractBeanDefinition beanDef : invertedBeanMap.keySet()) {
+			if (clazz.isAssignableFrom(beanDef.getType())) {
 				// TODO: check if there is more than 1 candidate?
-				candidate = type;
+				candidate = beanDef;
 				break;
 			}
 		}
 		if (candidate == null)
 			return null;
-		return beanFactory.loadBean(invertedBeanMap.get(candidate));
+		return beanFactory.loadBean(candidate.getName());
 	}
 
 	private static <V, K> Map<V, K> invert(Map<K, V> map) {

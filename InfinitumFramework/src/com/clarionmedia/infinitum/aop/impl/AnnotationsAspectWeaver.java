@@ -40,6 +40,7 @@ import com.clarionmedia.infinitum.aop.annotation.Around;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.annotation.Before;
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.CollectionUtil;
@@ -85,7 +86,7 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			String beanName = pointcut.getBeanName();
 			Object bean = mBeanFactory.loadBean(beanName);
 			AopProxy proxy = mProxyFactory.createProxy(context, bean, pointcut);
-			mBeanFactory.getBeanMap().put(beanName, proxy.getProxy());
+			mBeanFactory.getBeanMap().get(beanName).setBeanProxy(proxy);
 		}
 	}
 
@@ -160,17 +161,16 @@ public class AnnotationsAspectWeaver implements AspectWeaver {
 			pkg = pkg.toLowerCase().trim();
 			if (pkg.length() == 0)
 				continue;
-			Map<Object, String> invertedMap = CollectionUtil
-					.invert(mBeanFactory.getBeanMap());
-			for (Object bean : invertedMap.keySet()) {
-				if (!bean.getClass().getName().startsWith(pkg))
+			Map<AbstractBeanDefinition, String> invertedMap = CollectionUtil.invert(mBeanFactory.getBeanMap());
+			for (AbstractBeanDefinition bean : invertedMap.keySet()) {
+				if (!bean.getType().getName().startsWith(pkg))
 					continue;
 				JoinPoint joinPoint = advice.isAround()
 						? new BasicProceedingJoinPoint(advisor, adviceMethod)
 						: new BasicJoinPoint(advisor, adviceMethod,
 								advice.getLocation());
-				joinPoint.setBeanName(invertedMap.get(bean));
-				joinPoint.setTarget(bean);
+				joinPoint.setBeanName(bean.getName());
+				joinPoint.setTarget(bean.getNonProxiedBeanInstance());
 				joinPoint.setOrder(advice.order());
 				joinPoint.setClassScope(true);
 				putJoinPoint(pointcutMap, joinPoint);

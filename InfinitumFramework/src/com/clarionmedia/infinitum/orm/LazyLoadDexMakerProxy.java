@@ -93,6 +93,11 @@ public abstract class LazyLoadDexMakerProxy extends DexMakerProxy {
 		}
 		return mTarget;
 	}
+	
+	@Override
+	public LazyLoadDexMakerProxy clone() {
+		throw new UnsupportedOperationException("Clone is not supported for LazyLoadDexMakerProxy!");
+	}
 
 	/**
 	 * Loads the proxied {@link Object}.

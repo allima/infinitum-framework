@@ -20,18 +20,16 @@
 package com.clarionmedia.infinitum.internal;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
 import com.clarionmedia.infinitum.di.BeanUtils;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.di.annotation.Component;
-import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
@@ -51,56 +49,41 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 	private ClassReflector mClassReflector;
 
 	@Override
-	public void postProcessBean(InfinitumContext context, String beanName, Object bean) {
+	public void postProcessBean(InfinitumContext context, AbstractBeanDefinition beanDefinition) {
 		mClassReflector = new DefaultClassReflector();
-		Object target;
-		AopProxy proxy = AopProxy.getProxy(bean);
-		if (proxy != null)
-			target = proxy.getTarget();
-		else
-			target = bean;
-		injectFields(context.getBeanFactory(), target);
-		injectSetters(context.getBeanFactory(), target);
+		registerFieldInjections(context.getBeanFactory(), beanDefinition);
+		registerSetterInjections(context.getBeanFactory(), beanDefinition);
 	}
 
-	private void injectFields(BeanFactory beanFactory, Object bean) {
-		for (Field field : mClassReflector.getAllFields(bean.getClass())) {
+	private void registerFieldInjections(BeanFactory beanFactory, AbstractBeanDefinition bean) {
+		for (Field field : mClassReflector.getAllFields(bean.getType())) {
 			if (!field.isAnnotationPresent(Autowired.class))
 				continue;
 			Autowired autowired = field.getAnnotation(Autowired.class);
-			injectBeanCandidate(beanFactory, bean, field, autowired.value());
+			registerFieldInjection(beanFactory, bean, field, autowired.value());
 		}
 	}
 
-	private void injectSetters(BeanFactory beanFactory, Object bean) {
-		for (Method method : mClassReflector.getAllMethods(bean.getClass())) {
+	private void registerSetterInjections(BeanFactory beanFactory, AbstractBeanDefinition bean) {
+		for (Method method : mClassReflector.getAllMethods(bean.getType())) {
 			if (!method.isAnnotationPresent(Autowired.class))
 				continue;
 			Autowired autowired = method.getAnnotation(Autowired.class);
-			injectBeanCandidate(beanFactory, bean, method, autowired.value());
+			registerSetterInjection(beanFactory, bean, method, autowired.value());
 		}
 	}
 
-	private void injectBeanCandidate(BeanFactory beanFactory, Object bean, Field field, String candidate) {
+	private void registerFieldInjection(BeanFactory beanFactory, AbstractBeanDefinition bean, Field field, String candidate) {
 		Object value;
-		field.setAccessible(true);
 		if (candidate != null && candidate.trim().length() > 0) {
 			value = beanFactory.loadBean(candidate);
 		} else {
 			value = BeanUtils.findCandidateBean(beanFactory, field.getType());
 		}
-		try {
-			field.set(bean, value);
-		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException("Could not set field in object of type '" + bean.getClass().getName()
-					+ "'");
-		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException("Could not set field in object of type '" + bean.getClass().getName()
-					+ "'");
-		}
+		bean.addFieldInjection(field, value);
 	}
 
-	private void injectBeanCandidate(BeanFactory beanFactory, Object bean, Method setter, String candidate) {
+	private void registerSetterInjection(BeanFactory beanFactory, AbstractBeanDefinition bean, Method setter, String candidate) {
 		Object value;
 		if (candidate != null && candidate.trim().length() > 0) {
 			value = beanFactory.loadBean(candidate);
@@ -109,18 +92,7 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 				throw new InfinitumConfigurationException("Autowired setter method must contain 1 parameter.");
 			value = BeanUtils.findCandidateBean(beanFactory, setter.getParameterTypes()[0]);
 		}
-		try {
-			setter.invoke(bean, value);
-		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException("Could not invoke setter in object of type '"
-					+ bean.getClass().getName() + "'");
-		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException("Could not invoke setter in object of type '"
-					+ bean.getClass().getName() + "'");
-		} catch (InvocationTargetException e) {
-			throw new InfinitumRuntimeException("Could not invoke setter in object of type '"
-					+ bean.getClass().getName() + "'");
-		}
+		bean.addSetterInjection(setter, value);
 	}
 
 }

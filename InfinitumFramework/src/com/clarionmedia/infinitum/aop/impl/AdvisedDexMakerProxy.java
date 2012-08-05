@@ -46,6 +46,7 @@ public class AdvisedDexMakerProxy extends DexMakerProxy {
 	private Set<JoinPoint> mBeforeAdvice;
 	private Set<JoinPoint> mAfterAdvice;
 	private ProceedingJoinPoint mAroundAdvice;
+	private Pointcut mPointcut;
 
 	/**
 	 * Creates a new {@code AdvisedDexMakerProxy}.
@@ -61,6 +62,7 @@ public class AdvisedDexMakerProxy extends DexMakerProxy {
 			Pointcut pointcut) {
 		super(context, target);
 		Preconditions.checkNotNull(pointcut);
+		mPointcut = pointcut;
 		mBeforeAdvice = new HashSet<JoinPoint>();
 		mAfterAdvice = new HashSet<JoinPoint>();
 		ProceedingJoinPoint next = null;
@@ -109,6 +111,11 @@ public class AdvisedDexMakerProxy extends DexMakerProxy {
 			}
 		}
 		return ret;
+	}
+	
+	@Override
+	public AdvisedDexMakerProxy clone() {
+		return new AdvisedDexMakerProxy(mContext, mTarget, mPointcut);
 	}
 
 }

@@ -44,6 +44,9 @@ public class BeanComponent {
 
 	@Attribute(name = "src")
 	private String mClass;
+	
+	@Attribute(name = "scope", required = false)
+	private String mScope;
 
 	@ElementList(required = false, entry = "property", inline = true)
 	private List<Property> mProperties;
@@ -74,6 +77,14 @@ public class BeanComponent {
 
 	public List<Property> getProperties() {
 		return mProperties;
+	}
+
+	public void setScope(String scope) {
+		mScope = scope;
+	}
+
+	public String getScope() {
+		return mScope;
 	}
 
 	/**

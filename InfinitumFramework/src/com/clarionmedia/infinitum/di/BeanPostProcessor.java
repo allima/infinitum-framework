@@ -33,15 +33,15 @@ import com.clarionmedia.infinitum.context.InfinitumContext;
 public interface BeanPostProcessor {
 
 	/**
-	 * Invoked on the given bean after it has been initialized.
+	 * Invoked on the given {@link AbstractBeanDefinition} after it has been
+	 * initialized.
 	 * 
 	 * @param context
 	 *            the {@link InfinitumContext} the given bean is registered with
-	 * @param beanName
-	 *            the name of the bean to process
-	 * @param bean
-	 *            the bean to process
+	 * @param beanDefinition
+	 *            the {@code AbstractBeanDefinition} to post process
 	 */
-	void postProcessBean(InfinitumContext context, String beanName, Object bean);
+	void postProcessBean(InfinitumContext context,
+			AbstractBeanDefinition beanDefinition);
 
 }
