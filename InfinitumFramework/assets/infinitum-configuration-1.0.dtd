@@ -42,10 +42,12 @@
 <!ELEMENT bean (property*)>
 <!ATTLIST bean id CDATA #REQUIRED>
 <!ATTLIST bean src CDATA #REQUIRED>
+<!ATTLIST bean scope CDATA #IMPLIED>
 
 <!ELEMENT aspect (property* , advice*)>
 <!ATTLIST aspect id CDATA #REQUIRED>
-<!ATTLIST bean src CDATA #REQUIRED>
+<!ATTLIST aspect src CDATA #REQUIRED>
+<!ATTLIST aspect scope CDATA #IMPLIED>
 
 <!ELEMENT advice (#PCDATA)>
 <!ATTLIST advice id CDATA #REQUIRED>

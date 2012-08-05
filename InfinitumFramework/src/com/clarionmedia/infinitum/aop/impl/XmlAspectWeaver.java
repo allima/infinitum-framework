@@ -91,7 +91,7 @@ public class XmlAspectWeaver implements AspectWeaver {
 			String beanName = pointcut.getBeanName();
 			Object bean = mBeanFactory.loadBean(beanName);
 			AopProxy proxy = mProxyFactory.createProxy(context, bean, pointcut);
-			mBeanFactory.getBeanMap().get(beanName).setBeanProxy(proxy);
+			mBeanFactory.getBeanDefinitions().get(beanName).setBeanProxy(proxy);
 		}
 	}
 
@@ -256,7 +256,7 @@ public class XmlAspectWeaver implements AspectWeaver {
 			pkg = pkg.toLowerCase().trim();
 			if (pkg.length() == 0)
 				continue;
-			Map<AbstractBeanDefinition, String> invertedMap = CollectionUtil.invert(mBeanFactory.getBeanMap());
+			Map<AbstractBeanDefinition, String> invertedMap = CollectionUtil.invert(mBeanFactory.getBeanDefinitions());
 			for (AbstractBeanDefinition bean : invertedMap.keySet()) {
 				if (!bean.getType().getName().startsWith(pkg))
 					continue;

@@ -102,7 +102,7 @@ public class AnnotationsAspectWeaverTest {
 		doReturn(mockBean.getClass()).when(mockBeanDefinition).getType();
 		when(mockBeanDefinition.getName()).thenReturn(BEAN_NAME);
 		when(mockBeanDefinition.getNonProxiedBeanInstance()).thenReturn(mockBean);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
+		when(mockBeanFactory.getBeanDefinitions()).thenReturn(mockBeanMap);
 	}
 	
 	@Test
@@ -116,7 +116,7 @@ public class AnnotationsAspectWeaverTest {
 		// Verify
 		verify(mockBeanFactory, times(0)).loadBean(BEAN_NAME);
 		verify(mockProxyFactory, times(0)).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
-		verify(mockBeanFactory, times(0)).getBeanMap();
+		verify(mockBeanFactory, times(0)).getBeanDefinitions();
 	}
 
 	@Test
@@ -142,7 +142,7 @@ public class AnnotationsAspectWeaverTest {
 		// Verify
 		verify(mockBeanFactory).loadBean(BEAN_NAME);
 		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
-		verify(mockBeanFactory, times(2)).getBeanMap();
+		verify(mockBeanFactory, times(2)).getBeanDefinitions();
 		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
 	}
 	
@@ -171,7 +171,7 @@ public class AnnotationsAspectWeaverTest {
 		// Verify
 		verify(mockBeanFactory, times(2)).loadBean(BEAN_NAME);
 		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
-		verify(mockBeanFactory).getBeanMap();
+		verify(mockBeanFactory).getBeanDefinitions();
 		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
 	}
 	
@@ -202,7 +202,7 @@ public class AnnotationsAspectWeaverTest {
 		// Verify
 		verify(mockBeanFactory, times(2)).loadBean(BEAN_NAME);
 		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
-		verify(mockBeanFactory).getBeanMap();
+		verify(mockBeanFactory).getBeanDefinitions();
 		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
 	}
 	
@@ -259,7 +259,7 @@ public class AnnotationsAspectWeaverTest {
 		// Verify
 		verify(mockBeanFactory, times(2)).loadBean(BEAN_NAME);
 		verify(mockProxyFactory).createProxy(any(Context.class), any(Object.class), any(Pointcut.class));
-		verify(mockBeanFactory).getBeanMap();
+		verify(mockBeanFactory).getBeanDefinitions();
 		assertTrue("Bean Map should have 1 bean entry", mockBeanMap.entrySet().size() == 1);
 	}
 
