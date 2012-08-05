@@ -316,7 +316,7 @@ public abstract class AbstractContext implements InfinitumContext {
 		for (Class<BeanPostProcessor> postProcessor : postProcessors) {
 			try {
 				BeanPostProcessor postProcessorInstance = postProcessor.newInstance();
-				for (Entry<String, AbstractBeanDefinition> bean : mBeanFactory.getBeanMap().entrySet()) {
+				for (Entry<String, AbstractBeanDefinition> bean : mBeanFactory.getBeanDefinitions().entrySet()) {
 					postProcessorInstance.postProcessBean(this, bean.getValue());
 				}
 			} catch (InstantiationException e) {

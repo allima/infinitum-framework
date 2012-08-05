@@ -53,7 +53,7 @@ public class BeanUtils {
 	 */
 	public static Object findCandidateBean(BeanFactory beanFactory, Class<?> clazz) {
 		AbstractBeanDefinition candidate = null;
-		Map<AbstractBeanDefinition, String> invertedBeanMap = invert(beanFactory.getBeanMap());
+		Map<AbstractBeanDefinition, String> invertedBeanMap = invert(beanFactory.getBeanDefinitions());
 		for (AbstractBeanDefinition beanDef : invertedBeanMap.keySet()) {
 			if (clazz.isAssignableFrom(beanDef.getType())) {
 				// TODO: check if there is more than 1 candidate?

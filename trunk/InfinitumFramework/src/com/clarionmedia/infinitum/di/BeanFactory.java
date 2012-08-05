@@ -127,6 +127,6 @@ public interface BeanFactory {
 	 * @return {@code Map} of bean names and their corresponding
 	 *         {@link BeanDefinition} instances
 	 */
-	Map<String, AbstractBeanDefinition> getBeanMap();
+	Map<String, AbstractBeanDefinition> getBeanDefinitions();
 
 }

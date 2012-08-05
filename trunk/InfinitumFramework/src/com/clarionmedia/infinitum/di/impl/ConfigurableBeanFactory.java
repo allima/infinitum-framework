@@ -40,14 +40,14 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 04/23/12
+ * @version 1.0 04/23/12
+ * @since 1.0
  */
 public class ConfigurableBeanFactory implements BeanFactory {
 
 	private PackageReflector mPackageReflector;
-	private Map<String, AbstractBeanDefinition> mBeanMap;
-	private Map<String, AbstractBeanDefinition> mAspectMap;
+	private Map<String, AbstractBeanDefinition> mBeanDefinitions;
+	private Map<String, AbstractBeanDefinition> mAspectDefinitions;
 
 	/**
 	 * Constructs a new {@code ConfigurableBeanFactory}.
@@ -57,25 +57,25 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	 */
 	public ConfigurableBeanFactory(InfinitumContext context) {
 		mPackageReflector = new DefaultPackageReflector();
-		mBeanMap = new HashMap<String, AbstractBeanDefinition>();
-		mAspectMap = new HashMap<String, AbstractBeanDefinition>();
+		mBeanDefinitions = new HashMap<String, AbstractBeanDefinition>();
+		mAspectDefinitions = new HashMap<String, AbstractBeanDefinition>();
 	}
 
 	@Override
 	public Object loadBean(String name) throws InfinitumConfigurationException {
-		if (!mBeanMap.containsKey(name))
+		if (!mBeanDefinitions.containsKey(name))
 			throw new InfinitumConfigurationException("Bean '" + name
 					+ "' could not be resolved");
-		return mBeanMap.get(name).getBeanInstance();
+		return mBeanDefinitions.get(name).getBeanInstance();
 	}
 
 	@Override
 	public Object loadAspect(String name)
 			throws InfinitumConfigurationException {
-		if (!mAspectMap.containsKey(name))
+		if (!mAspectDefinitions.containsKey(name))
 			throw new InfinitumConfigurationException("Aspect '" + name
 					+ "' could not be resolved");
-		return mAspectMap.get(name).getBeanInstance();
+		return mAspectDefinitions.get(name).getBeanInstance();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -91,7 +91,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 
 	@Override
 	public boolean beanExists(String name) {
-		return mBeanMap.containsKey(name);
+		return mBeanDefinitions.containsKey(name);
 	}
 
 	@Override
@@ -122,18 +122,18 @@ public class ConfigurableBeanFactory implements BeanFactory {
 
 	@Override
 	public void registerBean(AbstractBeanDefinition beanDefinition) {
-		mBeanMap.put(beanDefinition.getName(), beanDefinition);
+		mBeanDefinitions.put(beanDefinition.getName(), beanDefinition);
 	}
 
 	@Override
 	public void registerAspect(AbstractBeanDefinition beanDefinition) {
-		mAspectMap.put(beanDefinition.getName(), beanDefinition);
-		mBeanMap.put(beanDefinition.getName(), beanDefinition);
+		mAspectDefinitions.put(beanDefinition.getName(), beanDefinition);
+		mBeanDefinitions.put(beanDefinition.getName(), beanDefinition);
 	}
 
 	@Override
-	public Map<String, AbstractBeanDefinition> getBeanMap() {
-		return mBeanMap;
+	public Map<String, AbstractBeanDefinition> getBeanDefinitions() {
+		return mBeanDefinitions;
 	}
 
 }
