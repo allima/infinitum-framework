@@ -41,14 +41,14 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
-import com.clarionmedia.infinitum.rest.impl.RestfulMapper;
+import com.clarionmedia.infinitum.rest.impl.RestfulNameValueMapper;
 
 /**
  * <p>
  * {@code ObjectMapper} provides an API for mapping domain objects to database
  * tables and vice versa. For mapping to SQLite databases, see this class's
  * concrete implementation {@link SqliteMapper} and for mapping to a RESTful web
- * service, see the {@link RestfulMapper} implementation.
+ * service, see the {@link RestfulNameValueMapper} implementation.
  * </p>
  * 
  * @author Tyler Treat
@@ -57,6 +57,7 @@ import com.clarionmedia.infinitum.rest.impl.RestfulMapper;
  */
 public abstract class ObjectMapper {
 
+	protected PersistencePolicy mPersistencePolicy;
 	protected TypeResolutionPolicy mTypePolicy;
 	protected ClassReflector mClassReflector;
 	protected Logger mLogger;
@@ -70,6 +71,7 @@ public abstract class ObjectMapper {
 	 *            {@code SqliteUtil}
 	 */
 	public ObjectMapper(InfinitumContext context) {
+		mPersistencePolicy = context.getPersistencePolicy();
 		mTypePolicy = new DefaultTypeResolutionPolicy(context);
 		mClassReflector = new DefaultClassReflector();
 		mLogger = Logger.getInstance(context, getClass().getSimpleName());
@@ -148,82 +150,73 @@ public abstract class ObjectMapper {
 	 *            the {@code ModelMap} to add the relationship to
 	 * @param model
 	 *            the model containing the relationship
-	 * @param f
+	 * @param field
 	 *            the relationship {@code Field}
 	 */
 	@SuppressWarnings("unchecked")
-	protected void mapRelationship(ModelMap map, Object model, Field f) {
-		try {
-			PersistencePolicy policy = ContextFactory.newInstance()
-					.getPersistencePolicy();
-			if (policy.isRelationship(f)) {
-				ModelRelationship rel = policy.getRelationship(f);
-				Object related;
-				switch (rel.getRelationType()) {
-					case ManyToMany :
-						ManyToManyRelationship mtm = (ManyToManyRelationship) rel;
-						related = f.get(model);
-						if (!(related instanceof Iterable))
-							throw new ModelConfigurationException(
-									String.format(
-											mPropLoader
-													.getErrorMessage("INVALID_MM_RELATIONSHIP"),
-											f.getName(), f.getDeclaringClass()
-													.getName()));
-						map.addManyToManyRelationship(new Pair<ManyToManyRelationship, Iterable<Object>>(
-								mtm, (Iterable<Object>) related));
-						break;
-					case ManyToOne :
-						ManyToOneRelationship mto = (ManyToOneRelationship) rel;
-						related = f.get(model);
-						if (related != null
-								&& !mTypePolicy.isDomainModel(related
-										.getClass()))
-							throw new ModelConfigurationException(
-									String.format(
-											mPropLoader
-													.getErrorMessage("INVALID_MO_RELATIONSHIP"),
-											f.getName(), f.getDeclaringClass()
-													.getName()));
-						map.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(
-								mto, related));
-						break;
-					case OneToMany :
-						OneToManyRelationship otm = (OneToManyRelationship) rel;
-						related = f.get(model);
-						if (!(related instanceof Iterable))
-							throw new ModelConfigurationException(
-									String.format(
-											mPropLoader
-													.getErrorMessage("INVALID_OM_RELATIONSHIP"),
-											f.getName(), f.getDeclaringClass()
-													.getName()));
-						map.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(
-								otm, (Iterable<Object>) related));
-						break;
-					case OneToOne :
-						OneToOneRelationship oto = (OneToOneRelationship) rel;
-						related = f.get(model);
-						if (related != null
-								&& !mTypePolicy.isDomainModel(related
-										.getClass()))
-							throw new ModelConfigurationException(
-									String.format(
-											mPropLoader
-													.getErrorMessage("INVALID_OO_RELATIONSHIP"),
-											f.getName(), f.getDeclaringClass()
-													.getName()));
-						map.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(
-								oto, related));
-						break;
-				}
+	protected void mapRelationship(ModelMap map, Object model, Field field) {
+		PersistencePolicy policy = ContextFactory.newInstance().getPersistencePolicy();
+		if (policy.isRelationship(field)) {
+			ModelRelationship rel = policy.getRelationship(field);
+			Object related;
+			switch (rel.getRelationType()) {
+				case ManyToMany :
+					ManyToManyRelationship mtm = (ManyToManyRelationship) rel;
+					related = mClassReflector.getFieldValue(model, field);
+					if (!(related instanceof Iterable))
+						throw new ModelConfigurationException(
+								String.format(
+										mPropLoader
+												.getErrorMessage("INVALID_MM_RELATIONSHIP"),
+										field.getName(), field.getDeclaringClass()
+												.getName()));
+					map.addManyToManyRelationship(new Pair<ManyToManyRelationship, Iterable<Object>>(
+							mtm, (Iterable<Object>) related));
+					break;
+				case ManyToOne :
+					ManyToOneRelationship mto = (ManyToOneRelationship) rel;
+					related = mClassReflector.getFieldValue(model, field);
+					if (related != null
+							&& !mTypePolicy.isDomainModel(related
+									.getClass()))
+						throw new ModelConfigurationException(
+								String.format(
+										mPropLoader
+												.getErrorMessage("INVALID_MO_RELATIONSHIP"),
+										field.getName(), field.getDeclaringClass()
+												.getName()));
+					map.addManyToOneRelationship(new Pair<ManyToOneRelationship, Object>(
+							mto, related));
+					break;
+				case OneToMany :
+					OneToManyRelationship otm = (OneToManyRelationship) rel;
+					related = mClassReflector.getFieldValue(model, field);
+					if (!(related instanceof Iterable))
+						throw new ModelConfigurationException(
+								String.format(
+										mPropLoader
+												.getErrorMessage("INVALID_OM_RELATIONSHIP"),
+										field.getName(), field.getDeclaringClass()
+												.getName()));
+					map.addOneToManyRelationship(new Pair<OneToManyRelationship, Iterable<Object>>(
+							otm, (Iterable<Object>) related));
+					break;
+				case OneToOne :
+					OneToOneRelationship oto = (OneToOneRelationship) rel;
+					related = mClassReflector.getFieldValue(model, field);
+					if (related != null
+							&& !mTypePolicy.isDomainModel(related
+									.getClass()))
+						throw new ModelConfigurationException(
+								String.format(
+										mPropLoader
+												.getErrorMessage("INVALID_OO_RELATIONSHIP"),
+										field.getName(), field.getDeclaringClass()
+												.getName()));
+					map.addOneToOneRelationship(new Pair<OneToOneRelationship, Object>(
+							oto, related));
+					break;
 			}
-		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to map relationship for field " + f.getName()
-					+ " in '" + f.getDeclaringClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to map relationship for field " + f.getName()
-					+ " in '" + f.getDeclaringClass().getName() + "'", e);
 		}
 	}
 

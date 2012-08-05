@@ -17,41 +17,38 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest.impl;
+package com.clarionmedia.infinitum.rest;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.http.NameValuePair;
+import org.apache.http.HttpEntity;
 import com.clarionmedia.infinitum.orm.ModelMap;
 
 /**
  * <p>
- * Concrete implementation of {@link ModelMap} representing a domain model
+ * Abstract implementation of {@link ModelMap} representing a domain model
  * instance mapped to a RESTful web service resource.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 03/21/12
+ * @version 1.0 08/05/12
+ * @since 1.0
  */
-public class RestfulModelMap extends ModelMap {
-	
-	private List<NameValuePair> mNameValuePairs;
+public abstract class RestfulModelMap extends ModelMap {
 
+	/**
+	 * Creates a new {@code RestfulModelMap} for the given {@link Object}.
+	 * 
+	 * @param model
+	 *            the {@code Object} to map
+	 */
 	public RestfulModelMap(Object model) {
 		super(model);
-		setNameValuePairs(new ArrayList<NameValuePair>());
 	}
 
-	public List<NameValuePair> getNameValuePairs() {
-		return mNameValuePairs;
-	}
-
-	public void setNameValuePairs(List<NameValuePair> nameValuePairs) {
-		mNameValuePairs = nameValuePairs;
-	}
-	
-	public void addNameValuePair(NameValuePair pair) {
-		mNameValuePairs.add(pair);
-	}
+	/**
+	 * Retrieves an {@link HttpEntity} representation of the model.
+	 * 
+	 * @return {@code HttpEntity}
+	 */
+	public abstract HttpEntity toHttpEntity();
 
 }
