@@ -21,6 +21,7 @@ package com.clarionmedia.infinitum.aop.impl;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,7 +48,7 @@ import com.clarionmedia.infinitum.aop.AspectComponent;
 import com.clarionmedia.infinitum.aop.JoinPoint;
 import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
-import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
@@ -60,9 +61,6 @@ public class XmlAspectWeaverTest {
 	
 	private static final String BEAN_NAME = "someBean";
 	
-	@Mock
-	private InfinitumContext mockInfinitumContext;
-
 	@Mock
 	private BeanFactory mockBeanFactory;
 	
@@ -78,11 +76,14 @@ public class XmlAspectWeaverTest {
 	@Mock
 	private AopProxy mockProxy;
 	
+	@Mock
+	private AbstractBeanDefinition mockBeanDefinition;
+	
 	@SuppressWarnings("deprecation")
 	@InjectMocks
 	private XmlAspectWeaver aspectWeaver = new XmlAspectWeaver();
 	
-	private Map<String, Object> mockBeanMap;
+	private Map<String, AbstractBeanDefinition> mockBeanMap;
 	private List<String> mockBean;
 	private AspectComponent mockAspect;
 	private List<AspectComponent.Advice> adviceList;
@@ -146,10 +147,14 @@ public class XmlAspectWeaverTest {
 		mockAspect.setId("advice");
 		aspects.add(mockAspect);
 		aspectWeaver.setAspects(aspects);
-		mockBeanMap = new HashMap<String, Object>();
+		mockBeanMap = new HashMap<String, AbstractBeanDefinition>();
 		mockBean = new ArrayList<String>();
 		mockBean.add("hello");
-		mockBeanMap.put(BEAN_NAME, mockBean);
+		mockBeanMap.put(BEAN_NAME, mockBeanDefinition);
+		doReturn(mockBean.getClass()).when(mockBeanDefinition).getType();
+		when(mockBeanDefinition.getName()).thenReturn(BEAN_NAME);
+		when(mockBeanDefinition.getNonProxiedBeanInstance()).thenReturn(mockBean);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 	}
 	
 	@After
@@ -181,7 +186,6 @@ public class XmlAspectWeaverTest {
 		Method advice = MockAspect.class.getMethod("beforeAdvice_within", JoinPoint.class);
 		when(mockClassReflector.getMethod(null, "beforeAdvice_within", JoinPoint.class)).thenReturn(advice);
 		when(mockClassReflector.getClassInstance(any(Class.class))).thenReturn(new MockAspect());
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
 		when(mockProxy.getProxy()).thenReturn(mockBean);
@@ -207,7 +211,6 @@ public class XmlAspectWeaverTest {
 		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
 		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		
 		// Run
 		aspectWeaver.weave(Robolectric.application, null);
@@ -231,7 +234,6 @@ public class XmlAspectWeaverTest {
 		when(mockPackageReflector.getClass("java.lang.Object")).thenReturn(null);
 		when(mockClassReflector.getMethod(ArrayList.class, "add", (Class<?>) null)).thenReturn(add);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		
 		// Run
 		aspectWeaver.weave(Robolectric.application, null);
@@ -254,7 +256,6 @@ public class XmlAspectWeaverTest {
 		when(mockPackageReflector.getClass("java.lang.Object")).thenReturn(null);
 		when(mockClassReflector.getMethod(ArrayList.class, "add", (Class<?>) null)).thenReturn(null);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		
 		// Run
 		aspectWeaver.weave(Robolectric.application, null);
@@ -274,7 +275,6 @@ public class XmlAspectWeaverTest {
 		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
 		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		
 		// Run
 		aspectWeaver.weave(Robolectric.application, null);
@@ -297,7 +297,6 @@ public class XmlAspectWeaverTest {
 		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
 		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		
 		// Run
 		aspectWeaver.weave(Robolectric.application, null);
@@ -317,7 +316,6 @@ public class XmlAspectWeaverTest {
 		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
 		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		
 		// Run
 		aspectWeaver.weave(Robolectric.application, null);
@@ -337,7 +335,6 @@ public class XmlAspectWeaverTest {
 		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
 		when(mockClassReflector.getMethod(ArrayList.class, "toString")).thenReturn(toString);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		
 		// Run
 		aspectWeaver.weave(Robolectric.application, null);
@@ -359,7 +356,6 @@ public class XmlAspectWeaverTest {
 		when(mockBeanFactory.loadBean(BEAN_NAME)).thenReturn(mockBean);
 		when(mockClassReflector.getMethodsByName(ArrayList.class, "add")).thenReturn(methods);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		
 		// Run
 		aspectWeaver.weave(Robolectric.application, null);
