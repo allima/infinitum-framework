@@ -30,7 +30,7 @@ The ORM's user-facing API is actually relatively small. All data transactions ar
   * [Criteria]: object-oriented database queries.
   * [Criterion]: `Criteria` query restrictions.
   * [Conditions]: provides static factory methods for creating `Criterion`.
-  * TypeAdapter: facilitates the mapping of database column values to Java data types and vice versa.
+  * TypeAdapter: facilitates the mapping of datastore values to Java data types and vice versa.
 
 == Domain Model Metadata ==
 
