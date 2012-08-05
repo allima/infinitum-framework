@@ -21,10 +21,12 @@ package com.clarionmedia.infinitum.aop.impl;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +51,7 @@ import com.clarionmedia.infinitum.aop.Pointcut;
 import com.clarionmedia.infinitum.aop.ProceedingJoinPoint;
 import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
@@ -69,6 +72,7 @@ public class AnnotationsAspectWeaverTest {
 	@Mock
 	private ClassReflector mockClassReflector;
 	
+	@SuppressWarnings("unused")
 	@Mock
 	private PackageReflector mockPackageReflector;
 	
@@ -78,20 +82,27 @@ public class AnnotationsAspectWeaverTest {
 	@Mock
 	private AopProxy mockProxy;
 	
+	@Mock
+	private AbstractBeanDefinition mockBeanDefinition;
+	
 	@InjectMocks
 	private AnnotationsAspectWeaver aspectWeaver = new AnnotationsAspectWeaver(mockInfinitumContext);
 	
-	private Map<String, Object> mockBeanMap;
+	private Map<String, AbstractBeanDefinition> mockBeanMap;
 	
 	private List<String> mockBean;
-
+	
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		mockBeanMap = new HashMap<String, Object>();
 		mockBean = new ArrayList<String>();
 		mockBean.add("hello");
-		mockBeanMap.put(BEAN_NAME, mockBean);
+		mockBeanMap = new HashMap<String, AbstractBeanDefinition>();
+		mockBeanMap.put(BEAN_NAME, mockBeanDefinition);
+		doReturn(mockBean.getClass()).when(mockBeanDefinition).getType();
+		when(mockBeanDefinition.getName()).thenReturn(BEAN_NAME);
+		when(mockBeanDefinition.getNonProxiedBeanInstance()).thenReturn(mockBean);
+		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 	}
 	
 	@Test
@@ -122,7 +133,6 @@ public class AnnotationsAspectWeaverTest {
 		when(mockClassReflector.getAllMethodsAnnotatedWith(MockAspect.class,
 				com.clarionmedia.infinitum.aop.annotation.Before.class))
 				.thenReturn(adviceMethods);
-		when(mockBeanFactory.getBeanMap()).thenReturn(mockBeanMap);
 		when(mockProxyFactory.createProxy(any(Context.class), any(Object.class), any(Pointcut.class))).thenReturn(mockProxy);
 		when(mockProxy.getProxy()).thenReturn(mockBean);
 		
@@ -256,26 +266,31 @@ public class AnnotationsAspectWeaverTest {
 	@Aspect
 	private static class MockAspect {
 
+		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Before(within = { "java.util" })
 		public void beforeAdvice_within(JoinPoint joinPoint) {
 
 		}
 		
+		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Before(beans = { BEAN_NAME + ".toString()" })
 		public void beforeAdvice_beans(JoinPoint joinPoint) {
 
 		}
 		
+		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Before(beans = { BEAN_NAME + ".add(*)" })
 		public void beforeAdvice_beansWildcard(JoinPoint joinPoint) {
 
 		}
 		
+		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Around(beans = { BEAN_NAME + ".fakeMethod()" })
 		public void aroundAdvice_beansInvalidMethod(ProceedingJoinPoint joinPoint) {
 			
 		}
 		
+		@SuppressWarnings("unused")
 		@com.clarionmedia.infinitum.aop.annotation.Around(beans = { BEAN_NAME + ".add(java.lang.Object)" })
 		public void aroundAdvice_beansWithMethod(ProceedingJoinPoint joinPoint) {
 
