@@ -26,16 +26,13 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -48,6 +45,7 @@ import android.database.SQLException;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -57,6 +55,8 @@ import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.rest.RestfulMapper;
+import com.clarionmedia.infinitum.rest.RestfulModelMap;
 
 /**
  * <p>
@@ -86,6 +86,7 @@ public abstract class RestfulSession implements Session {
 	protected Map<Integer, Object> mSessionCache;
 	protected int mCacheSize;
 	protected InfinitumContext mInfinitumContext;
+	protected RestfulContext mRestContext;
 	
 	/**
 	 * Returns an instance of the given persistent model {@link Class} as
@@ -114,17 +115,27 @@ public abstract class RestfulSession implements Session {
 	@Override
 	public Session open() throws SQLException {
 		mInfinitumContext = ContextFactory.newInstance().getContext();
+		mRestContext = mInfinitumContext.getRestfulConfiguration();
 		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
-		mHost = mInfinitumContext.getRestfulConfiguration().getRestHost();
+		mHost = mRestContext.getRestHost();
 		if (!mHost.endsWith("/"))
 			mHost += '/';
-		mIsAuthenticated = mInfinitumContext.getRestfulConfiguration().isRestAuthenticated();
-		mAuthStrategy = mInfinitumContext.getRestfulConfiguration().getAuthStrategy();
-		mMapper = new RestfulMapper(mInfinitumContext);
+		mIsAuthenticated = mRestContext.isRestAuthenticated();
+		mAuthStrategy = mRestContext.getAuthStrategy();
 		mPersistencePolicy = ContextFactory.newInstance().getPersistencePolicy();
 		mSessionCache = new HashMap<Integer, Object>();
 		mCacheSize = DEFAULT_CACHE_SIZE;
 		mIsOpen = true;
+		switch (mRestContext.getMessageType()) {
+		case Xml:
+			mMapper = new RestfulXmlMapper(mInfinitumContext);
+			break;
+		case Json:
+			mMapper = new RestfulJsonMapper(mInfinitumContext);
+			break;
+		default:
+			mMapper = new RestfulNameValueMapper(mInfinitumContext);
+		}
 		mLogger.debug("Session opened");
 		return this;
 	}
@@ -218,10 +229,9 @@ public abstract class RestfulSession implements Session {
 		HttpPost httpPost = new HttpPost(uri);
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
 			httpPost.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
-		RestfulModelMap map = mMapper.mapModel(model);
-		List<NameValuePair> pairs = map.getNameValuePairs();
+		RestfulModelMap modelMap = mMapper.mapModel(model);
 		try {
-			httpPost.setEntity(new UrlEncodedFormEntity(pairs));
+			httpPost.setEntity(modelMap.toHttpEntity());
 			HttpResponse response = httpClient.execute(httpPost);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(),
 					ENCODING));
@@ -280,10 +290,9 @@ public abstract class RestfulSession implements Session {
 		HttpPut httpPut = new HttpPut(uri);
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
 			httpPut.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
-		RestfulModelMap map = mMapper.mapModel(model);
-		List<NameValuePair> pairs = map.getNameValuePairs();
+		RestfulModelMap modelMap = mMapper.mapModel(model);
 		try {
-			httpPut.setEntity(new UrlEncodedFormEntity(pairs));
+			httpPut.setEntity(modelMap.toHttpEntity());
 			HttpResponse response = httpClient.execute(httpPut);
 			StatusLine statusLine = response.getStatusLine();
 			switch (statusLine.getStatusCode()) {
@@ -324,10 +333,9 @@ public abstract class RestfulSession implements Session {
 		HttpPut httpPut = new HttpPut(uri);
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
 			httpPut.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
-		RestfulModelMap map = mMapper.mapModel(model);
-		List<NameValuePair> pairs = map.getNameValuePairs();
+		RestfulModelMap modelMap = mMapper.mapModel(model);
 		try {
-			httpPut.setEntity(new UrlEncodedFormEntity(pairs));
+			httpPut.setEntity(modelMap.toHttpEntity());
 			HttpResponse response = httpClient.execute(httpPut);
 			StatusLine statusLine = response.getStatusLine();
 			switch (statusLine.getStatusCode()) {
@@ -412,9 +420,8 @@ public abstract class RestfulSession implements Session {
 	 */
 	protected HttpParams getHttpParams() {
 		HttpParams httpParams = new BasicHttpParams();
-		InfinitumContext context = ContextFactory.newInstance().getContext();
-		HttpConnectionParams.setConnectionTimeout(httpParams, context.getRestfulConfiguration().getConnectionTimeout());
-		HttpConnectionParams.setSoTimeout(httpParams, context.getRestfulConfiguration().getResponseTimeout());
+		HttpConnectionParams.setConnectionTimeout(httpParams, mRestContext.getConnectionTimeout());
+		HttpConnectionParams.setSoTimeout(httpParams, mRestContext.getResponseTimeout());
 		HttpConnectionParams.setTcpNoDelay(httpParams, true);
 		return httpParams;
 	}

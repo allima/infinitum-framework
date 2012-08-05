@@ -33,6 +33,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.simpleframework.xml.core.Persister;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -91,7 +92,8 @@ public class RestfulXmlSession extends RestfulSession {
 				T ret = null;
 				if (mXmlDeserializers.containsKey(type))
 					ret = (T) mXmlDeserializers.get(type).deserializeObject(xmlResponse);
-				// TODO try to deserialize it ourselves
+				else
+					ret = new Persister().read(type, xmlResponse);
 				if (ret != null) {
 				    int objHash = mPersistencePolicy.computeModelHash(ret);
 				    cache(objHash, ret);
@@ -102,6 +104,9 @@ public class RestfulXmlSession extends RestfulSession {
 			mLogger.error("Unable to send GET request", e);
 			return null;
 		} catch (IOException e) {
+			mLogger.error("Unable to read web service response", e);
+			return null;
+		} catch (Exception e) {
 			mLogger.error("Unable to read web service response", e);
 			return null;
 		}

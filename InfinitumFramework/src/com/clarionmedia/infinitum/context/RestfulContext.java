@@ -28,10 +28,17 @@ import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 05/18/12
+ * @version 1.0 05/18/12
+ * @since 1.0
  */
 public interface RestfulContext {
+
+	/**
+	 * Describes the message type to use for web-service PUT/POST requests.
+	 */
+	public static enum MessageType {
+		Xml, Json, Pairs
+	};
 
 	/**
 	 * Returns the parent context containing this {@code RestfulConfiguration}.
@@ -89,7 +96,8 @@ public interface RestfulContext {
 	 * @throws InfinitumConfigurationException
 	 *             if the given strategy does not exist
 	 */
-	void setAuthStrategy(String strategy) throws InfinitumConfigurationException;
+	void setAuthStrategy(String strategy)
+			throws InfinitumConfigurationException;
 
 	/**
 	 * Sets the {@link AuthenticationStrategy} for this
@@ -146,7 +154,7 @@ public interface RestfulContext {
 	void setResponseTimeout(int responseTimeout);
 
 	/**
-	 * Retrieves the name of the bean for the configured {@link RestfulModelClient}.
+	 * Retrieves the name of the bean for the configured {@link RestfulSession}.
 	 * 
 	 * @return the name of the {@code RestfulClient} bean or {@code null} if it
 	 *         has not been configured
@@ -154,11 +162,27 @@ public interface RestfulContext {
 	String getClientBean();
 
 	/**
-	 * Sets the name of the bean for the {@link RestfulModelClient}.
+	 * Sets the name of the bean for the {@link RestfulSession}.
 	 * 
 	 * @param clientBean
 	 *            the name of the {@code RestfulClient} bean
 	 */
 	void setClientBean(String clientBean);
+
+	/**
+	 * Retrieves the {@code MessageType} for the configured
+	 * {@link RestfulSession}.
+	 * 
+	 * @return {@code MessageType}
+	 */
+	MessageType getMessageType();
+
+	/**
+	 * Sets the {@code MessageType} for the {@link RestfulSession}.
+	 * 
+	 * @param messageType
+	 *            the {@code MessageType} to set
+	 */
+	void setMessageType(MessageType messageType);
 
 }

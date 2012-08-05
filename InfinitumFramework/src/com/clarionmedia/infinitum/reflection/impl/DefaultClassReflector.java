@@ -161,6 +161,7 @@ public class DefaultClassReflector implements ClassReflector {
 	@Override
 	public Object getFieldValue(Object object, Field field) {
 		try {
+			field.setAccessible(true);
 			return field.get(object);
 		} catch (IllegalArgumentException e) {
 			throw new InfinitumRuntimeException("Unable to access field '"

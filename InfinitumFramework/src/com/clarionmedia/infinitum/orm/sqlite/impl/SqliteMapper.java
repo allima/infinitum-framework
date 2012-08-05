@@ -33,7 +33,6 @@ import com.clarionmedia.infinitum.internal.bind.SqliteTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
-import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
@@ -51,7 +50,6 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 public class SqliteMapper extends ObjectMapper {
 
 	private Map<Class<?>, SqliteTypeAdapter<?>> mTypeAdapters;
-	private PersistencePolicy mPolicy;
 
 	/**
 	 * Constructs a new {@code SqliteMapper}.
@@ -62,7 +60,6 @@ public class SqliteMapper extends ObjectMapper {
 	 */
 	public SqliteMapper(InfinitumContext context) {
 		super(context);
-		mPolicy = context.getPersistencePolicy();
 		mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, SqliteTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, SqliteTypeAdapters.BYTE);
@@ -81,19 +78,19 @@ public class SqliteMapper extends ObjectMapper {
 	public SqliteModelMap mapModel(Object model)
 			throws InvalidMappingException, ModelConfigurationException {
 		// We do not map transient classes!
-		if (!mPolicy.isPersistent(model.getClass()))
+		if (!mPersistencePolicy.isPersistent(model.getClass()))
 			return null;
 		SqliteModelMap ret = new SqliteModelMap(model);
 		ContentValues values = new ContentValues();
-		for (Field f : mPolicy.getPersistentFields(model.getClass())) {
+		for (Field f : mPersistencePolicy.getPersistentFields(model.getClass())) {
 			// Don't map primary keys if they are autoincrementing
-			if (mPolicy.isFieldPrimaryKey(f)
-					&& mPolicy.isPrimaryKeyAutoIncrement(f))
+			if (mPersistencePolicy.isFieldPrimaryKey(f)
+					&& mPersistencePolicy.isPrimaryKeyAutoIncrement(f))
 				continue;
 			try {
 				f.setAccessible(true);
 				// Map relationships
-				if (mPolicy.isRelationship(f)) {
+				if (mPersistencePolicy.isRelationship(f)) {
 					mapRelationship(ret, model, f);
 					continue;
 				}
@@ -164,7 +161,7 @@ public class SqliteMapper extends ObjectMapper {
 		if (mTypeAdapters.containsKey(c))
 			ret = mTypeAdapters.get(c).getSqliteType();
 		else if (mTypePolicy.isDomainModel(c))
-			ret = getSqliteDataType(mPolicy.getPrimaryKeyField(c));
+			ret = getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(c));
 		return ret;
 	}
 
@@ -181,7 +178,7 @@ public class SqliteMapper extends ObjectMapper {
 		if (mTypeAdapters.containsKey(c))
 			ret = mTypeAdapters.get(c).getSqliteType();
 		else if (mTypePolicy.isDomainModel(c))
-			ret = getSqliteDataType(mPolicy.getPrimaryKeyField(c));
+			ret = getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(c));
 		return ret;
 	}
 
@@ -193,7 +190,7 @@ public class SqliteMapper extends ObjectMapper {
 			model = AopProxy.getProxy(model).getTarget();
 		}
 		Object val = field.get(model);
-		String colName = mPolicy.getFieldColumnName(field);
+		String colName = mPersistencePolicy.getFieldColumnName(field);
 		resolveType(field.getType()).mapObjectToColumn(val, colName, values);
 	}
 

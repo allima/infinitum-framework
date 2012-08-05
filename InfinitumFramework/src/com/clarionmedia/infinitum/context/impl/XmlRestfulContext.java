@@ -53,7 +53,7 @@ public class XmlRestfulContext implements RestfulContext {
 
 	@Element(name = "authentication", required = false)
 	private Authentication mAuthentication;
-
+	
 	private InfinitumContext mParentContext;
 
 	@Override
@@ -166,6 +166,35 @@ public class XmlRestfulContext implements RestfulContext {
 	@Override
 	public void setClientBean(String clientBean) {
 		mClientBean = clientBean;
+	}
+	
+	@Override
+	public MessageType getMessageType() {
+		String messageType = mProperties.get("messageType");
+		if (messageType == null || messageType.trim().length() == 0)
+			return MessageType.Pairs; // default to pairs
+		if (messageType.equalsIgnoreCase("pairs"))
+			return MessageType.Pairs;
+		if (messageType.equalsIgnoreCase("xml"))
+			return MessageType.Xml;
+		if (messageType.equalsIgnoreCase("json"))
+			return MessageType.Json;
+		throw new InfinitumConfigurationException("Invalid HTTP message type '" + messageType + "'.");
+	}
+
+	@Override
+	public void setMessageType(MessageType messageType) {
+		switch (messageType) {
+		case Pairs:
+			mProperties.put("messageType", "pairs");
+			break;
+		case Xml:
+			mProperties.put("messageType", "xml");
+			break;
+		case Json:
+			mProperties.put("messageType", "json");
+			break;
+		}
 	}
 
 	@Root

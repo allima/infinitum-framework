@@ -24,16 +24,17 @@ import com.clarionmedia.infinitum.orm.ResultSet;
 
 /**
  * <p>
- * Facilitates the mapping of database column values to Java data types.
+ * Facilitates the mapping of datastore values to Java data types.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 03/17/12
+ * @since 1.0
  */
 public interface TypeAdapter<T> {
 
 	/**
-	 * Maps a database column value to a domain model's {@link Field}.
+	 * Maps a datastore value to a domain model's {@link Field}.
 	 * 
 	 * @param result
 	 *            the {@link ResultSet} where the column is being mapped from

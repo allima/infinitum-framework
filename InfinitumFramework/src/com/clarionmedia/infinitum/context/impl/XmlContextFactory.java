@@ -65,16 +65,14 @@ public class XmlContextFactory extends ContextFactory {
 		int id = res.getIdentifier("infinitum", "raw", context.getPackageName());
 		if (id == 0)
 			throw new InfinitumConfigurationException("Configuration infinitum.cfg.xml could not be found.");
-		sInfinitumContext = configureFromXml(id);
-		sInfinitumContext.postProcess(context);
+		sInfinitumContext = configureFromXml(context, id);
 		return sInfinitumContext;
 	}
 
 	@Override
 	public InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException {
 		mContext = context;
-		sInfinitumContext = configureFromXml(configId);
-		sInfinitumContext.postProcess(context);
+		sInfinitumContext = configureFromXml(context, configId);
 		return sInfinitumContext;
 	}
 
@@ -92,14 +90,16 @@ public class XmlContextFactory extends ContextFactory {
 		return sInfinitumContext.getPersistencePolicy();
 	}
 
-	private InfinitumContext configureFromXml(int configId) {
+	private InfinitumContext configureFromXml(Context context, int configId) {
 		long start = Calendar.getInstance().getTimeInMillis();
 		Resources resources = mContext.getResources();
 		Serializer serializer = new Persister();
 		try {
 			InputStream stream = resources.openRawResource(configId);
 			String xml = new Scanner(stream).useDelimiter("\\A").next();
-			return serializer.read(XmlApplicationContext.class, xml);
+			InfinitumContext ret = serializer.read(XmlApplicationContext.class, xml);
+			ret.postProcess(context);
+			return ret;
 		} catch (Exception e) {
 			throw new InfinitumConfigurationException("Unable to initialize Infinitum configuration.", e);
 		} finally {

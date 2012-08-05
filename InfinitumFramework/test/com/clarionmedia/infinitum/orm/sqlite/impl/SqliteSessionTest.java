@@ -54,7 +54,7 @@ import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
-import com.clarionmedia.infinitum.rest.RestfulTypeAdapter;
+import com.clarionmedia.infinitum.rest.RestfulPairsTypeAdapter;
 import com.xtremelabs.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
@@ -490,18 +490,18 @@ public class SqliteSessionTest {
 	@Test
 	public void testRegisterTypeAdapter_nonSqliteTypeAdapter() {
 		// Setup
-		RestfulTypeAdapter<Date> adapter = new RestfulTypeAdapter<Date>() {
+		RestfulPairsTypeAdapter<Date> adapter = new RestfulPairsTypeAdapter<Date>() {
 			@Override
 			public void mapToObject(ResultSet result, int index, Field field,
 					Object model) throws IllegalArgumentException,
 					IllegalAccessException {
 			}
 			@Override
-			public void mapToField(Date value, String field,
+			public void mapToPair(Date value, String field,
 					List<NameValuePair> pairs) {
 			}
 			@Override
-			public void mapObjectToField(Object value, String field,
+			public void mapObjectToPair(Object value, String field,
 					List<NameValuePair> pairs) {
 			}
 		};
