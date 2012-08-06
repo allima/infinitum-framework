@@ -26,7 +26,6 @@ import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.simpleframework.xml.core.Persister;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.orm.Session;
@@ -49,9 +48,7 @@ public class RestfulXmlSession extends RestfulSession {
 	protected Map<Class<?>, XmlDeserializer<?>> mXmlDeserializers;
 
 	/**
-	 * Constructs a new {@code RestfulXmlSession}. You must call
-	 * {@link ContextFactory#configure(android.content.Context, int)} before
-	 * invoking this constructor.
+	 * Constructs a new {@code RestfulXmlSession}.
 	 */
 	public RestfulXmlSession() {
 		mXmlDeserializers = new HashMap<Class<?>, XmlDeserializer<?>>();
@@ -74,8 +71,10 @@ public class RestfulXmlSession extends RestfulSession {
 			if (response.getStatusCode() == HttpStatus.SC_OK) {
 				String xmlResponse = response.getResponseDataAsString();
 				T ret = null;
+				// Attempt to use a registered deserializer
 				if (mXmlDeserializers.containsKey(type))
 					ret = (T) mXmlDeserializers.get(type).deserializeObject(xmlResponse);
+				// Otherwise fallback to Simple
 				else
 					ret = new Persister().read(type, xmlResponse);
 				if (ret != null) {

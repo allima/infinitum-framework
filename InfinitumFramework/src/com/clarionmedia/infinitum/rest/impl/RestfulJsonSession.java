@@ -25,7 +25,6 @@ import java.util.Map;
 
 import org.apache.http.HttpStatus;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.rest.Deserializer;
@@ -49,9 +48,7 @@ public class RestfulJsonSession extends RestfulSession {
 	protected Map<Class<?>, JsonDeserializer<?>> mJsonDeserializers;
 
 	/**
-	 * Constructs a new {@code RestfulJsonSession}. You must call
-	 * {@link ContextFactory#configure(android.content.Context, int)} before
-	 * invoking this constructor.
+	 * Constructs a new {@code RestfulJsonSession}.
 	 */
 	public RestfulJsonSession() {
 		mJsonDeserializers = new HashMap<Class<?>, JsonDeserializer<?>>();

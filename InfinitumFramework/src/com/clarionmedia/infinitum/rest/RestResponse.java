@@ -29,8 +29,8 @@ import java.util.Map;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 07/06/12
+ * @version 1.0 07/06/12
+ * @since 1.0
  */
 public class RestResponse {
 
@@ -39,47 +39,57 @@ public class RestResponse {
 	private Map<String, String> mCookies;
 	private Map<String, String> mHeaders;
 
+	/**
+	 * Constructs a new {@code RestResponse}.
+	 */
 	public RestResponse() {
 		mCookies = new HashMap<String, String>();
 		mHeaders = new HashMap<String, String>();
 	}
 
+	/**
+	 * Returns the HTTP status code that was included with the response.
+	 * 
+	 * @return status code
+	 */
 	public int getStatusCode() {
 		return mStatusCode;
 	}
 
+	/**
+	 * Sets the HTTP status code.
+	 * 
+	 * @param statusCode
+	 *            the status code to set
+	 */
 	public void setStatusCode(int statusCode) {
 		mStatusCode = statusCode;
 	}
 
+	/**
+	 * Returns the response message data as it was received from the server.
+	 * 
+	 * @return message data as a byte array
+	 */
 	public byte[] getResponseData() {
 		return mResponseData;
 	}
 
+	/**
+	 * Sets the response message data as a byte array.
+	 * 
+	 * @param responseData
+	 *            the message data byte array to set
+	 */
 	public void setResponseData(byte[] responseData) {
 		mResponseData = responseData;
 	}
 
-	public Map<String, String> getCookies() {
-		return mCookies;
-	}
-
-	public void setCookies(Map<String, String> cookies) {
-		mCookies = cookies;
-	}
-
-	public Map<String, String> getHeaders() {
-		return mHeaders;
-	}
-
-	public void setHeaders(Map<String, String> headers) {
-		mHeaders = headers;
-	}
-	
-	public void addHeader(String name, String value) {
-		mHeaders.put(name, value);
-	}
-
+	/**
+	 * Returns the response message data as a {@link String}.
+	 * 
+	 * @return message data {@code String}
+	 */
 	public String getResponseDataAsString() {
 		String response = "";
 		if (mResponseData != null) {
@@ -92,6 +102,12 @@ public class RestResponse {
 		return response;
 	}
 
+	/**
+	 * Sets the response message data as a {@link String}.
+	 * 
+	 * @param responseDataStr
+	 *            the message data {@code String} to set
+	 */
 	public void setResponseDataAsString(String responseDataStr) {
 		if (responseDataStr == null) {
 			mResponseData = null;
@@ -102,6 +118,48 @@ public class RestResponse {
 				throw new RuntimeException(e);
 			}
 		}
+	}
+
+	/**
+	 * Returns the cookies that were included with the response.
+	 * 
+	 * @return {@link Map} containing cookies
+	 */
+	public Map<String, String> getCookies() {
+		return mCookies;
+	}
+
+	/**
+	 * Returns the headers that were included with the response.
+	 * 
+	 * @return {@link Map} containing headers
+	 */
+	public Map<String, String> getHeaders() {
+		return mHeaders;
+	}
+
+	/**
+	 * Sets the headers.
+	 * 
+	 * @param headers
+	 *            the {@link Map} containing the headers to set
+	 */
+	public void setHeaders(Map<String, String> headers) {
+		mHeaders = headers;
+		// TODO set cookies
+	}
+
+	/**
+	 * Adds the given header.
+	 * 
+	 * @param name
+	 *            the header name
+	 * @param value
+	 *            the header value
+	 */
+	public void addHeader(String name, String value) {
+		mHeaders.put(name, value);
+		// TODO set cookies
 	}
 
 }
