@@ -22,14 +22,17 @@ package com.clarionmedia.infinitum.rest;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.params.HttpParams;
+
 /**
  * <p>
  * Provides an interface for communicating with a RESTful web service.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 07/06/12
+ * @version 1.0 07/06/12
+ * @since 1.0
  */
 public interface RestfulClient {
 
@@ -82,7 +85,36 @@ public interface RestfulClient {
 	 * 
 	 * @return HTTP response
 	 */
-	RestResponse executePost(String uri, String messageBody, String contentType, Map<String, String> headers);
+	RestResponse executePost(String uri, String messageBody,
+			String contentType, Map<String, String> headers);
+
+	/**
+	 * Executes an HTTP POST request to the given URI using the given
+	 * {@link HttpEntity}.
+	 * 
+	 * @param uri
+	 *            the URI to execute the request for
+	 * @param httpEntity
+	 *            the {@code HttpEntity}
+	 * @return HTTP response
+	 */
+	RestResponse executePost(String uri, HttpEntity httpEntity);
+
+	/**
+	 * Executes an HTTP POST request to the given URI using the given
+	 * {@link HttpEntity} and headers.
+	 * 
+	 * @param uri
+	 *            the URI to execute the request for
+	 * @param httpEntity
+	 *            the {@code HttpEntity}
+	 * @param headers
+	 *            the headers to send with the request
+	 * 
+	 * @return HTTP response
+	 */
+	RestResponse executePost(String uri, HttpEntity httpEntity,
+			Map<String, String> headers);
 
 	/**
 	 * Executes an HTTP POST request to the given URI using the given content
@@ -98,7 +130,8 @@ public interface RestfulClient {
 	 *            the content type of the message body
 	 * @return HTTP response
 	 */
-	RestResponse executePost(String uri, InputStream messageBody, int messageBodyLength, String contentType);
+	RestResponse executePost(String uri, InputStream messageBody,
+			int messageBodyLength, String contentType);
 
 	/**
 	 * Executes an HTTP POST request to the given URI using the given content
@@ -116,7 +149,8 @@ public interface RestfulClient {
 	 *            the headers to send with the request
 	 * @return HTTP response
 	 */
-	RestResponse executePost(String uri, InputStream messageBody, int messageBodyLength, String contentType,
+	RestResponse executePost(String uri, InputStream messageBody,
+			int messageBodyLength, String contentType,
 			Map<String, String> headers);
 
 	/**
@@ -168,7 +202,36 @@ public interface RestfulClient {
 	 * 
 	 * @return HTTP response
 	 */
-	RestResponse executePut(String uri, String messageBody, String contentType, Map<String, String> headers);
+	RestResponse executePut(String uri, String messageBody, String contentType,
+			Map<String, String> headers);
+
+	/**
+	 * Executes an HTTP PUT request to the given URI using the given
+	 * {@link HttpEntity}.
+	 * 
+	 * @param uri
+	 *            the URI to execute the request for
+	 * @param httpEntity
+	 *            the {@code HttpEntity}
+	 * @return HTTP response
+	 */
+	RestResponse executePut(String uri, HttpEntity httpEntity);
+
+	/**
+	 * Executes an HTTP PUT request to the given URI using the given
+	 * {@link HttpEntity} and headers.
+	 * 
+	 * @param uri
+	 *            the URI to execute the request for
+	 * @param httpEntity
+	 *            the {@code HttpEntity}
+	 * @param headers
+	 *            the headers to send with the request
+	 * 
+	 * @return HTTP response
+	 */
+	RestResponse executePut(String uri, HttpEntity httpEntity,
+			Map<String, String> headers);
 
 	/**
 	 * Executes an HTTP PUT request to the given URI using the given content
@@ -184,7 +247,8 @@ public interface RestfulClient {
 	 *            the content type of the message body
 	 * @return HTTP response
 	 */
-	RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType);
+	RestResponse executePut(String uri, InputStream messageBody,
+			int messageBodyLength, String contentType);
 
 	/**
 	 * Executes an HTTP PUT request to the given URI using the given content
@@ -202,7 +266,8 @@ public interface RestfulClient {
 	 *            the headers to send with the request
 	 * @return HTTP response
 	 */
-	RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType,
+	RestResponse executePut(String uri, InputStream messageBody,
+			int messageBodyLength, String contentType,
 			Map<String, String> headers);
 
 	/**
@@ -223,5 +288,13 @@ public interface RestfulClient {
 	 *            the timeout to set in milliseconds
 	 */
 	void setResponseTimeout(int timeout);
+
+	/**
+	 * Sets the {@link HttpParams} for this {@code RestfulClient}.
+	 * 
+	 * @param httpParams
+	 *            the {@code HttpParams} to set
+	 */
+	void setHttpParams(HttpParams httpParams);
 
 }
