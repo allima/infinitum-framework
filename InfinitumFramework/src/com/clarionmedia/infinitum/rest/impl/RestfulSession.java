@@ -19,28 +19,17 @@
 
 package com.clarionmedia.infinitum.rest.impl;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
+import android.annotation.SuppressLint;
 import android.database.SQLException;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
@@ -55,6 +44,8 @@ import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.rest.RestResponse;
+import com.clarionmedia.infinitum.rest.RestfulClient;
 import com.clarionmedia.infinitum.rest.RestfulMapper;
 import com.clarionmedia.infinitum.rest.RestfulModelMap;
 
@@ -87,6 +78,7 @@ public abstract class RestfulSession implements Session {
 	protected int mCacheSize;
 	protected InfinitumContext mInfinitumContext;
 	protected RestfulContext mRestContext;
+	protected RestfulClient mRestClient;
 	
 	/**
 	 * Returns an instance of the given persistent model {@link Class} as
@@ -112,10 +104,13 @@ public abstract class RestfulSession implements Session {
 		return loadEntity(type, id);
 	}
 	
+	@SuppressLint("UseSparseArrays")
 	@Override
 	public Session open() throws SQLException {
 		mInfinitumContext = ContextFactory.newInstance().getContext();
 		mRestContext = mInfinitumContext.getRestfulConfiguration();
+		mRestClient = new BasicRestfulClient(mInfinitumContext);
+		mRestClient.setHttpParams(getHttpParams());
 		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
 		mHost = mRestContext.getRestHost();
 		if (!mHost.endsWith("/"))
@@ -222,59 +217,40 @@ public abstract class RestfulSession implements Session {
 	public long save(Object model) {
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending POST request to save entity");
-		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
-		HttpPost httpPost = new HttpPost(uri);
+		Map<String, String> headers = new HashMap<String, String>();
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			httpPost.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
+			headers.put(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
-		try {
-			httpPost.setEntity(modelMap.toHttpEntity());
-			HttpResponse response = httpClient.execute(httpPost);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), ENCODING));
-			StringBuilder s = new StringBuilder();
-			String ln;
-			while ((ln = reader.readLine()) != null)
-				s.append(ln);
-			// TODO Check response?
-			return 0;
-		} catch (UnsupportedEncodingException e) {
-			mLogger.error("Unable to encode entity", e);
+		RestResponse response = mRestClient.executePost(uri, modelMap.toHttpEntity(), headers);
+		if (response == null)
 			return -1;
-		} catch (ClientProtocolException e) {
-			mLogger.error("Unable to send POST request", e);
-			return -1;
-		} catch (IOException e) {
-			mLogger.error("Unable to read web service response", e);
-			return -1;
-		}
+		return response.getStatusCode() < 400 ? 0 : -1;
 	}
 
 	@Override
 	public boolean delete(Object model) {
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending DELETE request to delete entity");
-		HttpClient httpClient = new DefaultHttpClient();
 		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
 		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass()) + "/" + pk.toString();
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
-		HttpDelete httpDelete = new HttpDelete(uri);
+		Map<String, String> headers = new HashMap<String, String>();
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			httpDelete.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
-		HttpResponse response;
-		try {
-			response = httpClient.execute(httpDelete);
-			StatusLine statusLine = response.getStatusLine();
-			return statusLine.getStatusCode() == HttpStatus.SC_OK;
-		} catch (ClientProtocolException e) {
-			mLogger.error("Unable to send DELETE request", e);
+			headers.put(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
+		RestResponse response = mRestClient.executeDelete(uri, headers);
+		if (response == null)
 			return false;
-		} catch (IOException e) {
-			mLogger.error("Unable to send DELETE request", e);
-			return false;
+		switch (response.getStatusCode()) {
+			case HttpStatus.SC_OK:
+			case HttpStatus.SC_ACCEPTED:
+			case HttpStatus.SC_NO_CONTENT:
+				return true;
+			default:
+				return false;
 		}
 	}
 	
@@ -282,32 +258,19 @@ public abstract class RestfulSession implements Session {
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending PUT request to update entity");
-		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
-		HttpPut httpPut = new HttpPut(uri);
+		Map<String, String> headers = new HashMap<String, String>();
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			httpPut.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
+			headers.put(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
-		try {
-			httpPut.setEntity(modelMap.toHttpEntity());
-			HttpResponse response = httpClient.execute(httpPut);
-			StatusLine statusLine = response.getStatusLine();
-			switch (statusLine.getStatusCode()) {
-			case HttpStatus.SC_OK:
-				return true;
-			default:
-				return false;
-			}
-		} catch (UnsupportedEncodingException e) {
-			mLogger.error("Unable to encode entity", e);
-			return false;
-		} catch (ClientProtocolException e) {
-			mLogger.error("Unable to send PUT request", e);
-			return false;
-		} catch (IOException e) {
-			mLogger.error("Unable to send PUT request", e);
+		RestResponse response = mRestClient.executePut(uri, modelMap.toHttpEntity(), headers);
+		switch (response.getStatusCode()) {
+		case HttpStatus.SC_OK:
+		case HttpStatus.SC_NO_CONTENT:
+			return true;
+		default:
 			return false;
 		}
 	}
@@ -325,34 +288,21 @@ public abstract class RestfulSession implements Session {
 	public long saveOrUpdate(Object model) {
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending PUT request to save or update entity");
-		HttpClient httpClient = new DefaultHttpClient();
 		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
-		HttpPut httpPut = new HttpPut(uri);
+		Map<String, String> headers = new HashMap<String, String>();
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			httpPut.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
+			headers.put(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
-		try {
-			httpPut.setEntity(modelMap.toHttpEntity());
-			HttpResponse response = httpClient.execute(httpPut);
-			StatusLine statusLine = response.getStatusLine();
-			switch (statusLine.getStatusCode()) {
-			case HttpStatus.SC_CREATED:
-				return 1;
-			case HttpStatus.SC_OK:
-				return 0;
-			default:
-				return -1;
-			}
-		} catch (UnsupportedEncodingException e) {
-			mLogger.error("Unable to encode entity", e);
-			return -1;
-		} catch (ClientProtocolException e) {
-			mLogger.error("Unable to send PUT request", e);
-			return -1;
-		} catch (IOException e) {
-			mLogger.error("Unable to send PUT request", e);
+		RestResponse response = mRestClient.executePut(uri, modelMap.toHttpEntity(), headers);
+		switch (response.getStatusCode()) {
+		case HttpStatus.SC_CREATED:
+			return 1;
+		case HttpStatus.SC_OK:
+		case HttpStatus.SC_NO_CONTENT:
+			return 0;
+		default:
 			return -1;
 		}
 	}

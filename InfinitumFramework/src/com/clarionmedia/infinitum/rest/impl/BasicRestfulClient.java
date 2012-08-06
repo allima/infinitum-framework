@@ -56,8 +56,8 @@ import com.clarionmedia.infinitum.rest.RestfulClient;
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 07/04/12
+ * @version 1.0 07/04/12
+ * @since 1.0
  */
 public class BasicRestfulClient implements RestfulClient {
 
@@ -114,6 +114,25 @@ public class BasicRestfulClient implements RestfulClient {
 			mLogger.error("Unable to send POST request (could not encode message body)", e);
 			return null;
 		}
+		return executeRequest(httpPost);
+	}
+	
+	@Override
+	public RestResponse executePost(String uri, HttpEntity httpEntity) {
+		HttpPost httpPost = new HttpPost(uri);
+		httpPost.addHeader("content-type", httpEntity.getContentType().getValue());
+		httpPost.setEntity(httpEntity);
+		return executeRequest(httpPost);
+	}
+
+	@Override
+	public RestResponse executePost(String uri, HttpEntity httpEntity, Map<String, String> headers) {
+		HttpPost httpPost = new HttpPost(uri);
+		for (Entry<String, String> header : headers.entrySet()) {
+			httpPost.addHeader(header.getKey(), header.getValue());
+		}
+		httpPost.addHeader("content-type", httpEntity.getContentType().getValue());
+		httpPost.setEntity(httpEntity);
 		return executeRequest(httpPost);
 	}
 
@@ -179,6 +198,25 @@ public class BasicRestfulClient implements RestfulClient {
 		}
 		return executeRequest(httpPut);
 	}
+	
+	@Override
+	public RestResponse executePut(String uri, HttpEntity httpEntity) {
+		HttpPut httpPut = new HttpPut(uri);
+		httpPut.addHeader("content-type", httpEntity.getContentType().getValue());
+		httpPut.setEntity(httpEntity);
+		return executeRequest(httpPut);
+	}
+
+	@Override
+	public RestResponse executePut(String uri, HttpEntity httpEntity, Map<String, String> headers) {
+		HttpPut httpPut = new HttpPut(uri);
+		for (Entry<String, String> header : headers.entrySet()) {
+			httpPut.addHeader(header.getKey(), header.getValue());
+		}
+		httpPut.addHeader("content-type", httpEntity.getContentType().getValue());
+		httpPut.setEntity(httpEntity);
+		return executeRequest(httpPut);
+	}
 
 	@Override
 	public RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType) {
@@ -208,6 +246,11 @@ public class BasicRestfulClient implements RestfulClient {
 	@Override
 	public void setResponseTimeout(int timeout) {
 		HttpConnectionParams.setSoTimeout(mHttpParams, timeout);
+	}
+	
+	@Override
+	public void setHttpParams(HttpParams httpParams) {
+		mHttpParams = httpParams;
 	}
 
 	private RestResponse executeRequest(HttpUriRequest httpRequest) {

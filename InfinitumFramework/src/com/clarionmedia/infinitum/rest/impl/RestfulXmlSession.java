@@ -19,20 +19,11 @@
 
 package com.clarionmedia.infinitum.rest.impl;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.simpleframework.xml.core.Persister;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
@@ -40,6 +31,7 @@ import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.rest.Deserializer;
+import com.clarionmedia.infinitum.rest.RestResponse;
 import com.clarionmedia.infinitum.rest.XmlDeserializer;
 
 /**
@@ -70,25 +62,17 @@ public class RestfulXmlSession extends RestfulSession {
 	public <T> T loadEntity(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		Preconditions.checkPersistenceForLoading(type, mPersistencePolicy);
 		mLogger.debug("Sending GET request to retrieve entity");
-		HttpClient httpClient = new DefaultHttpClient(getHttpParams());
 		String uri = mHost + mPersistencePolicy.getRestEndpoint(type) + "/" + id;
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
-		HttpGet httpGet = new HttpGet(uri);
+		Map<String, String> headers = new HashMap<String, String>();
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			httpGet.addHeader(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
-		httpGet.addHeader("Accept", "application/xml");
+			headers.put(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
+		headers.put("Accept", "application/xml");
 		try {
-			HttpResponse response = httpClient.execute(httpGet);
-			StatusLine statusLine = response.getStatusLine();
-			if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
-				HttpEntity entity = response.getEntity();
-				if (entity == null)
-					return null;
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				entity.writeTo(out);
-				out.close();
-				String xmlResponse = out.toString();
+			RestResponse response = mRestClient.executeGet(uri, headers);
+			if (response.getStatusCode() == HttpStatus.SC_OK) {
+				String xmlResponse = response.getResponseDataAsString();
 				T ret = null;
 				if (mXmlDeserializers.containsKey(type))
 					ret = (T) mXmlDeserializers.get(type).deserializeObject(xmlResponse);
@@ -100,12 +84,6 @@ public class RestfulXmlSession extends RestfulSession {
 				}
 				return ret;
 			}
-		} catch (ClientProtocolException e) {
-			mLogger.error("Unable to send GET request", e);
-			return null;
-		} catch (IOException e) {
-			mLogger.error("Unable to read web service response", e);
-			return null;
 		} catch (Exception e) {
 			mLogger.error("Unable to read web service response", e);
 			return null;
