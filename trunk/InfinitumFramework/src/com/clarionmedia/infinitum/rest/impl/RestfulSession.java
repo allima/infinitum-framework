@@ -233,8 +233,7 @@ public abstract class RestfulSession implements Session {
 		try {
 			httpPost.setEntity(modelMap.toHttpEntity());
 			HttpResponse response = httpClient.execute(httpPost);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(),
-					ENCODING));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), ENCODING));
 			StringBuilder s = new StringBuilder();
 			String ln;
 			while ((ln = reader.readLine()) != null)

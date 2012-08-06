@@ -31,16 +31,25 @@ import java.lang.annotation.Target;
  * mapped to for a RESTful web service. If the annotation is not provided, the
  * {@code Field} is mapped to a field with the same name as the {@code Field}.
  * </p>
+ * <p>
+ * This is typically used for PUT/POST messages where the message body consists
+ * of name-value pairs which map the entity.
+ * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 03/25/12
+ * @version 1.0 03/25/12
+ * @since 1.0
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Rest {
 
+	/**
+	 * Declares the field name.
+	 * 
+	 * @return field name
+	 */
 	String value();
 
 }
