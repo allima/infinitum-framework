@@ -20,7 +20,7 @@ This user guide is designed to provide explanation for some of the various frame
 
 = ORM =
 
-The Infinitum ORM provides an object-oriented approach to application data persistence while factoring out the underlying database representation. It allows for the persistence of POJOs (Plain Old Java Objects) and offers an API for constructing and executing SQL-less database queries. The ORM's overall goal is to allow developers to spend more time focusing on their problem domain and core business logic and less time on underlying data-access and boilerplate code by providing a transparent persistence layer.
+The Infinitum ORM provides an object-oriented approach to application data persistence while factoring out the underlying datastore representation. It allows for the persistence of POJOs (Plain Old Java Objects) and offers an API for constructing and executing SQL-less database queries and object-oriented REST calls. The ORM's overall goal is to allow developers to spend more time focusing on their problem domain and core business logic and less time on underlying data-access and boilerplate code by providing a transparent persistence layer.
 
 == Persistence Layer ==
 
