@@ -38,7 +38,7 @@ The Infinitum ORM can be provided with metadata for an application's domain mode
 
 Metadata can come in two forms: XML map files and annotations. XML map files provide mapping information for domain classes while annotations provide the same information inline within the class.
 
-=== Annotations ===
+=== ORM Annotations ===
 
   * [Entity]: indicates the persistence state of a model.
   * [Table]:  indicates the name of a table an entity is mapped to.
@@ -76,7 +76,7 @@ The Infinitum RESTful client provides an extensible API for communicating with a
   * BeanFactoryPostProcessor: enables an `InfinitumContext` to have its `BeanFactory` modified after it has been configured.
   * BeanPostProcessor: allows for beans to be modified after they have been initialized by the container.
 
-== Annotations ==
+== DI Annotations ==
 
   * [Component]: indicates that the annotated class is a framework component, meaning it is a candidate for auto-detection.
   * [Bean]: specialization of the `Component` annotation indicating that the annotated class is a dependency-injection bean.
@@ -91,7 +91,7 @@ The Infinitum RESTful client provides an extensible API for communicating with a
   * JoinPoint: provides advice with contextual information about a join point.
   * ProceedingJoinPoint: provides support for _around_ advice.
 
-== Annotations ==
+== AOP Annotations ==
 
   * [Aspect]: separates cross-cutting concerns from core application code by providing pointcut advice.
   * [Before]: indicates that the annotated advice is to be executed before a join point is invoked.
