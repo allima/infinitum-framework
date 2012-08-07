@@ -26,7 +26,7 @@ public class Foobar {
 
 *mode:* indicates the entity's persistence mode, persistent or transient. By default, this attribute is set to persistent.
 
-*cascade:* indicates if the entity has cascading enabled. If it is, when its state is changed in the database, any entities related to it will also be updated. Cascade is enabled by default.
+*cascade:* indicates cascade mode for the entity, `all`, `none`, or `keys`. `All` means when the entity's state is changed in the database, all entities related to it will also be updated or persisted. `None` means no related entities will be updated or persisted, and `Keys` means only foreign keys will be updated or persisted. The `all` cascade mode is enabled by default.
 
 *lazy:* indicates if the entity has lazy loading enabled. If it is, related entities will be loaded dynamically when accessed. Lazy loading is enabled by default.
 
