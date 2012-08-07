@@ -8,22 +8,38 @@
 
 A `Session` represents the lifecycle of an Infinitum persistence service and acts as an interface to a configured application datastore. All database interaction should go through the `Session`, which also provides an API for creating [Criteria] instances.
 
+The `Session` interface has two primary implementations, [http://code.google.com/p/infinitum-framework/wiki/Session#SqliteSession SqliteSession] and [http://code.google.com/p/infinitum-framework/wiki/Session#RestfulSession RestfulSession]. The former is used to interact with a SQLite database, while the latter is used to communicate with a RESTful web service. Both are used to perform datastore CRUD operations using model objects. Note that, although both implement the same interface, some operations may not be supported by one or the other implementation. For instance, `SqliteSession` supports transactions, but `RestfulSession` has no notion of them.
+
 `Session` instances should be acquired from an InfinitumContext. When a `Session` is acquired, it must be opened before any transactions take place. Subsequently, it should also be closed to close the persistence service and clean up any resources.
 
 In order to keep track of transient and persistent entities, `Session` implements a `Session` cache. This cache can be configured to recycle automatically in order to reclaim memory in InfinitumCfgXml. The cache can also be explicitly recycled by invoking `recycleCache()` on the `Session`. Additionally, the cache size can be modified by calling `setCacheSize(int)`.
 
 = Acquiring a `Session` =
 
-The code below shows how a SQLite `Session` is acquired.
+The code below shows how a `SqliteSession` is acquired.
 
 {{{
 @Override
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    Session session = InfinitumContextFactory.getInstance().configure(this, R.raw.infinitum).getSession(DataSource.Sqlite);
+    Session session = ContextFactory.newInstance().configure(this).getSession(DataSource.Sqlite);
     session.open(); // open for transactions
     // database transactions
+    session.close(); // transactions may no longer be executed
+}
+}}}
+
+Likewise, a `RestfulSession` is acquired using its respective `DataSource`:
+
+{{{
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+    Session session = ContextFactory.newInstance().configure(this).getSession(DataSource.Rest);
+    session.open(); // open for transactions
+    // REST transactions
     session.close(); // transactions may no longer be executed
 }
 }}}
@@ -36,43 +52,6 @@ A `Session`'s configuration is pulled from an application's `InfinitumContext`; 
 session.setAutocommit(true);
 session.setCacheSize(500);
 }}}
-
-= Autocommit- and Transaction- based Sessions =
-
-An Infinitum `Session` can be configured to be in one of two modes: autocommit or transactional. In either case, `open()` must be invoked before database operations are made and `close()` invoked when a `Session` should be released. The difference between the two lies in how transactions are committed. With autocommit, transactions are committed implicitly as soon as they are executed. A transactional `Session` relies on transactions to handle commits explicitly, meaning a transaction must be opened within a `Session` and then explicitly committed. This method also allows for transactions to be rolled back. An example of both strategies is given below. Note that autocommit can be enabled or disabled in `infinitum.cfg.xml`, but is explicitly set in the examples to better illustrate what's going on.
-
-== Autocommit Example ==
-
-{{{
-session.setAutocommit(true);
-session.open();
-session.save(new Foo()); // Foo is persisted
-session.close();
-}}}
-
-== Transactional Example ==
-
-{{{
-session.setAutocommit(false);
-session.open();
-session.beginTransaction();
-session.save(new Foo());
-session.commit(); // Foo is persisted
-session.close();
-}}}
-
-To rollback a transaction, `rollback()` is invoked:
-
-{{{
-session.setAutocommit(false);
-session.open();
-session.beginTransaction();
-session.save(new Foo());
-session.rollback(); // Foo is NOT persisted
-session.close();
-}}}
-
-Transactions can be nested. When the outer transaction is ended all of the work done in that transaction and all of the nested transactions will be committed or rolled back.
 
 = Basic CRUD Operations =
 
@@ -142,21 +121,11 @@ session.close();
 
 The `Criteria` API can be used to execute more advanced queries.
 
-= Criteria Queries =
-
-Further supporting the notion of persistence transparency, `Session` provides access to a [Criteria] API which is used to construct object-oriented database queries, removing the need for SQL. `Criteria` queries are used to query for a particular persistent class, and they allow for compile-time type checking, which means no casting is necessary. The code below details how to create a `Criteria` and execute a simple query for a domain object `Foo` by one of its fields `mId`.
-
-== Criteria Query Example ==
-
-{{{
-session.open();
-Foo foo = session.createCriteria(Foo.class).add(Conditions.eq("mId", 42)).unique();
-session.close();
-}}}
-
 = Registering `TypeAdapters` =
 
-In order to provide ORM support for unknown data types, Infinitum uses what's called a TypeAdapter. A `TypeAdapter` can be registered with a `Session` for a certain class, allowing fields of that class to be mapped to a database table or web service model.  Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. The example below, although slightly contrived, shows how a [http://joda-time.sourceforge.net/ JodaTime] `DateTime` object might be mapped to a SQLite column and vice versa using a `TypeAdapter`.
+In order to provide ORM support for unknown data types, Infinitum uses a TypeAdapter. A `TypeAdapter` can be registered with a `Session` for a certain class, allowing fields of that class to be mapped to a database table or web service model. There are various derivatives of the `TypeAdapter` interface in order to accommodate ORM support for SQLite and web services, such as [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#SqliteTypeAdapter SqliteTypeAdapter], [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulPairsTypeAdapter RestfulPairsTypeAdapter], [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulJsonTypeAdapter RestfulJsonTypeAdapter], and [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulXmlTypeAdapter RestfulXmlTypeAdapter].
+
+Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. The example below, although slightly contrived, shows how a [http://joda-time.sourceforge.net/ JodaTime] `DateTime` object might be mapped to a SQLite column and vice versa using a `SqliteTypeAdapter`.
 
 == `TypeAdapter` Example ==
 
@@ -180,3 +149,69 @@ session.registerTypeAdapter(DateTime.class, new SqliteTypeAdapter<DateTime>(Sqli
     }
 });
 }}}
+
+= !SqliteSession =
+
+`SqliteSession` is an implementation of the [Session] interface for interacting with a SQLite database. Among other things, it provides support for transactions, autocommit, and [Criteria] queries.
+
+== Criteria Queries ==
+
+Further supporting the notion of persistence transparency, `SqliteSession` provides supoort for a Criteria API which is used to construct object-oriented database queries, removing the need for SQL. `Criteria` queries are used to query for a particular persistent class, and they allow for compile-time type checking, which means no casting is necessary. The code below details how to create a `Criteria` and execute a simple query for a domain object `Foo` by one of its fields `mId`.
+
+=== Criteria Query Example ===
+
+{{{
+session.open();
+Foo foo = session.createCriteria(Foo.class).add(Conditions.eq("mId", 42)).unique();
+session.close();
+}}}
+
+== Raw Queries ==
+
+`SqliteSession` also provides API support for executing raw SQL queries. The `execute` method can be used to execute SQL non-queries, i.e. queries that do not return a result.
+
+{{{
+session.execute("delete from foo");
+}}}
+
+
+== Autocommit- and Transaction- based Sessions ==
+
+An Infinitum `Session` can be configured to be in one of two modes: autocommit or transactional (`RestfulSession` does not support transactions). In either case, `open()` must be invoked before database operations are made and `close()` invoked when a `Session` should be released. The difference between the two lies in how transactions are committed. With autocommit, transactions are committed implicitly as soon as they are executed. A transactional `Session` relies on transactions to handle commits explicitly, meaning a transaction must be opened within a `Session` and then explicitly committed. This method also allows for transactions to be rolled back. An example of both strategies is given below. Note that autocommit can be enabled or disabled in `infinitum.cfg.xml`, but is explicitly set in the examples to better illustrate what's going on.
+
+=== Autocommit Example ===
+
+{{{
+session.setAutocommit(true);
+session.open();
+session.save(new Foo()); // Foo is persisted
+session.close();
+}}}
+
+=== Transactional Example ===
+
+{{{
+session.setAutocommit(false);
+session.open();
+session.beginTransaction();
+session.save(new Foo());
+session.commit(); // Foo is persisted
+session.close();
+}}}
+
+To rollback a transaction, `rollback()` is invoked:
+
+{{{
+session.setAutocommit(false);
+session.open();
+session.beginTransaction();
+session.save(new Foo());
+session.rollback(); // Foo is NOT persisted
+session.close();
+}}}
+
+Transactions can be nested. When the outer transaction is ended all of the work done in that transaction and all of the nested transactions will be committed or rolled back.
+
+= !RestfulSession =
+
+TODO
