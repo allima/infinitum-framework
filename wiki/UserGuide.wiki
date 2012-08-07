@@ -82,6 +82,9 @@ The Infinitum RESTful client provides an extensible API for communicating with a
   * [Bean]: specialization of the `Component` annotation indicating that the annotated class is a dependency-injection bean.
   * [Autowired]: indicates that the annotated constructor, setter, or field is to be injected by the framework.
   * PostConstruct: indicates that the annotated method is to be invoked after dependency injection.
+  * InjectLayout: indicates that the annotated `Activity` is to be injected with a layout by the framework.
+  * InjectView: indicates that the given field is to be injected with a view by the framework.
+  * InjectResource: indicates that the given field is to be injected with a resource by the framework.
 
 = AOP =
 
