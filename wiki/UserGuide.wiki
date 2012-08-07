@@ -32,6 +32,11 @@ The ORM's user-facing API is actually relatively small. All data transactions ar
   * [Conditions]: provides static factory methods for creating `Criterion`.
   * TypeAdapter: facilitates the mapping of datastore values to Java data types and vice versa.
 
+=== Session Implementations ===
+
+  * SqliteSession: persistence service for SQLite databases.
+  * RestfulSession: persistence service for RESTful web services.
+
 == Domain Model Metadata ==
 
 The Infinitum ORM can be provided with metadata for an application's domain model in order to configure some of its behavior. For example, a class can be marked transient or persistent, a model can be mapped to a specific table, or a field can be mapped to a specific column. Of course, following the principle of convention-over-configuration, this metadata is not required as Infinitum can infer it itself.
@@ -60,7 +65,7 @@ Metadata can come in two forms: XML map files and annotations. XML map files pro
 = RESTful Client =
 
 The Infinitum RESTful client provides an extensible API for communicating with a RESTful web service using objects.
-
+ 
   * RestfulClient: provides an API for communicating with a RESTful web service.
   * RestfulModelClient: provides an API for communicating with a RESTful web service using domain objects.
   * RestfulModelClientBuilder: provides methods for configuring and constructing new `RestfulModelClient` instances.
