@@ -110,15 +110,15 @@ TypeAdapter<DateTime> adapter = new RestfulPairsTypeAdapter<DateTime>() {
 };
 }}}
 
-= RestfulJsonTypeAdapter =
+= !RestfulJsonTypeAdapter =
 
 TODO
 
-= RestfulXmlTypeAdapter =
+= !RestfulXmlTypeAdapter =
 
 TODO
 
-= Registering `TypeAdapters` =
+= Registering !TypeAdapters =
 
 A `TypeAdapter` is registered with a [Session] for a certain class, allowing fields of that class to be mapped to a database table or web service model.  Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. Continuing again with the `TypeAdapter` example for `DateTime`, an example of creating and registering a `SqliteTypeAdapter` with a `Session` is given below.
 
