@@ -14,7 +14,7 @@ The `Session` interface has two primary implementations, [http://code.google.com
 
 In order to keep track of transient and persistent entities, `Session` implements a `Session` cache. This cache can be configured to recycle automatically in order to reclaim memory in InfinitumCfgXml. The cache can also be explicitly recycled by invoking `recycleCache()` on the `Session`. Additionally, the cache size can be modified by calling `setCacheSize(int)`.
 
-= Acquiring a `Session` =
+= Acquiring a Session =
 
 The code below shows how a `SqliteSession` is acquired.
 
@@ -121,7 +121,7 @@ session.close();
 
 The `Criteria` API can be used to execute more advanced queries.
 
-= Registering `TypeAdapters` =
+= Registering !TypeAdapters =
 
 In order to provide ORM support for unknown data types, Infinitum uses a TypeAdapter. A `TypeAdapter` can be registered with a `Session` for a certain class, allowing fields of that class to be mapped to a database table or web service model. There are various derivatives of the `TypeAdapter` interface in order to accommodate ORM support for SQLite and web services, such as [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#SqliteTypeAdapter SqliteTypeAdapter], [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulPairsTypeAdapter RestfulPairsTypeAdapter], [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulJsonTypeAdapter RestfulJsonTypeAdapter], and [http://code.google.com/p/infinitum-framework/wiki/TypeAdapter#RestfulXmlTypeAdapter RestfulXmlTypeAdapter].
 
