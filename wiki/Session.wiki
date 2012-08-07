@@ -127,7 +127,7 @@ In order to provide ORM support for unknown data types, Infinitum uses a TypeAda
 
 Registering a `TypeAdapter` for a class which already has a `TypeAdapter` registered for it will result in the previous `TypeAdapter` being overridden. The example below, although slightly contrived, shows how a [http://joda-time.sourceforge.net/ JodaTime] `DateTime` object might be mapped to a SQLite column and vice versa using a `SqliteTypeAdapter`.
 
-== `TypeAdapter` Example ==
+== !TypeAdapter Example ==
 
 {{{
 // Store DateTimes as strings
