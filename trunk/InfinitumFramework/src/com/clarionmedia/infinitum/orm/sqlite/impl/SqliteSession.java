@@ -21,16 +21,15 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.internal.LruCache;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
@@ -84,12 +83,11 @@ public class SqliteSession implements Session {
 	 *            the maximum number of {@code Objects} the {@code Session}
 	 *            cache can store
 	 */
-	@SuppressLint("UseSparseArrays")
 	public SqliteSession(InfinitumContext context, int cacheSize) {
 		mLogger = Logger.getInstance(context, getClass().getSimpleName());
 		mInfinitumContext = context;
 		mSqlite = new SqliteTemplate(this);
-		mSessionCache = new HashMap<Integer, Object>(cacheSize);
+		mSessionCache = new LruCache<Integer, Object>(cacheSize);
 		mPolicy = context.getPersistencePolicy();
 		mCacheSize = cacheSize;
 	}
@@ -146,7 +144,6 @@ public class SqliteSession implements Session {
 		long id = mSqlite.save(model);
 		if (id != -1) {
 			// Add to session cache
-			reconcileCache();
 			int hash = mPolicy.computeModelHash(model);
 			mSessionCache.put(hash, model);
 		}
@@ -180,7 +177,6 @@ public class SqliteSession implements Session {
 		long id = mSqlite.saveOrUpdate(model);
 		if (id >= 0) {
 			// Update session cache
-			reconcileCache();
 			int hash = mPolicy.computeModelHash(model);
 			mSessionCache.put(hash, model);
 		}
@@ -190,7 +186,6 @@ public class SqliteSession implements Session {
 	@Override
 	public int saveOrUpdateAll(Collection<? extends Object> models)
 			throws InfinitumRuntimeException {
-		reconcileCache();
 		int count = 0;
 		for (Object model : models) {
 			if (mSqlite.saveOrUpdate(model) >= 0) {
@@ -206,7 +201,6 @@ public class SqliteSession implements Session {
 	@Override
 	public int saveAll(Collection<? extends Object> models)
 			throws InfinitumRuntimeException {
-		reconcileCache();
 		int count = 0;
 		for (Object model : models) {
 			if (mSqlite.save(model) > 0) {
@@ -239,7 +233,7 @@ public class SqliteSession implements Session {
 	public <T> T load(Class<T> c, Serializable id)
 			throws InfinitumRuntimeException, IllegalArgumentException {
 		int hash = mPolicy.computeModelHash(c, id);
-		if (mSessionCache.containsKey(hash))
+		if (checkCache(hash))
 			return (T) mSessionCache.get(hash);
 		return mSqlite.load(c, id);
 	}
@@ -369,22 +363,6 @@ public class SqliteSession implements Session {
 	 */
 	public Context getContext() {
 		return mInfinitumContext.getAndroidContext();
-	}
-
-	/**
-	 * Recycles the {@code Session} cache if {@code infinitum.cfg.xml} has
-	 * {@code recycleCache} set to {@code true}, otherwise has no effect. This
-	 * allows the {@code Session} cache to be recycled automatically when
-	 * needed. The cache can be manually recycled by calling
-	 * {@link SqliteSession#recycleCache()}, which will reclaim it regardless of
-	 * how Infinitum is configured. The cache will be reclaimed if its current
-	 * size equals or exceeds the maximum cache size.
-	 */
-	public void reconcileCache() {
-		if (!mInfinitumContext.isCacheRecyclable())
-			return;
-		if (mSessionCache.size() >= mCacheSize)
-			recycleCache();
 	}
 
 	/**

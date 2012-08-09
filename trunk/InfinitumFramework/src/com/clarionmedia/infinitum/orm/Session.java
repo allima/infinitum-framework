@@ -65,7 +65,10 @@ import com.clarionmedia.infinitum.rest.Deserializer;
  */
 public interface Session {
 	
-	public static final int DEFAULT_CACHE_SIZE = 500;
+	/**
+	 * The default number of cache entries before eviction occurs.
+	 */
+	public static final int DEFAULT_CACHE_SIZE = 100;
 
 	/**
 	 * Opens the {@code Session} for transactions.

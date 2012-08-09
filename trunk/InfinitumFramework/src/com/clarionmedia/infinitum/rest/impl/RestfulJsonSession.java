@@ -48,7 +48,7 @@ public class RestfulJsonSession extends RestfulSession {
 	protected Map<Class<?>, JsonDeserializer<?>> mJsonDeserializers;
 
 	/**
-	 * Constructs a new {@code RestfulJsonSession}.
+	 * Creates a new {@code RestfulJsonSession}.
 	 */
 	public RestfulJsonSession() {
 		mJsonDeserializers = new HashMap<Class<?>, JsonDeserializer<?>>();
@@ -59,12 +59,14 @@ public class RestfulJsonSession extends RestfulSession {
 	public <T> T loadEntity(Class<T> type, Serializable id)
 			throws InfinitumRuntimeException, IllegalArgumentException {
 		mLogger.debug("Sending GET request to retrieve entity");
-		String uri = mHost + mPersistencePolicy.getRestEndpoint(type) + "/" + id;
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(type) + "/"
+				+ id;
 		if (mIsAuthenticated && !mAuthStrategy.isHeader())
 			uri += '?' + mAuthStrategy.getAuthenticationString();
 		Map<String, String> headers = new HashMap<String, String>();
 		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			headers.put(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
+			headers.put(mAuthStrategy.getAuthenticationKey(),
+					mAuthStrategy.getAuthenticationValue());
 		headers.put("Accept", "application/json");
 		try {
 			RestResponse response = mRestClient.executeGet(uri, headers);
@@ -73,10 +75,11 @@ public class RestfulJsonSession extends RestfulSession {
 				T ret;
 				// Attempt to use a registered deserializer
 				if (mJsonDeserializers.containsKey(type))
-					ret = (T) mJsonDeserializers.get(type).deserializeObject(jsonResponse);
+					ret = (T) mJsonDeserializers.get(type).deserializeObject(
+							jsonResponse);
 				// Otherwise fallback to Gson
 				else
-				    ret = new Gson().fromJson(jsonResponse, type);
+					ret = new Gson().fromJson(jsonResponse, type);
 				int objHash = mPersistencePolicy.computeModelHash(ret);
 				cache(objHash, ret);
 				return ret;

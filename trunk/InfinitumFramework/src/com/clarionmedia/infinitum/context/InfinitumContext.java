@@ -224,28 +224,6 @@ public interface InfinitumContext {
 	void addDomainModel(String domainModel);
 
 	/**
-	 * Sets the value indicating if the {@link Session} cache should be
-	 * automatically recycled. This value can be enabled in
-	 * {@code infinitum.cfg.xml} with
-	 * {@code <property name="recycleCache">true</property>} in the
-	 * {@code application} element.
-	 * 
-	 * @param recycleCache
-	 *            {@code true} if the cache should be recycled automatically,
-	 *            {@code false} if not
-	 */
-	void setCacheRecyclable(boolean recycleCache);
-
-	/**
-	 * Indicates if the {@link Session} cache is configured to be automatically
-	 * recycled or not.
-	 * 
-	 * @return {@code true} if the cache is set to automatically recycle,
-	 *         {@code false} if not
-	 */
-	boolean isCacheRecyclable();
-
-	/**
 	 * Sets the value indicating if the database schema should be generated
 	 * automatically by the framework.
 	 * 

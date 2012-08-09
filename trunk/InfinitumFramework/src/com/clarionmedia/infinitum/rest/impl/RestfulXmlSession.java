@@ -48,7 +48,7 @@ public class RestfulXmlSession extends RestfulSession {
 	protected Map<Class<?>, XmlDeserializer<?>> mXmlDeserializers;
 
 	/**
-	 * Constructs a new {@code RestfulXmlSession}.
+	 * Creates a new {@code RestfulXmlSession}.
 	 */
 	public RestfulXmlSession() {
 		mXmlDeserializers = new HashMap<Class<?>, XmlDeserializer<?>>();

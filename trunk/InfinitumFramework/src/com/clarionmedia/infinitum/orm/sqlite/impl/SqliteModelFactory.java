@@ -83,7 +83,6 @@ public class SqliteModelFactory implements ModelFactory {
 	public <T> T createFromResult(ResultSet result, Class<T> modelClass) {
 		if (!(result instanceof SqliteResult))
 			throw new IllegalArgumentException("SqliteModelFactory can only process SqliteResults.");
-		mSession.reconcileCache();
 		return createFromCursorRec(((SqliteResult) result).getCursor(), modelClass);
 	}
 	
@@ -106,7 +105,6 @@ public class SqliteModelFactory implements ModelFactory {
 	 *             if the model could not be instantiated
 	 */
 	public <T> T createFromCursor(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException, InfinitumRuntimeException {
-		mSession.reconcileCache();
 		return createFromCursorRec(cursor, modelClass);
 	}
 
