@@ -107,7 +107,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized List<Field> getPersistentFields(Class<?> c) {
+	public List<Field> getPersistentFields(Class<?> c) {
 		if (mPersistenceCache.containsKey(c))
 			return mPersistenceCache.get(c);
 		List<Field> ret = new ArrayList<Field>();
@@ -127,7 +127,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized Field getPrimaryKeyField(Class<?> c)
+	public Field getPrimaryKeyField(Class<?> c)
 			throws ModelConfigurationException {
 		if (mPrimaryKeyCache.containsKey(c))
 			return mPrimaryKeyCache.get(c);
@@ -159,7 +159,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized String getFieldColumnName(Field f) {
+	public String getFieldColumnName(Field f) {
 		if (mColumnCache.containsKey(f))
 			return mColumnCache.get(f);
 		String ret;
@@ -207,7 +207,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized boolean isFieldNullable(Field f) {
+	public boolean isFieldNullable(Field f) {
 		if (mFieldNullableCache.containsKey(f))
 			return mFieldNullableCache.get(f);
 		boolean ret;
@@ -217,7 +217,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized boolean isFieldUnique(Field f) {
+	public boolean isFieldUnique(Field f) {
 		if (mFieldUniqueCache.containsKey(f))
 			return mFieldUniqueCache.get(f);
 		if (f.isAnnotationPresent(OneToOne.class)) {
@@ -233,7 +233,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized Set<ManyToManyRelationship> getManyToManyRelationships(
+	public Set<ManyToManyRelationship> getManyToManyRelationships(
 			Class<?> c) {
 		if (!isPersistent(c))
 			throw new IllegalArgumentException("Class '" + c.getName()
@@ -333,7 +333,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized boolean isLazy(Class<?> c) {
+	public boolean isLazy(Class<?> c) {
 		if (mLazyLoadingCache.containsKey(c))
 			return mLazyLoadingCache.get(c);
 		boolean ret;
@@ -348,7 +348,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized String getRestEndpoint(Class<?> c)
+	public String getRestEndpoint(Class<?> c)
 			throws IllegalArgumentException {
 		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException();
@@ -368,7 +368,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	}
 
 	@Override
-	public synchronized String getEndpointFieldName(Field f)
+	public String getEndpointFieldName(Field f)
 			throws IllegalArgumentException {
 		if (!isPersistent(f.getDeclaringClass())
 				|| !mTypePolicy.isDomainModel(f.getDeclaringClass()))
