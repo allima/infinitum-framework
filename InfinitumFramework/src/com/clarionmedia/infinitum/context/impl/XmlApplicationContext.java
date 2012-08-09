@@ -146,19 +146,6 @@ public class XmlApplicationContext extends AbstractContext {
 	}
 
 	@Override
-	public void setCacheRecyclable(boolean recycleCache) {
-		mAppConfig.put("recycleCache", Boolean.toString(recycleCache));
-	}
-
-	@Override
-	public boolean isCacheRecyclable() {
-		String recycleCache = mAppConfig.get("recycleCache");
-		if (recycleCache == null)
-			return true;
-		return Boolean.parseBoolean(recycleCache);
-	}
-
-	@Override
 	public void setSchemaGenerated(boolean isSchemaGenerated) {
 		mSqliteConfig.put("generateSchema", Boolean.toString(isSchemaGenerated));
 	}

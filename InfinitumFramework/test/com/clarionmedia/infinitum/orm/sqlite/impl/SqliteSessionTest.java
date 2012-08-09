@@ -183,7 +183,6 @@ public class SqliteSessionTest {
 		
 		// Verify
 		verify(mockSqliteTemplate).save(foo);
-		verify(mockInfinitumContext).isCacheRecyclable();
 		verify(mockPersistencePolicy).computeModelHash(foo);
 		verify(mockSessionCache).put(FOO_MODEL_HASH, foo);
 		assertEquals("Returned ID should be equal to the model ID", FOO_MODEL_ID, actualId);
@@ -681,47 +680,6 @@ public class SqliteSessionTest {
 		// Verify
 		verify(mockSessionCache).get(FOO_MODEL_HASH);
 		assertEquals("Cached object ID should be the same as the expected object ID", foo.id, actual.id);
-	}
-	
-	@Test
-	public void testReconcileCache_nonRecyclable() {
-		// Setup
-		when(mockInfinitumContext.isCacheRecyclable()).thenReturn(false);
-		
-		// Run
-		sqliteSession.reconcileCache();
-		
-		// Verify
-		verify(mockSessionCache, times(0)).size();
-		verify(mockSessionCache, times(0)).clear();
-	}
-	
-	@Test
-	public void testReconcileCache_recyclable_nonReclaimable() {
-		// Setup
-		when(mockInfinitumContext.isCacheRecyclable()).thenReturn(true);
-		when(mockSessionCache.size()).thenReturn(Session.DEFAULT_CACHE_SIZE - 10);
-		
-		// Run
-		sqliteSession.reconcileCache();
-		
-		// Verify
-		verify(mockSessionCache).size();
-		verify(mockSessionCache, times(0)).clear();
-	}
-	
-	@Test
-	public void testReconcileCache_recyclable_reclaimable() {
-		// Setup
-		when(mockInfinitumContext.isCacheRecyclable()).thenReturn(true);
-		when(mockSessionCache.size()).thenReturn(Session.DEFAULT_CACHE_SIZE);
-		
-		// Run
-		sqliteSession.reconcileCache();
-		
-		// Verify
-		verify(mockSessionCache).size();
-		verify(mockSessionCache).clear();
 	}
 	
 	@Test
