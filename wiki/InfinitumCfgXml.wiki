@@ -10,13 +10,11 @@ Although Infinitum fosters the convention-over-configuration principle, it _does
 
 = Application Configuration =
 
-Infinitum has a number of optional application-wide properties which can be configured. They include: debug, object-relational mapping mode, and session cache recycling.
+Infinitum has two optional application-wide properties which can be configured: debug and object-relational mapping mode.
 
 Enabling debug will prompt Infinitum to print log messages using Logcat. It's recommended that this be disabled for production environments. If this property is omitted, debug will be disabled by default.
 
 The object-relational mapping mode indicates how the Infinitum ORM will be configured. Domain objects require some metadata for database mapping, which can come in the form of annotations or XML map files. By default, annotations are assumed.
-
-The Infinitum ORM makes use of a session cache such that persistent entities are attached to a session, allowing for speedier retrieval and minimizing database queries. The cache size can be configured, but in sessions where many objects are retrieved, it can become full. The cache can be configured to recycle automatically when this occurs (note that it can also be manually recycled) by enabling the recycle cache property. It _will_ recycle automatically if not explicitly declared to do so, so this property need be included only if it is to be disabled.
 
 == Application Configuration Example ==
 
@@ -24,7 +22,6 @@ The Infinitum ORM makes use of a session cache such that persistent entities are
 <application>
     <property name="debug">true</property> <!-- [true | false] -->
     <property name="mode">annotations</property> <!-- [annotations | xml] -->
-    <property name="recycleCache">false</property> <!-- [true | false] -->
 </application>
 }}}
 
