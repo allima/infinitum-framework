@@ -12,7 +12,7 @@ The `Session` interface has two primary implementations, [http://code.google.com
 
 `Session` instances should be acquired from an InfinitumContext. When a `Session` is acquired, it must be opened before any transactions take place. Subsequently, it should also be closed to close the persistence service and clean up any resources.
 
-In order to keep track of transient and persistent entities, `Session` implements a `Session` cache. This cache can be configured to recycle automatically in order to reclaim memory in InfinitumCfgXml. The cache can also be explicitly recycled by invoking `recycleCache()` on the `Session`. Additionally, the cache size can be modified by calling `setCacheSize(int)`.
+In order to keep track of transient and persistent entities as well as minimize unnecessary datastore calls, `Session` implements a `Session` cache. This is implemented as a least-recently-used cache, meaning whenever the cache reaches its maximum capacity, the least-recently-used object will be evicted. If memory is critical, the cache can be explicitly recycled by invoking `recycleCache()` on the `Session`, which will evict all entries. Additionally, the cache size can be modified by calling `setCacheSize(int)`. It's worth noting that the `Session` cache's lifecycle spans the `Session` scope. This means that the cache is cleared when the `Session` closes.
 
 = Acquiring a Session =
 
