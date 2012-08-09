@@ -145,7 +145,6 @@ All of the components discussed above are used to compose the `infinitum.cfg.xml
     <application>
         <property name="debug">true</property> <!-- [true | false] -->
         <property name="mode">annotations</property> <!-- [annotations | xml] -->
-        <property name="recycleCache">false</property> <!-- [true | false] -->
     </application>
 
     <domain>
