@@ -82,7 +82,7 @@ public class SqliteBuilder implements SqlBuilder {
 			throws ModelConfigurationException, InfinitumConfigurationException {
 		int count = 0;
 		SQLiteDatabase db = dbHelper.getDatabase();
-		for (String m : dbHelper.getInfinitumContext().getDomainModels()) {
+		for (String m : dbHelper.getInfinitumContext().getDomainTypes()) {
 			Class<?> c = mPackageReflector.getClass(m);
 			if (c == null)
 				throw new InfinitumConfigurationException("No such class '" + m
@@ -109,7 +109,7 @@ public class SqliteBuilder implements SqlBuilder {
 	public int dropTables(SqliteDbHelper dbHelper) {
 		int count = 0;
 		SQLiteDatabase db = dbHelper.getDatabase();
-		for (String m : dbHelper.getInfinitumContext().getDomainModels()) {
+		for (String m : dbHelper.getInfinitumContext().getDomainTypes()) {
 			Class<?> c = mPackageReflector.getClass(m);
 			if (c == null)
 				throw new InfinitumConfigurationException("No such class '" + m
