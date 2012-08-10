@@ -20,8 +20,8 @@ Of course, if your application has a lot of logging calls, removing them or comm
 
 = Acquiring a `Logger` =
 
-A `Logger` instance is acquired using a static factory method on the `Logger` class called `getInstance`, which takes a logging tag as an argument.
+A `Logger` instance is acquired using a static factory method on the `Logger` class called `getInstance`, which takes an InfinitumContext and  logging tag as arguments.
 
 {{{
-Logger logger = Logger.getInstance("My Logger");
+Logger logger = Logger.getInstance(context, "My Logger");
 }}}
