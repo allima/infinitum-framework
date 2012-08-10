@@ -214,4 +214,35 @@ Transactions can be nested. When the outer transaction is ended all of the work 
 
 = !RestfulSession =
 
-TODO
+`RestfulSession` is another implementation of the `Session` interface, providing an API for communicating with a RESTful web service using domain objects. `RestfulSession` differs from RestfulClient in that it uses domain objects to communicate with a web service and is integrated into the ORM just like `SqliteSession`, while `RestfulClient` must be provided with RESTful URIs and request data. `RestfulSession` is geared towards communicating with a repository web service, and `RestfulClient` is designed to simplify communication with any RESTful service in general, external API or otherwise. As with `SqliteSession`, the `RestfulSession` must be configured in [http://code.google.com/p/infinitum-framework/wiki/InfinitumCfgXml#RESTful_Configuration InfinitumCfgXml].
+
+Infinitum provides two implementations of `RestfulSession` called `RestfulJsonSession` and `RestfulXmlSession`, which can be extended or re-implemented for specific business needs. In order to remove implementation dependency from code, the `RestfulSession` implementation can be specified in `infinitum.cfg.xml` by referencing a bean which extends `RestfulSession`. This `Session` implementation is then acquired from the `InfinitumContext` as usual.
+
+{{{
+<rest ref="restClient">
+...
+</rest>
+
+<beans>
+    <bean id="restClient" src="com.example.rest.MyRestfulSession" />
+</beans>
+}}}
+
+If no implementation is referenced in the configuration, `InfinitumContext` will use the framework's `RestfulJsonSession`.
+
+== Deserializers ==
+
+The `Session` interface exposes the method `registerDeserializer`, which `RestfulSession` makes use of. Deserializers are used to tell the framework how to interpret web service responses. Two implementations of the interface exist, JsonDeserializer and XmlDeserializer.
+
+{{{
+RestfulSession restSession = context.getSession(DataSource.Rest).registerDeserializer(Foo.class, new JsonDeserializer<Foo>() {
+    @Override
+    public Bar deserializeObject(String json) {
+        // deserialization logic
+    }
+    @Override
+    public List<Foo> deserializeObjects(String json) {
+        // deserialization logic
+    }
+});
+}}}
