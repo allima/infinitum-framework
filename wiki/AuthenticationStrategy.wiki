@@ -12,7 +12,7 @@ In order to support communication with web services which require some sort of r
 
 = Specifying an `AuthenticationStrategy` =
 
-An `AuthenticationStrategy` can be specified for a RestfulModelClient in InfinitumCfgXml using one of two ways. One of Infinitum's built-in strategies, such as `SharedSecretAuthentication`, can be specified using the following:
+An `AuthenticationStrategy` can be specified for a RestfulSession in InfinitumCfgXml using one of two ways. One of Infinitum's built-in strategies, such as `SharedSecretAuthentication`, can be specified using the following:
 
 {{{
 <rest>
