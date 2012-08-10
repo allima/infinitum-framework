@@ -6,7 +6,7 @@
 
 = Introduction =
 
-`JsonDeserializer` provides an API for deserializing JSON into domain model entities. A `JsonDeserializer` is registered with a RestfulClient for a particular model class, and it requires two methods to be implemented: `deserializeObject` and `deserializeObjects`. Both methods take a JSON string as an argument, while the former returns a single domain object and the latter returns a list of objects. Thus, the JSON that is passed to `deserializeObject` will consist of a single object, and the JSON passed to `deserializeObjects` will consist of a collection of objects (as a JSON array).
+`JsonDeserializer` provides an API for deserializing JSON into domain model entities. A `JsonDeserializer` is registered with a [http://code.google.com/p/infinitum-framework/wiki/Session#RestfulSession RestfulSession] for a particular model class, and it requires two methods to be implemented: `deserializeObject` and `deserializeObjects`. Both methods take a JSON string as an argument, while the former returns a single domain object and the latter returns a list of objects. Thus, the JSON that is passed to `deserializeObject` will consist of a single object, and the JSON passed to `deserializeObjects` will consist of a collection of objects (as a JSON array).
 
 `JsonDeserializers` are useful because they tell the framework how to interpret the JSON responses received from a RESTful web service. And since web services can come in many different shapes and sizes (e.g. the JSON formatting used by web service A may differ slightly from that of web service B), it's important to provide a means to accommodate this. Below is a more concrete example of this.
 
@@ -62,16 +62,10 @@ public class FooDeserializer extends JsonDeserializer<Foo> {
 
 = Registering a `JsonDeserializer` =
 
-`RestfulClient` has a method `registerDeserializer`, which can register a `JsonDeserializer` for a given class.
+The [Session] interface exposes a method `registerDeserializer`, which can register a `JsonDeserializer` for a given class. However, only the `RestfulSession` implementation makes use of deserializers.
 
 {{{
-rest.registerDeserializer(Foo.class, new FooDeserializer());
+restSession.registerDeserializer(Foo.class, new FooDeserializer());
 }}}
 
-RestfulClientBuilder also has this method, allowing a `RestfulClient` to be fully configured before it's constructed.
-
-{{{
-RestfulClient rest = new RestfulClientFactory().registerDeserializer(Foo.class, new FooDeserializer()).build();
-}}}
-
-Once a `JsonDeserializer` has been registered with a `RestfulClient` for a particular class, its serialization methods will be used to interpret responses from the web service. If no deserializer is registered for a class, the framework will attempt to convert responses to objects using the default Gson implementation.
+Once a `JsonDeserializer` has been registered with a `RestfulSession` for a particular class, its serialization methods will be used to interpret responses from the web service. If no deserializer is registered for a class, the framework will attempt to convert responses to objects using the default Gson implementation.
