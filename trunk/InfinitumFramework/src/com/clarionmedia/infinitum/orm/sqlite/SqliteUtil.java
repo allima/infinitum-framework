@@ -23,16 +23,16 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.aop.AopProxy;
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -47,7 +47,8 @@ import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
 public class SqliteUtil {
 
 	private TypeResolutionPolicy mTypePolicy;
-	private PropertyLoader mPropLoader;
+	private PersistencePolicy mPersistencePolicy;
+	private ClassReflector mClassReflector;
 
 	/**
 	 * Constructs a new {@code SqliteUtil}.
@@ -58,7 +59,8 @@ public class SqliteUtil {
 	 */
 	public SqliteUtil(InfinitumContext context) {
 		mTypePolicy = new DefaultTypeResolutionPolicy(context);
-		mPropLoader = new PropertyLoader(context.getAndroidContext());
+		mPersistencePolicy = context.getPersistencePolicy();
+		mClassReflector = new DefaultClassReflector();
 	}
 
 	/**
@@ -84,34 +86,22 @@ public class SqliteUtil {
 		if (AopProxy.isAopProxy(model)) {
 			model = AopProxy.getProxy(model).getTarget();
 		}
-		PersistencePolicy policy = ContextFactory.newInstance()
-				.getPersistencePolicy();
-		Field pk = policy.getPrimaryKeyField(model.getClass());
-		StringBuilder sb = new StringBuilder();
+		Field pk = mPersistencePolicy.getPrimaryKeyField(model.getClass());
+		StringBuilder whereClause = new StringBuilder();
 		pk.setAccessible(true);
-		sb.append(policy.getFieldColumnName(pk)).append(" = ");
+		whereClause.append(mPersistencePolicy.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = mapper.getSqliteDataType(pk);
 		Serializable pkVal = null;
 		try {
-			pkVal = (Serializable) pk.get(model);
-		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException(String.format(
-					mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
-					model.getClass().getName()));
-		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(String.format(
-					mPropLoader.getErrorMessage("UNABLE_TO_GEN_QUERY"),
-					model.getClass().getName()));
+			pkVal = (Serializable) mClassReflector.getFieldValue(model, pk);
 		} catch (ClassCastException e) {
-			throw new ModelConfigurationException(
-					"Invalid primary key specified for type '"
-							+ model.getClass().getName() + "'.");
+			throw new ModelConfigurationException("Invalid primary key specified for type '" + model.getClass().getName() + "'.");
 		}
 		if (t == SqliteDataType.TEXT)
-			sb.append("'").append(pkVal).append("'");
+			whereClause.append("'").append(pkVal).append("'");
 		else
-			sb.append(pkVal);
-		return sb.toString();
+			whereClause.append(pkVal);
+		return whereClause.toString();
 	}
 
 	/**
@@ -136,17 +126,12 @@ public class SqliteUtil {
 	 *             if there is a mismatch between the {@code Class}'s primary
 	 *             key type and the type of the given primary key
 	 */
-	public String getWhereClause(Class<?> c, Serializable id,
-			SqliteMapper mapper) throws IllegalArgumentException {
-		PersistencePolicy policy = ContextFactory.newInstance()
-				.getPersistencePolicy();
-		Field pk = policy.getPrimaryKeyField(c);
+	public String getWhereClause(Class<?> c, Serializable id, SqliteMapper mapper) throws IllegalArgumentException {
+		Field pk = mPersistencePolicy.getPrimaryKeyField(c);
 		if (!mTypePolicy.isValidPrimaryKey(pk, id))
-			throw new IllegalArgumentException(String.format(mPropLoader
-					.getErrorMessage("INVALID_PK"), id.getClass()
-					.getSimpleName(), c.getName()));
+			throw new IllegalArgumentException(String.format("Invalid primary key value of type '%s' for '%s'.", id.getClass().getSimpleName(), c.getName()));
 		StringBuilder sb = new StringBuilder();
-		sb.append(policy.getFieldColumnName(pk)).append(" = ");
+		sb.append(mPersistencePolicy.getFieldColumnName(pk)).append(" = ");
 		SqliteDataType t = mapper.getSqliteDataType(pk);
 		if (t == SqliteDataType.TEXT)
 			sb.append("'").append(id).append("'");

@@ -439,22 +439,11 @@ public abstract class PersistencePolicy {
 	 */
 	public int computeModelHash(Object model) {
 		Field f = getPrimaryKeyField(model.getClass());
-		f.setAccessible(true);
 		Serializable pk = null;
 		try {
-			pk = (Serializable) f.get(model);
-		} catch (IllegalArgumentException e) {
-			mLogger.error("Unable to calculate model hash for object of type '"
-					+ model.getClass().getName() + "'", e);
-			return 0;
-		} catch (IllegalAccessException e) {
-			mLogger.error("Unable to calculate model hash for object of type '"
-					+ model.getClass().getName() + "'", e);
-			return 0;
+			pk = (Serializable) mClassReflector.getFieldValue(model, f);
 		} catch (ClassCastException e) {
-			throw new ModelConfigurationException(
-					"Invalid primary key specified for '"
-							+ model.getClass().getName() + "'.");
+			throw new ModelConfigurationException("Invalid primary key specified for '" + model.getClass().getName() + "'.");
 		}
 		return computeModelHash(model.getClass(), pk);
 	}

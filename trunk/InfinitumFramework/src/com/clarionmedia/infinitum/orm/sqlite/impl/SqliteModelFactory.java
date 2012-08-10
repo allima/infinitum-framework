@@ -29,7 +29,6 @@ import android.database.Cursor;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.LazyLoadDexMakerProxy;
 import com.clarionmedia.infinitum.orm.ModelFactory;
 import com.clarionmedia.infinitum.orm.ResultSet;
@@ -42,6 +41,8 @@ import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -55,13 +56,11 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
  */
 public class SqliteModelFactory implements ModelFactory {
 
-	private static final String INSTANTIATION_ERROR = "Could not instantiate Object of type '%s'.";
-
 	private SqliteBuilder mSqlBuilder;
 	private SqliteSession mSession;
 	private SqliteMapper mMapper;
 	private PersistencePolicy mPersistencePolicy;
-	private Logger mLogger;
+	private ClassReflector mClassReflector;
 
 	/**
 	 * Constructs a {@code SqliteModelFactoryImpl} with the given
@@ -76,7 +75,7 @@ public class SqliteModelFactory implements ModelFactory {
 		mSession = session;
 		mMapper = mapper;
 		mPersistencePolicy = context.getPersistencePolicy();
-		mLogger = Logger.getInstance(context, getClass().getSimpleName());
+		mClassReflector = new DefaultClassReflector();
 	}
 
 	@Override
@@ -112,25 +111,19 @@ public class SqliteModelFactory implements ModelFactory {
 	private <T> T createFromCursorRec(Cursor cursor, Class<T> modelClass) throws ModelConfigurationException, InfinitumRuntimeException {
 		T ret = null;
 		SqliteResult result = new SqliteResult(cursor);
-		try {
-			ret = modelClass.newInstance();
-		} catch (InstantiationException e) {
-			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
-		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(String.format(INSTANTIATION_ERROR, modelClass.getName()));
-		}
+		ret = (T) mClassReflector.getClassInstance(modelClass);
 		List<Field> fields = mPersistencePolicy.getPersistentFields(modelClass);
-		for (Field f : fields) {
-			f.setAccessible(true);
-			if (!mPersistencePolicy.isRelationship(f)) {
-				SqliteTypeAdapter<?> resolver = mMapper.resolveType(f.getType());
-				int index = result.getColumnIndex(mPersistencePolicy.getFieldColumnName(f));
+		for (Field field : fields) {
+			field.setAccessible(true);
+			if (!mPersistencePolicy.isRelationship(field)) {
+				SqliteTypeAdapter<?> resolver = mMapper.resolveType(field.getType());
+				int index = result.getColumnIndex(mPersistencePolicy.getFieldColumnName(field));
 				try {
-					resolver.mapToObject(result, index, f, ret);
+					resolver.mapToObject(result, index, field, ret);
 				} catch (IllegalArgumentException e) {
-					throw new InfinitumRuntimeException("Could not map '" + f.getType().getName() + "'");
+					throw new InfinitumRuntimeException("Could not map '" + field.getType().getName() + "'");
 				} catch (IllegalAccessException e) {
-					throw new InfinitumRuntimeException("Could not map '" + f.getType().getName() + "'");
+					throw new InfinitumRuntimeException("Could not map '" + field.getType().getName() + "'");
 				}
 			}
 		}
@@ -178,132 +171,8 @@ public class SqliteModelFactory implements ModelFactory {
 		}
 	}
 
-	private <T> void lazilyLoadOneToOne(final OneToOneRelationship rel,
-			Field f, T model) {
-		final String sql = getOneToOneEntityQuery(model, rel.getSecondType(), f, rel);
-		Object related = null;
-		if (mSession.count(sql.replace("*", "count(*)")) > 0) {
-			related = new LazyLoadDexMakerProxy(mSession.getContext(),
-					rel.getSecondType()) {
-				@Override
-				protected Object loadObject() {
-					Object ret = null;
-					Cursor result = mSession.executeForResult(sql, true);
-					while (result.moveToNext())
-						ret = createFromCursor(result, rel.getSecondType());
-					result.close();
-					return ret;
-				}
-			}.getProxy();
-		}
-		try {
-			f.set(model, related);
-		} catch (IllegalArgumentException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		}
-	}
-
-	private <T> void loadOneToOne(OneToOneRelationship rel, Field f, T model) {
-		String sql = getOneToOneEntityQuery(model, rel.getSecondType(), f, rel);
-		Cursor result = mSession.executeForResult(sql, true);
-		while (result.moveToNext())
-			try {
-				f.set(model, createFromCursor(result, rel.getSecondType()));
-			} catch (IllegalArgumentException e) {
-				mLogger.error(
-						"Unable to set relationship field for object of type '"
-								+ model.getClass().getName() + "'", e);
-			} catch (IllegalAccessException e) {
-				mLogger.error(
-						"Unable to set relationship field for object of type '"
-								+ model.getClass().getName() + "'", e);
-			}
-		result.close();
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> void lazilyLoadOneToMany(final OneToManyRelationship rel,
-			Field f, T model) {
-		final StringBuilder sql = new StringBuilder("SELECT * FROM ")
-				.append(mPersistencePolicy.getModelTableName(rel.getManyType()))
-				.append(" WHERE ").append(rel.getColumn()).append(" = ");
-		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
-		switch (mMapper.getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(model
-				.getClass()))) {
-		case TEXT:
-			sql.append("'").append(pk).append("'");
-			break;
-		default:
-			sql.append(pk);
-		}
-		try {
-			final Collection<Object> collection = (Collection<Object>) f
-					.get(model);
-			Collection<Object> related = (Collection<Object>) new LazyLoadDexMakerProxy(mSession.getContext(), collection.getClass()) {
-				@Override
-				protected Object loadObject() {
-					Cursor result = mSession.executeForResult(sql.toString(), true);
-					while (result.moveToNext())
-						collection.add(createFromCursor(result, rel.getManyType()));
-					result.close();
-					return collection;
-				}
-			}.getProxy();
-			f.set(model, related);
-		} catch (IllegalArgumentException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		}
-	}
-
-	private <T> void loadOneToMany(OneToManyRelationship rel, Field f, T model) {
-		StringBuilder sql = new StringBuilder("SELECT * FROM ")
-				.append(mPersistencePolicy.getModelTableName(rel.getManyType()))
-				.append(" WHERE ").append(rel.getColumn()).append(" = ");
-		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
-		switch (mMapper.getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(model
-				.getClass()))) {
-		case TEXT:
-			sql.append("'").append(pk).append("'");
-			break;
-		default:
-			sql.append(pk);
-		}
-		Cursor result = mSession.executeForResult(sql.toString(), true);
-		try {
-			@SuppressWarnings("unchecked")
-			Collection<Object> related = (Collection<Object>) f.get(model);
-			while (result.moveToNext())
-				related.add(createFromCursor(result, rel.getManyType()));
-			f.set(model, related);
-		} catch (IllegalArgumentException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		}
-		result.close();
-	}
-
-	private <T> void lazilyLoadManyToOne(ManyToOneRelationship rel, Field f,
-			T model) {
-		final Class<?> direction = model.getClass() == rel.getFirstType() ? rel
-				.getSecondType() : rel.getFirstType();
-		final String sql = getEntityQuery(model, direction, f, rel);
+	private <T> void lazilyLoadOneToOne(final OneToOneRelationship rel, Field field, T model) {
+		final String sql = getOneToOneEntityQuery(model, rel.getSecondType(), field, rel);
 		Object related = null;
 		if (mSession.count(sql.replace("*", "count(*)")) > 0) {
 			related = new LazyLoadDexMakerProxy(mSession.getContext(), rel.getSecondType()) {
@@ -311,115 +180,164 @@ public class SqliteModelFactory implements ModelFactory {
 				protected Object loadObject() {
 					Object ret = null;
 					Cursor result = mSession.executeForResult(sql, true);
-					while (result.moveToNext())
-						ret = createFromCursor(result, direction);
-					result.close();
+					try {
+					    while (result.moveToNext())
+						    ret = createFromCursor(result, rel.getSecondType());
+					} finally {
+					    result.close();
+					}
 					return ret;
 				}
 			}.getProxy();
 		}
+		mClassReflector.setFieldValue(model, field, related);
+	}
+
+	private <T> void loadOneToOne(OneToOneRelationship rel, Field field, T model) {
+		String sql = getOneToOneEntityQuery(model, rel.getSecondType(), field, rel);
+		Cursor result = mSession.executeForResult(sql, true);
 		try {
-			f.set(model, related);
-		} catch (IllegalArgumentException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
+		    while (result.moveToNext())
+		        mClassReflector.setFieldValue(model, field, createFromCursor(result, rel.getSecondType()));
+		} finally {
+		    result.close();
 		}
 	}
 
-	private <T> void loadManyToOne(ManyToOneRelationship rel, Field f, T model) {
-		Class<?> direction = model.getClass() == rel.getFirstType() ? rel
-				.getSecondType() : rel.getFirstType();
-		String sql = getEntityQuery(model, direction, f, rel);
-		Cursor result = mSession.executeForResult(sql, true);
-		while (result.moveToNext())
-			try {
-				f.set(model, createFromCursor(result, direction));
-			} catch (IllegalArgumentException e) {
-				mLogger.error(
-						"Unable to set relationship field for object of type '"
-								+ model.getClass().getName() + "'", e);
-			} catch (IllegalAccessException e) {
-				mLogger.error(
-						"Unable to set relationship field for object of type '"
-								+ model.getClass().getName() + "'", e);
+	private <T> void lazilyLoadOneToMany(final OneToManyRelationship rel, Field field, T model) {
+		final StringBuilder sql = new StringBuilder("SELECT * FROM ")
+				.append(mPersistencePolicy.getModelTableName(rel.getManyType()))
+				.append(" WHERE ").append(rel.getColumn()).append(" = ");
+		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
+		switch (mMapper.getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(model.getClass()))) {
+		case TEXT:
+			sql.append("'").append(pk).append("'");
+			break;
+		default:
+			sql.append(pk);
+		}
+		@SuppressWarnings("unchecked")
+		final Collection<Object> collection = (Collection<Object>) mClassReflector.getFieldValue(model, field);
+		@SuppressWarnings("unchecked")
+		Collection<Object> related = (Collection<Object>) new LazyLoadDexMakerProxy(mSession.getContext(), collection.getClass()) {
+			@Override
+			protected Object loadObject() {
+				Cursor result = mSession.executeForResult(sql.toString(), true);
+				while (result.moveToNext())
+					collection.add(createFromCursor(result, rel.getManyType()));
+				result.close();
+				return collection;
 			}
-		result.close();
+		}.getProxy();
+		mClassReflector.setFieldValue(model, field, related);
 	}
 
-	@SuppressWarnings("unchecked")
-	private <T> void lazilyLoadManyToMany(final ManyToManyRelationship rel,
-			Field f, T model) {
-		// TODO Add reflexive M:M support
-		final Class<?> direction = model.getClass() == rel.getFirstType() ? rel
-				.getSecondType() : rel.getFirstType();
+	private <T> void loadOneToMany(OneToManyRelationship rel, Field field, T model) {
+		StringBuilder sql = new StringBuilder("SELECT * FROM ")
+				.append(mPersistencePolicy.getModelTableName(rel.getManyType()))
+				.append(" WHERE ").append(rel.getColumn()).append(" = ");
 		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
-		final String sql = mSqlBuilder.createManyToManyJoinQuery(rel, pk,
-				direction);
+		switch (mMapper.getSqliteDataType(mPersistencePolicy.getPrimaryKeyField(model.getClass()))) {
+		case TEXT:
+			sql.append("'").append(pk).append("'");
+			break;
+		default:
+			sql.append(pk);
+		}
+		@SuppressWarnings("unchecked")
+		Collection<Object> related = (Collection<Object>) mClassReflector.getFieldValue(model, field);
+		Cursor result = mSession.executeForResult(sql.toString(), true);
 		try {
-			final Collection<Object> collection = (Collection<Object>) f
-					.get(model);
-			Collection<Object> related = (Collection<Object>) new LazyLoadDexMakerProxy(mSession.getContext(), collection.getClass()) {
+		    while (result.moveToNext())
+			    related.add(createFromCursor(result, rel.getManyType()));
+		} finally {
+			result.close();
+		}
+		mClassReflector.setFieldValue(model, field, related);
+	}
+
+	private <T> void lazilyLoadManyToOne(ManyToOneRelationship rel, Field field, T model) {
+		final Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+		final String sql = getEntityQuery(model, direction, field, rel);
+		Object related = null;
+		if (mSession.count(sql.replace("*", "count(*)")) > 0) {
+			related = new LazyLoadDexMakerProxy(mSession.getContext(), rel.getSecondType()) {
 				@Override
 				protected Object loadObject() {
+					Object ret = null;
 					Cursor result = mSession.executeForResult(sql, true);
-					while (result.moveToNext())
-						collection.add(createFromCursor(result, direction));
-					result.close();
-					return collection;
+					try {
+					    while (result.moveToNext())
+						    ret = createFromCursor(result, direction);
+					} finally {
+					    result.close();
+					}
+					return ret;
 				}
 			}.getProxy();
-			f.set(model, related);
-		} catch (IllegalArgumentException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
 		}
+		mClassReflector.setFieldValue(model, field, related);
 	}
 
-	private <T> void loadManyToMany(ManyToManyRelationship rel, Field f, T model)
-			throws ModelConfigurationException, InfinitumRuntimeException {
+	private <T> void loadManyToOne(ManyToOneRelationship rel, Field field, T model) {
+		Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+		String sql = getEntityQuery(model, direction, field, rel);
+		Cursor result = mSession.executeForResult(sql, true);
 		try {
-			// TODO Add reflexive M:M support
-			Class<?> direction = model.getClass() == rel.getFirstType() ? rel
-					.getSecondType() : rel.getFirstType();
-			Serializable pk = mPersistencePolicy.getPrimaryKey(model);
-			String sql = mSqlBuilder.createManyToManyJoinQuery(rel, pk,
-					direction);
-			Cursor result = mSession.executeForResult(sql, true);
-			@SuppressWarnings("unchecked")
-			Collection<Object> related = (Collection<Object>) f.get(model);
-			while (result.moveToNext())
-				related.add(createFromCursor(result, direction));
-			result.close();
-			f.set(model, related);
-		} catch (IllegalArgumentException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
-		} catch (IllegalAccessException e) {
-			mLogger.error(
-					"Unable to set relationship field for object of type '"
-							+ model.getClass().getName() + "'", e);
+		    while (result.moveToNext())
+		        mClassReflector.setFieldValue(model, field, createFromCursor(result, direction));
+		} finally {
+		    result.close();
 		}
 	}
 
-	private String getEntityQuery(Object model, Class<?> c, Field f,
-			ForeignKeyRelationship rel) {
+	private <T> void lazilyLoadManyToMany(final ManyToManyRelationship rel, Field field, T model) {
+		// TODO Add reflexive M:M support
+		final Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
+		final String sql = mSqlBuilder.createManyToManyJoinQuery(rel, pk, direction);
+		@SuppressWarnings("unchecked")
+		final Collection<Object> collection = (Collection<Object>) mClassReflector.getFieldValue(model, field);
+		@SuppressWarnings("unchecked")
+		Collection<Object> related = (Collection<Object>) new LazyLoadDexMakerProxy(mSession.getContext(), collection.getClass()) {
+			@Override
+			protected Object loadObject() {
+				Cursor result = mSession.executeForResult(sql, true);
+				try {
+				    while (result.moveToNext())
+					    collection.add(createFromCursor(result, direction));
+				} finally {
+				    result.close();
+				}
+				return collection;
+			}
+		}.getProxy();
+		mClassReflector.setFieldValue(model, field, related);
+	}
+
+	private <T> void loadManyToMany(ManyToManyRelationship rel, Field f, T model) throws ModelConfigurationException, InfinitumRuntimeException {
+		// TODO Add reflexive M:M support
+		Class<?> direction = model.getClass() == rel.getFirstType() ? rel.getSecondType() : rel.getFirstType();
+		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
+		String sql = mSqlBuilder.createManyToManyJoinQuery(rel, pk, direction);
+		Cursor result = mSession.executeForResult(sql, true);
+		@SuppressWarnings("unchecked")
+		Collection<Object> related = (Collection<Object>) mClassReflector.getFieldValue(model, f);
+		try {
+		    while (result.moveToNext())
+			    related.add(createFromCursor(result, direction));
+		} finally {
+		    result.close();
+		}
+		mClassReflector.setFieldValue(model, f, related);
+	}
+
+	private String getEntityQuery(Object model, Class<?> c, Field field, ForeignKeyRelationship rel) {
 		StringBuilder sql = new StringBuilder("SELECT * FROM ")
 				.append(mPersistencePolicy.getModelTableName(c))
 				.append(" WHERE ")
-				.append(mPersistencePolicy.getFieldColumnName(mPersistencePolicy
-						.getPrimaryKeyField(c))).append(" = ");
-		switch (mMapper.getSqliteDataType(f)) {
+				.append(mPersistencePolicy.getFieldColumnName(mPersistencePolicy.getPrimaryKeyField(c))).append(" = ");
+		switch (mMapper.getSqliteDataType(field)) {
 		case TEXT:
 			sql.append("'").append(getForeignKey(model, rel)).append("'");
 			break;
@@ -429,7 +347,7 @@ public class SqliteModelFactory implements ModelFactory {
 		return sql.append(" LIMIT 1").toString();
 	}
 	
-	private String getOneToOneEntityQuery(Object model, Class<?> relatedClass, Field f, OneToOneRelationship rel) {
+	private String getOneToOneEntityQuery(Object model, Class<?> relatedClass, Field field, OneToOneRelationship rel) {
 		boolean isOwner = rel.getOwner() == model.getClass();
 		StringBuilder sql = new StringBuilder("SELECT * FROM ")
 				.append(mPersistencePolicy.getModelTableName(relatedClass))
@@ -440,7 +358,7 @@ public class SqliteModelFactory implements ModelFactory {
 			sql.append(rel.getColumn());
 		}
 		sql.append(" = ");
-		switch (mMapper.getSqliteDataType(f)) {
+		switch (mMapper.getSqliteDataType(field)) {
 		case TEXT:
 			sql.append("'").append(getOneToOneKey(model, isOwner, rel)).append("'");
 			break;
@@ -480,8 +398,7 @@ public class SqliteModelFactory implements ModelFactory {
 		try {
 			id = result.getString(0);
 		} catch (ClassCastException e) {
-			throw new ModelConfigurationException(
-					"Invalid primary key specified for model.");
+			throw new ModelConfigurationException("Invalid primary key specified for '" + model.getClass().getName() + "'.");
 		} finally {
 			result.close();
 		}
