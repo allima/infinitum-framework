@@ -131,7 +131,7 @@ public class XmlApplicationContext extends AbstractContext {
 	}
 
 	@Override
-	public List<String> getDomainModels() {
+	public List<String> getDomainTypes() {
 		List<String> models = new ArrayList<String>();
 		for (Model model : mModels) {
 			models.add(model.getResource());

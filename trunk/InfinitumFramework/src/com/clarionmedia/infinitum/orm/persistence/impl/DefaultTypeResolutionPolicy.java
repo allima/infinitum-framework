@@ -67,7 +67,7 @@ public class DefaultTypeResolutionPolicy implements TypeResolutionPolicy {
 
 	@Override
 	public boolean isDomainModel(Class<?> c) {
-		for (String s : mContext.getDomainModels()) {
+		for (String s : mContext.getDomainTypes()) {
 			if (c.getName().equalsIgnoreCase(s))
 				return true;
 		}
@@ -76,7 +76,7 @@ public class DefaultTypeResolutionPolicy implements TypeResolutionPolicy {
 
 	@Override
 	public boolean isDomainProxy(Class<?> c) {
-		for (String s : mContext.getDomainModels()) {
+		for (String s : mContext.getDomainTypes()) {
 			String name = s;
 			if (name.contains("."))
 				name = name.substring(name.lastIndexOf('.') + 1);

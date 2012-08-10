@@ -205,12 +205,12 @@ public interface InfinitumContext {
 
 	/**
 	 * Returns a {@link List} of all fully-qualified domain model classes
-	 * registered with this {@code InfinitumContext}. Domain models are defined
+	 * registered with this {@code InfinitumContext}. Domain types are defined
 	 * as being persistent entities.
 	 * 
 	 * @return a {@code List} of all registered domain model classes
 	 */
-	List<String> getDomainModels();
+	List<String> getDomainTypes();
 
 	/**
 	 * Adds the specified domain model class to the entire collection of domain
