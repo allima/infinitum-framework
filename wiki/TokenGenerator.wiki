@@ -10,7 +10,7 @@ A `TokenGenerator` is responsible for generating shared-secret tokens. Implement
 
 = Implementing `TokenGenerator` =
 
-`TokenGenerator` consists of just one method called `generateToken()`, which returns a string representing the shared secret. Below is an example implementation of `TokenGenerator`, which generates an MD5 hash based on the current date and a provided user password. This strategy generates a token which is unique per day.
+`TokenGenerator` consists of just one method called `generateToken()`, which returns a string representing the shared secret. Below is an example implementation of `TokenGenerator`, which generates an MD5 hash based on the current date and a provided user password. This strategy generates a token which is unique per day. A more sophisticated strategy might make use of a session or user GUID.
 
 {{{
 public class MyTokenGenerator implements TokenGenerator {
