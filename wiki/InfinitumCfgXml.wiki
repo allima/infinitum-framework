@@ -56,7 +56,7 @@ If SQLite is being used as a datastore, a database name and version number _must
 
 = RESTful Configuration =
 
-If RestfulModelClient is being utilized, it _must_ be configured, at least minimally, in `infinitum.cfg.xml`. The only required property is the host, which designates the URL of the web service. Optional properties include connection timeout, response timeout, and authentication.
+If RestfulSession is being utilized, it _must_ be configured, at least minimally, in `infinitum.cfg.xml`. The only required property is the host, which designates the URL of the web service. Optional properties include connection timeout, response timeout, and authentication.
 
 Connection and response timeouts indicate the time, in milliseconds, the client will wait for a connection or response, respectively, before failing.
 
@@ -78,7 +78,7 @@ Authentication is included in the request URI's query string, but it can be incl
 </rest>
 }}}
 
-By default, Infinitum's `RestfulModelClientFactory` will use `RestfulJsonClient` as its RESTful client implementation. However, alternative implementations can be used by providing a bean, which will then be injected into the `RestfulModelClientFactory`. In a similar manner, alternative `AuthenticationStrategy` implementations can be used by providing a bean also. Both of these notions are illustrated in the example below.
+By default, the `getSession` method in InfinitumContext will use `RestfulJsonSession` as its RESTful client implementation. However, alternative implementations can be used by providing a bean, which will then be injected into the `InfinitumContext`. In a similar manner, alternative AuthenticationStrategy implementations can be used by providing a bean also. Both of these notions are illustrated in the example below.
 
 {{{
 <rest ref="restClient">
@@ -89,7 +89,7 @@ By default, Infinitum's `RestfulModelClientFactory` will use `RestfulJsonClient`
 </rest>
 }}}
 
-The bean `restClient` will be used as the `RestfulModelClient`, while the `customAuthenticator` bean will be used as the client's `AuthenticationStrategy`. These beans would be defined as follows:
+The bean `restClient` will be used as the `RestfulSession`, while the `customAuthenticator` bean will be used as the client's `AuthenticationStrategy`. These beans would be defined as follows:
 
 {{{
 <bean id="restClient"
@@ -98,17 +98,25 @@ The bean `restClient` will be used as the `RestfulModelClient`, while the `custo
     src="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
 }}}
 
-`MyRestfulClient` must extend the RestfulModelClient abstract class, and `MyAuthenticator` must implement the AuthenticationStrategy interface.
+`MyRestfulClient` must extend the `RestfulSession` abstract class, and `MyAuthenticator` must implement the `AuthenticationStrategy` interface.
 
 = Bean Configuration =
 
-Infinitum supports the notion of beans for injecting custom implementations for some of its different services at runtime, as was outlined briefly in the RESTful Configuration section above. For example, implementations of `RestfulModelClient` and `AuthenticationStrategy` can be provided.
+Infinitum supports the notion of beans for injecting custom implementations for some of its different services at runtime, as was outlined briefly in the RESTful Configuration section above, as well as application components. For example, implementations of `RestfulSession` and `AuthenticationStrategy` can be provided.
 
 Beans are defined in `infinitum.cfg.xml`. Beans themselves can be injected with basic properties, such as `int`, `long`, `double`, `float`, and `String` fields, using the `value` attribute or with other beans using the `ref` attribute.
 
+Additionally, beans can be scanned by the framework without the need to register them in XML by enabling the `component-scan` feature.
+
+{{{
+<component-scan base-package="com.clarionmedia.infinitumapp" />
+}}}
+
+This will allow Infinitum to detect bean classes annotated with the [Bean] annotation located in the `base-package` and any of its sub-packages.
+
 == Bean Configuration Example ==
 
-Take, for example, an `AuthenticationStrategy` implementation called `MyTokenAuthenticator`, which has two fields, `token` and `tokenName`, both of type `String`. Let's say we want to use this authenticator in our `RestfulModelClient`. It's a rather contrived example, considering SharedSecretAuthentication provides identical functionality, but it illustrates the use of beans and bean properties. First, we must define the bean:
+Take, for example, an `AuthenticationStrategy` implementation called `MyTokenAuthenticator`, which has two fields, `token` and `tokenName`, both of type `String`. Let's say we want to use this authenticator in our `RestfulSession`. It's a rather contrived example, considering SharedSecretAuthentication provides identical functionality, but it illustrates the use of beans and bean properties. First, we must define the bean:
 
 {{{
 <beans>
@@ -128,7 +136,7 @@ The properties `tokenName` and `token` will be injected into the `MyTokenAuthent
 </rest>
 }}}
 
-Our `RestClient` will now be injected with `MyTokenAuthenticator`.
+Our `RestfulSession` will now be injected with `MyTokenAuthenticator`.
 
 = Putting It All Together =
 
@@ -168,6 +176,7 @@ All of the components discussed above are used to compose the `infinitum.cfg.xml
     </rest>
 
     <beans>
+        <component-scan base-package="com.clarionmedia.infinitumapp" />
         <bean id="restClient" src="com.clarionmedia.infinitumapp.service.MyRestfulClient" />
         <bean id="authenticator" src="com.clarionmedia.infinitumapp.service.MyAuthenticator" />
     </beans>
