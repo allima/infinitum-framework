@@ -68,4 +68,4 @@ The [Session] interface exposes a method `registerDeserializer`, which can regis
 restSession.registerDeserializer(Foo.class, new FooDeserializer());
 }}}
 
-Once a `JsonDeserializer` has been registered with a `RestfulSession` for a particular class, its serialization methods will be used to interpret responses from the web service. If no deserializer is registered for a class, the framework will attempt to convert responses to objects using the default Gson implementation.
+Once a `JsonDeserializer` has been registered with a `RestfulSession` for a particular class, its serialization methods will be used to interpret responses from the web service. If no deserializer is registered for a class, the framework will attempt to convert responses to objects using the default [http://code.google.com/p/google-gson/ Gson] implementation.
