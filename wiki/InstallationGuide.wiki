@@ -43,14 +43,14 @@ Before Infinitum can be used, you must create a configuration file, `infinitum.c
 </infinitum-configuration>
 }}}
 
-The framework must be configured within the application code before any of its classes may be used. Within your `Activity`, call the following code:
+The framework must be configured within the application code before any of its classes may be used. If using one of Infinitum's provided Activities, this is taken care of for you. Otherwise, within your `Activity`, call the following code:
 
 {{{
-ContextFactory.getInstance().configure(this);
+ContextFactory.newInstance().configure(this);
 }}}
 
 This will configure Infinitum using the `infinitum.cfg.xml` file in `res/raw`. Alternatively, you can specify explicitly which configuration resource to use by doing the following:
 
 {{{
-ContextFactory.getInstance().configure(this, R.raw.infinitum);
+ContextFactory.newInstance().configure(this, R.raw.infinitum);
 }}}
