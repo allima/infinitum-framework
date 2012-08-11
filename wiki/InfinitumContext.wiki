@@ -18,7 +18,7 @@ Application-wide context information, which is read from the InfinitumCfgXml fil
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContext ctx = ContextFactory.getInstance().getContext(); 
+    InfinitumContext ctx = ContextFactory.newInstance().getContext(); 
 }
 }}}
 
@@ -29,8 +29,8 @@ The above example will throw an `InfinitumConfigurationException` because `confi
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    ContextFactory.getInstance().configure(this);
-    InfinitumContext ctx = ContextFactory.getInstance().getContext();
+    ContextFactory.newInstance().configure(this);
+    InfinitumContext ctx = ContextFactory.newInstance().getContext();
 }
 }}}
 
@@ -41,7 +41,7 @@ public void onCreate(Bundle savedInstanceState) {
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContext ctx = ContextFactory.getInstance().configure(this);
+    InfinitumContext ctx = ContextFactory.newInstance().configure(this);
 }
 }}}
 
@@ -52,7 +52,7 @@ The XML configuration file used to configure Infinitum can be specified by using
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContext ctx = ContextFactory.getInstance().configure(this, R.raw.myconfig);
+    InfinitumContext ctx = ContextFactory.newInstance().configure(this, R.raw.myconfig);
 }
 }}}
 
@@ -65,7 +65,7 @@ public void onCreate(Bundle savedInstanceState) {
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    Session session = ContextFactory.getInstance().configure(this).getSession(DataSource.Sqlite);
+    Session session = ContextFactory.newInstance().configure(this).getSession(DataSource.Sqlite);
 }
 }}}
 
