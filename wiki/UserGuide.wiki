@@ -120,5 +120,6 @@ Using Infinitum within your application is simple. The framework comes in the fo
 
 Infinitum has two dependencies which must also be included in your application's build path in order to function properly: [http://code.google.com/p/google-gson Google Gson] and [http://code.google.com/p/dexmaker Dexmaker]. These JARs are included in the distribution mentioned above.
 
- * [InstallationGuide]: complete guide to setting up Infinitum.
- * [https://infinitum-framework.googlecode.com/svn/trunk/InfinitumFramework/doc/index.html Javadoc]: framework Javadoc API documentation
+  * InstallationGuide: complete guide to setting up Infinitum.
+  * [https://infinitum-framework.googlecode.com/svn/trunk/InfinitumFramework/doc/index.html Javadoc]: framework Javadoc API documentation.
+  * ExampleApplication: simple notepad app that demonstrates the basics of Infinitum.
