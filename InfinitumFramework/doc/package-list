@@ -1,7 +1,14 @@
-com.clarionmedia.infinitum
+com.clarionmedia.infinitum.activity
+com.clarionmedia.infinitum.activity.annotation
+com.clarionmedia.infinitum.aop
+com.clarionmedia.infinitum.aop.annotation
+com.clarionmedia.infinitum.aop.impl
 com.clarionmedia.infinitum.context
 com.clarionmedia.infinitum.context.exception
 com.clarionmedia.infinitum.context.impl
+com.clarionmedia.infinitum.di
+com.clarionmedia.infinitum.di.annotation
+com.clarionmedia.infinitum.di.impl
 com.clarionmedia.infinitum.exception
 com.clarionmedia.infinitum.internal
 com.clarionmedia.infinitum.internal.bind
