@@ -1,0 +1,4 @@
+#summary Walks through a simple example application using Infinitum
+
+*Contents*
+<wiki:toc max_depth="3" />
