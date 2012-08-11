@@ -82,9 +82,6 @@ The Infinitum RESTful client provides an extensible API for communicating with a
   * [Bean]: specialization of the `Component` annotation indicating that the annotated class is a dependency-injection bean.
   * [Autowired]: indicates that the annotated constructor, setter, or field is to be injected by the framework.
   * PostConstruct: indicates that the annotated method is to be invoked after dependency injection.
-  * InjectLayout: indicates that the annotated `Activity` is to be injected with a layout by the framework.
-  * InjectView: indicates that the given field is to be injected with a view by the framework.
-  * InjectResource: indicates that the given field is to be injected with a resource by the framework.
 
 = AOP =
 
@@ -103,6 +100,19 @@ The Infinitum RESTful client provides an extensible API for communicating with a
 In addition to its ORM and RESTful services, Infinitum offers an extremely lightweight logging framework which wraps Android's Logcat. This logging framework allows log statements to be made within application code but only asserted in debug environments. This means that logging code does not need any conditional statements or be removed altogether when preparing an application for release.
 
   * [Logger]: prints log messages to Logcat but adheres to environment configuration.
+
+= Android Activities =
+
+Infinitum provides a set of `Activity` extensions which take care of framework initialization, provide support for resource injection and event binding, and expose an InfinitumContext.
+
+  * InfinitumActivity: `Activity` extension that provides support for resource injection and event binding.
+
+== Activity Annotations ==
+
+  * InjectLayout: indicates that the annotated `Activity` is to be injected with a layout by the framework.
+  * InjectView: indicates that the given field is to be injected with a view by the framework.
+  * InjectResource: indicates that the given field is to be injected with a resource by the framework.
+  * Bind: indicates that the annotated `View` is to be bound to a callback method for a given event type.
 
 = Getting Started =
 
