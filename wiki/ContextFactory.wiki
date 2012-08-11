@@ -8,7 +8,7 @@
 
 `ContextFactory` is used to configure Infinitum and to retrieve an instance of InfinitumContext. Before a context can be retrieved, `ContextFactory`'s `configure` method must be invoked by passing in a `Context` and a resource ID for InfinitumCfgXml. If a call is made to get an `InfinitumContext` before `configure` has been invoked, an `InfinitumConfigurationException` will be thrown.
 
-`ContextFactory` may not be instantiated directly, but rather is accessed as a singleton by invoking its static method `getInstance()`.
+`ContextFactory` is not instantiated directly but rather retrieved by invoking its static method `newInstance()`.
 
 = Acquiring an `InfinitumContext` =
 
@@ -19,6 +19,6 @@ The following code snippet illustrates how Infinitum is configured and how an in
 public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    InfinitumContext ctx = ContextFactory.getInstance().configure(this, R.raw.infinitum);
+    InfinitumContext ctx = ContextFactory.newInstance().configure(this, R.raw.infinitum);
 }
 }}}
