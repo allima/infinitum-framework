@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE infinitum-configuration PUBLIC
+"-//Infinitum/Infinitum Configuration DTD 1.0//EN"
+"http://clarionmedia.com/infinitum/dtd/infinitum-configuration-1.0.dtd">
+
+<infinitum-configuration>
+    
+    <application>
+        <property name="debug">true</property>
+    </application>
+    
+    <domain>
+        <model resource="com.clarionmedia.notepadexample.domain.Note" />
+    </domain>
+    
+    <beans>
+        <component-scan base-package="com.clarionmedia" />
+    </beans>
+    
+    <sqlite>
+        <property name="dbName">notepad</property> 
+        <property name="dbVersion">1</property>
+    </sqlite>
+
+</infinitum-configuration>
