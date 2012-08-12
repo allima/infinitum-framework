@@ -8,6 +8,6 @@
 
   # Create a new Android Project called 'NotepadExample', select the Build Target 'Android 2.3.3' (API level 10).
   # Download the latest distribution of Infinitum Framework from the [http://code.google.com/p/infinitum-framework/downloads/list downloads page].
-  # Add the Infinitum JAR and its dependencies to the application's build path.
+  # Add the Infinitum JAR and the Dexmaker dependency to the application's build path.
   # Open `NotepadExampleActivity` or create it if it wasn't already created.
   # In order to provide framework support, we will extend one of Infinitum's Activities. In this case, make `NotepadExampleActivity` extend `InfinitumListActivity`.
