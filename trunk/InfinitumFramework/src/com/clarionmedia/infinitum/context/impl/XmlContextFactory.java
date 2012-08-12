@@ -60,6 +60,8 @@ public class XmlContextFactory extends ContextFactory {
 
 	@Override
 	public InfinitumContext configure(Context context) throws InfinitumConfigurationException {
+		if (sInfinitumContext != null)
+			return sInfinitumContext;
 		mContext = context;
 		Resources res = context.getResources();
 		int id = res.getIdentifier("infinitum", "raw", context.getPackageName());
@@ -71,6 +73,8 @@ public class XmlContextFactory extends ContextFactory {
 
 	@Override
 	public InfinitumContext configure(Context context, int configId) throws InfinitumConfigurationException {
+		if (sInfinitumContext != null)
+			return sInfinitumContext;
 		mContext = context;
 		sInfinitumContext = configureFromXml(context, configId);
 		return sInfinitumContext;
@@ -98,6 +102,8 @@ public class XmlContextFactory extends ContextFactory {
 			InputStream stream = resources.openRawResource(configId);
 			String xml = new Scanner(stream).useDelimiter("\\A").next();
 			InfinitumContext ret = serializer.read(XmlApplicationContext.class, xml);
+			if (ret == null)
+				throw new InfinitumConfigurationException("Unable to initialize Infinitum configuration.");
 			ret.postProcess(context);
 			return ret;
 		} catch (Exception e) {

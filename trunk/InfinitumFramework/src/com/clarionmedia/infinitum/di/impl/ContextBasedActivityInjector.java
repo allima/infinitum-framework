@@ -69,11 +69,19 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	private List<Field> mFields;
 	private InfinitumContext mInfinitumContext;
 
-	public ContextBasedActivityInjector(InfinitumContext context) {
-		mInfinitumContext = context;
-		mContext = mInfinitumContext.getAndroidContext();
+	/**
+	 * Creates a new {@code ContextBasedActivityInjector}.
+	 * 
+	 * @param infinitumContext
+	 *            the {@link InfinitumContext} to use
+	 * @param context
+	 *            the {@link Context} to use
+	 */
+	public ContextBasedActivityInjector(InfinitumContext infinitumContext, Context context) {
+		mInfinitumContext = infinitumContext;
+		mContext = context;
 		mClassReflector = new DefaultClassReflector();
-		mFields = mClassReflector.getAllFields(context.getClass());
+		mFields = mClassReflector.getAllFields(mContext.getClass());
 	}
 
 	@Override
@@ -96,11 +104,14 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 			Autowired autowired = field.getAnnotation(Autowired.class);
 			String qualifier = autowired.value().trim();
 			Class<?> type = field.getType();
-			Object bean = qualifier.equals("") ? BeanUtils.findCandidateBean(beanFactory, type) : mInfinitumContext
-					.getBean(qualifier);
+			Object bean = qualifier.equals("") ? BeanUtils.findCandidateBean(
+					beanFactory, type) : mInfinitumContext.getBean(qualifier);
 			if (bean == null) {
-				throw new InfinitumConfigurationException("Could not autowire property of type '" + type.getName()
-						+ "' in Activity '" + mContext.getClass().getName() + "' (no autowire candidates found)");
+				throw new InfinitumConfigurationException(
+						"Could not autowire property of type '"
+								+ type.getName() + "' in Activity '"
+								+ mContext.getClass().getName()
+								+ "' (no autowire candidates found)");
 			}
 			mClassReflector.setFieldValue(mContext, field, bean);
 		}
@@ -112,7 +123,8 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	 * {@link Activity#setContentView(int)}.
 	 */
 	private void injectLayout() {
-		InjectLayout injectLayout = mContext.getClass().getAnnotation(InjectLayout.class);
+		InjectLayout injectLayout = mContext.getClass().getAnnotation(
+				InjectLayout.class);
 		if (injectLayout == null)
 			return;
 		((Activity) mContext).setContentView(injectLayout.value());
@@ -128,7 +140,8 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 			InjectView injectView = field.getAnnotation(InjectView.class);
 			int viewId = injectView.value();
 			field.setAccessible(true);
-			mClassReflector.setFieldValue(mContext, field, ((Activity) mContext).findViewById(viewId));
+			mClassReflector.setFieldValue(mContext, field,
+					((Activity) mContext).findViewById(viewId));
 		}
 	}
 
@@ -139,7 +152,8 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 		for (Field field : mFields) {
 			if (!field.isAnnotationPresent(InjectResource.class))
 				continue;
-			InjectResource injectResource = field.getAnnotation(InjectResource.class);
+			InjectResource injectResource = field
+					.getAnnotation(InjectResource.class);
 			int resourceId = injectResource.value();
 			field.setAccessible(true);
 			Object resource = resolveResourceForField(field, resourceId);
@@ -171,9 +185,11 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 		if (resourceType.equalsIgnoreCase("movie"))
 			return resources.getMovie(resourceId);
 		if (resourceType.equalsIgnoreCase("array")) {
-			if (field.getType() == int[].class || field.getType() == Integer[].class)
+			if (field.getType() == int[].class
+					|| field.getType() == Integer[].class)
 				return resources.getIntArray(resourceId);
-			else if (field.getType() == String[].class || field.getType() == CharSequence[].class)
+			else if (field.getType() == String[].class
+					|| field.getType() == CharSequence[].class)
 				return resources.getStringArray(resourceId);
 			else
 				return resources.obtainTypedArray(resourceId); // TODO: convert
@@ -181,9 +197,12 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 																// array
 		}
 		if (resourceType.equalsIgnoreCase("id"))
-			throw new InfinitumRuntimeException("Unable to inject field '" + field.getName() + "' in Activity '"
-					+ mContext.getClass().getName() + "'. Are you injecting a view?");
-		throw new InfinitumRuntimeException("Unable to inject field '" + field.getName() + "' in Activity '"
+			throw new InfinitumRuntimeException("Unable to inject field '"
+					+ field.getName() + "' in Activity '"
+					+ mContext.getClass().getName()
+					+ "'. Are you injecting a view?");
+		throw new InfinitumRuntimeException("Unable to inject field '"
+				+ field.getName() + "' in Activity '"
 				+ mContext.getClass().getName() + "' (unsupported type).");
 	}
 
@@ -193,7 +212,8 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	 */
 	private void injectListeners() {
 		for (Field field : mFields) {
-			if (!View.class.isAssignableFrom(field.getType()) || !field.isAnnotationPresent(Bind.class))
+			if (!View.class.isAssignableFrom(field.getType())
+					|| !field.isAnnotationPresent(Bind.class))
 				continue;
 			Bind bind = field.getAnnotation(Bind.class);
 			Event event = bind.event();
@@ -209,7 +229,8 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 	private void registerCallback(View view, String callback, Event event) {
 		switch (event) {
 		case OnClick:
-			final Method onClick = mClassReflector.getMethod(mContext.getClass(), callback, View.class);
+			final Method onClick = mClassReflector.getMethod(
+					mContext.getClass(), callback, View.class);
 			view.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
@@ -218,51 +239,60 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 			});
 			break;
 		case OnLongClick:
-			final Method onLongClick = mClassReflector.getMethod(mContext.getClass(), callback, View.class);
+			final Method onLongClick = mClassReflector.getMethod(
+					mContext.getClass(), callback, View.class);
 			view.setOnLongClickListener(new OnLongClickListener() {
 				@Override
 				public boolean onLongClick(View v) {
-					return (Boolean) mClassReflector.invokeMethod(mContext, onLongClick, v);
+					return (Boolean) mClassReflector.invokeMethod(mContext,
+							onLongClick, v);
 				}
 			});
 			break;
 		case OnCreateContextMenu:
-			final Method onCreateContextMenu = mClassReflector.getMethod(mContext.getClass(), callback,
-					ContextMenu.class, View.class, ContextMenu.ContextMenuInfo.class);
+			final Method onCreateContextMenu = mClassReflector.getMethod(
+					mContext.getClass(), callback, ContextMenu.class,
+					View.class, ContextMenu.ContextMenuInfo.class);
 			view.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
 				@Override
-				public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-					mClassReflector.invokeMethod(mContext, onCreateContextMenu, menu, v, menuInfo);
+				public void onCreateContextMenu(ContextMenu menu, View v,
+						ContextMenu.ContextMenuInfo menuInfo) {
+					mClassReflector.invokeMethod(mContext, onCreateContextMenu,
+							menu, v, menuInfo);
 				}
 			});
 			break;
 		case OnFocusChange:
-			final Method onFocusChange = mClassReflector.getMethod(mContext.getClass(), callback, View.class,
-					boolean.class);
+			final Method onFocusChange = mClassReflector.getMethod(
+					mContext.getClass(), callback, View.class, boolean.class);
 			view.setOnFocusChangeListener(new OnFocusChangeListener() {
 				@Override
 				public void onFocusChange(View v, boolean hasFocus) {
-					mClassReflector.invokeMethod(mContext, onFocusChange, v, hasFocus);
+					mClassReflector.invokeMethod(mContext, onFocusChange, v,
+							hasFocus);
 				}
 			});
 			break;
 		case OnKey:
-			final Method onKey = mClassReflector.getMethod(mContext.getClass(), callback, View.class, int.class,
-					KeyEvent.class);
+			final Method onKey = mClassReflector.getMethod(mContext.getClass(),
+					callback, View.class, int.class, KeyEvent.class);
 			view.setOnKeyListener(new OnKeyListener() {
 				@Override
 				public boolean onKey(View v, int keyCode, KeyEvent event) {
-					return (Boolean) mClassReflector.invokeMethod(mContext, onKey, v, keyCode, event);
+					return (Boolean) mClassReflector.invokeMethod(mContext,
+							onKey, v, keyCode, event);
 				}
 			});
 			break;
 		case OnTouch:
-			final Method onTouch = mClassReflector.getMethod(mContext.getClass(), callback, View.class,
+			final Method onTouch = mClassReflector.getMethod(
+					mContext.getClass(), callback, View.class,
 					MotionEvent.class);
 			view.setOnTouchListener(new OnTouchListener() {
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
-					return (Boolean) mClassReflector.invokeMethod(mContext, onTouch, v, event);
+					return (Boolean) mClassReflector.invokeMethod(mContext,
+							onTouch, v, event);
 				}
 			});
 			break;
