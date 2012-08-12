@@ -462,3 +462,5 @@ public boolean onContextItemSelected(MenuItem item) {
 }}}
 
 We can now create and delete notes, and we didn't write a single line of SQL! This application could easily be extended to support modifying notes by using `Session`'s `update` method.
+
+The complete source code for this example application is available [https://code.google.com/p/infinitum-framework/source/browse/#svn%2Ftrunk%2FExamples%2FNotepadExample here].
