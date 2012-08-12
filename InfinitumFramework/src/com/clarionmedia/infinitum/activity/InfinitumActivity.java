@@ -50,7 +50,7 @@ public class InfinitumActivity extends Activity {
 		mInfinitumContext = mInfinitumConfigId == 0 ?
 				mContextFactory.configure(this) :
 				mContextFactory.configure(this, mInfinitumConfigId);
-		final ActivityInjector injector = new ContextBasedActivityInjector(mInfinitumContext);
+		final ActivityInjector injector = new ContextBasedActivityInjector(mInfinitumContext, this);
 		injector.inject();
 		super.onCreate(savedInstanceState);
 	}
