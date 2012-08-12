@@ -7,7 +7,7 @@
 = Configuring Build Path =
 
   # Download the latest Infinitum distribution from the [http://code.google.com/p/infinitum-framework/downloads/list Downloads] page.
-  # Extract the JAR files from the zip archive (infinitum-_version_.jar and its dependencies in `lib`)  and place them in your application's `libs` directory. Note that the dependencies Simple Framework and Google Gson are only needed if making use of the [https://code.google.com/p/infinitum-framework/wiki/Session#RestfulSession RestfulSession].
+  # Extract the JAR files from the zip archive (infinitum-_version_.jar and its dependencies in `lib`)  and place them in your application's `libs` directory. Note that Google Gson is only needed if making use of the [https://code.google.com/p/infinitum-framework/wiki/Session#RestfulSession RestfulSession].
   # Verify that the JARs have been added to the application's build path (in Eclipse: right-click on the project > Build Path > Configure Build Path)
 Your project can now reference Infinitum Framework APIs.
 
