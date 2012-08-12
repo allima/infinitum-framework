@@ -10,3 +10,13 @@
   # Download the latest distribution of Infinitum Framework from the [http://code.google.com/p/infinitum-framework/downloads/list downloads page].
   # Add the Infinitum JAR and the Dexmaker dependency to the application's build path.
   # In order to provide framework support, we will extend one of Infinitum's Activities. In this case, make `NotepadExampleActivity` extend `InfinitumListActivity`.
+
+{{{
+public class NotepadExampleActivity extends InfinitumListActivity {
+	
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+}
+}}}
