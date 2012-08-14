@@ -27,8 +27,8 @@ import android.content.Context;
 
 import com.clarionmedia.infinitum.aop.DexMakerProxy;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.internal.DexCaching;
 import com.clarionmedia.infinitum.internal.Preconditions;
+import com.clarionmedia.infinitum.internal.caching.DexCaching;
 import com.google.dexmaker.stock.ProxyBuilder;
 
 /**
