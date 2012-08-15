@@ -52,7 +52,7 @@ public class SqliteSession implements Session {
 
 	private SqliteTemplate mSqlite;
 	private InfinitumContext mInfinitumContext;
-	private Map<Integer, Object> mSessionCache;
+	private LruCache<Integer, Object> mSessionCache;
 	private int mCacheSize;
 	private PersistencePolicy mPolicy;
 	private Logger mLogger;
