@@ -186,9 +186,9 @@ public abstract class AbstractContext implements InfinitumContext {
 	@Override
 	public Session getSession(DataSource source) throws InfinitumConfigurationException {
 		switch (source) {
-		case Sqlite:
+		case SQLITE:
 			return new SqliteSession(this);
-		case Rest:
+		case REST:
 			String client = getRestfulConfiguration().getClientBean();
 			RestfulSession session;
 			if (client == null) {
@@ -208,10 +208,10 @@ public abstract class AbstractContext implements InfinitumContext {
 	public PersistencePolicy getPersistencePolicy() {
 		if (sPersistencePolicy == null) {
 			switch (getConfigurationMode()) {
-			case Annotation:
+			case ANNOTATION:
 				sPersistencePolicy = new AnnotationsPersistencePolicy(this);
 				break;
-			case Xml:
+			case XML:
 				sPersistencePolicy = new XmlPersistencePolicy(this);
 				break;
 			}
@@ -222,11 +222,6 @@ public abstract class AbstractContext implements InfinitumContext {
 	@Override
 	public BeanFactory getBeanFactory() {
 		return mBeanFactory;
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		mBeanFactory = beanFactory;
 	}
 
 	@Override
@@ -242,11 +237,6 @@ public abstract class AbstractContext implements InfinitumContext {
 	@Override
 	public Context getAndroidContext() {
 		return mContext;
-	}
-
-	@Override
-	public void setContext(Context context) {
-		mContext = context;
 	}
 
 	/**

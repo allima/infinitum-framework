@@ -78,27 +78,17 @@ public class XmlApplicationContext extends AbstractContext {
 	}
 
 	@Override
-	public void setDebug(boolean debug) {
-		mAppConfig.put("debug", Boolean.toString(debug));
-	}
-
-	@Override
 	public ConfigurationMode getConfigurationMode() {
 		String mode = mAppConfig.get("mode");
 		if (mode == null)
-			return ConfigurationMode.Annotation;
-		if (mode.equalsIgnoreCase(ConfigurationMode.Xml.toString()))
-			return ConfigurationMode.Xml;
-		else if (mode.equalsIgnoreCase(ConfigurationMode.Annotation.toString()))
-			return ConfigurationMode.Annotation;
+			return ConfigurationMode.ANNOTATION;
+		if (mode.equalsIgnoreCase(ConfigurationMode.XML.toString()))
+			return ConfigurationMode.XML;
+		else if (mode.equalsIgnoreCase(ConfigurationMode.ANNOTATION.toString()))
+			return ConfigurationMode.ANNOTATION;
 		throw new InfinitumConfigurationException("Unknown configuration mode '" + mode + "'.");
 	}
-
-	@Override
-	public void setConfigurationMode(ConfigurationMode mode) {
-		mAppConfig.put("mode", mode.toString());
-	}
-
+	
 	@Override
 	public boolean hasSqliteDb() {
 		return mSqliteConfig != null;
@@ -113,21 +103,11 @@ public class XmlApplicationContext extends AbstractContext {
 	}
 
 	@Override
-	public void setSqliteDbName(String dbName) {
-		mSqliteConfig.put("dbName", dbName);
-	}
-
-	@Override
 	public int getSqliteDbVersion() {
 		String dbVersion = mSqliteConfig.get("dbVersion");
 		if (dbVersion == null)
 			throw new InfinitumConfigurationException("SQLite database version not specified.");
 		return Integer.parseInt(dbVersion);
-	}
-
-	@Override
-	public void setSqliteDbVersion(int version) {
-		mSqliteConfig.put("dbVersion", Integer.toString(version));
 	}
 
 	@Override
@@ -140,27 +120,11 @@ public class XmlApplicationContext extends AbstractContext {
 	}
 
 	@Override
-	public void addDomainModel(String domainModel) {
-		Model model = new Model();
-		model.setResource(domainModel);
-	}
-
-	@Override
-	public void setSchemaGenerated(boolean isSchemaGenerated) {
-		mSqliteConfig.put("generateSchema", Boolean.toString(isSchemaGenerated));
-	}
-
-	@Override
 	public boolean isSchemaGenerated() {
 		String isGenerated = mSqliteConfig.get("generateSchema");
 		if (isGenerated == null)
 			return true;
 		return parseBoolean(isGenerated);
-	}
-
-	@Override
-	public void setAutocommit(boolean autocommit) {
-		mSqliteConfig.put("autocommit", Boolean.toString(autocommit));
 	}
 
 	@Override
@@ -174,11 +138,6 @@ public class XmlApplicationContext extends AbstractContext {
 	@Override
 	public RestfulContext getRestfulConfiguration() {
 		return mRestConfig;
-	}
-
-	@Override
-	public void setRestfulConfiguration(RestfulContext restContext) {
-		mRestConfig = restContext;
 	}
 
 	@Override
@@ -205,24 +164,10 @@ public class XmlApplicationContext extends AbstractContext {
 	}
 
 	@Override
-	public void setComponentScanPackages(String packages) {
-		if (mBeanContainer.mComponentScan == null)
-			mBeanContainer.mComponentScan = new BeanContainer.ComponentScan();
-		mBeanContainer.mComponentScan.mBasePackages = packages;
-	}
-
-	@Override
 	protected List<String> getScanPackages() {
 		if (mBeanContainer.mComponentScan == null)
 			return new ArrayList<String>();
 		return mBeanContainer.mComponentScan.getBasePackages();
-	}
-
-	@Override
-	public void setComponentScanEnabled(boolean componentScan) {
-		if (mBeanContainer.mComponentScan == null)
-			mBeanContainer.mComponentScan = new BeanContainer.ComponentScan();
-		mBeanContainer.mComponentScan.mIsEnabled = componentScan;
 	}
 
 	@Override
@@ -240,10 +185,6 @@ public class XmlApplicationContext extends AbstractContext {
 
 		public String getResource() {
 			return mResource;
-		}
-
-		public void setResource(String resource) {
-			mResource = resource;
 		}
 
 	}

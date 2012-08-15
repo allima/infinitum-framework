@@ -45,7 +45,7 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
  * </p>
  * 
  * <pre>
- * Session session = context.getSession(DataSource.Sqlite);
+ * Session session = context.getSession(DataSource.SQLITE);
  * </pre>
  * 
  * @author Tyler Treat
@@ -58,12 +58,12 @@ public interface InfinitumContext {
 	 * Represents the entity persistence configuration mode.
 	 */
 	public static enum ConfigurationMode {
-		Xml {
+		XML {
 			public String toString() {
 				return "xml";
 			}
 		},
-		Annotation {
+		ANNOTATION {
 			public String toString() {
 				return "annotations";
 			}
@@ -74,7 +74,7 @@ public interface InfinitumContext {
 	 * Represents the configured data source for a {@link Session}.
 	 */
 	public static enum DataSource {
-		Sqlite, Rest
+		SQLITE, REST
 	}
 
 	/**
@@ -94,8 +94,7 @@ public interface InfinitumContext {
 	 * @throws InfinitumConfigurationException
 	 *             if the specified {@code DataSource} was not configured
 	 */
-	Session getSession(DataSource source)
-			throws InfinitumConfigurationException;
+	Session getSession(DataSource source) throws InfinitumConfigurationException;
 
 	/**
 	 * Indicates if debug is enabled or not. If it is enabled, Infinitum will
@@ -105,21 +104,6 @@ public interface InfinitumContext {
 	 * @return {@code true} if debug is on, {@code false} if not
 	 */
 	boolean isDebug();
-
-	/**
-	 * Sets the debug value indicating if logging is enabled or not. If it is
-	 * enabled, Infinitum will produce log statements in {@code Logcat},
-	 * otherwise it will not produce any logging. This should be set to
-	 * {@code false} in a production environment. The debug value can be enabled
-	 * in {@code infinitum.cfg.xml} with
-	 * {@code <property name="debug">true</property>} and disabled with
-	 * {@code <property name="debug">false</property>}.
-	 * 
-	 * @param debug
-	 *            {@code true} if debug is to be enabled, {@code false} if it's
-	 *            to be disabled
-	 */
-	void setDebug(boolean debug);
 
 	/**
 	 * Returns the {@link ConfigurationMode} value of this
@@ -132,25 +116,6 @@ public interface InfinitumContext {
 	 * @return {@code ConfigurationMode} for this application
 	 */
 	ConfigurationMode getConfigurationMode();
-
-	/**
-	 * Sets the {@link ConfigurationMode} value for this
-	 * {@code InfinitumContext}. The mode can be set in
-	 * {@code infinitum.cfg.xml} with
-	 * {@code <property name="mode">xml</property>} or
-	 * {@code <property name="mode">annotations</property>} in the
-	 * {@code application} element. An XML configuration means that domain model
-	 * mappings are provided through XML mapping files, while an annotation
-	 * configuration means that mappings and other properties are provided in
-	 * source code using Java annotations. If annotations are used, all domain
-	 * model classes must be stored in the same package. If a mode property is
-	 * not provided in {@code infinitum.cfg.xml}, annotations will be used by
-	 * default.
-	 * 
-	 * @param mode
-	 *            the {@code ConfigurationMode}
-	 */
-	void setConfigurationMode(ConfigurationMode mode);
 
 	/**
 	 * Returns true if there is a SQLite database configured or false if not. If
@@ -172,36 +137,12 @@ public interface InfinitumContext {
 	String getSqliteDbName();
 
 	/**
-	 * Sets the value of the SQLite database name for this
-	 * {@code InfinitumContext}. The SQLite database name can be specified in
-	 * {@code infinitum.cfg.xml} with
-	 * {@code <property name="dbName">MyDB</property>} in the {@code sqlite}
-	 * element.
-	 * 
-	 * @param dbName
-	 *            the name of the SQLite database
-	 */
-	void setSqliteDbName(String dbName);
-
-	/**
 	 * Returns the version number of the SQLite database for this
 	 * {@code InfinitumContext}.
 	 * 
 	 * @return the SQLite database version number
 	 */
 	int getSqliteDbVersion();
-
-	/**
-	 * Sets the version for the SQLite database for this
-	 * {@code InfinitumContext}. The SQLite database version can be specified in
-	 * {@code infinitum.cfg.xml} with
-	 * {@code <property name="dbVersion">2</property>} in the {@code sqlite}
-	 * element.
-	 * 
-	 * @param version
-	 *            the version to set for the SQLite database
-	 */
-	void setSqliteDbVersion(int version);
 
 	/**
 	 * Returns a {@link List} of all fully-qualified domain model classes
@@ -213,27 +154,6 @@ public interface InfinitumContext {
 	List<String> getDomainTypes();
 
 	/**
-	 * Adds the specified domain model class to the entire collection of domain
-	 * models registered with this {@code InfinitumContext}. Domain models are
-	 * defined in {@code infinitum.cfg.xml} using
-	 * {@code <model resource="com.foo.domain.MyModel" />} in the {@code domain}
-	 * element.
-	 * 
-	 * @param domainModel
-	 */
-	void addDomainModel(String domainModel);
-
-	/**
-	 * Sets the value indicating if the database schema should be generated
-	 * automatically by the framework.
-	 * 
-	 * @param isSchemaGenerated
-	 *            {@code true} if the schema should be generated, {@code false}
-	 *            if not
-	 */
-	void setSchemaGenerated(boolean isSchemaGenerated);
-
-	/**
 	 * Indicates if the database schema is configured to be automatically
 	 * generated by the framework.
 	 * 
@@ -241,15 +161,6 @@ public interface InfinitumContext {
 	 *         {@code false} if not
 	 */
 	boolean isSchemaGenerated();
-
-	/**
-	 * Sets the value indicating if autocommit should be enabled or disabled.
-	 * 
-	 * @param autocommit
-	 *            {@code true} if autocommit should be enabled, {@code false} if
-	 *            not
-	 */
-	void setAutocommit(boolean autocommit);
 
 	/**
 	 * Indicates if autocommit is enabled or disabled.
@@ -268,28 +179,12 @@ public interface InfinitumContext {
 	RestfulContext getRestfulConfiguration();
 
 	/**
-	 * Sets the {@link RestfulContext} for this {@code InfinitumContext}.
-	 * 
-	 * @param restContext
-	 *            the {@code RestfulConfiguration} to set
-	 */
-	void setRestfulConfiguration(RestfulContext restContext);
-
-	/**
 	 * Retrieves the Android {@link Context} for this {@code InfinitumContext},
 	 * which contains application-wide context information.
 	 * 
 	 * @return {@code Context}
 	 */
 	Context getAndroidContext();
-
-	/**
-	 * Sets the {@link Context} for this {@code InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@Context} to set
-	 */
-	void setContext(Context context);
 
 	/**
 	 * Retrieves the {@link BeanFactory} for this {@code InfinitumContext}. The
@@ -299,14 +194,6 @@ public interface InfinitumContext {
 	 * @return {@code BeanContainer}
 	 */
 	BeanFactory getBeanFactory();
-
-	/**
-	 * Sets the {@link BeanFactory} for this {@code InfinitumContext}.
-	 * 
-	 * @param beanFactory
-	 *            the {@code BeanContainer} to set
-	 */
-	void setBeanFactory(BeanFactory beanFactory);
 
 	/**
 	 * Retrieves a bean with the given name. Beans are configured in
@@ -340,29 +227,10 @@ public interface InfinitumContext {
 	PersistencePolicy getPersistencePolicy();
 
 	/**
-	 * Sets the value indicating if component scan should be enabled or
-	 * disabled.
-	 * 
-	 * @param componentScan
-	 *            {@code true} if component scan should be enabled,
-	 *            {@code false} if not
-	 */
-	void setComponentScanEnabled(boolean componentScan);
-
-	/**
 	 * Indicates if component scan is enabled.
 	 * 
 	 * @return {@code true} if component scan is enabled, {@code false} if not
 	 */
 	boolean isComponentScanEnabled();
-
-	/**
-	 * Sets the packages to scan for components. Packages are separated by a
-	 * comma.
-	 * 
-	 * @param packages
-	 *            the packages to scan
-	 */
-	void setComponentScanPackages(String packages);
 
 }
