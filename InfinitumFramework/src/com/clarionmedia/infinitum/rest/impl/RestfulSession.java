@@ -97,7 +97,7 @@ public abstract class RestfulSession implements Session {
 		mCacheSize = DEFAULT_CACHE_SIZE;
 		mSessionCache = new LruCache<Integer, Object>(mCacheSize);
 		mRestContext = mInfinitumContext.getRestfulConfiguration();
-		mRestClient = new BasicRestfulClient(mInfinitumContext);
+		mRestClient = new CachingEnabledRestfulClient(mInfinitumContext);
 		mRestClient.setHttpParams(getHttpParams());
 		mIsAuthenticated = mRestContext.isRestAuthenticated();
 		mAuthStrategy = mRestContext.getAuthStrategy();
