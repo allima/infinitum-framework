@@ -51,29 +51,29 @@ import com.clarionmedia.infinitum.rest.RestfulClient;
 
 /**
  * <p>
- * Provides an API for communicating with RESTful web services.
+ * Implementation of {@link RestfulClient} with caching support.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 07/04/12
  * @since 1.0
  */
-public class BasicRestfulClient implements RestfulClient {
+public class CachingEnabledRestfulClient implements RestfulClient {
 
 	protected Logger mLogger;
 	protected HttpParams mHttpParams;
 
 	/**
-	 * Constructs a new {@code BasicRestfulClient}.
+	 * Creates a new {@code CachingEnabledRestfulClient}.
 	 */
-	public BasicRestfulClient(InfinitumContext context) {
+	public CachingEnabledRestfulClient(InfinitumContext context) {
 		mLogger = Logger.getInstance(context, getClass().getSimpleName());
 		mHttpParams = new BasicHttpParams();
 	}
 
 	@Override
 	public RestResponse executeGet(String uri) {
-		return executeRequest(new HttpGet(uri));
+		return executeRequest(new HashableHttpRequest(new HttpGet(uri)));
 	}
 
 	@Override
@@ -82,24 +82,28 @@ public class BasicRestfulClient implements RestfulClient {
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpGet.addHeader(header.getKey(), header.getValue());
 		}
-		return executeRequest(httpGet);
+		return executeRequest(new HashableHttpRequest(httpGet));
 	}
 
 	@Override
-	public RestResponse executePost(String uri, String messageBody, String contentType) {
+	public RestResponse executePost(String uri, String messageBody,
+			String contentType) {
 		HttpPost httpPost = new HttpPost(uri);
 		httpPost.addHeader("content-type", contentType);
 		try {
 			httpPost.setEntity(new StringEntity(messageBody, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			mLogger.error("Unable to send POST request (could not encode message body)", e);
+			mLogger.error(
+					"Unable to send POST request (could not encode message body)",
+					e);
 			return null;
 		}
-		return executeRequest(httpPost);
+		return executeRequest(new HashableHttpRequest(httpPost));
 	}
 
 	@Override
-	public RestResponse executePost(String uri, String messageBody, String contentType, Map<String, String> headers) {
+	public RestResponse executePost(String uri, String messageBody,
+			String contentType, Map<String, String> headers) {
 		HttpPost httpPost = new HttpPost(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPost.addHeader(header.getKey(), header.getValue());
@@ -108,41 +112,48 @@ public class BasicRestfulClient implements RestfulClient {
 		try {
 			httpPost.setEntity(new StringEntity(messageBody, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			mLogger.error("Unable to send POST request (could not encode message body)", e);
+			mLogger.error(
+					"Unable to send POST request (could not encode message body)",
+					e);
 			return null;
 		}
-		return executeRequest(httpPost);
+		return executeRequest(new HashableHttpRequest(httpPost));
 	}
-	
+
 	@Override
 	public RestResponse executePost(String uri, HttpEntity httpEntity) {
 		HttpPost httpPost = new HttpPost(uri);
-		httpPost.addHeader("content-type", httpEntity.getContentType().getValue());
+		httpPost.addHeader("content-type", httpEntity.getContentType()
+				.getValue());
 		httpPost.setEntity(httpEntity);
-		return executeRequest(httpPost);
+		return executeRequest(new HashableHttpRequest(httpPost));
 	}
 
 	@Override
-	public RestResponse executePost(String uri, HttpEntity httpEntity, Map<String, String> headers) {
+	public RestResponse executePost(String uri, HttpEntity httpEntity,
+			Map<String, String> headers) {
 		HttpPost httpPost = new HttpPost(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPost.addHeader(header.getKey(), header.getValue());
 		}
-		httpPost.addHeader("content-type", httpEntity.getContentType().getValue());
+		httpPost.addHeader("content-type", httpEntity.getContentType()
+				.getValue());
 		httpPost.setEntity(httpEntity);
-		return executeRequest(httpPost);
+		return executeRequest(new HashableHttpRequest(httpPost));
 	}
 
 	@Override
-	public RestResponse executePost(String uri, InputStream messageBody, int messageBodyLength, String contentType) {
+	public RestResponse executePost(String uri, InputStream messageBody,
+			int messageBodyLength, String contentType) {
 		HttpPost httpPost = new HttpPost(uri);
 		httpPost.addHeader("content-type", contentType);
 		httpPost.setEntity(new InputStreamEntity(messageBody, messageBodyLength));
-		return executeRequest(httpPost);
+		return executeRequest(new HashableHttpRequest(httpPost));
 	}
 
 	@Override
-	public RestResponse executePost(String uri, InputStream messageBody, int messageBodyLength, String contentType,
+	public RestResponse executePost(String uri, InputStream messageBody,
+			int messageBodyLength, String contentType,
 			Map<String, String> headers) {
 		HttpPost httpPost = new HttpPost(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
@@ -150,12 +161,12 @@ public class BasicRestfulClient implements RestfulClient {
 		}
 		httpPost.addHeader("content-type", contentType);
 		httpPost.setEntity(new InputStreamEntity(messageBody, messageBodyLength));
-		return executeRequest(httpPost);
+		return executeRequest(new HashableHttpRequest(httpPost));
 	}
 
 	@Override
 	public RestResponse executeDelete(String uri) {
-		return executeRequest(new HttpDelete(uri));
+		return executeRequest(new HashableHttpRequest(new HttpDelete(uri)));
 	}
 
 	@Override
@@ -164,24 +175,28 @@ public class BasicRestfulClient implements RestfulClient {
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpDelete.addHeader(header.getKey(), header.getValue());
 		}
-		return executeRequest(httpDelete);
+		return executeRequest(new HashableHttpRequest(httpDelete));
 	}
 
 	@Override
-	public RestResponse executePut(String uri, String messageBody, String contentType) {
+	public RestResponse executePut(String uri, String messageBody,
+			String contentType) {
 		HttpPut httpPut = new HttpPut(uri);
 		httpPut.addHeader("content-type", contentType);
 		try {
 			httpPut.setEntity(new StringEntity(messageBody, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			mLogger.error("Unable to send PUT request (could not encode message body)", e);
+			mLogger.error(
+					"Unable to send PUT request (could not encode message body)",
+					e);
 			return null;
 		}
-		return executeRequest(httpPut);
+		return executeRequest(new HashableHttpRequest(httpPut));
 	}
 
 	@Override
-	public RestResponse executePut(String uri, String messageBody, String contentType, Map<String, String> headers) {
+	public RestResponse executePut(String uri, String messageBody,
+			String contentType, Map<String, String> headers) {
 		HttpPut httpPut = new HttpPut(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPut.addHeader(header.getKey(), header.getValue());
@@ -190,41 +205,48 @@ public class BasicRestfulClient implements RestfulClient {
 		try {
 			httpPut.setEntity(new StringEntity(messageBody, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			mLogger.error("Unable to send PUT request (could not encode message body)", e);
+			mLogger.error(
+					"Unable to send PUT request (could not encode message body)",
+					e);
 			return null;
 		}
-		return executeRequest(httpPut);
+		return executeRequest(new HashableHttpRequest(httpPut));
 	}
-	
+
 	@Override
 	public RestResponse executePut(String uri, HttpEntity httpEntity) {
 		HttpPut httpPut = new HttpPut(uri);
-		httpPut.addHeader("content-type", httpEntity.getContentType().getValue());
+		httpPut.addHeader("content-type", httpEntity.getContentType()
+				.getValue());
 		httpPut.setEntity(httpEntity);
-		return executeRequest(httpPut);
+		return executeRequest(new HashableHttpRequest(httpPut));
 	}
 
 	@Override
-	public RestResponse executePut(String uri, HttpEntity httpEntity, Map<String, String> headers) {
+	public RestResponse executePut(String uri, HttpEntity httpEntity,
+			Map<String, String> headers) {
 		HttpPut httpPut = new HttpPut(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPut.addHeader(header.getKey(), header.getValue());
 		}
-		httpPut.addHeader("content-type", httpEntity.getContentType().getValue());
+		httpPut.addHeader("content-type", httpEntity.getContentType()
+				.getValue());
 		httpPut.setEntity(httpEntity);
-		return executeRequest(httpPut);
+		return executeRequest(new HashableHttpRequest(httpPut));
 	}
 
 	@Override
-	public RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType) {
+	public RestResponse executePut(String uri, InputStream messageBody,
+			int messageBodyLength, String contentType) {
 		HttpPut httpPut = new HttpPut(uri);
 		httpPut.addHeader("content-type", contentType);
 		httpPut.setEntity(new InputStreamEntity(messageBody, messageBodyLength));
-		return executeRequest(httpPut);
+		return executeRequest(new HashableHttpRequest(httpPut));
 	}
 
 	@Override
-	public RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType,
+	public RestResponse executePut(String uri, InputStream messageBody,
+			int messageBodyLength, String contentType,
 			Map<String, String> headers) {
 		HttpPut httpPut = new HttpPut(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
@@ -232,7 +254,7 @@ public class BasicRestfulClient implements RestfulClient {
 		}
 		httpPut.addHeader("content-type", contentType);
 		httpPut.setEntity(new InputStreamEntity(messageBody, messageBodyLength));
-		return executeRequest(httpPut);
+		return executeRequest(new HashableHttpRequest(httpPut));
 	}
 
 	@Override
@@ -244,14 +266,16 @@ public class BasicRestfulClient implements RestfulClient {
 	public void setResponseTimeout(int timeout) {
 		HttpConnectionParams.setSoTimeout(mHttpParams, timeout);
 	}
-	
+
 	@Override
 	public void setHttpParams(HttpParams httpParams) {
 		mHttpParams = httpParams;
 	}
 
-	private RestResponse executeRequest(HttpUriRequest httpRequest) {
-		mLogger.debug("Sending " + httpRequest.getMethod() + " request to " + httpRequest.getURI() + " with "
+	private RestResponse executeRequest(HashableHttpRequest hashableHttpRequest) {
+		HttpUriRequest httpRequest = hashableHttpRequest.mHttpRequest;
+		mLogger.debug("Sending " + httpRequest.getMethod() + " request to "
+				+ httpRequest.getURI() + " with "
 				+ httpRequest.getAllHeaders().length + " headers");
 		RestResponse restResponse = new RestResponse();
 		HttpClient httpClient = new DefaultHttpClient(mHttpParams);
@@ -273,11 +297,94 @@ public class BasicRestfulClient implements RestfulClient {
 			}
 			return restResponse;
 		} catch (ClientProtocolException e) {
-			mLogger.error("Unable to send " + httpRequest.getMethod() + " request", e);
+			mLogger.error("Unable to send " + httpRequest.getMethod()
+					+ " request", e);
 			return null;
 		} catch (IOException e) {
 			mLogger.error("Unable to read web service response", e);
 			return null;
+		}
+	}
+
+	/**
+	 * <p>
+	 * Wrapper for {@link HttpUriRequest} to support hashing and equality for
+	 * the purpose of HTTP caching.
+	 * </p>
+	 * 
+	 * @author Tyler Treat
+	 * @version 1.0 08/14/12
+	 * @since 1.0
+	 */
+	private static class HashableHttpRequest {
+
+		private HttpUriRequest mHttpRequest;
+
+		/**
+		 * Creates a new {@code HashableHttpRequest} for the given
+		 * {@link HttpUriRequest}.
+		 * 
+		 * @param request
+		 *            the {@code HttpUriRequest} to wrap
+		 */
+		public HashableHttpRequest(HttpUriRequest request) {
+			mHttpRequest = request;
+		}
+
+		@Override
+		public int hashCode() {
+			final int PRIME = 31;
+			int hash = 7;
+			hash *= PRIME + mHttpRequest.getMethod().hashCode();
+			for (Header header : mHttpRequest.getAllHeaders()) {
+				hash *= PRIME + header.getName().hashCode();
+				hash *= PRIME + header.getValue().hashCode();
+			}
+			hash *= PRIME
+					+ mHttpRequest.getProtocolVersion().getProtocol()
+							.hashCode();
+			hash *= PRIME + mHttpRequest.getProtocolVersion().getMajor();
+			hash *= PRIME + mHttpRequest.getProtocolVersion().getMinor();
+			hash *= PRIME + mHttpRequest.getURI().toString().hashCode();
+			return hash;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (this == other)
+				return true;
+			if (getClass() != other.getClass())
+				return false;
+			HashableHttpRequest otherRequest = (HashableHttpRequest) other;
+			Header[] headers = mHttpRequest.getAllHeaders();
+			Header[] otherHeaders = otherRequest.mHttpRequest.getAllHeaders();
+			if (headers.length != otherHeaders.length)
+				return false;
+			boolean match = false;
+			for (Header header : headers) {
+				for (Header otherHeader : otherHeaders) {
+					if (header.getName().equals(otherHeader.getName())
+							&& header.getValue().equals(otherHeader.getValue())) {
+						match = true;
+						break;
+					}
+				}
+				if (!match)
+					return false;
+			}
+			return mHttpRequest.getMethod().equals(
+					otherRequest.mHttpRequest.getMethod())
+					&& mHttpRequest
+							.getProtocolVersion()
+							.getProtocol()
+							.equals(otherRequest.mHttpRequest
+									.getProtocolVersion().getProtocol())
+					&& mHttpRequest.getProtocolVersion().getMajor() == otherRequest.mHttpRequest
+							.getProtocolVersion().getMajor()
+					&& mHttpRequest.getProtocolVersion().getMinor() == otherRequest.mHttpRequest
+							.getProtocolVersion().getMinor()
+					&& mHttpRequest.getURI().equals(
+							otherRequest.mHttpRequest.getURI());
 		}
 	}
 
