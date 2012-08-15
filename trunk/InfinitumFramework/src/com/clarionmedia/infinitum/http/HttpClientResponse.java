@@ -17,38 +17,47 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest;
+package com.clarionmedia.infinitum.http;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
- * Provides an API for deserializing JSON responses into domain model instances.
+ * Encapsulates an HTTP response message sent back from a server.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 03/25/12
+ * @version 1.0 08/15/12
+ * @since 1.0
  */
-public abstract class JsonDeserializer<T> implements Deserializer<T> {
+public interface HttpClientResponse extends HttpClientMessage {
 
 	/**
-	 * Deserializes the given JSON {@link String} into an Object of the generic
-	 * type.
+	 * Returns the HTTP status code that was included with the response.
 	 * 
-	 * @param json
-	 *            the JSON {@code String} to deserialize
-	 * @return {@code Object}
+	 * @return status code
 	 */
-	public abstract T deserializeObject(String json);
+	int getStatusCode();
 
 	/**
-	 * Deserializes the given JSON {@link String} consisting of an object array
-	 * into a {@link List} of objects of the generic type.
+	 * Returns the response message data as it was received from the server.
 	 * 
-	 * @param json
-	 *            the JSON {@code String} to deserialize
-	 * @return {@code List} of {@code Objects}
+	 * @return message data as a byte array
 	 */
-	public abstract List<T> deserializeObjects(String json);
+	byte[] getResponseData();
+
+	/**
+	 * Returns the response message data as a {@link String}.
+	 * 
+	 * @return message data {@code String}
+	 */
+	String getResponseDataAsString();
+
+	/**
+	 * Returns the cookies that were included with the response.
+	 * 
+	 * @return {@link Map} containing cookies
+	 */
+	Map<String, String> getCookies();
 
 }

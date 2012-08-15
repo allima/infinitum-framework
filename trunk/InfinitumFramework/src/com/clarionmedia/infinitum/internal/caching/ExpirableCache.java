@@ -19,9 +19,11 @@
 
 package com.clarionmedia.infinitum.internal.caching;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -37,12 +39,12 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0 08/14/12
  * @since 1.0
  */
-public class ExpirableCache<K, V> {
+public class ExpirableCache<K, V> implements Map<K,V> {
 
 	private static final long DEFAULT_EXPIRATION_TIMEOUT = 60;
 
-	private final Map<K, V> mCache;
-	private final Map<K, Long> mTimeoutCache;
+	private final ConcurrentMap<K, V> mCache;
+	private final ConcurrentMap<K, Long> mTimeoutCache;
 	private final long mDefaultExpirationTimeout;
 	private final ExecutorService mThreadPool;
 
@@ -64,8 +66,8 @@ public class ExpirableCache<K, V> {
 	public ExpirableCache(final long defaultExpiration) {
 		if (defaultExpiration <= 0)
 			throw new IllegalArgumentException("Cache expiration timeout must be greater than 0.");
-		mCache = Collections.synchronizedMap(new HashMap<K, V>());
-		mTimeoutCache = Collections.synchronizedMap(new HashMap<K, Long>());
+		mCache = new ConcurrentHashMap<K, V>();
+		mTimeoutCache = new ConcurrentHashMap<K, Long>();
 		mDefaultExpirationTimeout = defaultExpiration;
 		mThreadPool = Executors.newFixedThreadPool(256);
 		Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(
@@ -96,9 +98,11 @@ public class ExpirableCache<K, V> {
 	 *            the cache entry's key
 	 * @param object
 	 *            the {@code Object} to cache
+	 * @return the previous cache entry with the associated key or {@code null} if there was none
 	 */
-	public void put(final K key, final V object) {
-		put(key, object, mDefaultExpirationTimeout);
+	@Override
+	public V put(final K key, final V object) {
+		return put(key, object, mDefaultExpirationTimeout);
 	}
 
 	/**
@@ -110,10 +114,12 @@ public class ExpirableCache<K, V> {
 	 *            the {@code Object} to cache
 	 * @param expirationTimeout
 	 *            the cache entry's expiration timeout in seconds
+	 * @return the previous cache entry with the associated key or {@code null} if there was none
 	 */
-	public void put(final K key, final V object, final long expirationTimeout) {
-		mCache.put(key, object);
+	public V put(final K key, final V object, final long expirationTimeout) {
+		V ret = mCache.put(key, object);
 		mTimeoutCache.put(key, System.currentTimeMillis() + expirationTimeout * 1000);
+		return ret;
 	}
 
 	/**
@@ -124,7 +130,8 @@ public class ExpirableCache<K, V> {
 	 * @return the cached {@code Object} with the given key or {@code null} if
 	 *         no entry exists (or if it expired)
 	 */
-	public V get(final K key) {
+	@Override
+	public V get(final Object key) {
 		final Long expireTime = mTimeoutCache.get(key);
 		if (expireTime == null)
 			return null;
@@ -149,6 +156,56 @@ public class ExpirableCache<K, V> {
 	public <R extends V> R get(final K key, final Class<R> type) {
 		return (R) get(key);
 	}
+	
+	@Override
+	public synchronized boolean containsKey(Object key) {
+		return mCache.containsKey(key);
+	}
+	
+	@Override
+	public synchronized boolean containsValue(Object value) {
+		return mCache.containsValue(value);
+	}
+	
+	@Override
+	public synchronized V remove(Object key) {
+		return mCache.remove(key);
+	}
+	
+	@Override
+	public synchronized void clear() {
+		mCache.clear();
+	}
+
+	@Override
+	public Set<Entry<K, V>> entrySet() {
+		return mCache.entrySet();
+	}
+
+	@Override
+	public synchronized boolean isEmpty() {
+		return mCache.isEmpty();
+	}
+
+	@Override
+	public Set<K> keySet() {
+		return mCache.keySet();
+	}
+
+	@Override
+	public synchronized void putAll(Map<? extends K, ? extends V> arg0) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public synchronized int size() {
+		return mCache.size();
+	}
+
+	@Override
+	public Collection<V> values() {
+		return mCache.values();
+	}
 
 	/**
 	 * Returns a {@link Runnable} that evicts the {@link Object} with the given
@@ -157,7 +214,7 @@ public class ExpirableCache<K, V> {
 	 * @param key
 	 *            the key of the {@code Object} to evict
 	 */
-	private final Runnable evictFromCache(final K key) {
+	private final Runnable evictFromCache(final Object key) {
 		return new Runnable() {
 			public void run() {
 				mCache.remove(key);

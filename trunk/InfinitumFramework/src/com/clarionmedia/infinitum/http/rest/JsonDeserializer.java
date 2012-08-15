@@ -17,41 +17,38 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest;
+package com.clarionmedia.infinitum.http.rest;
 
 import java.util.List;
 
 /**
  * <p>
- * A {@code Deserializer} is used to convert web service responses into domain
- * objects. Web service responses are typically sent back as JSON or XML. For
- * the former, see the implementation {@link JsonDeserializer}, and the latter,
- * {@link XmlDeserializer}.
+ * Provides an API for deserializing JSON responses into domain model instances.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 05/21/12
+ * @version 1.0 03/25/12
  */
-public interface Deserializer<T> {
+public abstract class JsonDeserializer<T> implements Deserializer<T> {
 
 	/**
-	 * Deserializes the given response {@link String} into an Object of the
-	 * generic type.
+	 * Deserializes the given JSON {@link String} into an Object of the generic
+	 * type.
 	 * 
-	 * @param response
-	 *            the response {@code String} to deserialize
+	 * @param json
+	 *            the JSON {@code String} to deserialize
 	 * @return {@code Object}
 	 */
-	T deserializeObject(String response);
+	public abstract T deserializeObject(String json);
 
 	/**
-	 * Deserializes the given response {@link String} consisting of an object
-	 * collection into a {@link List} of objects of the generic type.
+	 * Deserializes the given JSON {@link String} consisting of an object array
+	 * into a {@link List} of objects of the generic type.
 	 * 
-	 * @param response
-	 *            the response {@code String} to deserialize
+	 * @param json
+	 *            the JSON {@code String} to deserialize
 	 * @return {@code List} of {@code Objects}
 	 */
-	List<T> deserializeObjects(String response);
+	public abstract List<T> deserializeObjects(String json);
 
 }

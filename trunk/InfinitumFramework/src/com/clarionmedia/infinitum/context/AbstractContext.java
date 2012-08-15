@@ -44,6 +44,8 @@ import com.clarionmedia.infinitum.di.annotation.Scope;
 import com.clarionmedia.infinitum.di.impl.ConfigurableBeanFactory;
 import com.clarionmedia.infinitum.di.impl.GenericBeanDefinitionBuilder;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.http.rest.impl.RestfulJsonSession;
+import com.clarionmedia.infinitum.http.rest.impl.RestfulSession;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -52,8 +54,6 @@ import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
-import com.clarionmedia.infinitum.rest.impl.RestfulJsonSession;
-import com.clarionmedia.infinitum.rest.impl.RestfulSession;
 
 /**
  * <p>

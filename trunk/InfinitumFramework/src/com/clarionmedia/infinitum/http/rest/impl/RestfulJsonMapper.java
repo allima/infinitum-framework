@@ -17,18 +17,18 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest.impl;
+package com.clarionmedia.infinitum.http.rest.impl;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.http.rest.RestfulJsonTypeAdapter;
+import com.clarionmedia.infinitum.http.rest.RestfulMapper;
+import com.clarionmedia.infinitum.http.rest.RestfulPairsTypeAdapter;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
-import com.clarionmedia.infinitum.rest.RestfulJsonTypeAdapter;
-import com.clarionmedia.infinitum.rest.RestfulMapper;
-import com.clarionmedia.infinitum.rest.RestfulPairsTypeAdapter;
 import com.google.gson.Gson;
 
 /**

@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest.impl;
+package com.clarionmedia.infinitum.http.rest.impl;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -35,6 +35,10 @@ import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.http.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.http.rest.RestfulClient;
+import com.clarionmedia.infinitum.http.rest.RestfulMapper;
+import com.clarionmedia.infinitum.http.rest.RestfulModelMap;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.caching.LruCache;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -43,11 +47,6 @@ import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
-import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
-import com.clarionmedia.infinitum.rest.RestResponse;
-import com.clarionmedia.infinitum.rest.RestfulClient;
-import com.clarionmedia.infinitum.rest.RestfulMapper;
-import com.clarionmedia.infinitum.rest.RestfulModelMap;
 
 /**
  * <p>

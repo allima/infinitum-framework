@@ -1,4 +1,4 @@
-package com.clarionmedia.infinitum.rest;
+package com.clarionmedia.infinitum.http.rest;
 
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 
