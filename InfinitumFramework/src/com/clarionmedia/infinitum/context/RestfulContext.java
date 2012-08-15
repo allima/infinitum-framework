@@ -20,7 +20,7 @@
 package com.clarionmedia.infinitum.context;
 
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.http.rest.AuthenticationStrategy;
 
 /**
  * <p>

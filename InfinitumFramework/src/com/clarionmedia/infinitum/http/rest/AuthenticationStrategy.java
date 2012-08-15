@@ -17,9 +17,9 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest;
+package com.clarionmedia.infinitum.http.rest;
 
-import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
+import com.clarionmedia.infinitum.http.rest.impl.SharedSecretAuthentication;
 
 /**
  * <p>

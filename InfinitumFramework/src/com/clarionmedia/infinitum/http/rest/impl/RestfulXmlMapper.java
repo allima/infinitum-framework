@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest.impl;
+package com.clarionmedia.infinitum.http.rest.impl;
 
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -27,13 +27,13 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.http.rest.RestfulMapper;
+import com.clarionmedia.infinitum.http.rest.RestfulPairsTypeAdapter;
+import com.clarionmedia.infinitum.http.rest.RestfulXmlTypeAdapter;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
-import com.clarionmedia.infinitum.rest.RestfulMapper;
-import com.clarionmedia.infinitum.rest.RestfulPairsTypeAdapter;
-import com.clarionmedia.infinitum.rest.RestfulXmlTypeAdapter;
 
 /**
  * <p>

@@ -17,13 +17,15 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest;
+package com.clarionmedia.infinitum.http.rest;
 
 import java.io.InputStream;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.params.HttpParams;
+
+import com.clarionmedia.infinitum.http.rest.impl.RestResponse;
 
 /**
  * <p>

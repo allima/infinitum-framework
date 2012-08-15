@@ -17,38 +17,39 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest;
+package com.clarionmedia.infinitum.http.rest;
 
-import org.apache.http.HttpEntity;
-import com.clarionmedia.infinitum.orm.ModelMap;
+import java.util.List;
 
 /**
  * <p>
- * Abstract implementation of {@link ModelMap} representing a domain model
- * instance mapped to a RESTful web service resource.
+ * Provides an API for deserializing XML responses into domain model instances.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 08/05/12
- * @since 1.0
+ * @version 1.0
+ * @since 05/21/12
  */
-public abstract class RestfulModelMap extends ModelMap {
+public abstract class XmlDeserializer<T> implements Deserializer<T> {
 
 	/**
-	 * Creates a new {@code RestfulModelMap} for the given {@link Object}.
+	 * Deserializes the given XML {@link String} into an Object of the generic
+	 * type.
 	 * 
-	 * @param model
-	 *            the {@code Object} to map
+	 * @param xml
+	 *            the XML {@code String} to deserialize
+	 * @return {@code Object}
 	 */
-	public RestfulModelMap(Object model) {
-		super(model);
-	}
+	public abstract T deserializeObject(String xml);
 
 	/**
-	 * Retrieves an {@link HttpEntity} representation of the model.
+	 * Deserializes the given XML {@link String} consisting of an object
+	 * collection into a {@link List} of objects of the generic type.
 	 * 
-	 * @return {@code HttpEntity}
+	 * @param xml
+	 *            the XML {@code String} to deserialize
+	 * @return {@code List} of {@code Objects}
 	 */
-	public abstract HttpEntity toHttpEntity();
+	public abstract List<T> deserializeObjects(String xml);
 
 }

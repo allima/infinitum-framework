@@ -17,7 +17,7 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest.impl;
+package com.clarionmedia.infinitum.http.rest.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,9 +45,9 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.http.impl.HashableHttpRequest;
+import com.clarionmedia.infinitum.http.rest.RestfulClient;
 import com.clarionmedia.infinitum.logging.Logger;
-import com.clarionmedia.infinitum.rest.RestResponse;
-import com.clarionmedia.infinitum.rest.RestfulClient;
 
 /**
  * <p>
@@ -273,14 +273,12 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 	}
 
 	private RestResponse executeRequest(HashableHttpRequest hashableHttpRequest) {
-		HttpUriRequest httpRequest = hashableHttpRequest.mHttpRequest;
-		mLogger.debug("Sending " + httpRequest.getMethod() + " request to "
-				+ httpRequest.getURI() + " with "
-				+ httpRequest.getAllHeaders().length + " headers");
-		RestResponse restResponse = new RestResponse();
+		HttpUriRequest httpRequest = hashableHttpRequest.unwrap();
+		mLogger.debug("Sending " + httpRequest.getMethod() + " request to " + httpRequest.getURI() + " with " + httpRequest.getAllHeaders().length + " headers");
 		HttpClient httpClient = new DefaultHttpClient(mHttpParams);
 		try {
 			HttpResponse response = httpClient.execute(httpRequest);
+			RestResponse restResponse = new RestResponse(response);
 			StatusLine statusLine = response.getStatusLine();
 			restResponse.setStatusCode(statusLine.getStatusCode());
 			for (Header header : response.getAllHeaders()) {
@@ -297,94 +295,11 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 			}
 			return restResponse;
 		} catch (ClientProtocolException e) {
-			mLogger.error("Unable to send " + httpRequest.getMethod()
-					+ " request", e);
+			mLogger.error("Unable to send " + httpRequest.getMethod() + " request", e);
 			return null;
 		} catch (IOException e) {
 			mLogger.error("Unable to read web service response", e);
 			return null;
-		}
-	}
-
-	/**
-	 * <p>
-	 * Wrapper for {@link HttpUriRequest} to support hashing and equality for
-	 * the purpose of HTTP caching.
-	 * </p>
-	 * 
-	 * @author Tyler Treat
-	 * @version 1.0 08/14/12
-	 * @since 1.0
-	 */
-	private static class HashableHttpRequest {
-
-		private HttpUriRequest mHttpRequest;
-
-		/**
-		 * Creates a new {@code HashableHttpRequest} for the given
-		 * {@link HttpUriRequest}.
-		 * 
-		 * @param request
-		 *            the {@code HttpUriRequest} to wrap
-		 */
-		public HashableHttpRequest(HttpUriRequest request) {
-			mHttpRequest = request;
-		}
-
-		@Override
-		public int hashCode() {
-			final int PRIME = 31;
-			int hash = 7;
-			hash *= PRIME + mHttpRequest.getMethod().hashCode();
-			for (Header header : mHttpRequest.getAllHeaders()) {
-				hash *= PRIME + header.getName().hashCode();
-				hash *= PRIME + header.getValue().hashCode();
-			}
-			hash *= PRIME
-					+ mHttpRequest.getProtocolVersion().getProtocol()
-							.hashCode();
-			hash *= PRIME + mHttpRequest.getProtocolVersion().getMajor();
-			hash *= PRIME + mHttpRequest.getProtocolVersion().getMinor();
-			hash *= PRIME + mHttpRequest.getURI().toString().hashCode();
-			return hash;
-		}
-
-		@Override
-		public boolean equals(Object other) {
-			if (this == other)
-				return true;
-			if (getClass() != other.getClass())
-				return false;
-			HashableHttpRequest otherRequest = (HashableHttpRequest) other;
-			Header[] headers = mHttpRequest.getAllHeaders();
-			Header[] otherHeaders = otherRequest.mHttpRequest.getAllHeaders();
-			if (headers.length != otherHeaders.length)
-				return false;
-			boolean match = false;
-			for (Header header : headers) {
-				for (Header otherHeader : otherHeaders) {
-					if (header.getName().equals(otherHeader.getName())
-							&& header.getValue().equals(otherHeader.getValue())) {
-						match = true;
-						break;
-					}
-				}
-				if (!match)
-					return false;
-			}
-			return mHttpRequest.getMethod().equals(
-					otherRequest.mHttpRequest.getMethod())
-					&& mHttpRequest
-							.getProtocolVersion()
-							.getProtocol()
-							.equals(otherRequest.mHttpRequest
-									.getProtocolVersion().getProtocol())
-					&& mHttpRequest.getProtocolVersion().getMajor() == otherRequest.mHttpRequest
-							.getProtocolVersion().getMajor()
-					&& mHttpRequest.getProtocolVersion().getMinor() == otherRequest.mHttpRequest
-							.getProtocolVersion().getMinor()
-					&& mHttpRequest.getURI().equals(
-							otherRequest.mHttpRequest.getURI());
 		}
 	}
 

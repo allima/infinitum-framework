@@ -17,39 +17,41 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest;
+package com.clarionmedia.infinitum.http.rest;
 
 import java.util.List;
 
 /**
  * <p>
- * Provides an API for deserializing XML responses into domain model instances.
+ * A {@code Deserializer} is used to convert web service responses into domain
+ * objects. Web service responses are typically sent back as JSON or XML. For
+ * the former, see the implementation {@link JsonDeserializer}, and the latter,
+ * {@link XmlDeserializer}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 05/21/12
+ * @version 1.0 05/21/12
  */
-public abstract class XmlDeserializer<T> implements Deserializer<T> {
+public interface Deserializer<T> {
 
 	/**
-	 * Deserializes the given XML {@link String} into an Object of the generic
-	 * type.
+	 * Deserializes the given response {@link String} into an Object of the
+	 * generic type.
 	 * 
-	 * @param xml
-	 *            the XML {@code String} to deserialize
+	 * @param response
+	 *            the response {@code String} to deserialize
 	 * @return {@code Object}
 	 */
-	public abstract T deserializeObject(String xml);
+	T deserializeObject(String response);
 
 	/**
-	 * Deserializes the given XML {@link String} consisting of an object
+	 * Deserializes the given response {@link String} consisting of an object
 	 * collection into a {@link List} of objects of the generic type.
 	 * 
-	 * @param xml
-	 *            the XML {@code String} to deserialize
+	 * @param response
+	 *            the response {@code String} to deserialize
 	 * @return {@code List} of {@code Objects}
 	 */
-	public abstract List<T> deserializeObjects(String xml);
+	List<T> deserializeObjects(String response);
 
 }

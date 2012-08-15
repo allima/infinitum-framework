@@ -4,4 +4,4 @@
  * web services.
  * </p>
  */
-package com.clarionmedia.infinitum.rest;
+package com.clarionmedia.infinitum.http.rest;

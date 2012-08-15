@@ -3,4 +3,4 @@
  * Provides concrete implementations for the RESTful client framework.
  * </p>
  */
-package com.clarionmedia.infinitum.rest.impl;
+package com.clarionmedia.infinitum.http.rest.impl;

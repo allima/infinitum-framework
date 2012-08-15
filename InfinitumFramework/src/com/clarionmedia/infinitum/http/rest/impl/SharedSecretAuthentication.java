@@ -17,14 +17,14 @@
  * along with Infinitum Framework.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.clarionmedia.infinitum.rest.impl;
+package com.clarionmedia.infinitum.http.rest.impl;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
-import com.clarionmedia.infinitum.rest.TokenGenerator;
+import com.clarionmedia.infinitum.http.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.http.rest.TokenGenerator;
 
 /**
  * <p>

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.http.rest.impl.RestfulNameValueMapper;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
@@ -41,7 +42,6 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
-import com.clarionmedia.infinitum.rest.impl.RestfulNameValueMapper;
 
 /**
  * <p>

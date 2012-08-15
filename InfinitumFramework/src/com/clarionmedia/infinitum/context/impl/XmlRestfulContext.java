@@ -29,9 +29,9 @@ import org.simpleframework.xml.Root;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.rest.AuthenticationStrategy;
-import com.clarionmedia.infinitum.rest.TokenGenerator;
-import com.clarionmedia.infinitum.rest.impl.SharedSecretAuthentication;
+import com.clarionmedia.infinitum.http.rest.AuthenticationStrategy;
+import com.clarionmedia.infinitum.http.rest.TokenGenerator;
+import com.clarionmedia.infinitum.http.rest.impl.SharedSecretAuthentication;
 
 /**
  * <p>
