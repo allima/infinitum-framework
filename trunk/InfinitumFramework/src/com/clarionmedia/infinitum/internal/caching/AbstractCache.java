@@ -4,16 +4,24 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
 
 /**
  * <p>
- * A simple 2-level cache consisting of a small and fast in-memory cache (1st
+ * A generic, two-level cache consisting of a time-expiring, in-memory cache (L1
+ * cache) and a slightly more permanent disk cache (L2 cache). Both cache levels
+ * are configurable
+ * </p>
+ * 
+ * <p>
+ * A simple two-level cache consisting of a small and fast in-memory cache (1st
  * level cache) and an (optional) slower but bigger disk cache (2nd level
  * cache). For disk caching, either the application's cache directory or the SD
  * card can be used. Please note that in the case of the app cache dir, Android
@@ -40,54 +48,34 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 
 	public static final int DISK_CACHE_INTERNAL = 0;
 	public static final int DISK_CACHE_SDCARD = 1;
-	
+
 	private static final String LOG_TAG = "Inf Caching";
-	
+
 	protected String mDiskCacheDirectory;
 	private boolean mIsDiskCacheEnabled;
 	private ExpirableCache<K, V> mCache;
 	private String mName;
 	private long mDefaultExpirationTimeout;
+	private ConcurrentMap<String, Long> mDiskTimeoutCache;
 
 	/**
 	 * Creates a new cache instance.
 	 * 
 	 * @param name
-	 *            a human readable identifier for this cache. Note that this
-	 *            value will be used to derive a directory name if the disk
-	 *            cache is enabled, so don't get too creative here (camel case
-	 *            names work great)
+	 *            the cache identifier used to derive a directory name if the
+	 *            disk cache is enabled
 	 * @param initialCapacity
 	 *            the initial element size of the cache
 	 * @param defaultExpiration
 	 *            the default expiration timeout in seconds
 	 */
-	public AbstractCache(String name, int initialCapacity, long defaultExpiration) {
+	public AbstractCache(String name, int initialCapacity,
+			long defaultExpiration) {
 		mName = name;
 		mDefaultExpirationTimeout = defaultExpiration;
-		mCache = new ExpirableCache<K, V>(mDefaultExpirationTimeout);
-	}
-
-	/**
-	 * Sanitize disk cache. Remove files which are older than
-	 * expirationInMinutes.
-	 */
-	private void sanitizeDiskCache() {
-		File[] cachedFiles = new File(mDiskCacheDirectory).listFiles();
-		if (cachedFiles == null) {
-			return;
-		}
-		for (File f : cachedFiles) {
-			// if file older than expirationInMinutes, remove it
-			long lastModified = f.lastModified();
-			Date now = new Date();
-			long ageInMinutes = ((now.getTime() - lastModified) / (1000 * 60));
-
-			if (ageInMinutes >= mDefaultExpirationTimeout) {
-				Log.d(mName, "DISK cache expiration for file " + f.toString());
-				f.delete();
-			}
-		}
+		mCache = new ExpirableCache<K, V>(mDefaultExpirationTimeout,
+				initialCapacity);
+		mDiskTimeoutCache = new ConcurrentHashMap<String, Long>(initialCapacity);
 	}
 
 	/**
@@ -150,7 +138,8 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	}
 
 	private void setRootDir(String rootDir) {
-		this.mDiskCacheDirectory = rootDir + "/infinitum/" + mName.replaceAll("\\s", "");
+		this.mDiskCacheDirectory = rootDir + "/infinitum/"
+				+ mName.replaceAll("\\s", "");
 	}
 
 	/**
@@ -189,27 +178,32 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	 * Only meaningful if disk caching is enabled. See {@link #enableDiskCache}.
 	 * Persists a value to the disk cache.
 	 * 
-	 * @param ostream
-	 *            the file output stream (buffered).
+	 * @param file
+	 *            the file to write to
 	 * @param value
-	 *            the cache value to persist
+	 *            the {@link Object} to cache
 	 * @throws IOException
 	 */
 	protected abstract void writeValueToDisk(File file, V value)
 			throws IOException;
 
-	private void cacheToDisk(K key, V value) {
+	/**
+	 * Caches the given value to disk and returns the absolute path to the cache
+	 * file.
+	 */
+	private String cacheToDisk(K key, V value) {
 		File file = new File(mDiskCacheDirectory + "/" + getFileNameForKey(key));
 		try {
 			file.createNewFile();
 			file.deleteOnExit();
-
 			writeValueToDisk(file, value);
-
+			return file.getAbsolutePath();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			return null;
 		} catch (IOException e) {
 			e.printStackTrace();
+			return null;
 		}
 	}
 
@@ -226,6 +220,7 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	 * @return the cached value, or null if element was not cached
 	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public synchronized V get(Object elementKey) {
 		K key = (K) elementKey;
 		V value = mCache.get(key);
@@ -238,16 +233,8 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		// memory miss, try reading from disk
 		File file = getFileForKey(key);
 		if (file.exists()) {
-			// if file older than expirationInMinutes, remove it
-			long lastModified = file.lastModified();
-			Date now = new Date();
-			long ageInMinutes = ((now.getTime() - lastModified) / (1000 * 60));
-
-			if (ageInMinutes >= mDefaultExpirationTimeout) {
-				Log.d(mName, "DISK cache expiration for file " + file.toString());
-				file.delete();
+			if (checkAndRemoveFile(file))
 				return null;
-			}
 
 			// disk hit
 			Log.d(mName, "DISK cache hit for " + key.toString());
@@ -270,18 +257,49 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	}
 
 	/**
-	 * Writes an element to the cache. NOTE: If disk caching is enabled, this
-	 * will write through to the disk, which may introduce a performance
-	 * penalty.
+	 * Writes the given value to the cache. If disk caching is enabled, this
+	 * will write through to the L2 cache.
+	 * 
+	 * @param key
+	 *            the cache entry key
+	 * @param value
+	 *            the value to cache
+	 * @return the previously cached value with the given key or {@code null} if
+	 *         there is none
 	 */
+	@Override
 	public synchronized V put(K key, V value) {
 		if (mIsDiskCacheEnabled) {
-			cacheToDisk(key, value);
+			String path = cacheToDisk(key, value);
+			if (path != null)
+				mDiskTimeoutCache.put(path, mDefaultExpirationTimeout * 1000);
 		}
-
 		return mCache.put(key, value);
 	}
 
+	/**
+	 * Writes the given value to the cache with the given expiration timeout. If
+	 * disk caching is enabled, this will write through to the L2 cache.
+	 * 
+	 * @param key
+	 *            the cache entry key
+	 * @param value
+	 *            the value to cache
+	 * @param expirationTimeout
+	 *            the expiration timeout for the cache entry in seconds
+	 * @return the previously cached value with the given key or {@code null} if
+	 *         there is none
+	 */
+	public synchronized V put(K key, V value, long expirationTimeout) {
+		if (mIsDiskCacheEnabled) {
+			String path = cacheToDisk(key, value);
+			if (path != null)
+				mDiskTimeoutCache.put(path, expirationTimeout * 1000);
+		}
+		return mCache.put(key, value, expirationTimeout);
+	}
+
+	@Override
 	public synchronized void putAll(Map<? extends K, ? extends V> t) {
 		throw new UnsupportedOperationException();
 	}
@@ -295,8 +313,10 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	 * @return true if the value is cached in memory or on disk, false otherwise
 	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	public synchronized boolean containsKey(Object key) {
-		return mCache.containsKey(key) || (mIsDiskCacheEnabled && getFileForKey((K) key).exists());
+		return mCache.containsKey(key)
+				|| (mIsDiskCacheEnabled && getFileForKey((K) key).exists());
 	}
 
 	/**
@@ -314,11 +334,13 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	/**
 	 * Checks if the given value is currently hold in memory.
 	 */
+	@Override
 	public synchronized boolean containsValue(Object value) {
 		return mCache.containsValue(value);
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public synchronized V remove(Object key) {
 		V value = removeKey(key);
 
@@ -337,18 +359,22 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		return mCache.remove(key);
 	}
 
+	@Override
 	public Set<K> keySet() {
 		return mCache.keySet();
 	}
 
+	@Override
 	public Set<Map.Entry<K, V>> entrySet() {
 		return mCache.entrySet();
 	}
 
+	@Override
 	public synchronized int size() {
 		return mCache.size();
 	}
 
+	@Override
 	public synchronized boolean isEmpty() {
 		return mCache.isEmpty();
 	}
@@ -371,9 +397,9 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		}
 	}
 
+	@Override
 	public synchronized void clear() {
 		mCache.clear();
-
 		if (mIsDiskCacheEnabled) {
 			File[] cachedFiles = new File(mDiskCacheDirectory).listFiles();
 			if (cachedFiles == null) {
@@ -387,7 +413,41 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		Log.d(LOG_TAG, "Cache cleared");
 	}
 
+	@Override
 	public Collection<V> values() {
 		return mCache.values();
+	}
+
+	/**
+	 * Sanitizes the disk cache by removing files which are older than their
+	 * expiration timeouts.
+	 */
+	private void sanitizeDiskCache() {
+		File[] cachedFiles = new File(mDiskCacheDirectory).listFiles();
+		if (cachedFiles == null)
+			return;
+		for (File file : cachedFiles)
+			checkAndRemoveFile(file);
+	}
+
+	/**
+	 * Checks if the given {@link File} is expired and deletes it if it is.
+	 * The return value indicates if the file was removed.
+	 */
+	private boolean checkAndRemoveFile(File file) {
+		Long maxAgeInSeconds = mDiskTimeoutCache.get(file.getAbsolutePath());
+		if (maxAgeInSeconds == null) {
+			Log.d(mName, "DISK cache expiration for file " + file.toString());
+			file.delete();
+			return true;
+		}
+		long lastModified = file.lastModified();
+		long ageInSeconds = (System.currentTimeMillis() - lastModified) / 1000;
+		if (ageInSeconds >= maxAgeInSeconds) {
+			Log.d(mName, "DISK cache expiration for file " + file.toString());
+			file.delete();
+			return true;
+		}
+		return false;
 	}
 }

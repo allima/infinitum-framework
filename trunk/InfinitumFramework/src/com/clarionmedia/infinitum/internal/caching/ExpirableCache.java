@@ -83,6 +83,34 @@ public class ExpirableCache<K, V> implements Map<K,V> {
 	}
 	
 	/**
+	 * Creates a new {@code ExpirableCache} with with the given default
+	 * expiration time.
+	 * 
+	 * @param defaultExpiration
+	 *            the default expiration time in seconds
+	 * @param initialCapacity
+	 *            the initial capacity of the cache
+	 */
+	public ExpirableCache(final long defaultExpiration, int initialCapacity) {
+		if (defaultExpiration <= 0)
+			throw new IllegalArgumentException("Cache expiration timeout must be greater than 0.");
+		mCache = new ConcurrentHashMap<K, V>(initialCapacity);
+		mTimeoutCache = new ConcurrentHashMap<K, Long>(initialCapacity);
+		mDefaultExpirationTimeout = defaultExpiration;
+		mThreadPool = Executors.newFixedThreadPool(256);
+		Executors.newScheduledThreadPool(2).scheduleWithFixedDelay(
+				new Runnable() {
+					@Override
+					public void run() {
+						for (final K key : mTimeoutCache.keySet()) {
+							if (System.currentTimeMillis() > mTimeoutCache.get(key))
+								mThreadPool.execute(evictFromCache(key));
+						}
+					}
+				}, mDefaultExpirationTimeout / 2, mDefaultExpirationTimeout, TimeUnit.SECONDS);
+	}
+	
+	/**
 	 * Returns the default expiration timeout for the cache.
 	 * 
 	 * @return default expiration timeout in seconds
@@ -102,6 +130,7 @@ public class ExpirableCache<K, V> implements Map<K,V> {
 	 */
 	@Override
 	public V put(final K key, final V object) {
+		mTimeoutCache.put(key, System.currentTimeMillis() + mDefaultExpirationTimeout * 1000);
 		return put(key, object, mDefaultExpirationTimeout);
 	}
 
@@ -117,9 +146,8 @@ public class ExpirableCache<K, V> implements Map<K,V> {
 	 * @return the previous cache entry with the associated key or {@code null} if there was none
 	 */
 	public V put(final K key, final V object, final long expirationTimeout) {
-		V ret = mCache.put(key, object);
 		mTimeoutCache.put(key, System.currentTimeMillis() + expirationTimeout * 1000);
-		return ret;
+		return mCache.put(key, object);
 	}
 
 	/**
