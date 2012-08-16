@@ -26,7 +26,6 @@ import java.util.Map;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
-import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.http.rest.RestfulMapper;
 import com.clarionmedia.infinitum.http.rest.RestfulPairsTypeAdapter;
 import com.clarionmedia.infinitum.http.rest.RestfulXmlTypeAdapter;
@@ -51,15 +50,9 @@ public class RestfulXmlMapper extends RestfulMapper {
 	private Serializer mSerializer;
 
 	/**
-	 * Creates a new {@code RestfulJsonMapper} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} to use with this
-	 *            {@code RestfulMapper}
+	 * Constructs a new {@code RestfulJsonMapper}.
 	 */
-	public RestfulXmlMapper(InfinitumContext context) {
-		super(context);
+	public RestfulXmlMapper() {
 		mTypeAdapters = new HashMap<Class<?>, RestfulXmlTypeAdapter<?>>();
 		mSerializer = new Persister();
 	}

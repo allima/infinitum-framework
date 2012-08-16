@@ -86,11 +86,9 @@ public class Preconditions {
 	 * @param policy
 	 *            {@link PersistencePolicy} to use
 	 */
-	public static void checkPersistenceForLoading(Class<?> c,
-			PersistencePolicy policy) {
+	public static void checkPersistenceForLoading(Class<?> c, PersistencePolicy policy) {
 		if (!policy.isPersistent(c))
-			throw new InfinitumRuntimeException(String.format(
-					"Cannot load transient class '%s'.", c.getName()));
+			throw new InfinitumRuntimeException(String.format("Cannot load transient class '%s'.", c.getName()));
 	}
 
 	/**

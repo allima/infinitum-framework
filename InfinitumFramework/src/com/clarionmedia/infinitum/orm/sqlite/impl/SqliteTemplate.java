@@ -24,39 +24,39 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+
 import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
+import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
-import com.clarionmedia.infinitum.orm.ModelFactory;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.exception.SQLGrammarException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy.Cascade;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteHelperFactory;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteOperations;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
-import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -72,62 +72,58 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  */
 public class SqliteTemplate implements SqliteOperations {
 
+	@Autowired
 	protected InfinitumContext mInfinitumContext;
+	
+	@Autowired
 	protected SqliteSession mSession;
+	
+	@Autowired
 	protected SqliteDbHelper mDbHelper;
-	protected SQLiteDatabase mSqliteDb;
+		
+	@Autowired
 	protected SqliteMapper mMapper;
-	protected ModelFactory mModelFactory;
+	
+	@Autowired
+	protected SqliteModelFactory mModelFactory;
+	
+	@Autowired
 	protected SqlBuilder mSqlBuilder;
+	
+	@Autowired
+	protected PersistencePolicy mPersistencePolicy;
+	
+	@Autowired
+	protected TypeResolutionPolicy mTypePolicy;
+	
+	@Autowired
+	protected SqliteUtil mSqliteUtil;
+	
+	@Autowired
+	protected ClassReflector mClassReflector;
+	
+	protected boolean mIsAutocommit;
 	protected boolean mIsOpen;
 	protected Stack<Boolean> mTransactionStack;
-	protected boolean mIsAutocommit;
-	protected PersistencePolicy mPersistencePolicy;
-	protected TypeResolutionPolicy mTypePolicy;
-	protected SqliteUtil mSqliteUtil;
-	protected ClassReflector mClassReflector;
+	protected SQLiteDatabase mSqliteDb;
 	protected Logger mLogger;
 	protected PropertyLoader mPropLoader;
-	protected SqliteHelperFactory mHelperFactory;
 	
-	@Deprecated
-	public SqliteTemplate() {
-	}
-
-	/**
-	 * Constructs a new {@code SqliteTemplate} attached to the given
-	 * {@link SqliteSession}
-	 * 
-	 * @param session
-	 *            the {@code SqliteSession} this {@code SqliteTemplate} is
-	 *            attached to
-	 */
-	public SqliteTemplate(SqliteSession session) {
-		mInfinitumContext = session.getInfinitumContext();
-		mSqliteUtil = new SqliteUtil(mInfinitumContext);
-		mClassReflector = new DefaultClassReflector();
-		mPersistencePolicy = mInfinitumContext.getPersistencePolicy();
-		mTypePolicy = new DefaultTypeResolutionPolicy(mInfinitumContext);
-		mSession = session;
+	@PostConstruct
+	private void init() {
 		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
-		mIsAutocommit = mInfinitumContext.isAutocommit();
-		mMapper = new SqliteMapper(mInfinitumContext);
-		mSqlBuilder = new SqliteBuilder(mInfinitumContext, mMapper);
-		mTransactionStack = new Stack<Boolean>();
 		mPropLoader = new PropertyLoader(mInfinitumContext.getAndroidContext());
-		mHelperFactory = new SqliteHelperFactoryImpl();
+		mTransactionStack = new Stack<Boolean>();
 	}
 
 	@Override
 	public <T> Criteria<T> createCriteria(Class<T> entityClass) {
-		return mHelperFactory.createCriteria(mSession, entityClass, mSqlBuilder, mMapper);
+		return new SqliteCriteria<T>(mInfinitumContext, entityClass, mSession, mModelFactory, mSqlBuilder, mMapper);
 	}
 
 	@Override
 	public void open() throws SQLException {
-		mDbHelper = mHelperFactory.createSqliteDbHelper(mInfinitumContext, mMapper);
 		mSqliteDb = mDbHelper.getWritableDatabase();
-		mModelFactory = mHelperFactory.createSqliteModelFactory(mSession, mMapper);
 		mIsOpen = true;
 	}
 
@@ -366,7 +362,7 @@ public class SqliteTemplate implements SqliteOperations {
 	}
 
 	private void processRelationships(SqliteModelMap map, Map<Integer, Object> objectMap, Object model, Cascade cascade) {
-		if (cascade == Cascade.None)
+		if (cascade == Cascade.NONE)
 			return;
 		processManyToManyRelationships(model, map, objectMap, cascade);
 		processManyToOneRelationships(model, map, objectMap, cascade);
@@ -391,7 +387,7 @@ public class SqliteTemplate implements SqliteOperations {
 					continue;
 				}
 				// Cascade.All means we persist/update related entities
-				if (cascade == Cascade.All) {
+				if (cascade == Cascade.ALL) {
 				    // Save or update the related entity
 				    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
 					    // Persist relationship to many-to-many table
@@ -400,7 +396,7 @@ public class SqliteTemplate implements SqliteOperations {
 					    prefix = ", ";
 				    }
 				// Cascade.Keys means we persist/update foreign keys
-				} else if (cascade == Cascade.Keys && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
+				} else if (cascade == Cascade.KEYS && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 					// Persist relationship to many-to-many table
 				    insertManyToManyRelationship(model, relatedEntity, relationship);
 				    mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
@@ -423,7 +419,7 @@ public class SqliteTemplate implements SqliteOperations {
 				continue;
 			}
 			// Cascade.All means we persist/update related entities
-			if (cascade == Cascade.All) {
+			if (cascade == Cascade.ALL) {
 			    // Save or update the related entity
 			    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0 && relationship.getOwner() == model.getClass()) {
 				    // Update the relationship owner's foreign key
@@ -431,7 +427,7 @@ public class SqliteTemplate implements SqliteOperations {
 				    mSqliteDb.execSQL(sql);
 			    }
 			// Cascade.Keys means we persist/update foreign keys
-			} else if (cascade == Cascade.Keys && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
+			} else if (cascade == Cascade.KEYS && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 				// Update the relationship owner's foreign key
 			    String sql = mSqlBuilder.createUpdateOneToOneForeignKeyQuery(relationship, model, relatedEntity);
 			    mSqliteDb.execSQL(sql);
@@ -452,7 +448,7 @@ public class SqliteTemplate implements SqliteOperations {
 				if (objectMap.containsKey(relatedHash) && !mPersistencePolicy.isPKNullOrZero(relatedEntity))
 					continue;
 				// Cascade.All means we persist/update related entities
-				if (cascade == Cascade.All) {
+				if (cascade == Cascade.ALL) {
 				    // Save or update the related entity
 				    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
 					    // Include its foreign key to be updated
@@ -460,7 +456,7 @@ public class SqliteTemplate implements SqliteOperations {
 				        prefix = ", ";
 				    }
 			    // Cascade.Keys means we persist/update foreign keys
-				} else if (cascade == Cascade.Keys && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
+				} else if (cascade == Cascade.KEYS && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 					// Include its foreign key to be updated
 			        mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, updateQuery, prefix);
 			        prefix = ", ";
@@ -480,7 +476,7 @@ public class SqliteTemplate implements SqliteOperations {
 				continue;
 			}
 			// Cascade.All means we persist/update related entities
-			if (cascade == Cascade.All) {
+			if (cascade == Cascade.ALL) {
 			    // Save or update the related entity
 			    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
 				    // Update the foreign key
@@ -488,7 +484,7 @@ public class SqliteTemplate implements SqliteOperations {
 			        mSqliteDb.execSQL(update);
 			    }
 			// Cascade.Keys means we persist/update foreign keys
-			} else if (cascade == Cascade.Keys && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
+			} else if (cascade == Cascade.KEYS && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 				// Update the foreign key
 		        String update = mSqlBuilder.createUpdateQuery(model, relatedEntity, relationshipPair.getFirst().getColumn());
 		        mSqliteDb.execSQL(update);

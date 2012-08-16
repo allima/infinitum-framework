@@ -63,15 +63,15 @@ public @interface Entity {
 	PersistenceMode mode() default PersistenceMode.Persistent;
 
 	/**
-	 * Indicates the entity's cascade mode. {@link Cascade#All} means that when
+	 * Indicates the entity's cascade mode. {@link Cascade#ALL} means that when
 	 * the entity's state is changed in the database, all entities related to it
-	 * will also be updated. {@link Cascade#None} means that no related entities
-	 * will be cascaded. {@link Cascade#Keys} means that only foreign keys will
+	 * will also be updated. {@link Cascade#NONE} means that no related entities
+	 * will be cascaded. {@link Cascade#KEYS} means that only foreign keys will
 	 * be cascaded.
 	 * 
 	 * @return {@code true} if cascading is enabled, {@code false} if not
 	 */
-	Cascade cascade() default Cascade.All;
+	Cascade cascade() default Cascade.ALL;
 
 	/**
 	 * Indicates if the entity has lazy loading enabled. If it is, related

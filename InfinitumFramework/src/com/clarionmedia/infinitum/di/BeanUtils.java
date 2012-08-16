@@ -31,8 +31,8 @@ import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationExcept
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0
- * @since 07/05/12
+ * @version 1.0 07/05/12
+ * @since 1.0
  */
 public class BeanUtils {
 
@@ -52,6 +52,24 @@ public class BeanUtils {
 	 *             if more than one autowire candidate is found
 	 */
 	public static Object findCandidateBean(BeanFactory beanFactory, Class<?> clazz) {
+		String beanName = findCandidateBeanName(beanFactory, clazz);
+		if (beanName == null)
+			return null;
+		return beanFactory.loadBean(beanName);
+	}
+	
+	/**
+	 * Retrieves the name of a bean which satisfies the given {@link Class}.
+	 * 
+	 * @param beanFactory
+	 *            the {@code BeanFactory} to load the autowire candidate from
+	 * @param clazz
+	 *            the {@code Class} of the candidate
+	 * @return bean candidate name or {@code null} if none exists
+	 * @throws InfinitumConfigurationException
+	 *             if more than one autowire candidate is found
+	 */
+	public static String findCandidateBeanName(BeanFactory beanFactory, Class<?> clazz) {
 		AbstractBeanDefinition candidate = null;
 		Map<AbstractBeanDefinition, String> invertedBeanMap = invert(beanFactory.getBeanDefinitions());
 		for (AbstractBeanDefinition beanDef : invertedBeanMap.keySet()) {
@@ -63,7 +81,7 @@ public class BeanUtils {
 		}
 		if (candidate == null)
 			return null;
-		return beanFactory.loadBean(candidate.getName());
+		return candidate.getName();
 	}
 
 	private static <V, K> Map<V, K> invert(Map<K, V> map) {

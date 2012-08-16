@@ -28,6 +28,8 @@ import android.database.Cursor;
 import android.database.SQLException;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
+import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.http.rest.Deserializer;
 import com.clarionmedia.infinitum.internal.caching.LruCache;
@@ -50,46 +52,41 @@ import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
  */
 public class SqliteSession implements Session {
 
+	@Autowired
 	private SqliteTemplate mSqlite;
+	
+	@Autowired
 	private InfinitumContext mInfinitumContext;
-	private LruCache<Integer, Object> mSessionCache;
-	private int mCacheSize;
+	
+	@Autowired
 	private PersistencePolicy mPolicy;
+	
+	private Map<Integer, Object> mSessionCache;
 	private Logger mLogger;
-
-	@Deprecated
-	public SqliteSession() {
-		mCacheSize = DEFAULT_CACHE_SIZE;
-	}
+	private int mCacheSize;
 
 	/**
-	 * Creates a new {@code SqliteSession} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} of the {@code Session}
+	 * Constructs a new {@code SqliteSession}.
 	 */
-	public SqliteSession(InfinitumContext context) {
-		this(context, DEFAULT_CACHE_SIZE);
+	public SqliteSession() {
+		this(DEFAULT_CACHE_SIZE);
 	}
 
 	/**
-	 * Creates a new {@code SqliteSession} with the given
-	 * {@link InfinitumContext} and cache size.
+	 * Constructs a new {@code SqliteSession} with the given cache size.
 	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} of the {@code Session}
 	 * @param cacheSize
 	 *            the maximum number of {@code Objects} the {@code Session}
 	 *            cache can store
 	 */
-	public SqliteSession(InfinitumContext context, int cacheSize) {
-		mLogger = Logger.getInstance(context, getClass().getSimpleName());
-		mInfinitumContext = context;
-		mSqlite = new SqliteTemplate(this);
-		mSessionCache = new LruCache<Integer, Object>(cacheSize);
-		mPolicy = context.getPersistencePolicy();
+	public SqliteSession(int cacheSize) {
 		mCacheSize = cacheSize;
+	}
+	
+	@PostConstruct
+	private void init() {
+		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
+		mSessionCache = new LruCache<Integer, Object>(mCacheSize);
 	}
 
 	@Override

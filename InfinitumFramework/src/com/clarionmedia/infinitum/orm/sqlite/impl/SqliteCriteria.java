@@ -25,6 +25,7 @@ import java.util.List;
 
 import android.database.Cursor;
 
+import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
@@ -68,16 +69,16 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	 * @throws InfinitumRuntimeException
 	 *             if {@code entityClass} is transient
 	 */
-	public SqliteCriteria(SqliteSession session, Class<T> entityClass, SqlBuilder sqlBuilder, SqliteMapper mapper)
+	public SqliteCriteria(InfinitumContext context, Class<T> entityClass, SqliteSession session, SqliteModelFactory modelFactory, SqlBuilder sqlBuilder, SqliteMapper mapper)
 			throws InfinitumRuntimeException {
 		Preconditions.checkPersistenceForLoading(entityClass, session.getInfinitumContext().getPersistencePolicy());
 		mSession = session;
 		mEntityClass = entityClass;
-		mModelFactory = new SqliteModelFactory(session, mapper);
+		mModelFactory = modelFactory;
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
-		mPersistencePolicy = session.getInfinitumContext().getPersistencePolicy();
-		mPropLoader = new PropertyLoader(session.getInfinitumContext().getAndroidContext());
+		mPersistencePolicy = context.getPersistencePolicy();
+		mPropLoader = new PropertyLoader(context.getAndroidContext());
 	}
 
 	@Override

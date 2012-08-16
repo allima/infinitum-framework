@@ -24,10 +24,9 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 
-import android.content.Context;
 import android.database.Cursor;
 
-import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.LazyLoadDexMakerProxy;
 import com.clarionmedia.infinitum.orm.ModelFactory;
@@ -42,7 +41,6 @@ import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteTypeAdapter;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
-import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -56,27 +54,20 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  */
 public class SqliteModelFactory implements ModelFactory {
 
+	@Autowired
 	private SqliteBuilder mSqlBuilder;
+	
+	@Autowired
 	private SqliteSession mSession;
+	
+	@Autowired
 	private SqliteMapper mMapper;
+	
+	@Autowired
 	private PersistencePolicy mPersistencePolicy;
+	
+	@Autowired
 	private ClassReflector mClassReflector;
-
-	/**
-	 * Constructs a {@code SqliteModelFactoryImpl} with the given
-	 * {@link Context}.
-	 * 
-	 * @param context
-	 *            the {@code Context} for this model factory
-	 */
-	public SqliteModelFactory(SqliteSession session, SqliteMapper mapper) {
-		InfinitumContext context = session.getInfinitumContext();
-		mSqlBuilder = new SqliteBuilder(context, mapper);
-		mSession = session;
-		mMapper = mapper;
-		mPersistencePolicy = context.getPersistencePolicy();
-		mClassReflector = new DefaultClassReflector();
-	}
 
 	@Override
 	public <T> T createFromResult(ResultSet result, Class<T> modelClass) {

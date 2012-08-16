@@ -37,7 +37,7 @@ public interface RestfulContext {
 	 * Describes the message type to use for web-service PUT/POST requests.
 	 */
 	public static enum MessageType {
-		Xml, Json, Pairs
+		XML, JSON, PAIRS
 	};
 
 	/**

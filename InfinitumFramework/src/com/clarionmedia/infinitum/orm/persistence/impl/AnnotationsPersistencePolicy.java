@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.OrmConstants.PersistenceMode;
@@ -64,18 +63,6 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  * @see XmlPersistencePolicy
  */
 public class AnnotationsPersistencePolicy extends PersistencePolicy {
-
-	/**
-	 * Creates a new {@code AnnotationsPersistencePolicy} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} to use with this
-	 *            {@code AnnotationsPersistencePolicy}
-	 */
-	public AnnotationsPersistencePolicy(InfinitumContext context) {
-		super(context);
-	}
 
 	@Override
 	public boolean isPersistent(Class<?> clazz) {
@@ -259,7 +246,7 @@ public class AnnotationsPersistencePolicy extends PersistencePolicy {
 	@Override
 	public Cascade getCascadeMode(Class<?> c) {
 		if (!c.isAnnotationPresent(Entity.class))
-			return Cascade.All;
+			return Cascade.ALL;
 		Entity entity = c.getAnnotation(Entity.class);
 		return entity.cascade();
 	}

@@ -56,8 +56,8 @@ public abstract class AbstractBeanDefinition {
 	protected String mName;
 	protected Class<?> mType;
 	protected Map<String, Object> mProperties;
-	protected Map<Field, Object> mFieldInjections;
-	protected Map<Method, Object> mSetterInjections;
+	protected Map<Field, AbstractBeanDefinition> mFieldInjections;
+	protected Map<Method, AbstractBeanDefinition> mSetterInjections;
 	protected ClassReflector mClassReflector;
 	protected BeanFactory mBeanFactory;
 	protected AopProxy mBeanProxy;
@@ -71,8 +71,8 @@ public abstract class AbstractBeanDefinition {
 	public AbstractBeanDefinition(BeanFactory beanFactory) {
 		mClassReflector = new DefaultClassReflector();
 		mBeanFactory = beanFactory;
-		mFieldInjections = new HashMap<Field, Object>();
-		mSetterInjections = new HashMap<Method, Object>();
+		mFieldInjections = new HashMap<Field, AbstractBeanDefinition>();
+		mSetterInjections = new HashMap<Method, AbstractBeanDefinition>();
 	}
 
 	/**
@@ -122,27 +122,27 @@ public abstract class AbstractBeanDefinition {
 		mBeanProxy = beanProxy;
 	}
 
-	public Map<Field, Object> getFieldInjections() {
+	public Map<Field, AbstractBeanDefinition> getFieldInjections() {
 		return mFieldInjections;
 	}
 
-	public void setFieldInjections(Map<Field, Object> injections) {
+	public void setFieldInjections(Map<Field, AbstractBeanDefinition> injections) {
 		mFieldInjections = injections;
 	}
 
-	public void addFieldInjection(Field field, Object value) {
+	public void addFieldInjection(Field field, AbstractBeanDefinition value) {
 		mFieldInjections.put(field, value);
 	}
 
-	public Map<Method, Object> getSetterInjections() {
+	public Map<Method, AbstractBeanDefinition> getSetterInjections() {
 		return mSetterInjections;
 	}
 
-	public void setSetterInjections(Map<Method, Object> setterInjections) {
+	public void setSetterInjections(Map<Method, AbstractBeanDefinition> setterInjections) {
 		mSetterInjections = setterInjections;
 	}
 
-	public void addSetterInjection(Method setter, Object value) {
+	public void addSetterInjection(Method setter, AbstractBeanDefinition value) {
 		mSetterInjections.put(setter, value);
 	}
 
@@ -152,32 +152,25 @@ public abstract class AbstractBeanDefinition {
 		for (Constructor<?> ctor : mClassReflector.getAllConstructors(mType)) {
 			if (ctor.isAnnotationPresent(Autowired.class)) {
 				if (target != null)
-					throw new InfinitumConfigurationException(
-							"Only 1 constructor may be autowired (found more than 1 in class '"
-									+ mType.getName() + "').");
+					throw new InfinitumConfigurationException("Only 1 constructor may be autowired (found more than 1 in class '" + mType.getName() + "').");
 				target = ctor;
 			}
 		}
 		if (target == null) {
 			bean = mClassReflector.getClassInstance(mType);
 		} else {
-			if (target.getParameterTypes().length > 1)
-				throw new InfinitumConfigurationException(
-						"Autowired constructor in bean '" + mName
-								+ "' may only have 1 argument.");
 			try {
 				target.setAccessible(true);
-				if (target.getParameterTypes().length == 1) {
-					Class<?> paramType = target.getParameterTypes()[0];
-					Object argument = BeanUtils.findCandidateBean(mBeanFactory,
-							paramType);
-					if (argument == null)
-						throw new InfinitumConfigurationException(
-								"Could not autowire property of type '"
-										+ mType.getName() + "' in bean '"
-										+ mName
-										+ "' (no autowire candidates found)");
-					bean = target.newInstance(argument);
+				if (target.getParameterTypes().length > 0) {
+					Class<?>[] paramTypes = target.getParameterTypes();
+					Object[] args = new Object[paramTypes.length];
+					for (int i = 0; i < paramTypes.length; i++) {
+						Object arg = BeanUtils.findCandidateBean(mBeanFactory, paramTypes[i]);
+						if (arg == null)
+							throw new InfinitumConfigurationException("Could not autowire constructor argument of type '" + paramTypes[i].getName() + "' in bean '" + mName + "' (no autowire candidates found)");
+						args[i] = arg;
+					}
+					bean = target.newInstance(args);
 				} else {
 					bean = target.newInstance();
 				}
@@ -199,13 +192,13 @@ public abstract class AbstractBeanDefinition {
 	}
 
 	protected void inject(Object bean) {
-		for (Entry<Field, Object> injection : mFieldInjections.entrySet()) {
+		for (Entry<Field, AbstractBeanDefinition> injection : mFieldInjections.entrySet()) {
 			mClassReflector.setFieldValue(bean, injection.getKey(),
-					injection.getValue());
+					injection.getValue().getBeanInstance());
 		}
-		for (Entry<Method, Object> injection : mSetterInjections.entrySet()) {
+		for (Entry<Method, AbstractBeanDefinition> injection : mSetterInjections.entrySet()) {
 			mClassReflector.invokeMethod(bean, injection.getKey(),
-					injection.getValue());
+					injection.getValue().getBeanInstance());
 		}
 	}
 

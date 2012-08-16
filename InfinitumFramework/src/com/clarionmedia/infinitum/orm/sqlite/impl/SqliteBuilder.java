@@ -27,6 +27,8 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
+import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
@@ -40,7 +42,6 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
 import com.clarionmedia.infinitum.orm.sql.SqlConstants;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
-import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
 
 /**
  * <p>
@@ -56,25 +57,23 @@ public class SqliteBuilder implements SqlBuilder {
 	// TODO: this class currently doesn't handle reserved keywords.
 	// See: http://www.sqlite.org/lang_keywords.html
 
+	@Autowired
 	private SqliteMapper mMapper;
+	
+	@Autowired
 	private PersistencePolicy mPersistencePolicy;
+	
+	@Autowired
 	private PackageReflector mPackageReflector;
+	
+	@Autowired
+	private InfinitumContext mContext;
+	
 	private PropertyLoader mPropLoader;
-
-	/**
-	 * Constructs a new {@code SqliteBuilder}.
-	 * 
-	 * @param context
-	 *            the {@link InfinitumContext} to use for this
-	 *            {@code SqliteBuilder}
-	 * @param mapper
-	 *            the {@link SqliteMapper} to use for this {@code SqliteBuilder}
-	 */
-	public SqliteBuilder(InfinitumContext context, SqliteMapper mapper) {
-		mMapper = mapper;
-		mPersistencePolicy = context.getPersistencePolicy();
-		mPackageReflector = new DefaultPackageReflector();
-		mPropLoader = new PropertyLoader(context.getAndroidContext());
+	
+	@PostConstruct
+	private void init() {
+		mPropLoader = new PropertyLoader(mContext.getAndroidContext());
 	}
 
 	@Override

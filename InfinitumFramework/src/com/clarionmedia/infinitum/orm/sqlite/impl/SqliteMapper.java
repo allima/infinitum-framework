@@ -27,7 +27,6 @@ import java.util.Map;
 import android.content.ContentValues;
 
 import com.clarionmedia.infinitum.aop.AopProxy;
-import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.internal.bind.SqliteTypeAdapters;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
@@ -53,13 +52,8 @@ public class SqliteMapper extends ObjectMapper {
 
 	/**
 	 * Constructs a new {@code SqliteMapper}.
-	 * 
-	 * @param context
-	 *            the {@link InfinitumContext} to use for this
-	 *            {@code SqliteUtil}
 	 */
-	public SqliteMapper(InfinitumContext context) {
-		super(context);
+	public SqliteMapper() {
 		mTypeAdapters = new HashMap<Class<?>, SqliteTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, SqliteTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, SqliteTypeAdapters.BYTE);
@@ -82,29 +76,17 @@ public class SqliteMapper extends ObjectMapper {
 			return null;
 		SqliteModelMap ret = new SqliteModelMap(model);
 		ContentValues values = new ContentValues();
-		for (Field f : mPersistencePolicy.getPersistentFields(model.getClass())) {
+		for (Field field : mPersistencePolicy.getPersistentFields(model.getClass())) {
 			// Don't map primary keys if they are autoincrementing
-			if (mPersistencePolicy.isFieldPrimaryKey(f)
-					&& mPersistencePolicy.isPrimaryKeyAutoIncrement(f))
+			if (mPersistencePolicy.isFieldPrimaryKey(field) && mPersistencePolicy.isPrimaryKeyAutoIncrement(field))
 				continue;
-			try {
-				f.setAccessible(true);
-				// Map relationships
-				if (mPersistencePolicy.isRelationship(f)) {
-					mapRelationship(ret, model, f);
-					continue;
-				}
-				// Map Field values
-				mapField(values, model, f);
-			} catch (IllegalArgumentException e) {
-				mLogger.error("Unable to map field " + f.getName()
-						+ " for object of type '" + model.getClass().getName()
-						+ "'", e);
-			} catch (IllegalAccessException e) {
-				mLogger.error("Unable to map field " + f.getName()
-						+ " for object of type '" + model.getClass().getName()
-						+ "'", e);
+			// Map relationships
+			if (mPersistencePolicy.isRelationship(field)) {
+				mapRelationship(ret, model, field);
+				continue;
 			}
+			// Map Field values
+			mapField(values, model, field);
 		}
 		ret.setContentValues(values);
 		return ret;
@@ -183,13 +165,11 @@ public class SqliteMapper extends ObjectMapper {
 	}
 
 	// Map Field value to ContentValues
-	private void mapField(ContentValues values, Object model, Field field)
-			throws InvalidMappingException, IllegalArgumentException,
-			IllegalAccessException {
+	private void mapField(ContentValues values, Object model, Field field) throws InvalidMappingException {
 		if (AopProxy.isAopProxy(model)) {
 			model = AopProxy.getProxy(model).getTarget();
 		}
-		Object val = field.get(model);
+		Object val = mClassReflector.getFieldValue(model, field);
 		String colName = mPersistencePolicy.getFieldColumnName(field);
 		resolveType(field.getType()).mapObjectToColumn(val, colName, values);
 	}

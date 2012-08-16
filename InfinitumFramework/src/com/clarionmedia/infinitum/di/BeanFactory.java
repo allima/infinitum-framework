@@ -87,6 +87,16 @@ public interface BeanFactory {
 			throws InfinitumConfigurationException;
 
 	/**
+	 * Retrieves the {@link AbstractBeanDefinition} for the bean with the given
+	 * name.
+	 * 
+	 * @param name
+	 *            bean name
+	 * @return {@code AbstractBeanDefinition}
+	 */
+	AbstractBeanDefinition getBeanDefinition(String name);
+
+	/**
 	 * Checks if a bean with the given name exists.
 	 * 
 	 * @param name
@@ -128,5 +138,12 @@ public interface BeanFactory {
 	 *         {@link BeanDefinition} instances
 	 */
 	Map<String, AbstractBeanDefinition> getBeanDefinitions();
+
+	/**
+	 * Returns the associated {@link InfinitumContext}.
+	 * 
+	 * @return {@code InfinitumContext}
+	 */
+	InfinitumContext getContext();
 
 }
