@@ -22,7 +22,6 @@ package com.clarionmedia.infinitum.http.rest.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.http.rest.RestfulJsonTypeAdapter;
 import com.clarionmedia.infinitum.http.rest.RestfulMapper;
 import com.clarionmedia.infinitum.http.rest.RestfulPairsTypeAdapter;
@@ -47,15 +46,9 @@ public class RestfulJsonMapper extends RestfulMapper {
 	private Gson mGson;
 
 	/**
-	 * Creates a new {@code RestfulJsonMapper} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} to use with this
-	 *            {@code RestfulJsonMapper}
+	 * Constructs a new {@code RestfulJsonMapper}.
 	 */
-	public RestfulJsonMapper(InfinitumContext context) {
-		super(context);
+	public RestfulJsonMapper() {
 		mTypeAdapters = new HashMap<Class<?>, RestfulJsonTypeAdapter<?>>();
 		mGson = new Gson();
 	}

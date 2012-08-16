@@ -30,6 +30,7 @@ import com.clarionmedia.infinitum.di.BeanPostProcessor;
 import com.clarionmedia.infinitum.di.BeanUtils;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.di.annotation.Component;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
@@ -74,24 +75,23 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 	}
 
 	private void registerFieldInjection(BeanFactory beanFactory, AbstractBeanDefinition bean, Field field, String candidate) {
-		Object value;
-		if (candidate != null && candidate.trim().length() > 0) {
-			value = beanFactory.loadBean(candidate);
-		} else {
-			value = BeanUtils.findCandidateBean(beanFactory, field.getType());
-		}
+		AbstractBeanDefinition value;
+		if (candidate == null || candidate.trim().length() == 0)
+			candidate = BeanUtils.findCandidateBeanName(beanFactory, field.getType());
+		if (candidate == null)
+			throw new InfinitumRuntimeException("Unable to satisfy autowired dependency of type '" + field.getType().getName() + "' in bean of type '" + bean.getType().getName() + "'.");
+		value = beanFactory.getBeanDefinition(candidate);
 		bean.addFieldInjection(field, value);
 	}
 
 	private void registerSetterInjection(BeanFactory beanFactory, AbstractBeanDefinition bean, Method setter, String candidate) {
-		Object value;
-		if (candidate != null && candidate.trim().length() > 0) {
-			value = beanFactory.loadBean(candidate);
-		} else {
+		AbstractBeanDefinition value;
+		if (candidate == null || candidate.trim().length() == 0) {
 			if (setter.getParameterTypes().length != 1)
-				throw new InfinitumConfigurationException("Autowired setter method must contain 1 parameter.");
-			value = BeanUtils.findCandidateBean(beanFactory, setter.getParameterTypes()[0]);
+				throw new InfinitumConfigurationException("Autowired setter method '" + setter.getName() + " in bean of type '" + bean.getType().getName() + "' is not a single argument method.");
+			candidate = BeanUtils.findCandidateBeanName(beanFactory, setter.getParameterTypes()[0]);
 		}
+		value = beanFactory.getBeanDefinition(candidate);
 		bean.addSetterInjection(setter, value);
 	}
 

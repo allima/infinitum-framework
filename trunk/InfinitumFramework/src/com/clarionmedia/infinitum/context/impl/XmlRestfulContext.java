@@ -172,26 +172,26 @@ public class XmlRestfulContext implements RestfulContext {
 	public MessageType getMessageType() {
 		String messageType = mProperties.get("messageType");
 		if (messageType == null || messageType.trim().length() == 0)
-			return MessageType.Pairs; // default to pairs
+			return MessageType.PAIRS; // default to pairs
 		if (messageType.equalsIgnoreCase("pairs"))
-			return MessageType.Pairs;
+			return MessageType.PAIRS;
 		if (messageType.equalsIgnoreCase("xml"))
-			return MessageType.Xml;
+			return MessageType.XML;
 		if (messageType.equalsIgnoreCase("json"))
-			return MessageType.Json;
+			return MessageType.JSON;
 		throw new InfinitumConfigurationException("Invalid HTTP message type '" + messageType + "'.");
 	}
 
 	@Override
 	public void setMessageType(MessageType messageType) {
 		switch (messageType) {
-		case Pairs:
+		case PAIRS:
 			mProperties.put("messageType", "pairs");
 			break;
-		case Xml:
+		case XML:
 			mProperties.put("messageType", "xml");
 			break;
-		case Json:
+		case JSON:
 			mProperties.put("messageType", "json");
 			break;
 		}

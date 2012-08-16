@@ -20,9 +20,11 @@
 package com.clarionmedia.infinitum.context;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -33,8 +35,10 @@ import com.clarionmedia.infinitum.aop.annotation.Aspect;
 import com.clarionmedia.infinitum.aop.impl.AnnotationsAspectWeaver;
 import com.clarionmedia.infinitum.aop.impl.XmlAspectWeaver;
 import com.clarionmedia.infinitum.context.exception.InfinitumConfigurationException;
-import com.clarionmedia.infinitum.di.BeanComponent;
+import com.clarionmedia.infinitum.context.impl.XmlApplicationContext;
 import com.clarionmedia.infinitum.di.AbstractBeanDefinition;
+import com.clarionmedia.infinitum.di.BeanComponent;
+import com.clarionmedia.infinitum.di.BeanDefinitionBuilder;
 import com.clarionmedia.infinitum.di.BeanFactory;
 import com.clarionmedia.infinitum.di.BeanFactoryPostProcessor;
 import com.clarionmedia.infinitum.di.BeanPostProcessor;
@@ -44,15 +48,26 @@ import com.clarionmedia.infinitum.di.annotation.Scope;
 import com.clarionmedia.infinitum.di.impl.ConfigurableBeanFactory;
 import com.clarionmedia.infinitum.di.impl.GenericBeanDefinitionBuilder;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.http.rest.impl.RestfulJsonMapper;
 import com.clarionmedia.infinitum.http.rest.impl.RestfulJsonSession;
+import com.clarionmedia.infinitum.http.rest.impl.RestfulNameValueMapper;
 import com.clarionmedia.infinitum.http.rest.impl.RestfulSession;
+import com.clarionmedia.infinitum.http.rest.impl.RestfulXmlMapper;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.Session;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationsPersistencePolicy;
+import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
+import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteBuilder;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteDbHelper;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteModelFactory;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteSession;
+import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteTemplate;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
+import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 import com.clarionmedia.infinitum.reflection.impl.DefaultPackageReflector;
 
 /**
@@ -113,6 +128,7 @@ public abstract class AbstractContext implements InfinitumContext {
 
 		// Register XML beans
 		mBeanFactory = new ConfigurableBeanFactory(this);
+		registerFrameworkComponents();
 		List<BeanComponent> beans = getBeans();
 		mBeanFactory.registerBeans(beans); // also registers aspects implicitly
 
@@ -143,6 +159,7 @@ public abstract class AbstractContext implements InfinitumContext {
 		beanFactoryPostProcessors.addAll(xmlBeanFactoryPostProcessors);
 
 		// Register scanned aspects
+		BeanDefinitionBuilder beanDefinitionBuilder = new GenericBeanDefinitionBuilder(mBeanFactory);
 		for (Class<?> aspectClass : aspects) {
 			Aspect aspect = aspectClass.getAnnotation(Aspect.class);
 			String beanName = aspect.value().trim().equals("") ? StringUtil.toCamelCase(aspectClass.getSimpleName())
@@ -151,7 +168,12 @@ public abstract class AbstractContext implements InfinitumContext {
 			String scopeVal = "singleton";
 			if (scope != null)
 				scopeVal = scope.value();
-			AbstractBeanDefinition beanDefinition = new GenericBeanDefinitionBuilder(mBeanFactory).setName(beanName).setType(aspectClass).setProperties(null).setScope(scopeVal).build();
+			AbstractBeanDefinition beanDefinition = beanDefinitionBuilder
+					.setName(beanName)
+			        .setType(aspectClass)
+			        .setProperties(null)
+			        .setScope(scopeVal)
+			        .build();
 			mBeanFactory.registerAspect(beanDefinition);
 		}
 
@@ -165,7 +187,12 @@ public abstract class AbstractContext implements InfinitumContext {
 				String scopeVal = "singleton";
 				if (scope != null)
 					scopeVal = scope.value();
-				AbstractBeanDefinition beanDefinition = new GenericBeanDefinitionBuilder(mBeanFactory).setName(beanName).setType(candidate).setProperties(null).setScope(scopeVal).build();
+				AbstractBeanDefinition beanDefinition = beanDefinitionBuilder
+						.setName(beanName)
+						.setType(candidate)
+				        .setProperties(null)
+				        .setScope(scopeVal)
+				        .build();
 				mBeanFactory.registerBean(beanDefinition);
 			}
 		}
@@ -187,13 +214,13 @@ public abstract class AbstractContext implements InfinitumContext {
 	public Session getSession(DataSource source) throws InfinitumConfigurationException {
 		switch (source) {
 		case SQLITE:
-			return new SqliteSession(this);
+			return getBean("$SqliteSession", SqliteSession.class);
 		case REST:
 			String client = getRestfulConfiguration().getClientBean();
 			RestfulSession session;
 			if (client == null) {
 				// Use RestfulJsonSession if no client is defined
-				session = new RestfulJsonSession();
+				session = getBean("$RestfulJsonSession", RestfulJsonSession.class);
 			} else {
 				// Otherwise use the preferred client
 				session = getBean(client, RestfulSession.class);
@@ -209,10 +236,10 @@ public abstract class AbstractContext implements InfinitumContext {
 		if (sPersistencePolicy == null) {
 			switch (getConfigurationMode()) {
 			case ANNOTATION:
-				sPersistencePolicy = new AnnotationsPersistencePolicy(this);
+				sPersistencePolicy = getBean("$AnnotationsPersistencePolicy", AnnotationsPersistencePolicy.class);
 				break;
 			case XML:
-				sPersistencePolicy = new XmlPersistencePolicy(this);
+				sPersistencePolicy = getBean("$XmlPersistencePolicy", XmlPersistencePolicy.class);
 				break;
 			}
 		}
@@ -332,6 +359,108 @@ public abstract class AbstractContext implements InfinitumContext {
 						+ "' could not be invoked.");
 			}
 		}
+	}
+	
+	/**
+	 * Registers components used internally by the framework for injection.
+	 */
+	private void registerFrameworkComponents() {
+		BeanDefinitionBuilder beanDefinitionBuilder = new GenericBeanDefinitionBuilder(mBeanFactory);
+		AbstractBeanDefinition beanDefinition = beanDefinitionBuilder
+				.setName("$InfinitumContext")
+				.setType(XmlApplicationContext.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$RestContext")
+				.setType(RestfulContext.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put("mIsAutocommit", isAutocommit());
+		beanDefinition = beanDefinitionBuilder
+				.setName("$SqliteTemplate")
+				.setType(SqliteTemplate.class)
+		        .setProperties(properties)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$SqliteSession")
+				.setType(SqliteSession.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$SqliteDbHelper")
+				.setType(SqliteDbHelper.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$SqliteMapper")
+				.setType(SqliteMapper.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$TypeResolutionPolicy")
+				.setType(DefaultTypeResolutionPolicy.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$ClassReflector")
+				.setType(DefaultClassReflector.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$PackageReflector")
+				.setType(DefaultPackageReflector.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$SqliteModelFactory")
+				.setType(SqliteModelFactory.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$SqliteBuilder")
+				.setType(SqliteBuilder.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$SqliteUtil")
+				.setType(SqliteUtil.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$RestfulXmlMapper")
+				.setType(RestfulXmlMapper.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$RestfulJsonMapper")
+				.setType(RestfulJsonMapper.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$RestfulNameValueMapper")
+				.setType(RestfulNameValueMapper.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$AnnotationsPersistencePolicy")
+				.setType(AnnotationsPersistencePolicy.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		beanDefinition = beanDefinitionBuilder
+				.setName("$RestfulJsonSession")
+				.setType(RestfulJsonSession.class)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
+		Class<?> type = getConfigurationMode() == ConfigurationMode.ANNOTATION ?
+				AnnotationsPersistencePolicy.class : XmlPersistencePolicy.class;
+		beanDefinition = beanDefinitionBuilder
+				.setName("$PersistencePolicy")
+				.setType(type)
+		        .build();
+		mBeanFactory.registerBean(beanDefinition);
 	}
 
 }

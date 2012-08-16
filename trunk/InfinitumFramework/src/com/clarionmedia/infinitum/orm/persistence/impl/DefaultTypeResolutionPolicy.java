@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.internal.Primitives;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 
@@ -37,19 +38,8 @@ import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
  */
 public class DefaultTypeResolutionPolicy implements TypeResolutionPolicy {
 
+	@Autowired
 	private InfinitumContext mContext;
-
-	/**
-	 * Creates a new {@code DefaultTypeResolutionPolicy} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} for this
-	 *            {@code TypeResolutionPolicy}
-	 */
-	public DefaultTypeResolutionPolicy(InfinitumContext context) {
-		mContext = context;
-	}
 
 	@Override
 	public boolean isValidPrimaryKey(Field pkField, Serializable pk) {

@@ -37,6 +37,7 @@ import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.StringUtil;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
@@ -68,6 +69,7 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	// This should be re-implemented sometime...
 	// Maybe use Simple Framework for XML deserialization?
 
+	@Autowired
 	private InfinitumContext mContext;
 
 	// This Map caches the resource ID for each persistent class's map file
@@ -87,15 +89,10 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 	private Map<Field, Boolean> mRelationshipCheckCache;
 
 	/**
-	 * Constructs a new {@code XmlPersistencePolicy} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} to use for this policy
+	 * Constructs a new {@code XmlPersistencePolicy}.
 	 */
-	public XmlPersistencePolicy(InfinitumContext context) {
-		super(context);
-		mContext = context;
+	@Autowired
+	public XmlPersistencePolicy() {
 		mResourceCache = new HashMap<Class<?>, Integer>();
 		mTableCache = new HashMap<Class<?>, String>();
 		mCascadeCache = new HashMap<Class<?>, Cascade>();
@@ -482,16 +479,16 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
 					String cascade = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CASCADE"));
 					if (cascade == null) {
-						mCascadeCache.put(c, Cascade.All);
-						return Cascade.All;
+						mCascadeCache.put(c, Cascade.ALL);
+						return Cascade.ALL;
 					} else {
 						Cascade mode;
 						if (cascade.equalsIgnoreCase("none"))
-							mode = Cascade.None;
+							mode = Cascade.NONE;
 						else if (cascade.equalsIgnoreCase("keys"))
-							mode = Cascade.Keys;
+							mode = Cascade.KEYS;
 						else
-							mode = Cascade.All;
+							mode = Cascade.ALL;
 						mCascadeCache.put(c, mode);
 						return mode;
 					}

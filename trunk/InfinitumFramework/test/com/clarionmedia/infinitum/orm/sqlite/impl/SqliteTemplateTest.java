@@ -20,11 +20,13 @@
 package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.any;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +59,6 @@ import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sql.SqlBuilder;
-import com.clarionmedia.infinitum.orm.sqlite.SqliteHelperFactory;
 import com.clarionmedia.infinitum.orm.sqlite.SqliteUtil;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
 import com.xtremelabs.robolectric.RobolectricTestRunner;
@@ -112,9 +113,6 @@ public class SqliteTemplateTest {
 	private Stack<Boolean> mockTransactionStack;
 	
 	@Mock
-	private SqliteHelperFactory mockHelperFactory;
-	
-	@Mock
 	private SqliteCriteria<FooModel> mockCriteria;
 	
 	@Mock
@@ -143,7 +141,6 @@ public class SqliteTemplateTest {
 	private FooModel foo;
 	private BarModel bar;
 	
-	@SuppressWarnings("deprecation")
 	@InjectMocks
 	private SqliteTemplate sqliteTemplate = new SqliteTemplate();
 	
@@ -155,8 +152,6 @@ public class SqliteTemplateTest {
 		mockFooPkField = FooModel.class.getField("id");
 		mockBarPkField = BarModel.class.getField("id");
 		when(mockInfinitumContext.getPersistencePolicy()).thenReturn(mockPersistencePolicy);
-		when(mockHelperFactory.createSqliteDbHelper(mockInfinitumContext, mockSqliteMapper)).thenReturn(mockDbHelper);
-		when(mockHelperFactory.createSqliteModelFactory(mockSqliteSession, mockSqliteMapper)).thenReturn(mockSqliteModelFactory);
 		when(mockDbHelper.getWritableDatabase()).thenReturn(mockSqliteDb);
 		when(mockFooModelMap.getContentValues()).thenReturn(mockContentValues);
 		when(mockBarModelMap.getContentValues()).thenReturn(mockContentValues);
@@ -186,22 +181,21 @@ public class SqliteTemplateTest {
 		sqliteTemplate.open();
 		
 		// Verify
-		verify(mockHelperFactory, times(2)).createSqliteDbHelper(mockInfinitumContext, mockSqliteMapper);
 		verify(mockDbHelper, times(2)).getWritableDatabase();
 	}
 	
 	@Test
 	public void testCreateCriteria() {
 		// Setup
-		when(mockHelperFactory.createCriteria(mockSqliteSession, FooModel.class, mockSqlBuilder, mockSqliteMapper))
-			.thenReturn(mockCriteria);
+		when(mockSqliteSession.getInfinitumContext()).thenReturn(mockInfinitumContext);
+		when(mockInfinitumContext.getPersistencePolicy()).thenReturn(mockPersistencePolicy);
+		when(mockPersistencePolicy.isPersistent(FooModel.class)).thenReturn(true);
 		
 		// Run
-		Criteria<FooModel> actualCriteria = sqliteTemplate.createCriteria(FooModel.class);
+		Criteria<FooModel> criteria = sqliteTemplate.createCriteria(FooModel.class);
 		
 		// Verify
-		verify(mockHelperFactory).createCriteria(mockSqliteSession, FooModel.class, mockSqlBuilder, mockSqliteMapper);
-		assertEquals("Criteria returned from createCriteria should be equal to the expected Criteria", mockCriteria, actualCriteria);
+		assertNotNull("Criteria should not be null", criteria);
 	}
 	
 	@Test
@@ -340,7 +334,7 @@ public class SqliteTemplateTest {
 		when(mockSqliteMapper.mapModel(foo)).thenReturn(mockFooModelMap);
 		when(mockPersistencePolicy.getModelTableName(FooModel.class)).thenReturn(FOO_MODEL_TABLE);
 		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn(FOO_MODEL_ID);
-		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.None);
+		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.NONE);
 		
 		// Run
 		long actualId = sqliteTemplate.save(foo);
@@ -367,7 +361,7 @@ public class SqliteTemplateTest {
 		when(mockSqliteMapper.mapModel(foo)).thenReturn(mockFooModelMap);
 		when(mockPersistencePolicy.getModelTableName(FooModel.class)).thenReturn(FOO_MODEL_TABLE);
 		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn(FOO_MODEL_ID);
-		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.All);
+		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.ALL);
 		when(mockFooModelMap.getManyToManyRelationships()).thenReturn(mtmRels);
 		when(mockFooModelMap.getManyToOneRelationships()).thenReturn(mtoRels);
 		when(mockFooModelMap.getOneToManyRelationships()).thenReturn(otmRels);
@@ -409,7 +403,7 @@ public class SqliteTemplateTest {
 		when(mockSqliteMapper.mapModel(foo)).thenReturn(mockFooModelMap);
 		when(mockPersistencePolicy.getModelTableName(FooModel.class)).thenReturn(FOO_MODEL_TABLE);
 		when(mockSqliteDb.insert(FOO_MODEL_TABLE, null, mockContentValues)).thenReturn((long) -1);
-		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.All);
+		when(mockPersistencePolicy.getCascadeMode(FooModel.class)).thenReturn(Cascade.ALL);
 		when(mockFooModelMap.getManyToManyRelationships()).thenReturn(mtmRels);
 		when(mockFooModelMap.getManyToOneRelationships()).thenReturn(mtoRels);
 		when(mockFooModelMap.getOneToManyRelationships()).thenReturn(otmRels);

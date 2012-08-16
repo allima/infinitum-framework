@@ -29,13 +29,14 @@ import java.util.Set;
 
 import com.clarionmedia.infinitum.aop.AopProxy;
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
+import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.logging.Logger;
 import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.impl.AnnotationsPersistencePolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.persistence.impl.XmlPersistencePolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
@@ -43,7 +44,6 @@ import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
-import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -71,7 +71,7 @@ public abstract class PersistencePolicy {
 	 * cascaded, and {@code Keys} means only foreign keys will be cascaded.
 	 */
 	public static enum Cascade {
-		All, None, Keys
+		ALL, NONE, KEYS
 	};
 
 	// This Map caches which fields are persistent
@@ -110,22 +110,22 @@ public abstract class PersistencePolicy {
 	// This Map caches the endpoint field names for model Fields
 	protected Map<Field, String> mRestFieldCache;
 
+	@Autowired
 	protected TypeResolutionPolicy mTypePolicy;
+	
+	@Autowired
 	protected ClassReflector mClassReflector;
+	
+	@Autowired
+	protected InfinitumContext mContext;
+	
 	protected Logger mLogger;
 	protected PropertyLoader mPropLoader;
-	protected InfinitumContext mContext;
 
 	/**
-	 * Constructs a new {@code PersistencePolicy} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} for this
-	 *            {@code PersistencePolicy}
+	 * Constructs a new {@code PersistencePolicy}.
 	 */
-	public PersistencePolicy(InfinitumContext context) {
-		mContext = context;
+	public PersistencePolicy() {
 		mPersistenceCache = new HashMap<Class<?>, List<Field>>();
 		mColumnCache = new HashMap<Field, String>();
 		mPrimaryKeyCache = new HashMap<Class<?>, Field>();
@@ -138,9 +138,11 @@ public abstract class PersistencePolicy {
 		mLazyLoadingCache = new HashMap<Class<?>, Boolean>();
 		mRestEndpointCache = new HashMap<Class<?>, String>();
 		mRestFieldCache = new HashMap<Field, String>();
-		mTypePolicy = new DefaultTypeResolutionPolicy(mContext);
-		mClassReflector = new DefaultClassReflector();
-		mLogger = Logger.getInstance(context, getClass().getSimpleName());
+	}
+	
+	@PostConstruct
+	private void init() {
+		mLogger = Logger.getInstance(mContext, getClass().getSimpleName());
 		mPropLoader = new PropertyLoader(mContext.getAndroidContext());
 	}
 

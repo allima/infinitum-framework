@@ -22,8 +22,9 @@ package com.clarionmedia.infinitum.orm;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
+import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.http.rest.impl.RestfulNameValueMapper;
 import com.clarionmedia.infinitum.internal.Pair;
 import com.clarionmedia.infinitum.internal.PropertyLoader;
@@ -33,7 +34,6 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeAdapter;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
-import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
@@ -41,7 +41,6 @@ import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
-import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -57,26 +56,26 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  */
 public abstract class ObjectMapper {
 
+	@Autowired
 	protected PersistencePolicy mPersistencePolicy;
+	
+	@Autowired
 	protected TypeResolutionPolicy mTypePolicy;
+	
+	@Autowired
 	protected ClassReflector mClassReflector;
+	
+	@Autowired
+	protected InfinitumContext mContext;
+	
 	protected Logger mLogger;
 	protected PropertyLoader mPropLoader;
-
-	/**
-	 * Constructs a new {@code ObjectMapper}.
-	 * 
-	 * @param context
-	 *            the {@link InfinitumContext} to use for this
-	 *            {@code SqliteUtil}
-	 */
-	public ObjectMapper(InfinitumContext context) {
-		mPersistencePolicy = context.getPersistencePolicy();
-		mTypePolicy = new DefaultTypeResolutionPolicy(context);
-		mClassReflector = new DefaultClassReflector();
-		mLogger = Logger.getInstance(context, getClass().getSimpleName());
-		mPropLoader = new PropertyLoader(ContextFactory.newInstance()
-				.getAndroidContext());
+	
+	@PostConstruct
+	private void init() {
+		mLogger = Logger.getInstance(mContext, getClass().getSimpleName());
+		mPropLoader = new PropertyLoader(mContext.getAndroidContext());
+		
 	}
 
 	/**
@@ -155,9 +154,8 @@ public abstract class ObjectMapper {
 	 */
 	@SuppressWarnings("unchecked")
 	protected void mapRelationship(ModelMap map, Object model, Field field) {
-		PersistencePolicy policy = ContextFactory.newInstance().getPersistencePolicy();
-		if (policy.isRelationship(field)) {
-			ModelRelationship rel = policy.getRelationship(field);
+		if (mPersistencePolicy.isRelationship(field)) {
+			ModelRelationship rel = mPersistencePolicy.getRelationship(field);
 			Object related;
 			switch (rel.getRelationType()) {
 				case ManyToMany :

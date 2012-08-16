@@ -48,6 +48,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	private PackageReflector mPackageReflector;
 	private Map<String, AbstractBeanDefinition> mBeanDefinitions;
 	private Map<String, AbstractBeanDefinition> mAspectDefinitions;
+	private InfinitumContext mContext;
 
 	/**
 	 * Constructs a new {@code ConfigurableBeanFactory}.
@@ -56,6 +57,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	 *            the parent {@link InfinitumContext}
 	 */
 	public ConfigurableBeanFactory(InfinitumContext context) {
+		mContext = context;
 		mPackageReflector = new DefaultPackageReflector();
 		mBeanDefinitions = new HashMap<String, AbstractBeanDefinition>();
 		mAspectDefinitions = new HashMap<String, AbstractBeanDefinition>();
@@ -80,8 +82,7 @@ public class ConfigurableBeanFactory implements BeanFactory {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T loadBean(String name, Class<T> clazz)
-			throws InfinitumConfigurationException {
+	public <T> T loadBean(String name, Class<T> clazz) throws InfinitumConfigurationException {
 		Object bean = loadBean(name);
 		if (!clazz.isInstance(bean))
 			throw new InfinitumConfigurationException("Bean '" + name
@@ -134,6 +135,16 @@ public class ConfigurableBeanFactory implements BeanFactory {
 	@Override
 	public Map<String, AbstractBeanDefinition> getBeanDefinitions() {
 		return mBeanDefinitions;
+	}
+
+	@Override
+	public InfinitumContext getContext() {
+		return mContext;
+	}
+
+	@Override
+	public AbstractBeanDefinition getBeanDefinition(String name) {
+		return mBeanDefinitions.get(name);
 	}
 
 }

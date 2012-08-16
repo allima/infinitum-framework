@@ -23,16 +23,14 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 
 import com.clarionmedia.infinitum.aop.AopProxy;
-import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
-import com.clarionmedia.infinitum.orm.persistence.impl.DefaultTypeResolutionPolicy;
 import com.clarionmedia.infinitum.orm.sqlite.impl.SqliteMapper;
 import com.clarionmedia.infinitum.reflection.ClassReflector;
-import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
 
 /**
  * <p>
@@ -46,22 +44,14 @@ import com.clarionmedia.infinitum.reflection.impl.DefaultClassReflector;
  */
 public class SqliteUtil {
 
+	@Autowired
 	private TypeResolutionPolicy mTypePolicy;
+	
+	@Autowired
 	private PersistencePolicy mPersistencePolicy;
+	
+	@Autowired
 	private ClassReflector mClassReflector;
-
-	/**
-	 * Constructs a new {@code SqliteUtil}.
-	 * 
-	 * @param context
-	 *            the {@link InfinitumContext} to use for this
-	 *            {@code SqliteUtil}
-	 */
-	public SqliteUtil(InfinitumContext context) {
-		mTypePolicy = new DefaultTypeResolutionPolicy(context);
-		mPersistencePolicy = context.getPersistencePolicy();
-		mClassReflector = new DefaultClassReflector();
-	}
 
 	/**
 	 * Generates a "where clause" {@link String} used for updating or deleting

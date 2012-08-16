@@ -31,9 +31,10 @@ import org.apache.http.params.HttpParams;
 
 import android.database.SQLException;
 
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
+import com.clarionmedia.infinitum.di.annotation.Autowired;
+import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.http.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.http.rest.RestfulClient;
@@ -66,18 +67,24 @@ public abstract class RestfulSession implements Session {
 
 	protected static final String ENCODING = "UTF-8";
 
+	@Autowired
+	protected PersistencePolicy mPersistencePolicy;
+	
+	@Autowired
+	protected InfinitumContext mInfinitumContext;
+	
+	@Autowired
+	protected RestfulContext mRestContext;
+	
 	protected boolean mIsOpen;
 	protected String mHost;
 	protected boolean mIsAuthenticated;
 	protected AuthenticationStrategy mAuthStrategy;
 	protected Logger mLogger;
 	protected RestfulMapper mMapper;
-	protected PersistencePolicy mPersistencePolicy;
+	protected RestfulClient mRestClient;
 	protected LruCache<Integer, Object> mSessionCache;
 	protected int mCacheSize;
-	protected InfinitumContext mInfinitumContext;
-	protected RestfulContext mRestContext;
-	protected RestfulClient mRestClient;
 
 	/**
 	 * Creates a new {@code RestfulSession} with the given
@@ -90,29 +97,30 @@ public abstract class RestfulSession implements Session {
 	 *            cache can store
 	 */
 	public RestfulSession() {
-		mInfinitumContext = ContextFactory.newInstance().getContext();
-		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
-		mPersistencePolicy = mInfinitumContext.getPersistencePolicy();
 		mCacheSize = DEFAULT_CACHE_SIZE;
 		mSessionCache = new LruCache<Integer, Object>(mCacheSize);
-		mRestContext = mInfinitumContext.getRestfulConfiguration();
-		mRestClient = new CachingEnabledRestfulClient(mInfinitumContext);
-		mRestClient.setHttpParams(getHttpParams());
+	}
+	
+	@PostConstruct
+	private void init() {
+		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
+		switch (mRestContext.getMessageType()) {
+			case XML:
+				mMapper = mInfinitumContext.getBean("$RestfulXmlMapper", RestfulXmlMapper.class);
+				break;
+			case JSON:
+				mMapper = mInfinitumContext.getBean("$RestfulJsonMapper", RestfulJsonMapper.class);
+				break;
+			default:
+				mMapper = mInfinitumContext.getBean("$RestfulNameValueMapper", RestfulNameValueMapper.class);
+		}
 		mIsAuthenticated = mRestContext.isRestAuthenticated();
 		mAuthStrategy = mRestContext.getAuthStrategy();
 		mHost = mRestContext.getRestHost();
 		if (!mHost.endsWith("/"))
 			mHost += '/';
-		switch (mRestContext.getMessageType()) {
-		case Xml:
-			mMapper = new RestfulXmlMapper(mInfinitumContext);
-			break;
-		case Json:
-			mMapper = new RestfulJsonMapper(mInfinitumContext);
-			break;
-		default:
-			mMapper = new RestfulNameValueMapper(mInfinitumContext);
-		}
+		mRestClient = new CachingEnabledRestfulClient(mInfinitumContext);
+		mRestClient.setHttpParams(getHttpParams());
 	}
 
 	/**

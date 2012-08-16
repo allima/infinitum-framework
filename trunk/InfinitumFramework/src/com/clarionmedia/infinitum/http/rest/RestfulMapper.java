@@ -21,7 +21,6 @@ package com.clarionmedia.infinitum.http.rest;
 
 import java.lang.reflect.Field;
 
-import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.orm.ObjectMapper;
 import com.clarionmedia.infinitum.orm.exception.InvalidMappingException;
 import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
@@ -37,18 +36,6 @@ import com.clarionmedia.infinitum.orm.exception.ModelConfigurationException;
  * @since 1.0
  */
 public abstract class RestfulMapper extends ObjectMapper {
-
-	/**
-	 * Creates a new {@code RestfulMapper} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} to use with this
-	 *            {@code RestfulMapper}
-	 */
-	public RestfulMapper(InfinitumContext context) {
-		super(context);
-	}
 
 	@Override
 	public abstract RestfulModelMap mapModel(Object model)

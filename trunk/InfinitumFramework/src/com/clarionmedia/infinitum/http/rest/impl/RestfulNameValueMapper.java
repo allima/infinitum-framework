@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.clarionmedia.infinitum.aop.AopProxy;
-import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.http.rest.RestfulMapper;
 import com.clarionmedia.infinitum.http.rest.RestfulPairsTypeAdapter;
 import com.clarionmedia.infinitum.internal.Primitives;
@@ -50,15 +49,9 @@ public class RestfulNameValueMapper extends RestfulMapper {
 	private Map<Class<?>, RestfulPairsTypeAdapter<?>> mTypeAdapters;
 
 	/**
-	 * Creates a new {@code RestfulNameValueMapper} with the given
-	 * {@link InfinitumContext}.
-	 * 
-	 * @param context
-	 *            the {@code InfinitumContext} to use with this
-	 *            {@code RestfulNameValueMapper}
+	 * Constructs a new {@code RestfulNameValueMapper}.
 	 */
-	public RestfulNameValueMapper(InfinitumContext context) {
-		super(context);
+	public RestfulNameValueMapper() {
 		mTypeAdapters = new HashMap<Class<?>, RestfulPairsTypeAdapter<?>>();
 		mTypeAdapters.put(boolean.class, RestfulPairsTypeAdapters.BOOLEAN);
 		mTypeAdapters.put(byte.class, RestfulPairsTypeAdapters.BYTE);
