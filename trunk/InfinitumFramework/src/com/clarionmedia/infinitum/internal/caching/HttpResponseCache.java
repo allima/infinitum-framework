@@ -45,6 +45,29 @@ import com.clarionmedia.infinitum.http.impl.HashableHttpRequest;
 public class HttpResponseCache extends AbstractCache<HashableHttpRequest, HttpClientResponse> {
 
 	private static final String CACHE_NAME = "HttpCache";
+	
+	/**
+	 * Creates a new {@code HttpResponseCache} with the given initial capacity
+	 * and default expiration timeout.
+	 * 
+	 * @param initialCapacity
+	 *            the initial cache capacity
+	 * @param defaultExpiration
+	 *            the default expiration timeout in seconds
+	 */
+	public HttpResponseCache() {
+		super(CACHE_NAME);
+	}
+	
+	/**
+	 * Creates a new {@code HttpResponseCache} with the given default expiration timeout.
+	 * 
+	 * @param defaultExpiration
+	 *            the default expiration timeout in seconds
+	 */
+	public HttpResponseCache(long defaultExpiration) {
+		super(CACHE_NAME, defaultExpiration);
+	}
 
 	/**
 	 * Creates a new {@code HttpResponseCache} with the given initial capacity
