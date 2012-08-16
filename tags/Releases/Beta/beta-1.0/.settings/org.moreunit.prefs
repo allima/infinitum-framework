@@ -1,0 +1,4 @@
+eclipse.preferences.version=1
+org.moreunit.test_type=junit4
+org.moreunit.unitsourcefolder=InfinitumFramework\:src\:InfinitumFrameworkTest\:test
+org.moreunit.useprojectsettings=true
