@@ -16,28 +16,28 @@ import android.util.Log;
 /**
  * <p>
  * A generic, two-level cache consisting of a time-expiring, in-memory cache (L1
- * cache) and a slightly more permanent disk cache (L2 cache). Both cache levels
- * are configurable
- * </p>
- * 
- * <p>
- * A simple two-level cache consisting of a small and fast in-memory cache (1st
- * level cache) and an (optional) slower but bigger disk cache (2nd level
- * cache). For disk caching, either the application's cache directory or the SD
- * card can be used. Please note that in the case of the app cache dir, Android
- * may at any point decide to wipe that entire directory if it runs low on
- * internal storage. The SD card cache <i>must</i> be managed by the
- * application, e.g. by calling {@link #wipe} whenever the app quits.
+ * cache) and a secondary disk cache (L2 cache). Because of the potential
+ * performance implications of the disk cache, the L2 cache can be disabled. The
+ * L2 cache can also be configured to write to the application's cache directory
+ * or the SD card. Note that, in order to reclaim internal storage, Android may
+ * at any point decide to wipe the application's cache directory. The SD card
+ * cache <i>must</i> be managed by the application by calling {@link #clear}.
  * </p>
  * <p>
- * When pulling from the cache, it will first attempt to load the data from
- * memory. If that fails, it will try to load it from disk (assuming disk
- * caching is enabled). If that succeeds, the data will be put in the in-memory
- * cache and returned (read-through). Otherwise it's a cache miss.
+ * This will first attempt to retrieve cached values from the L1 cache. If the
+ * in-memory cache results in a miss, the L2 cache will be searched if disk
+ * caching is enabled. If the disk cache results in a hit, the data will be put
+ * in the in-memory cache and returned (read-through).
  * </p>
  * <p>
- * Pushes to the cache are always write-through (i.e. the data will be stored
- * both on disk, if disk caching is enabled, and in memory).
+ * All cache puts are write-through, meaning the data will be stored both in
+ * memory and on disk (if disk caching is enabled).
+ * </p>
+ * <p>
+ * The default expiration timeout provided to the constructor is the maximum
+ * time an {@link Object} will be stored in the cache, both L1 and L2, in
+ * seconds. Cache entries can be given their own expiration timeouts using
+ * {@link #put(Object, Object, long)}.
  * </p>
  * 
  * @author Tyler Treat
@@ -431,8 +431,8 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	}
 
 	/**
-	 * Checks if the given {@link File} is expired and deletes it if it is.
-	 * The return value indicates if the file was removed.
+	 * Checks if the given {@link File} is expired and deletes it if it is. The
+	 * return value indicates if the file was removed.
 	 */
 	private boolean checkAndRemoveFile(File file) {
 		Long maxAgeInSeconds = mDiskTimeoutCache.get(file.getAbsolutePath());
