@@ -25,12 +25,13 @@ import java.util.Date;
 
 /**
  * <p>
- * This class contains methods for formatting {@link Date} objects into
- * Strings and vice versa.
+ * This class contains methods for formatting {@link Date} objects into Strings
+ * and vice versa.
  * </p>
  * 
  * @author Tyler Treat
  * @version 1.0 02/13/12
+ * @since 1.0
  */
 public class DateFormatter {
 
@@ -40,6 +41,13 @@ public class DateFormatter {
 	 */
 	public static final SimpleDateFormat ISO_8601_FORMAT = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ssZ");
+
+	/**
+	 * {@link SimpleDateFormat} containing the date pattern used by the HTTP
+	 * Expires header.
+	 */
+	public static final SimpleDateFormat HTTP_EXPIRES_FORMAT = new SimpleDateFormat(
+			"EEE, dd MMM yyyy HH:mm:ss z");
 
 	/**
 	 * Returns the {@link String} representation of the given {@link Date}.
@@ -65,14 +73,26 @@ public class DateFormatter {
 	 * @return {@code Date} instance of {@code String}
 	 */
 	public static Date parseStringAsDate(String input) {
-		SimpleDateFormat df = ISO_8601_FORMAT;
-		Date ret = null;
 		try {
-			ret = df.parse(input);
+			return ISO_8601_FORMAT.parse(input);
 		} catch (ParseException e) {
 			return null;
 		}
-		return ret;
+	}
+
+	/**
+	 * Parses the given {@link String}, formatted as an HTTP Expires date, as a
+	 * {@link Date} instance or {@code null} if it could not be parsed.
+	 * 
+	 * @param input
+	 * @return
+	 */
+	public static Date parseHttpExpiresStringAsDate(String input) {
+		try {
+			return HTTP_EXPIRES_FORMAT.parse(input);
+		} catch (ParseException e) {
+			return null;
+		}
 	}
 
 }

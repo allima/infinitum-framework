@@ -46,7 +46,14 @@ import android.util.Log;
  */
 public abstract class AbstractCache<K, V> implements Map<K, V> {
 
+	/**
+	 * Used to cache data in the application's dedicated cache directory.
+	 */
 	public static final int DISK_CACHE_INTERNAL = 0;
+	
+	/**
+	 * Used to cache data on the device's SD card.
+	 */
 	public static final int DISK_CACHE_SDCARD = 1;
 
 	private static final String LOG_TAG = "Inf Caching";
@@ -57,6 +64,33 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	private String mName;
 	private long mDefaultExpirationTimeout;
 	private ConcurrentMap<String, Long> mDiskTimeoutCache;
+	
+	/**
+	 * Creates a new cache instance.
+	 * 
+	 * @param name
+	 *            the cache identifier used to derive a directory name if the
+	 *            disk cache is enabled
+	 */
+	public AbstractCache(String name) {
+		this(name, ExpirableCache.DEFAULT_EXPIRATION_TIMEOUT);
+	}
+	
+	/**
+	 * Creates a new cache instance.
+	 * 
+	 * @param name
+	 *            the cache identifier used to derive a directory name if the
+	 *            disk cache is enabled
+	 * @param defaultExpiration
+	 *            the default expiration timeout in seconds
+	 */
+	public AbstractCache(String name, long defaultExpiration) {
+		mName = name;
+		mDefaultExpirationTimeout = defaultExpiration;
+		mCache = new ExpirableCache<K, V>(mDefaultExpirationTimeout);
+		mDiskTimeoutCache = new ConcurrentHashMap<String, Long>();
+	}
 
 	/**
 	 * Creates a new cache instance.
@@ -69,12 +103,10 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	 * @param defaultExpiration
 	 *            the default expiration timeout in seconds
 	 */
-	public AbstractCache(String name, int initialCapacity,
-			long defaultExpiration) {
+	public AbstractCache(String name, int initialCapacity, long defaultExpiration) {
 		mName = name;
 		mDefaultExpirationTimeout = defaultExpiration;
-		mCache = new ExpirableCache<K, V>(mDefaultExpirationTimeout,
-				initialCapacity);
+		mCache = new ExpirableCache<K, V>(mDefaultExpirationTimeout, initialCapacity);
 		mDiskTimeoutCache = new ConcurrentHashMap<String, Long>(initialCapacity);
 	}
 
@@ -248,7 +280,7 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 			if (value == null) {
 				return null;
 			}
-			mCache.put(key, value);
+			mCache.put(key, value, mDiskTimeoutCache.get(file.getAbsolutePath()));
 			return value;
 		}
 

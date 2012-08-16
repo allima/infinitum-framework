@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -47,6 +48,9 @@ import org.apache.http.params.HttpParams;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.http.impl.HashableHttpRequest;
 import com.clarionmedia.infinitum.http.rest.RestfulClient;
+import com.clarionmedia.infinitum.internal.DateFormatter;
+import com.clarionmedia.infinitum.internal.caching.AbstractCache;
+import com.clarionmedia.infinitum.internal.caching.HttpResponseCache;
 import com.clarionmedia.infinitum.logging.Logger;
 
 /**
@@ -62,6 +66,7 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 
 	protected Logger mLogger;
 	protected HttpParams mHttpParams;
+	protected HttpResponseCache mResponseCache;
 
 	/**
 	 * Creates a new {@code CachingEnabledRestfulClient}.
@@ -69,6 +74,8 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 	public CachingEnabledRestfulClient(InfinitumContext context) {
 		mLogger = Logger.getInstance(context, getClass().getSimpleName());
 		mHttpParams = new BasicHttpParams();
+		mResponseCache = new HttpResponseCache();
+		mResponseCache.enableDiskCache(context.getAndroidContext(), AbstractCache.DISK_CACHE_INTERNAL);
 	}
 
 	@Override
@@ -273,6 +280,8 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 	}
 
 	private RestResponse executeRequest(HashableHttpRequest hashableHttpRequest) {
+		if (mResponseCache.containsKey(hashableHttpRequest))
+			return (RestResponse) mResponseCache.get(hashableHttpRequest);
 		HttpUriRequest httpRequest = hashableHttpRequest.unwrap();
 		mLogger.debug("Sending " + httpRequest.getMethod() + " request to " + httpRequest.getURI() + " with " + httpRequest.getAllHeaders().length + " headers");
 		HttpClient httpClient = new DefaultHttpClient(mHttpParams);
@@ -293,6 +302,9 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 				out.close();
 				restResponse.setResponseData(out.toByteArray());
 			}
+			long expiration = getResponseExpiration(restResponse);
+			if (expiration > 0)
+				mResponseCache.put(hashableHttpRequest, restResponse, expiration);
 			return restResponse;
 		} catch (ClientProtocolException e) {
 			mLogger.error("Unable to send " + httpRequest.getMethod() + " request", e);
@@ -303,4 +315,37 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		}
 	}
 
+	private long getResponseExpiration(RestResponse response) {
+		long seconds = 0;
+		try {
+			for (Entry<String, String> header : response.getHeaders().entrySet()) {
+				String name = header.getKey().trim();
+				if (name.equalsIgnoreCase("cache-control")) {
+					String[] values = header.getValue().split(",");
+					for (String cacheControl : values) {
+						cacheControl = cacheControl.trim();
+						if (cacheControl.equalsIgnoreCase("no-cache")
+								|| cacheControl.equalsIgnoreCase("no-store")
+								|| cacheControl.equalsIgnoreCase("must-revalidate"))
+							return 0;
+						if (cacheControl.toLowerCase().startsWith("max-age")) {
+							seconds = Long.parseLong(cacheControl.split("=")[1].trim());
+						}
+					}
+				} else if (name.equalsIgnoreCase("expires")) {
+					Date expirationDate = DateFormatter.parseHttpExpiresStringAsDate(header.getValue().trim());
+					long difference = expirationDate.getTime() - System.currentTimeMillis();
+					if (difference > 0)
+						seconds = difference;
+				} else if (name.equalsIgnoreCase("pragma")) {
+					if (header.getValue().trim().equalsIgnoreCase("no-cache"))
+						return 0;
+				}
+			}
+		} catch (Exception e) {
+			mLogger.error("Unable to retrieve HTTP response expiration.");
+		}
+		return seconds;
+	}
+	
 }
