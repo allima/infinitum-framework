@@ -42,7 +42,7 @@ public class SingletonBeanDefinition extends AbstractBeanDefinition {
 	private Object mProxiedBean;
 
 	/**
-	 * Creates a new {@code SingletonBeanDefinition}.
+	 * Constructs a new {@code SingletonBeanDefinition}.
 	 * 
 	 * @param beanFactory
 	 *            the {@link BeanFactory} containing this bean

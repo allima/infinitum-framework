@@ -146,7 +146,7 @@ public class DefaultClassReflector implements ClassReflector {
 	}
 
 	@Override
-	public Object getClassInstance(Class<?> clazz) {
+	public <T> T getClassInstance(Class<T> clazz) {
 		try {
 			return clazz.newInstance();
 		} catch (InstantiationException e) {
@@ -155,6 +155,28 @@ public class DefaultClassReflector implements ClassReflector {
 		} catch (IllegalAccessException e) {
 			throw new InfinitumRuntimeException("Unable to instantiate '"
 					+ clazz.getName() + "'.");
+		}
+	}
+	
+	@Override
+	public <T> T getClassInstance(Constructor<T> ctor, Object... args) {
+		if (args.length == 0)
+			return getClassInstance(ctor.getDeclaringClass());
+		try {
+			ctor.setAccessible(true);
+			return ctor.newInstance(args);
+		} catch (InstantiationException e) {
+			throw new InfinitumRuntimeException("Unable to instantiate '"
+					+ ctor.getDeclaringClass().getName() + "'.");
+		} catch (IllegalAccessException e) {
+			throw new InfinitumRuntimeException("Unable to instantiate '"
+					+ ctor.getDeclaringClass().getName() + "'.");
+		} catch (IllegalArgumentException e) {
+			throw new InfinitumRuntimeException("Unable to instantiate '"
+					+ ctor.getDeclaringClass().getName() + "'.");
+		} catch (InvocationTargetException e) {
+			throw new InfinitumRuntimeException("Unable to instantiate '"
+					+ ctor.getDeclaringClass().getName() + "'.");
 		}
 	}
 

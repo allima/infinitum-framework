@@ -146,7 +146,17 @@ public interface ClassReflector {
 	 *            the {@code Class} to construct
 	 * @return new instance of {@code Class}
 	 */
-	Object getClassInstance(Class<?> clazz);
+	<T> T getClassInstance(Class<T> clazz);
+
+	/**
+	 * Retrieves a new instance of the {@link Class} with the given
+	 * {@link Constructor} by invoking the {@code Constructor} with the given
+	 * arguments.
+	 * 
+	 * @return new instance of the {@code Class} with the given
+	 *         {@code Constructor}
+	 */
+	<T> T getClassInstance(Constructor<T> ctor, Object... args);
 
 	/**
 	 * Invokes the given {@link Method} on {@code receiver} using the provided

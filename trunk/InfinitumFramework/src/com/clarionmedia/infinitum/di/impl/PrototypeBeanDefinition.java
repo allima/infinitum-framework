@@ -36,7 +36,7 @@ import com.clarionmedia.infinitum.di.BeanFactory;
 public class PrototypeBeanDefinition extends AbstractBeanDefinition {
 
 	/**
-	 * Creates a new {@code PrototypeBeanDefinition}.
+	 * Constructs a new {@code PrototypeBeanDefinition}.
 	 * 
 	 * @param beanFactory
 	 *            the {@link BeanFactory} containing this bean
