@@ -25,14 +25,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import com.clarionmedia.infinitum.http.HttpClientResponse;
-import com.clarionmedia.infinitum.http.impl.BasicHttpClientResponse;
+
+import org.apache.http.client.methods.HttpUriRequest;
+
 import com.clarionmedia.infinitum.http.impl.HashableHttpRequest;
+import com.clarionmedia.infinitum.http.rest.impl.RestResponse;
 
 /**
  * <p>
- * Concrete implementation of {@link AbstractCache} for caching HTTP responses.
+ * Concrete implementation of {@link AbstractCache} for caching REST responses.
  * The cache is keyed off of a {@link HashableHttpRequest}, which is a wrapper
  * for {@link HttpUriRequest} that implements {@code hashCode} and
  * {@code equals} methods.
@@ -42,9 +45,9 @@ import com.clarionmedia.infinitum.http.impl.HashableHttpRequest;
  * @version 1.0 08/15/12
  * @since 1.0
  */
-public class HttpResponseCache extends AbstractCache<HashableHttpRequest, HttpClientResponse> {
+public class RestResponseCache extends AbstractCache<HashableHttpRequest, RestResponse> {
 
-	private static final String CACHE_NAME = "HttpCache";
+	private static final String CACHE_NAME = "httpcache";
 	
 	/**
 	 * Creates a new {@code HttpResponseCache} with the given initial capacity
@@ -55,7 +58,7 @@ public class HttpResponseCache extends AbstractCache<HashableHttpRequest, HttpCl
 	 * @param defaultExpiration
 	 *            the default expiration timeout in seconds
 	 */
-	public HttpResponseCache() {
+	public RestResponseCache() {
 		super(CACHE_NAME);
 	}
 	
@@ -65,7 +68,7 @@ public class HttpResponseCache extends AbstractCache<HashableHttpRequest, HttpCl
 	 * @param defaultExpiration
 	 *            the default expiration timeout in seconds
 	 */
-	public HttpResponseCache(long defaultExpiration) {
+	public RestResponseCache(long defaultExpiration) {
 		super(CACHE_NAME, defaultExpiration);
 	}
 
@@ -78,7 +81,7 @@ public class HttpResponseCache extends AbstractCache<HashableHttpRequest, HttpCl
 	 * @param defaultExpiration
 	 *            the default expiration timeout in seconds
 	 */
-	public HttpResponseCache(int initialCapacity, long defaultExpiration) {
+	public RestResponseCache(int initialCapacity, long defaultExpiration) {
 		super(CACHE_NAME, initialCapacity, defaultExpiration);
 	}
 
@@ -88,7 +91,7 @@ public class HttpResponseCache extends AbstractCache<HashableHttpRequest, HttpCl
 	}
 
 	@Override
-	protected HttpClientResponse readValueFromDisk(File file) throws IOException {
+	protected RestResponse readValueFromDisk(File file) throws IOException {
 		BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file));
 		long fileSize = file.length();
 		if (fileSize > Integer.MAX_VALUE) {
@@ -112,11 +115,20 @@ public class HttpResponseCache extends AbstractCache<HashableHttpRequest, HttpCl
 		inputStream.read(messageData, 0, messageDataSize);
 		inputStream.close();
 
-		return new BasicHttpClientResponse(statusCode, messageData);
+		RestResponse response = new RestResponse();
+		response.setStatusCode(statusCode);
+		response.setResponseData(messageData);
+		String headers = new String(headerData);
+		Map<String, String> headerMap = new HashMap<String, String>();
+		String[] values = headers.split("\n");
+		for (int i = 0; i < values.length;)
+			headerMap.put(values[i++], values[i++]);
+		response.setHeaders(headerMap);
+		return response;
 	}
 
 	@Override
-	protected void writeValueToDisk(File file, HttpClientResponse data) throws IOException {
+	protected void writeValueToDisk(File file, RestResponse data) throws IOException {
 		BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file));
 		outputStream.write(data.getStatusCode());
 		byte[] headerData = getHeaderData(data.getHeaders());
@@ -127,8 +139,14 @@ public class HttpResponseCache extends AbstractCache<HashableHttpRequest, HttpCl
 	}
 
 	private String getFileNameFromUri(HashableHttpRequest request) {
-		// replace all special URI characters with a single + symbol
-		return request.getRequestUri().replaceAll("[.:/,%?&=]", "+").replaceAll("[+]+", "+");
+		// replace all special URI characters with a single y symbol
+		String uri =  request.getRequestUri().toLowerCase();
+		if (uri.startsWith("http://"))
+			uri = uri.substring(7);
+		else if (uri.startsWith("https://"))
+			uri = uri.substring(8);
+		String formatted = request.getHttpMethod() + '_' + uri;
+		return formatted.replaceAll("[.:/,%?&=]", "_").replaceAll("[+]+", "_");
 	}
 
 	private byte[] getHeaderData(Map<String, String> headers) {

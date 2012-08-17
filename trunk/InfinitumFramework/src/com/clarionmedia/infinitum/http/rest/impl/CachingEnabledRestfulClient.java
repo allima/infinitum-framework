@@ -50,7 +50,7 @@ import com.clarionmedia.infinitum.http.impl.HashableHttpRequest;
 import com.clarionmedia.infinitum.http.rest.RestfulClient;
 import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.internal.caching.AbstractCache;
-import com.clarionmedia.infinitum.internal.caching.HttpResponseCache;
+import com.clarionmedia.infinitum.internal.caching.RestResponseCache;
 import com.clarionmedia.infinitum.logging.Logger;
 
 /**
@@ -66,7 +66,7 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 
 	protected Logger mLogger;
 	protected HttpParams mHttpParams;
-	protected HttpResponseCache mResponseCache;
+	protected RestResponseCache mResponseCache;
 
 	/**
 	 * Creates a new {@code CachingEnabledRestfulClient}.
@@ -74,8 +74,15 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 	public CachingEnabledRestfulClient(InfinitumContext context) {
 		mLogger = Logger.getInstance(context, getClass().getSimpleName());
 		mHttpParams = new BasicHttpParams();
-		mResponseCache = new HttpResponseCache();
+		mResponseCache = new RestResponseCache();
 		mResponseCache.enableDiskCache(context.getAndroidContext(), AbstractCache.DISK_CACHE_INTERNAL);
+	}
+	
+	/**
+	 * Clears the response cache.
+	 */
+	public void clearCache() {
+		mResponseCache.clear();
 	}
 
 	@Override
@@ -280,8 +287,11 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 	}
 
 	private RestResponse executeRequest(HashableHttpRequest hashableHttpRequest) {
-		if (mResponseCache.containsKey(hashableHttpRequest))
-			return (RestResponse) mResponseCache.get(hashableHttpRequest);
+		if (mResponseCache.containsKey(hashableHttpRequest)) {
+			RestResponse cachedResponse = mResponseCache.get(hashableHttpRequest);
+			if (cachedResponse != null)
+				return cachedResponse;
+		}
 		HttpUriRequest httpRequest = hashableHttpRequest.unwrap();
 		mLogger.debug("Sending " + httpRequest.getMethod() + " request to " + httpRequest.getURI() + " with " + httpRequest.getAllHeaders().length + " headers");
 		HttpClient httpClient = new DefaultHttpClient(mHttpParams);

@@ -11,7 +11,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import android.content.Context;
 import android.os.Environment;
-import android.util.Log;
+
+import com.clarionmedia.infinitum.context.ContextFactory;
+import com.clarionmedia.infinitum.logging.Logger;
 
 /**
  * <p>
@@ -56,14 +58,13 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	 */
 	public static final int DISK_CACHE_SDCARD = 1;
 
-	private static final String LOG_TAG = "Inf Caching";
-
 	protected String mDiskCacheDirectory;
 	private boolean mIsDiskCacheEnabled;
 	private ExpirableCache<K, V> mCache;
 	private String mName;
 	private long mDefaultExpirationTimeout;
 	private ConcurrentMap<String, Long> mDiskTimeoutCache;
+	private Logger mLogger;
 	
 	/**
 	 * Creates a new cache instance.
@@ -90,6 +91,7 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		mDefaultExpirationTimeout = defaultExpiration;
 		mCache = new ExpirableCache<K, V>(mDefaultExpirationTimeout);
 		mDiskTimeoutCache = new ConcurrentHashMap<String, Long>();
+		mLogger = Logger.getInstance(ContextFactory.newInstance().getContext(), getClass().getSimpleName());
 	}
 
 	/**
@@ -149,20 +151,16 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 			try {
 				nomedia.createNewFile();
 			} catch (IOException e) {
-				Log.e(LOG_TAG, "Failed creating .nomedia file");
+				mLogger.error("Failed creating .nomedia file");
 			}
 		}
 
 		mIsDiskCacheEnabled = outFile.exists();
 
 		if (!mIsDiskCacheEnabled) {
-			Log.w(LOG_TAG, "Failed creating disk cache directory "
-					+ mDiskCacheDirectory);
+			mLogger.warn("Failed creating disk cache directory " + mDiskCacheDirectory);
 		} else {
-			Log.d(mName, "enabled write through to " + mDiskCacheDirectory);
-
-			// sanitize disk cache
-			Log.d(mName, "sanitize DISK cache");
+			mLogger.debug("Enabled write-through to " + mDiskCacheDirectory);
 			sanitizeDiskCache();
 		}
 
@@ -258,7 +256,7 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		V value = mCache.get(key);
 		if (value != null) {
 			// memory hit
-			Log.d(mName, "MEM cache hit for " + key.toString());
+			mLogger.debug("MEM cache hit for " + key.toString());
 			return value;
 		}
 
@@ -269,7 +267,7 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 				return null;
 
 			// disk hit
-			Log.d(mName, "DISK cache hit for " + key.toString());
+			mLogger.debug("DISK cache hit for " + key.toString());
 			try {
 				value = readValueFromDisk(file);
 			} catch (IOException e) {
@@ -304,7 +302,7 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		if (mIsDiskCacheEnabled) {
 			String path = cacheToDisk(key, value);
 			if (path != null)
-				mDiskTimeoutCache.put(path, mDefaultExpirationTimeout * 1000);
+				mDiskTimeoutCache.put(path, mDefaultExpirationTimeout);
 		}
 		return mCache.put(key, value);
 	}
@@ -326,7 +324,7 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		if (mIsDiskCacheEnabled) {
 			String path = cacheToDisk(key, value);
 			if (path != null)
-				mDiskTimeoutCache.put(path, expirationTimeout * 1000);
+				mDiskTimeoutCache.put(path, expirationTimeout);
 		}
 		return mCache.put(key, value, expirationTimeout);
 	}
@@ -434,15 +432,14 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 		mCache.clear();
 		if (mIsDiskCacheEnabled) {
 			File[] cachedFiles = new File(mDiskCacheDirectory).listFiles();
-			if (cachedFiles == null) {
+			if (cachedFiles == null)
 				return;
-			}
-			for (File f : cachedFiles) {
-				f.delete();
+			for (File file : cachedFiles) {
+				if (!file.getName().endsWith(".nomedia"))
+				    file.delete();
 			}
 		}
-
-		Log.d(LOG_TAG, "Cache cleared");
+		mLogger.debug("Cache cleared");
 	}
 
 	@Override
@@ -455,11 +452,14 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	 * expiration timeouts.
 	 */
 	private void sanitizeDiskCache() {
+		mLogger.debug("Sanitizing disk cache");
 		File[] cachedFiles = new File(mDiskCacheDirectory).listFiles();
 		if (cachedFiles == null)
 			return;
-		for (File file : cachedFiles)
-			checkAndRemoveFile(file);
+		for (File file : cachedFiles) {
+			if (!file.getName().endsWith(".nomedia"))
+			    checkAndRemoveFile(file);
+		}
 	}
 
 	/**
@@ -469,14 +469,14 @@ public abstract class AbstractCache<K, V> implements Map<K, V> {
 	private boolean checkAndRemoveFile(File file) {
 		Long maxAgeInSeconds = mDiskTimeoutCache.get(file.getAbsolutePath());
 		if (maxAgeInSeconds == null) {
-			Log.d(mName, "DISK cache expiration for file " + file.toString());
+			mLogger.debug("Disk cache file " + file.toString() + " expired");
 			file.delete();
 			return true;
 		}
 		long lastModified = file.lastModified();
 		long ageInSeconds = (System.currentTimeMillis() - lastModified) / 1000;
 		if (ageInSeconds >= maxAgeInSeconds) {
-			Log.d(mName, "DISK cache expiration for file " + file.toString());
+			mLogger.debug("Disk cache file " + file.toString() + " expired");
 			file.delete();
 			return true;
 		}
