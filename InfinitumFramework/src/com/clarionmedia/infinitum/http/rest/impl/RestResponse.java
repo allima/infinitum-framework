@@ -45,15 +45,22 @@ public class RestResponse implements HttpClientResponse {
 	private Map<String, String> mHeaders;
 
 	/**
-	 * Creates a new {@code RestResponse}.
+	 * Constructs a new {@code RestResponse}.
+	 */
+	public RestResponse() {
+		mCookies = new HashMap<String, String>();
+		mHeaders = new HashMap<String, String>();
+	}
+	
+	/**
+	 * Constructs a new {@code RestResponse}.
 	 * 
 	 * @param httpResponse
 	 *            the {@link HttpResponse} to wrap
 	 */
 	public RestResponse(HttpResponse httpResponse) {
+		this();
 		mHttpResponse = httpResponse;
-		mCookies = new HashMap<String, String>();
-		mHeaders = new HashMap<String, String>();
 	}
 	
 	/**

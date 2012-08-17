@@ -1,6 +1,5 @@
 package com.clarionmedia.infinitum.http;
 
-
 /**
  * <p>
  * Encapsulates an HTTP response message sent back from a server.
@@ -18,5 +17,12 @@ public interface HttpClientRequest extends HttpClientMessage {
 	 * @return uri
 	 */
 	String getRequestUri();
+
+	/**
+	 * Returns the HTTP method name, such as GET, POST, PUT, etc.
+	 * 
+	 * @return HTTP method name
+	 */
+	String getHttpMethod();
 
 }

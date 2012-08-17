@@ -83,6 +83,11 @@ public class HashableHttpRequest implements HttpClientRequest {
 	public String getRequestUri() {
 		return mHttpRequest.getURI().toString();
 	}
+	
+	@Override
+	public String getHttpMethod() {
+		return mHttpRequest.getMethod();
+	}
 
 	@Override
 	public int hashCode() {
@@ -138,6 +143,11 @@ public class HashableHttpRequest implements HttpClientRequest {
 						.getProtocolVersion().getMinor()
 				&& mHttpRequest.getURI().equals(
 						otherRequest.mHttpRequest.getURI());
+	}
+	
+	@Override
+	public String toString() {
+		return "[" + mHttpRequest.getMethod() + " " + mHttpRequest.getURI().toString() + "]";
 	}
 	
 }
