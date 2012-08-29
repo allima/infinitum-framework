@@ -62,27 +62,20 @@ public class BetweenExpression extends Criterion {
 	@Override
 	public String toSql(Criteria<?> criteria) throws InvalidCriteriaException {
 		StringBuilder query = new StringBuilder();
-		Class<?> c = criteria.getEntityClass();
-		Field f = null;
+		Class<?> clazz = criteria.getEntityClass();
+		Field field = null;
 		PersistencePolicy policy = mContextFactory.getPersistencePolicy();
-		try {
-			f = policy.findPersistentField(c, mFieldName);
-			if (f == null)
-				throw new InvalidCriteriaException(String.format(mPropLoader.getErrorMessage("INVALID_CRITERIA"),
-						c.getName()));
-			f.setAccessible(true);
-		} catch (SecurityException e) {
-			throw new InvalidCriteriaException(String.format(mPropLoader.getErrorMessage("INVALID_CRITERIA"),
-					c.getName()));
-		}
-		String colName = policy.getFieldColumnName(f);
-		query.append(colName).append(' ').append(SqlConstants.OP_BETWEEN).append(' ');
-		if (criteria.getObjectMapper().isTextColumn(f))
+		field = policy.findPersistentField(clazz, mFieldName);
+		if (field == null)
+		    throw new InvalidCriteriaException(String.format("Invalid Criteria for type '%s'", clazz.getName()));
+		String columnName = policy.getFieldColumnName(field);
+		query.append(columnName).append(' ').append(SqlConstants.OP_BETWEEN).append(' ');
+		if (criteria.getObjectMapper().isTextColumn(field))
 			query.append("'").append(mLow.toString()).append("'");
 		else
 			query.append(mLow.toString());
-		query.append(SqlConstants.AND);
-		if (criteria.getObjectMapper().isTextColumn(f))
+		query.append(' ').append(SqlConstants.AND).append(' ');
+		if (criteria.getObjectMapper().isTextColumn(field))
 			query.append("'").append(mHigh.toString()).append("'");
 		else
 			query.append(mHigh.toString());
