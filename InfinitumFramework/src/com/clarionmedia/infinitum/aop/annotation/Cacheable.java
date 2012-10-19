@@ -49,6 +49,6 @@ public @interface Cacheable {
 	 * 
 	 * @return the name of the cache
 	 */
-	String[] value();
+	String value();
 
 }

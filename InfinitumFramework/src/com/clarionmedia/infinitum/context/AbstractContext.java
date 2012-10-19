@@ -279,7 +279,7 @@ public abstract class AbstractContext implements InfinitumContext {
 			return components;
 		PackageReflector reflector = new DefaultPackageReflector();
 		String[] packageArr = new String[packages.size()];
-		Set<Class<?>> classes = reflector.getPackageClasses(packages.toArray(packageArr));
+		Set<Class<?>> classes = reflector.getPackageClasses(mContext, packages.toArray(packageArr));
 		for (Class<?> clazz : classes) {
 			if (clazz.isAnnotationPresent(Component.class) || clazz.isAnnotationPresent(Bean.class)
 					|| clazz.isAnnotationPresent(Aspect.class))

@@ -21,6 +21,8 @@ package com.clarionmedia.infinitum.reflection;
 
 import java.util.Set;
 
+import android.content.Context;
+
 /**
  * <p>
  * This interface provides reflection methods for working with packages
@@ -50,6 +52,6 @@ public interface PackageReflector {
 	 * Retrieves a {@link Set} of {@link Class} instances whose are contained in
 	 * one of the given package names.
 	 */
-	Set<Class<?>> getPackageClasses(String... packageNames);
+	Set<Class<?>> getPackageClasses(Context context, String... packageNames);
 
 }
