@@ -19,16 +19,17 @@
 
 package com.clarionmedia.infinitum.reflection.impl;
 
-import java.lang.reflect.Field;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+
+import android.content.Context;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
 
 import dalvik.system.DexFile;
-import dalvik.system.PathClassLoader;
 
 /**
  * <p>
@@ -44,59 +45,32 @@ public class DefaultPackageReflector implements PackageReflector {
 
 	@Override
 	public Class<?> getClass(String className) {
-		Class<?> c;
+		Class<?> clazz;
 		try {
-			c = Class.forName(className);
+			clazz = Class.forName(className);
 		} catch (ClassNotFoundException e) {
-			throw new InfinitumRuntimeException("Class '" + className
-					+ "' could not be resolved.");
+			throw new InfinitumRuntimeException("Class '" + className + "' could not be resolved.");
 		}
-		return c;
+		return clazz;
 	}
 
 	@Override
-	public synchronized Set<Class<?>> getPackageClasses(String... packageNames) {
+	public synchronized Set<Class<?>> getPackageClasses(Context context, String... packageNames) {
 		Set<Class<?>> classes = new HashSet<Class<?>>();
-		Field dexField;
 		try {
-			dexField = PathClassLoader.class.getDeclaredField("mDexs");
-			dexField.setAccessible(true);
-
-			PathClassLoader classLoader = (PathClassLoader) Thread
-					.currentThread().getContextClassLoader();
-
-			DexFile[] dexs = (DexFile[]) dexField.get(classLoader);
-			for (DexFile dex : dexs) {
-				Enumeration<String> entries = dex.entries();
-				while (entries.hasMoreElements()) {
-					String entry = entries.nextElement();
-					for (String packageName : packageNames) {
-						if (entry.toLowerCase().startsWith(
-								packageName.toLowerCase())) {
-							Class<?> entryClass = dex.loadClass(entry,
-									classLoader);
-							classes.add(entryClass);
-							break;
-						}
+			DexFile dex = new DexFile(context.getApplicationInfo().sourceDir);
+			Enumeration<String> entries = dex.entries();
+			while (entries.hasMoreElements()) {
+				String entry = entries.nextElement();
+				for (String packageName : packageNames) {
+					if (entry.toLowerCase().startsWith(packageName.toLowerCase())) {
+						classes.add(getClass(entry));
+						break;
 					}
 				}
 			}
-
-		} catch (SecurityException e) {
-			throw new InfinitumRuntimeException(
-					"Component-scanning is not supported in this environment.");
-		} catch (NoSuchFieldException e) {
-			throw new InfinitumRuntimeException(
-					"Component-scanning is not supported in this environment.");
-		} catch (IllegalArgumentException e) {
-			throw new InfinitumRuntimeException(
-					"Component-scanning is not supported in this environment.");
-		} catch (IllegalAccessException e) {
-			throw new InfinitumRuntimeException(
-					"Component-scanning is not supported in this environment.");
-		} catch (ClassCastException e) {
-			throw new InfinitumRuntimeException(
-					"Component-scanning is not supported in this environment.");
+		} catch (IOException e) {
+			throw new InfinitumRuntimeException("Component scanning is not supported in this environment.");
 		}
 		return classes;
 	}
