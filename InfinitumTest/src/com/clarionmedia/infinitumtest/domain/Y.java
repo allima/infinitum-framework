@@ -6,7 +6,7 @@ public class Y {
 	
 	private long id;
 	
-	@OneToOne(className = "com.clarionmedia.infinitumtest.domain.X", column = "x", name = "Y-X")
+	@OneToOne(className = "com.clarionmedia.infinitumtest.domain.X", column = "x", name = "Y-X", owner = Y.class)
 	private X x;
 
 	public X getX() {

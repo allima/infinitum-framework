@@ -32,7 +32,7 @@ public class TestActivity extends InfinitumActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Session session = getInfinitumContext().getSession(DataSource.Sqlite);
+		Session session = getInfinitumContext().getSession(DataSource.SQLITE);
 		
 		X x = new X();
 		x.setY(new Y());
