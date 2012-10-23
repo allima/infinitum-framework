@@ -19,6 +19,8 @@
 
 package com.clarionmedia.infinitum.internal;
 
+import java.util.Arrays;
+
 /**
  * <p>
  * A generic, ordered pair data structure for holding two related objects.
@@ -26,6 +28,7 @@ package com.clarionmedia.infinitum.internal;
  * 
  * @author Tyler Treat
  * @version 1.0 02/25/12
+ * @since 1.0
  */
 public class Pair<F, S> {
 
@@ -81,6 +84,45 @@ public class Pair<F, S> {
 	 */
 	public void setSecond(S second) {
 		mSecond = second;
+	}
+
+	@Override
+	public int hashCode() {
+		final int PRIME = 31;
+		int hash = 7;
+		if (mFirst.getClass().isArray())
+			hash *= PRIME + Arrays.deepHashCode((Object[]) mFirst);
+		else
+		    hash *= PRIME + mFirst.hashCode();
+		if (mSecond.getClass().isArray())
+			hash *= PRIME + Arrays.deepHashCode((Object[]) mSecond);
+		else
+		    hash *= PRIME * mSecond.hashCode();
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other.getClass() != getClass())
+			return false;
+		@SuppressWarnings("rawtypes")
+		Pair otherPair = (Pair) other;
+		boolean first;
+		if (mFirst.getClass().isArray() && otherPair.mFirst.getClass().isArray())
+			first = Arrays.deepEquals((Object[]) mFirst, (Object[]) otherPair.mFirst);
+		else
+			first = mFirst.equals(otherPair.mFirst);
+		boolean second;
+		if (mSecond.getClass().isArray() && otherPair.mSecond.getClass().isArray())
+			second = Arrays.deepEquals((Object[]) mSecond, (Object[]) otherPair.mSecond);
+		else
+			second = mSecond.equals(otherPair.mSecond);
+		return first && second;
+	}
+
+	@Override
+	public String toString() {
+		return "[" + mFirst.toString() + ", " + mSecond.toString() + "]";
 	}
 
 }
