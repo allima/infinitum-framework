@@ -10,7 +10,9 @@ The `Component` annotation is used to indicate that a class is a framework compo
 
 The annotation has a single, optional attribute which indicates the name of the component. If it is not specified, the component takes the class name in camelcase form.
 
-`Component`s include things such a post processors, e.g, `BeanFactoryPostProcessors` and `BeanPostProcessors`. 
+`Component`s include mechanisms such a post processors, e.g, `BeanFactoryPostProcessors` and `BeanPostProcessors`. 
+
+If looking to inject modules, use the [Bean] annotation since beans, which are specialized components, are intended to resolve autowire dependencies. Components simply register a module with the framework context.
 
 = Component Example =
 
