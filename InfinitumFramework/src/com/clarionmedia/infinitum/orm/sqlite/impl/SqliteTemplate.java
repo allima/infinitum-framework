@@ -21,7 +21,9 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -373,8 +375,7 @@ public class SqliteTemplate implements SqliteOperations {
 	private void processManyToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, Cascade cascade) {
 		for (Pair<ManyToManyRelationship, Iterable<Object>> relationshipPair : map.getManyToManyRelationships()) {
 			ManyToManyRelationship relationship = relationshipPair.getFirst();
-			StringBuilder staleQuery = mSqlBuilder.createInitialStaleRelationshipQuery(relationship, model);
-			String prefix = "";
+			List<Serializable> staleKeys = new ArrayList<Serializable>();
 			for (Object relatedEntity : relationshipPair.getSecond()) {
 				if (relatedEntity == null) {
 					// Related entity is null, nothing to do here...
@@ -382,8 +383,7 @@ public class SqliteTemplate implements SqliteOperations {
 				}
 				int relatedHash = mPersistencePolicy.computeModelHash(relatedEntity);
 				if (objectMap.containsKey(relatedHash) && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
-					mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
-					prefix = ", ";
+					staleKeys.add(mPersistencePolicy.getPrimaryKey(relatedEntity));
 					continue;
 				}
 				// Cascade.All means we persist/update related entities
@@ -392,21 +392,20 @@ public class SqliteTemplate implements SqliteOperations {
 				    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
 					    // Persist relationship to many-to-many table
 					    insertManyToManyRelationship(model, relatedEntity, relationship);
-					    mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
-					    prefix = ", ";
+					    staleKeys.add(mPersistencePolicy.getPrimaryKey(relatedEntity));
 				    }
 				// Cascade.Keys means we persist/update foreign keys
 				} else if (cascade == Cascade.KEYS && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 					// Persist relationship to many-to-many table
 				    insertManyToManyRelationship(model, relatedEntity, relationship);
-				    mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, staleQuery, prefix);
-				    prefix = ", ";
+				    staleKeys.add(mPersistencePolicy.getPrimaryKey(relatedEntity));
 				}
 			}
-			staleQuery.append(')');
 			// Delete stale relationships
-			if (!staleQuery.toString().contains("NOT IN ()"))
-				mSqliteDb.execSQL(staleQuery.toString());
+			String staleRelQuery = mSqlBuilder.createDeleteStaleRelationshipQuery(relationship, model, staleKeys);
+			// Execute only if there are stale relationships
+			if (!staleRelQuery.contains("NOT IN ()"))
+				mSqliteDb.execSQL(staleRelQuery);
 		}
 	}
 
@@ -437,8 +436,7 @@ public class SqliteTemplate implements SqliteOperations {
 
 	private void processOneToManyRelationships(Object model, SqliteModelMap map, Map<Integer, Object> objectMap, Cascade cascade) {
 		for (Pair<OneToManyRelationship, Iterable<Object>> relationshipPair : map.getOneToManyRelationships()) {
-			StringBuilder updateQuery = mSqlBuilder.createInitialUpdateForeignKeyQuery(relationshipPair.getFirst(), model);
-			String prefix = "";
+			List<Serializable> relatedKeys = new ArrayList<Serializable>();
 			for (Object relatedEntity : relationshipPair.getSecond()) {
 				if (relatedEntity == null) {
 					// Related entity is null, nothing to do here...
@@ -452,19 +450,17 @@ public class SqliteTemplate implements SqliteOperations {
 				    // Save or update the related entity
 				    if (saveOrUpdateRec(relatedEntity, objectMap) >= 0) {
 					    // Include its foreign key to be updated
-				        mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, updateQuery, prefix);
-				        prefix = ", ";
+				        relatedKeys.add(mPersistencePolicy.getPrimaryKey(relatedEntity));
 				    }
 			    // Cascade.Keys means we persist/update foreign keys
 				} else if (cascade == Cascade.KEYS && !mPersistencePolicy.isPKNullOrZero(relatedEntity)) {
 					// Include its foreign key to be updated
-			        mSqlBuilder.addPrimaryKeyToQuery(relatedEntity, updateQuery, prefix);
-			        prefix = ", ";
+			        relatedKeys.add(mPersistencePolicy.getPrimaryKey(relatedEntity));
 				}
 			}
-			updateQuery.append(')');
 			// Update the foreign keys
-			mSqliteDb.execSQL(updateQuery.toString());
+			String updateQuery = mSqlBuilder.createUpdateForeignKeyQuery(relationshipPair.getFirst(), model, relatedKeys);
+			mSqliteDb.execSQL(updateQuery);
 		}
 	}
 
