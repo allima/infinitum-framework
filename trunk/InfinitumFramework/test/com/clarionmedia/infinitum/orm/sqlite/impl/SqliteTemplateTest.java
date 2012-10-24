@@ -349,6 +349,7 @@ public class SqliteTemplateTest {
 		assertEquals("ID returned by save should be equal to the expected ID", FOO_MODEL_ID, actualId);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSave_noRelationships_success() {
 		// Setup
@@ -382,15 +383,15 @@ public class SqliteTemplateTest {
 		verify(mockFooModelMap).getManyToOneRelationships();
 		verify(mockFooModelMap).getOneToOneRelationships();
 		verify(mockPersistencePolicy, times(0)).isPKNullOrZero(any(Object.class));
-		verify(mockSqlBuilder, times(0)).createInitialStaleRelationshipQuery(any(ManyToManyRelationship.class), any(Object.class));
-		verify(mockSqlBuilder, times(0)).createInitialUpdateForeignKeyQuery(any(OneToManyRelationship.class), any(Object.class));
+		verify(mockSqlBuilder, times(0)).createDeleteStaleRelationshipQuery(any(ManyToManyRelationship.class), any(Object.class), any(List.class));
+		verify(mockSqlBuilder, times(0)).createUpdateForeignKeyQuery(any(OneToManyRelationship.class), any(Object.class), any(List.class));
 		verify(mockSqlBuilder, times(0)).createUpdateQuery(any(Object.class), any(Object.class), any(String.class));
-		verify(mockSqlBuilder, times(0)).addPrimaryKeyToQuery(any(Object.class), any(StringBuilder.class), any(String.class));
 		verify(mockClassReflector, times(0)).isNull(any(Object.class));
 		verify(mockSqliteDb, times(0)).execSQL(any(String.class));
 		assertEquals("ID returned by save should be equal to the expected ID", FOO_MODEL_ID, actualId);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSave_noRelationships_fail() {
 		// Setup
@@ -424,10 +425,9 @@ public class SqliteTemplateTest {
 		verify(mockFooModelMap, times(0)).getManyToOneRelationships();
 		verify(mockFooModelMap, times(0)).getOneToOneRelationships();
 		verify(mockPersistencePolicy, times(0)).isPKNullOrZero(any(Object.class));
-		verify(mockSqlBuilder, times(0)).createInitialStaleRelationshipQuery(any(ManyToManyRelationship.class), any(Object.class));
-		verify(mockSqlBuilder, times(0)).createInitialUpdateForeignKeyQuery(any(OneToManyRelationship.class), any(Object.class));
+		verify(mockSqlBuilder, times(0)).createDeleteStaleRelationshipQuery(any(ManyToManyRelationship.class), any(Object.class), any(List.class));
+		verify(mockSqlBuilder, times(0)).createUpdateForeignKeyQuery(any(OneToManyRelationship.class), any(Object.class), any(List.class));
 		verify(mockSqlBuilder, times(0)).createUpdateQuery(any(Object.class), any(Object.class), any(String.class));
-		verify(mockSqlBuilder, times(0)).addPrimaryKeyToQuery(any(Object.class), any(StringBuilder.class), any(String.class));
 		verify(mockClassReflector, times(0)).isNull(any(Object.class));
 		verify(mockSqliteDb, times(0)).execSQL(any(String.class));
 		assertEquals("ID returned by save should be -1", -1, actualId);

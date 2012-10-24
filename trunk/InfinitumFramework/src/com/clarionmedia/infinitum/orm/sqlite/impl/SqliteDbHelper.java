@@ -77,15 +77,6 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 		return mSqliteDb;
 	}
 
-	/**
-	 * Returns the encapsulated {@link InfinitumContext}.
-	 * 
-	 * @return {@code InfinitumContext} instance
-	 */
-	public InfinitumContext getInfinitumContext() {
-		return mInfinitumContext;
-	}
-
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		mSqliteDb = db;
