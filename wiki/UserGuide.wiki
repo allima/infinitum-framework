@@ -12,6 +12,8 @@ Infinitum is a lightweight, extensible framework enabling Android developers to 
 
 This user guide is designed to provide explanation for some of the various framework features and, perhaps more important, how to use them.
 
+For information on what's in progress and what's planned for Infinitum, check out the RoadMap.
+
 = Configuration =
 
   * InfinitumCfgXml: XML framework configuration file.
