@@ -1,7 +1,7 @@
 #summary What's to come for Infinitum.
 #labels Featured
 
-= In Progress =
+= What's In Progress =
 
 *Unit Testing:* The project began through rapid prototyping, so we're now focusing on establishing a comprehensive test suite to cover all components, old and new. We're utilizing JUnit, [http://pivotal.github.com/robolectric/ Robolectric], and [http://code.google.com/p/mockito/ Mockito] to write unit tests for Android code that can be run on a JVM.
 
