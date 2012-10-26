@@ -3,10 +3,10 @@ package com.clarionmedia.infinitum.orm.sqlite.impl;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -33,6 +33,8 @@ import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.persistence.TypeResolutionPolicy.SqliteDataType;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
+import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
 import com.clarionmedia.infinitum.reflection.PackageReflector;
 import com.xtremelabs.robolectric.RobolectricTestRunner;
 
@@ -462,12 +464,48 @@ public class SqliteBuilderTest {
 	}
 	
 	@Test
-	public void testCreateDeleteStaleRelationshipQuery_singleStale() {
+	public void testCreateDeleteStaleRelationshipQuery_firstType_singleRelated() {
 		// Setup
-		List<Serializable> staleKeys = new ArrayList<Serializable>();
+		List<Serializable> relatedKeys = new ArrayList<Serializable>();
 		Serializable id = 42;
 		Serializable entityPk = 100;
-		staleKeys.add(id);
+		relatedKeys.add(id);
+		final String COL_NAME = "id";
+		Object entity = new Object();
+		doReturn(Object.class).when(mockManyToManyRelationship).getFirstType();
+		when(mockPersistencePolicy.getModelTableName(mockManyToManyRelationship.getFirstType())).thenReturn(MODEL_TABLE_1);
+		when(mockPersistencePolicy.getModelTableName(mockManyToManyRelationship.getSecondType())).thenReturn(MODEL_TABLE_2);
+		when(mockPersistencePolicy.getFieldColumnName(mockManyToManyRelationship.getFirstField())).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getFieldColumnName(mockManyToManyRelationship.getSecondField())).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getPrimaryKey(entity)).thenReturn(entityPk);
+		when(mockSqliteMapper.getSqliteDataType(id)).thenReturn(SqliteDataType.INTEGER);
+		
+		// Run
+		String expected = "DELETE FROM " + MTM_TABLE + " WHERE " + MODEL_TABLE_1 + "_" + COL_NAME + " = '100' AND " + MODEL_TABLE_2 + "_id NOT IN (" + id + ")";
+		String actual = sqliteBuilder.createDeleteStaleRelationshipQuery(mockManyToManyRelationship, entity, relatedKeys);
+		
+		// Verify
+		verify(mockManyToManyRelationship).getTableName();
+		verify(mockManyToManyRelationship, times(4)).getFirstType();
+		verify(mockManyToManyRelationship, times(2)).getSecondType();
+		verify(mockManyToManyRelationship, times(3)).getFirstField();
+		verify(mockManyToManyRelationship, times(2)).getSecondField();
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockPersistencePolicy).getModelTableName(mockManyToManyRelationship.getFirstType());
+		verify(mockPersistencePolicy).getModelTableName(mockManyToManyRelationship.getSecondType());
+		verify(mockPersistencePolicy, times(2)).getFieldColumnName(mockManyToManyRelationship.getFirstField());
+		verify(mockSqliteMapper).getSqliteDataType(any(Field.class));
+		verify(mockSqliteMapper).getSqliteDataType(any(Serializable.class));
+		assertEquals("Returned SQL query should match expected value", expected, actual);
+	}
+	
+	@Test
+	public void testCreateDeleteStaleRelationshipQuery_secondType_singleRelated() {
+		// Setup
+		List<Serializable> relatedKeys = new ArrayList<Serializable>();
+		Serializable id = 42;
+		Serializable entityPk = 100;
+		relatedKeys.add(id);
 		final String COL_NAME = "id";
 		Object entity = new Object();
 		when(mockPersistencePolicy.getModelTableName(mockManyToManyRelationship.getFirstType())).thenReturn(MODEL_TABLE_1);
@@ -478,12 +516,283 @@ public class SqliteBuilderTest {
 		when(mockSqliteMapper.getSqliteDataType(id)).thenReturn(SqliteDataType.INTEGER);
 		
 		// Run
-		String expected = "DELETE FROM " + MTM_TABLE + " WHERE " + MODEL_TABLE_2 + "_" + COL_NAME + " = '100' AND " + MODEL_TABLE_1 + "_id NOT IN (" + 42 + ")";
-		String actual = sqliteBuilder.createDeleteStaleRelationshipQuery(mockManyToManyRelationship, entity, staleKeys);
+		String expected = "DELETE FROM " + MTM_TABLE + " WHERE " + MODEL_TABLE_2 + "_" + COL_NAME + " = '100' AND " + MODEL_TABLE_1 + "_id NOT IN (" + id + ")";
+		String actual = sqliteBuilder.createDeleteStaleRelationshipQuery(mockManyToManyRelationship, entity, relatedKeys);
 		
 		// Verify
+		verify(mockManyToManyRelationship).getTableName();
+		verify(mockManyToManyRelationship, times(4)).getFirstType();
+		verify(mockManyToManyRelationship, times(2)).getSecondType();
+		verify(mockManyToManyRelationship, times(2)).getFirstField();
+		verify(mockManyToManyRelationship, times(3)).getSecondField();
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockPersistencePolicy).getModelTableName(mockManyToManyRelationship.getFirstType());
+		verify(mockPersistencePolicy).getModelTableName(mockManyToManyRelationship.getSecondType());
+		verify(mockPersistencePolicy, times(2)).getFieldColumnName(mockManyToManyRelationship.getFirstField());
+		verify(mockSqliteMapper).getSqliteDataType(any(Field.class));
+		verify(mockSqliteMapper).getSqliteDataType(any(Serializable.class));
 		assertEquals("Returned SQL query should match expected value", expected, actual);
-		// TODO finish verifying
+	}
+	
+	@Test
+	public void testCreateDeleteStaleRelationshipQuery_multipleRelated() {
+		// Setup
+		List<Serializable> relatedKeys = new ArrayList<Serializable>();
+		Serializable id1 = 42;
+		Serializable id2 = 11;
+		Serializable id3 = 38;
+		Serializable entityPk = 100;
+		relatedKeys.add(id1);
+		relatedKeys.add(id2);
+		relatedKeys.add(id3);
+		final String COL_NAME = "id";
+		Object entity = new Object();
+		doReturn(Object.class).when(mockManyToManyRelationship).getFirstType();
+		when(mockPersistencePolicy.getModelTableName(mockManyToManyRelationship.getFirstType())).thenReturn(MODEL_TABLE_1);
+		when(mockPersistencePolicy.getModelTableName(mockManyToManyRelationship.getSecondType())).thenReturn(MODEL_TABLE_2);
+		when(mockPersistencePolicy.getFieldColumnName(mockManyToManyRelationship.getFirstField())).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getFieldColumnName(mockManyToManyRelationship.getSecondField())).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getPrimaryKey(entity)).thenReturn(entityPk);
+		when(mockSqliteMapper.getSqliteDataType(id1)).thenReturn(SqliteDataType.INTEGER);
+		when(mockSqliteMapper.getSqliteDataType(id2)).thenReturn(SqliteDataType.INTEGER);
+		when(mockSqliteMapper.getSqliteDataType(id3)).thenReturn(SqliteDataType.INTEGER);
+		
+		// Run
+		String expected = "DELETE FROM " + MTM_TABLE + " WHERE " + MODEL_TABLE_1 + "_" + COL_NAME + " = '100' AND " + MODEL_TABLE_2 + "_id NOT IN (" + id1 + ", " + id2 + ", " + id3 + ")";
+		String actual = sqliteBuilder.createDeleteStaleRelationshipQuery(mockManyToManyRelationship, entity, relatedKeys);
+		
+		// Verify
+		verify(mockManyToManyRelationship).getTableName();
+		verify(mockManyToManyRelationship, times(4)).getFirstType();
+		verify(mockManyToManyRelationship, times(2)).getSecondType();
+		verify(mockManyToManyRelationship, times(3)).getFirstField();
+		verify(mockManyToManyRelationship, times(2)).getSecondField();
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockPersistencePolicy).getModelTableName(mockManyToManyRelationship.getFirstType());
+		verify(mockPersistencePolicy).getModelTableName(mockManyToManyRelationship.getSecondType());
+		verify(mockPersistencePolicy, times(2)).getFieldColumnName(mockManyToManyRelationship.getFirstField());
+		verify(mockSqliteMapper).getSqliteDataType(any(Field.class));
+		verify(mockSqliteMapper, times(3)).getSqliteDataType(any(Serializable.class));
+		assertEquals("Returned SQL query should match expected value", expected, actual);
+	}
+	
+	@Test
+	public void testCreateUpdateForeignKeyQuery_singleRelated() {
+		// Setup
+		List<Serializable> relatedKeys = new ArrayList<Serializable>();
+		Serializable id = 42;
+		Serializable entityPk = 100;
+		relatedKeys.add(id);
+		final String COL_NAME = "id";
+		final String PK_NAME = "pk";
+		Object entity = new Object();
+		OneToManyRelationship mockOneToManyRelationship = mock(OneToManyRelationship.class);
+		doReturn(Integer.class).when(mockOneToManyRelationship).getManyType();
+		when(mockOneToManyRelationship.getColumn()).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getModelTableName(Integer.class)).thenReturn(MODEL_TABLE_1);
+		Field field = ArrayList.class.getDeclaredFields()[0];
+		when(mockPersistencePolicy.getPrimaryKeyField(Object.class)).thenReturn(field);
+		when(mockPersistencePolicy.getPrimaryKeyField(Integer.class)).thenReturn(field);
+		when(mockPersistencePolicy.getFieldColumnName(field)).thenReturn(PK_NAME);
+		when(mockPersistencePolicy.getPrimaryKey(entity)).thenReturn(entityPk);
+		when(mockSqliteMapper.getSqliteDataType(field)).thenReturn(SqliteDataType.INTEGER);
+		when(mockSqliteMapper.getSqliteDataType(id)).thenReturn(SqliteDataType.INTEGER);
+		
+		// Run
+		String expected = "UPDATE " + MODEL_TABLE_1 + " SET " + COL_NAME + " = " + entityPk + " WHERE " + PK_NAME + " IN (" + id + ")";
+		String actual = sqliteBuilder.createUpdateForeignKeyQuery(mockOneToManyRelationship, entity, relatedKeys);
+		
+		// Verify
+		verify(mockOneToManyRelationship, times(2)).getManyType();
+		verify(mockOneToManyRelationship).getColumn();
+		verify(mockPersistencePolicy).getModelTableName(mockOneToManyRelationship.getManyType());
+		verify(mockPersistencePolicy).getPrimaryKeyField(Object.class);
+		verify(mockPersistencePolicy).getPrimaryKeyField(Integer.class);
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockPersistencePolicy).getFieldColumnName(field);
+		verify(mockSqliteMapper).getSqliteDataType(field);
+		verify(mockSqliteMapper).getSqliteDataType(id);
+		assertEquals("Returned SQL query should match expected value", expected, actual);
+	}
+	
+	@Test
+	public void testCreateUpdateForeignKeyQuery_multipleRelated() {
+		// Setup
+		List<Serializable> relatedKeys = new ArrayList<Serializable>();
+		Serializable id1 = 42;
+		Serializable id2 = 38;
+		Serializable id3 = 71;
+		Serializable entityPk = 100;
+		relatedKeys.add(id1);
+		relatedKeys.add(id2);
+		relatedKeys.add(id3);
+		final String COL_NAME = "id";
+		final String PK_NAME = "pk";
+		Object entity = new Object();
+		OneToManyRelationship mockOneToManyRelationship = mock(OneToManyRelationship.class);
+		doReturn(Integer.class).when(mockOneToManyRelationship).getManyType();
+		when(mockOneToManyRelationship.getColumn()).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getModelTableName(Integer.class)).thenReturn(MODEL_TABLE_1);
+		Field field = ArrayList.class.getDeclaredFields()[0];
+		when(mockPersistencePolicy.getPrimaryKeyField(Object.class)).thenReturn(field);
+		when(mockPersistencePolicy.getPrimaryKeyField(Integer.class)).thenReturn(field);
+		when(mockPersistencePolicy.getFieldColumnName(field)).thenReturn(PK_NAME);
+		when(mockPersistencePolicy.getPrimaryKey(entity)).thenReturn(entityPk);
+		when(mockSqliteMapper.getSqliteDataType(field)).thenReturn(SqliteDataType.INTEGER);
+		when(mockSqliteMapper.getSqliteDataType(id1)).thenReturn(SqliteDataType.INTEGER);
+		when(mockSqliteMapper.getSqliteDataType(id2)).thenReturn(SqliteDataType.INTEGER);
+		when(mockSqliteMapper.getSqliteDataType(id3)).thenReturn(SqliteDataType.INTEGER);
+		
+		// Run
+		String expected = "UPDATE " + MODEL_TABLE_1 + " SET " + COL_NAME + " = " + entityPk + " WHERE " + PK_NAME + " IN (" + id1 + ", " + id2 + ", " + id3 + ")";
+		String actual = sqliteBuilder.createUpdateForeignKeyQuery(mockOneToManyRelationship, entity, relatedKeys);
+		
+		// Verify
+		verify(mockOneToManyRelationship, times(2)).getManyType();
+		verify(mockOneToManyRelationship).getColumn();
+		verify(mockPersistencePolicy).getModelTableName(mockOneToManyRelationship.getManyType());
+		verify(mockPersistencePolicy).getPrimaryKeyField(Object.class);
+		verify(mockPersistencePolicy).getPrimaryKeyField(Integer.class);
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockPersistencePolicy).getFieldColumnName(field);
+		verify(mockSqliteMapper).getSqliteDataType(field);
+		verify(mockSqliteMapper).getSqliteDataType(id1);
+		assertEquals("Returned SQL query should match expected value", expected, actual);
+	}
+	
+	@Test
+	public void testCreateUpdateOneToOneForeignKeyQuery() {
+		// Setup
+		Integer related = 42;
+		Serializable entityPk = 30;
+		Serializable relatedPk = 100;
+		final String COL_NAME = "id";
+		final String FK_COL = "fk";
+		Object entity = new Object();
+		OneToOneRelationship mockOneToOneRelationship = mock(OneToOneRelationship.class);
+		when(mockOneToOneRelationship.getColumn()).thenReturn(FK_COL);
+		when(mockPersistencePolicy.getModelTableName(Object.class)).thenReturn(MODEL_TABLE_1);
+		Field field1 = ArrayList.class.getDeclaredFields()[0];
+		Field field2 = ArrayList.class.getDeclaredFields()[1];
+		when(mockPersistencePolicy.getPrimaryKeyField(Integer.class)).thenReturn(field1);
+		when(mockPersistencePolicy.getPrimaryKey(related)).thenReturn(relatedPk);
+		when(mockPersistencePolicy.getPrimaryKeyField(Object.class)).thenReturn(field2);
+		when(mockPersistencePolicy.getFieldColumnName(field2)).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getPrimaryKey(entity)).thenReturn(entityPk);
+		when(mockSqliteMapper.getSqliteDataType(any(Field.class))).thenReturn(SqliteDataType.INTEGER);
+		
+		// Run
+		String expected = "UPDATE " + MODEL_TABLE_1 + " SET " + FK_COL + " = " + relatedPk + " WHERE " + COL_NAME + " = " + entityPk;
+		String actual = sqliteBuilder.createUpdateOneToOneForeignKeyQuery(mockOneToOneRelationship, entity, related);
+		
+		// Verify
+		verify(mockOneToOneRelationship).getColumn();
+		verify(mockPersistencePolicy).getModelTableName(Object.class);
+		verify(mockPersistencePolicy).getPrimaryKeyField(related.getClass());
+		verify(mockPersistencePolicy).getPrimaryKeyField(entity.getClass());
+		verify(mockPersistencePolicy).getPrimaryKey(related);
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockPersistencePolicy).getFieldColumnName(field2);
+		verify(mockSqliteMapper).getSqliteDataType(field1);
+		verify(mockSqliteMapper).getSqliteDataType(field2);
+		assertEquals("Returned SQL query should match expected value", expected, actual);
+	}
+	
+	@Test
+	public void testCreateManyToManyDeleteQuery_firstType() {
+		// Setup
+		Object entity = new Object();
+		doReturn(Object.class).when(mockManyToManyRelationship).getFirstType();
+		when(mockPersistencePolicy.getModelTableName(Object.class)).thenReturn(MODEL_TABLE_1);
+		Field field = ArrayList.class.getDeclaredFields()[0];
+		final String COL_NAME = "col";
+		Serializable pk = 42;
+		when(mockManyToManyRelationship.getFirstField()).thenReturn(field);
+		when(mockPersistencePolicy.getFieldColumnName(field)).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getPrimaryKeyField(entity.getClass())).thenReturn(field);
+		when(mockPersistencePolicy.getPrimaryKey(entity)).thenReturn(pk);
+		when(mockSqliteMapper.getSqliteDataType(field)).thenReturn(SqliteDataType.INTEGER);
+		
+		// Run
+		String expected = "DELETE FROM " + MTM_TABLE + " WHERE " + MODEL_TABLE_1 + "_" + COL_NAME + " = " + pk;
+		String actual = sqliteBuilder.createManyToManyDeleteQuery(entity, mockManyToManyRelationship);
+		
+		// Verify
+		verify(mockManyToManyRelationship).getTableName();
+		verify(mockManyToManyRelationship, times(2)).getFirstType();
+		verify(mockManyToManyRelationship).getFirstField();
+		verify(mockPersistencePolicy).getModelTableName(Object.class);
+		verify(mockPersistencePolicy).getFieldColumnName(field);
+		verify(mockPersistencePolicy).getPrimaryKeyField(entity.getClass());
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockSqliteMapper).getSqliteDataType(field);
+		assertEquals("Returned SQL query should match expected value", expected, actual);
+	}
+	
+	@Test
+	public void testCreateManyToManyDeleteQuery_secondType() {
+		// Setup
+		Object entity = new Object();
+		doReturn(Integer.class).when(mockManyToManyRelationship).getFirstType();
+		doReturn(Object.class).when(mockManyToManyRelationship).getSecondType();
+		when(mockPersistencePolicy.getModelTableName(Object.class)).thenReturn(MODEL_TABLE_1);
+		Field field = ArrayList.class.getDeclaredFields()[0];
+		final String COL_NAME = "col";
+		Serializable pk = 42;
+		when(mockManyToManyRelationship.getFirstField()).thenReturn(field);
+		when(mockPersistencePolicy.getFieldColumnName(field)).thenReturn(COL_NAME);
+		when(mockPersistencePolicy.getPrimaryKeyField(entity.getClass())).thenReturn(field);
+		when(mockPersistencePolicy.getPrimaryKey(entity)).thenReturn(pk);
+		when(mockSqliteMapper.getSqliteDataType(field)).thenReturn(SqliteDataType.INTEGER);
+		
+		// Run
+		String expected = "DELETE FROM " + MTM_TABLE + " WHERE " + MODEL_TABLE_1 + "_" + COL_NAME + " = " + pk;
+		String actual = sqliteBuilder.createManyToManyDeleteQuery(entity, mockManyToManyRelationship);
+		
+		// Verify
+		verify(mockManyToManyRelationship).getTableName();
+		verify(mockManyToManyRelationship).getFirstType();
+		verify(mockManyToManyRelationship).getSecondType();
+		verify(mockManyToManyRelationship).getSecondField();
+		verify(mockPersistencePolicy).getModelTableName(Object.class);
+		verify(mockPersistencePolicy).getFieldColumnName(field);
+		verify(mockPersistencePolicy).getPrimaryKeyField(entity.getClass());
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockSqliteMapper).getSqliteDataType(field);
+		assertEquals("Returned SQL query should match expected value", expected, actual);
+	}
+	
+	@Test
+	public void testCreateUpdateQuery() {
+		// Setup
+		Object entity = new Object();
+		Object related = new Object();
+		Serializable pk = 42;
+		Serializable fk = 103;
+		final String PK_NAME = "pk";
+		final String COL_NAME = "col";
+		when(mockPersistencePolicy.getPrimaryKey(related)).thenReturn(fk);
+		when(mockPersistencePolicy.getPrimaryKey(entity)).thenReturn(pk);
+		when(mockPersistencePolicy.getModelTableName(entity.getClass())).thenReturn(MODEL_TABLE_1);
+		Field field = ArrayList.class.getDeclaredFields()[0];
+		when(mockPersistencePolicy.getPrimaryKeyField(related.getClass())).thenReturn(field);
+		when(mockPersistencePolicy.getPrimaryKeyField(entity.getClass())).thenReturn(field);
+		when(mockPersistencePolicy.getFieldColumnName(field)).thenReturn(PK_NAME);
+		when(mockSqliteMapper.getSqliteDataType(field)).thenReturn(SqliteDataType.INTEGER);
+		
+		// Run
+		String expected = "UPDATE " + MODEL_TABLE_1 + " SET " + COL_NAME + " = " + fk + " WHERE " + PK_NAME + " = " + pk;
+		String actual = sqliteBuilder.createUpdateQuery(entity, related, COL_NAME);
+		
+		// Verify
+		verify(mockPersistencePolicy).getPrimaryKey(related);
+		verify(mockPersistencePolicy).getPrimaryKey(entity);
+		verify(mockPersistencePolicy).getModelTableName(entity.getClass());
+		verify(mockPersistencePolicy, times(3)).getPrimaryKeyField(related.getClass());
+		verify(mockPersistencePolicy, times(3)).getPrimaryKeyField(entity.getClass());
+		verify(mockPersistencePolicy).getFieldColumnName(field);
+		verify(mockSqliteMapper, times(2)).getSqliteDataType(field);
+		assertEquals("Returned SQL query should match expected value", expected, actual);
 	}
 
 }
