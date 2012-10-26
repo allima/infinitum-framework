@@ -1,6 +1,7 @@
 package com.clarionmedia.infinitum.orm.sqlite.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -125,11 +126,10 @@ public class SqliteBuilderTest {
 		doReturn(null).when(mockPackageReflector).getClass(any(String.class));
 		
 		// Run
-		int result = sqliteBuilder.createTables(mockDbHelper);
+		sqliteBuilder.createTables(mockDbHelper);
 		
 		// Verify
-		verify(mockSqliteDb, times(0)).execSQL(any(String.class));
-		assertEquals("Returned value should be 0", 0, result);
+		assertTrue("Exception should have been thrown", false);
 	}
 	
 	@Test
@@ -164,11 +164,10 @@ public class SqliteBuilderTest {
 		doReturn(null).when(mockPackageReflector).getClass(any(String.class));
 		
 		// Run
-		int result = sqliteBuilder.dropTables(mockDbHelper);
+		sqliteBuilder.dropTables(mockDbHelper);
 		
 		// Verify
-		verify(mockSqliteDb, times(0)).execSQL(any(String.class));
-		assertEquals("Returned value should be 0", 0, result);
+		assertTrue("Exception should have been thrown", false);
 	}
 	
 	@Test
@@ -461,6 +460,9 @@ public class SqliteBuilderTest {
 		
 		// Run
 		sqliteBuilder.createManyToManyJoinQuery(mockRelationship, id, Integer.class);
+		
+		// Verify
+		assertTrue("Exception should have been thrown", false);
 	}
 	
 	@Test

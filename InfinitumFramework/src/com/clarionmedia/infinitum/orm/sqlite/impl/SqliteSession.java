@@ -372,14 +372,4 @@ public class SqliteSession implements Session {
 		return mSqlite.getSqliteMapper();
 	}
 
-	/**
-	 * Returns the {@link InfinitumContext} associated with this
-	 * {@code SqliteSession}.
-	 * 
-	 * @return {@code InfinitumContext}
-	 */
-	public InfinitumContext getInfinitumContext() {
-		return mInfinitumContext;
-	}
-
 }

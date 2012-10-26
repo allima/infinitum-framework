@@ -75,11 +75,9 @@ public class SqliteSessionTest {
 	@Mock
 	private PersistencePolicy mockPersistencePolicy;
 	
-	@SuppressWarnings("unused")
 	@Mock
 	private Logger mockLogger;
 	
-	@SuppressWarnings("unused")
 	@Mock
 	private Context mockContext;
 	
@@ -95,11 +93,9 @@ public class SqliteSessionTest {
 	@Mock
 	private SqliteMapper mockSqliteMapper;
 	
-	@SuppressWarnings("unused")
 	@Mock
 	private SQLiteDatabase mockSqliteDatabase;
 	
-	@SuppressWarnings("deprecation")
 	@InjectMocks
 	private SqliteSession sqliteSession = new SqliteSession();
 	
