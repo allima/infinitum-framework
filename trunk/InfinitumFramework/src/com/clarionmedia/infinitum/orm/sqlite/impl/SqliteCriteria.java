@@ -28,7 +28,6 @@ import android.database.Cursor;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.internal.Preconditions;
-import com.clarionmedia.infinitum.internal.PropertyLoader;
 import com.clarionmedia.infinitum.orm.criteria.Criteria;
 import com.clarionmedia.infinitum.orm.criteria.criterion.Criterion;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
@@ -52,7 +51,6 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	private int mOffset;
 	private SqlBuilder mSqlBuilder;
 	private PersistencePolicy mPersistencePolicy;
-	private PropertyLoader mPropLoader;
 
 	/**
 	 * Constructs a new {@code SqliteCriteria}.
@@ -71,14 +69,13 @@ public class SqliteCriteria<T> implements Criteria<T> {
 	 */
 	public SqliteCriteria(InfinitumContext context, Class<T> entityClass, SqliteSession session, SqliteModelFactory modelFactory, SqlBuilder sqlBuilder, SqliteMapper mapper)
 			throws InfinitumRuntimeException {
-		Preconditions.checkPersistenceForLoading(entityClass, session.getInfinitumContext().getPersistencePolicy());
+		Preconditions.checkPersistenceForLoading(entityClass, context.getPersistencePolicy());
 		mSession = session;
 		mEntityClass = entityClass;
 		mModelFactory = modelFactory;
 		mCriterion = new ArrayList<Criterion>();
 		mSqlBuilder = sqlBuilder;
 		mPersistencePolicy = context.getPersistencePolicy();
-		mPropLoader = new PropertyLoader(context.getAndroidContext());
 	}
 
 	@Override
@@ -139,30 +136,31 @@ public class SqliteCriteria<T> implements Criteria<T> {
 				// Cache results
 				mSession.cache(mPersistencePolicy.computeModelHash(entity), entity);
 			}
+			return ret;
 		} finally {
 			result.close();
 		}
-		return ret;
 	}
 
 	@Override
 	public T unique() throws InfinitumRuntimeException {
 		Cursor result = mSession.executeForResult(toSql(), true);
-		if (result.getCount() > 1)
-			throw new InfinitumRuntimeException(String.format(mPropLoader.getErrorMessage("NON_UNIQUE_RESULT"),
+		if (result.getCount() > 1) {
+			throw new InfinitumRuntimeException(String.format("Criteria query for '%s' specified unique result but there were %d results.",
 					mEntityClass.getName(), result.getCount()));
-		else if (result.getCount() == 0)
+		} else if (result.getCount() == 0) {
+			result.close();
 			return null;
+		}
 		result.moveToFirst();
-		T ret = null;
 		try {
-			ret = mModelFactory.createFromCursor(result, mEntityClass);
+			T ret = mModelFactory.createFromCursor(result, mEntityClass);
 			// Cache result
 			mSession.cache(mPersistencePolicy.computeModelHash(ret), ret);
+			return ret;
 		} finally {
 			result.close();
 		}
-		return ret;
 	}
 
 	@Override

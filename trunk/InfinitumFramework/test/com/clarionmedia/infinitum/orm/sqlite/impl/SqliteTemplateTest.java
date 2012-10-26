@@ -68,13 +68,9 @@ public class SqliteTemplateTest {
 	
 	private static final int FOO_MODEL_HASH = 42;
 	private static final int BAR_MODEL_HASH = 38;
-	private static final int BAZ_MODEL_HASH = 176;
 	private static final long FOO_MODEL_ID = 120;
-	private static final long BAR_MODEL_ID = 183;
-	private static final long BAZ_MODEL_ID = 211;
 	private static final String FOO_MODEL_TABLE = "foo";
 	private static final String BAR_MODEL_TABLE = "bar";
-	private static final String WHERE_CLAUSE = "where clause";
 	
 	@Mock
 	private InfinitumContext mockInfinitumContext;
@@ -187,7 +183,6 @@ public class SqliteTemplateTest {
 	@Test
 	public void testCreateCriteria() {
 		// Setup
-		when(mockSqliteSession.getInfinitumContext()).thenReturn(mockInfinitumContext);
 		when(mockInfinitumContext.getPersistencePolicy()).thenReturn(mockPersistencePolicy);
 		when(mockPersistencePolicy.isPersistent(FooModel.class)).thenReturn(true);
 		
@@ -449,14 +444,13 @@ public class SqliteTemplateTest {
 	}
 	
 	private static class FooModel {
+		@SuppressWarnings("unused")
 		public long id;
 	}
 	
 	private static class BarModel {
+		@SuppressWarnings("unused")
 		public long id;
-	}
-	
-    private static class BazModel {
 	}
 
 }
