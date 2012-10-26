@@ -1,0 +1,23 @@
+#summary What's to come for Infinitum.
+#labels Featured
+
+= In Progress =
+
+*Unit Testing:* The project began through rapid prototyping, so we're now focusing on establishing a comprehensive test suite to cover all components, old and new. We're utilizing JUnit, [http://pivotal.github.com/robolectric/ Robolectric], and [http://code.google.com/p/mockito/ Mockito] to write unit tests for Android code that can be run on a JVM.
+
+*System Testing:* There's a lot of features in Infinitum, so it's a lot of work to make sure everything is working as it should!
+
+*Technical Debt:* There are some tech debt items that have presented themselves in the project, so we're doing our best to improve code quality as much as possible. 
+
+*Performance Optimization:* Performance is critical, which is why we're making it a priority to revisit code and squeeze out every bit we can. 
+
+*Modular Distribution:* Although we're doing our best to minimize the footprint of the overall framework, we're also working towards a modular distribution that will allow developers to pick and choose, à la carte, the framework modules they want to include in their applications, e.g. ORM, DI, AOP, and HTTP modules. If all you need is a REST client, why include all that other stuff?
+
+
+= What's Planned =
+
+*Cache Abstraction:* Transparent caching for methods through annotations.
+
+= Something Missing? =
+
+Is there something you would like to see added? Email ttreat31@gmail.com with feedback and suggestions or get involved yourself!
