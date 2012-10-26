@@ -255,7 +255,8 @@ public class SqliteBuilder implements SqlBuilder {
 
 	@Override
 	public String createDeleteStaleRelationshipQuery(
-			ManyToManyRelationship rel, Object model, List<Serializable> relatedKeys) {
+			ManyToManyRelationship rel, Object model,
+			List<Serializable> relatedKeys) {
 		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
 		StringBuilder ret = new StringBuilder(SqlConstants.DELETE_FROM)
 				.append(rel.getTableName()).append(' ')
@@ -310,8 +311,8 @@ public class SqliteBuilder implements SqlBuilder {
 	}
 
 	@Override
-	public String createUpdateForeignKeyQuery(
-			OneToManyRelationship rel, Object model, List<Serializable> relatedKeys) {
+	public String createUpdateForeignKeyQuery(OneToManyRelationship rel,
+			Object model, List<Serializable> relatedKeys) {
 		StringBuilder ret = new StringBuilder(SqlConstants.UPDATE)
 				.append(' ')
 				.append(mPersistencePolicy.getModelTableName(rel.getManyType()))
@@ -329,8 +330,8 @@ public class SqliteBuilder implements SqlBuilder {
 		}
 		ret.append(' ').append(SqlConstants.WHERE).append(' ');
 		pkField = mPersistencePolicy.getPrimaryKeyField(rel.getManyType());
-		ret.append(mPersistencePolicy.getFieldColumnName(pkField))
-				.append(' ').append(SqlConstants.IN).append(" (");
+		ret.append(mPersistencePolicy.getFieldColumnName(pkField)).append(' ')
+				.append(SqlConstants.IN).append(" (");
 		String prefix = "";
 		for (Serializable key : relatedKeys) {
 			ret.append(prefix);
