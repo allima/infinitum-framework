@@ -215,8 +215,7 @@ public abstract class AbstractBeanDefinition {
 	 * @param setterInjections
 	 *            the setter injection {@code Map} to set
 	 */
-	public void setSetterInjections(
-			Map<Method, AbstractBeanDefinition> setterInjections) {
+	public void setSetterInjections(Map<Method, AbstractBeanDefinition> setterInjections) {
 		mSetterInjections = setterInjections;
 	}
 
@@ -245,13 +244,10 @@ public abstract class AbstractBeanDefinition {
 		Class<?>[] paramTypes = autowiredCtor.getParameterTypes();
 		Object[] args = new Object[paramTypes.length];
 		for (int i = 0; i < paramTypes.length; i++) {
-			Object arg = BeanUtils.findCandidateBean(mBeanFactory,
-					paramTypes[i]);
+			Object arg = BeanUtils.findCandidateBean(mBeanFactory, paramTypes[i]);
 			if (arg == null)
-				throw new InfinitumConfigurationException(
-						"Could not autowire constructor argument of type '"
-								+ paramTypes[i].getName() + "' in bean '"
-								+ mName + "' (no autowire candidates found)");
+				throw new InfinitumConfigurationException("Could not autowire constructor argument of type '" + paramTypes[i].getName()
+						+ "' in bean '" + mName + "' (no autowire candidates found)");
 			args[i] = arg;
 		}
 		return mClassReflector.getClassInstance(autowiredCtor, args);
@@ -265,15 +261,11 @@ public abstract class AbstractBeanDefinition {
 	 *            the bean to inject
 	 */
 	protected void inject(Object bean) {
-		for (Entry<Field, AbstractBeanDefinition> injection : mFieldInjections
-				.entrySet()) {
-			mClassReflector.setFieldValue(bean, injection.getKey(), injection
-					.getValue().getBeanInstance());
+		for (Entry<Field, AbstractBeanDefinition> injection : mFieldInjections.entrySet()) {
+			mClassReflector.setFieldValue(bean, injection.getKey(), injection.getValue().getBeanInstance());
 		}
-		for (Entry<Method, AbstractBeanDefinition> injection : mSetterInjections
-				.entrySet()) {
-			mClassReflector.invokeMethod(bean, injection.getKey(), injection
-					.getValue().getBeanInstance());
+		for (Entry<Method, AbstractBeanDefinition> injection : mSetterInjections.entrySet()) {
+			mClassReflector.invokeMethod(bean, injection.getKey(), injection.getValue().getBeanInstance());
 		}
 	}
 
@@ -286,13 +278,10 @@ public abstract class AbstractBeanDefinition {
 	 *            the bean to invoke the {@code PostConstruct} method for
 	 */
 	protected void postConstruct(Object bean) {
-		List<Method> postConstructs = mClassReflector
-				.getAllMethodsAnnotatedWith(mType, PostConstruct.class);
+		List<Method> postConstructs = mClassReflector.getAllMethodsAnnotatedWith(mType, PostConstruct.class);
 		if (postConstructs.size() > 1)
-			throw new InfinitumConfigurationException(
-					"Only 1 method may be annotated with PostConstruct (found "
-							+ postConstructs.size() + " in '" + mType.getName()
-							+ "')");
+			throw new InfinitumConfigurationException("Only 1 method may be annotated with PostConstruct (found " + postConstructs.size()
+					+ " in '" + mType.getName() + "')");
 		if (postConstructs.size() == 1)
 			mClassReflector.invokeMethod(bean, postConstructs.get(0));
 	}
@@ -309,8 +298,7 @@ public abstract class AbstractBeanDefinition {
 			return;
 		for (Entry<String, Object> property : mProperties.entrySet()) {
 			// Find the field
-			Field field = mClassReflector.getField(bean.getClass(),
-					property.getKey());
+			Field field = mClassReflector.getField(bean.getClass(), property.getKey());
 			if (field == null)
 				continue;
 			Class<?> type = Primitives.unwrap(field.getType());
@@ -320,22 +308,26 @@ public abstract class AbstractBeanDefinition {
 				argStr = (String) val;
 			Object arg = null;
 			// Parse the string value into the proper type
-			if (type == boolean.class)
-				arg = Boolean.parseBoolean(argStr);
-			else if (type == int.class)
-				arg = Integer.parseInt(argStr);
-			else if (type == double.class)
-				arg = Double.parseDouble(argStr);
-			else if (type == float.class)
-				arg = Float.parseFloat(argStr);
-			else if (type == long.class)
-				arg = Long.parseLong(argStr);
-			else if (type == char.class)
-				arg = argStr.charAt(0);
-			else if (type == byte.class)
-				arg = Byte.parseByte(argStr);
-			else
+			if (argStr != null) {
+				if (type == boolean.class)
+					arg = Boolean.parseBoolean(argStr);
+				else if (type == int.class)
+					arg = Integer.parseInt(argStr);
+				else if (type == double.class)
+					arg = Double.parseDouble(argStr);
+				else if (type == float.class)
+					arg = Float.parseFloat(argStr);
+				else if (type == long.class)
+					arg = Long.parseLong(argStr);
+				else if (type == char.class)
+					arg = argStr.charAt(0);
+				else if (type == byte.class)
+					arg = Byte.parseByte(argStr);
+				else
+					arg = val;
+			} else {
 				arg = val;
+			}
 			// Populate the field's value
 			mClassReflector.setFieldValue(bean, field, arg);
 		}
@@ -351,9 +343,8 @@ public abstract class AbstractBeanDefinition {
 		for (Constructor<?> ctor : mClassReflector.getAllConstructors(mType)) {
 			if (ctor.isAnnotationPresent(Autowired.class)) {
 				if (autowiredCtor != null)
-					throw new InfinitumConfigurationException(
-							"Only 1 constructor may be autowired (found more than 1 in class '"
-									+ mType.getName() + "').");
+					throw new InfinitumConfigurationException("Only 1 constructor may be autowired (found more than 1 in class '"
+							+ mType.getName() + "').");
 				autowiredCtor = ctor;
 			}
 		}
