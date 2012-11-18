@@ -33,6 +33,7 @@ import android.database.SQLException;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.context.RestfulContext;
+import com.clarionmedia.infinitum.context.RestfulContext.MessageType;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -252,6 +253,10 @@ public abstract class RestfulSession implements Session {
 			headers.put(mAuthStrategy.getAuthenticationKey(),
 					mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
+		if (mRestContext.getMessageType() == MessageType.JSON)
+			headers.put("Content-Type", "application/json");
+		else if (mRestContext.getMessageType() == MessageType.XML)
+			headers.put("Content-Type", "application/xml");
 		RestResponse response = mRestClient.executePost(uri,
 				modelMap.toHttpEntity(), headers);
 		if (response == null)
@@ -299,6 +304,10 @@ public abstract class RestfulSession implements Session {
 			headers.put(mAuthStrategy.getAuthenticationKey(),
 					mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
+		if (mRestContext.getMessageType() == MessageType.JSON)
+			headers.put("Content-Type", "application/json");
+		else if (mRestContext.getMessageType() == MessageType.XML)
+			headers.put("Content-Type", "application/xml");
 		RestResponse response = mRestClient.executePut(uri,
 				modelMap.toHttpEntity(), headers);
 		switch (response.getStatusCode()) {
@@ -332,6 +341,10 @@ public abstract class RestfulSession implements Session {
 			headers.put(mAuthStrategy.getAuthenticationKey(),
 					mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
+		if (mRestContext.getMessageType() == MessageType.JSON)
+			headers.put("Content-Type", "application/json");
+		else if (mRestContext.getMessageType() == MessageType.XML)
+			headers.put("Content-Type", "application/xml");
 		RestResponse response = mRestClient.executePut(uri,
 				modelMap.toHttpEntity(), headers);
 		switch (response.getStatusCode()) {

@@ -320,7 +320,9 @@ public abstract class AbstractBeanDefinition {
 				argStr = (String) val;
 			Object arg = null;
 			// Parse the string value into the proper type
-			if (type == int.class)
+			if (type == boolean.class)
+				arg = Boolean.parseBoolean(argStr);
+			else if (type == int.class)
 				arg = Integer.parseInt(argStr);
 			else if (type == double.class)
 				arg = Double.parseDouble(argStr);
