@@ -150,8 +150,6 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPost.addHeader(header.getKey(), header.getValue());
 		}
-		httpPost.addHeader("content-type", httpEntity.getContentType()
-				.getValue());
 		httpPost.setEntity(httpEntity);
 		return executeRequest(new HashableHttpRequest(httpPost));
 	}
@@ -243,8 +241,6 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPut.addHeader(header.getKey(), header.getValue());
 		}
-		httpPut.addHeader("content-type", httpEntity.getContentType()
-				.getValue());
 		httpPut.setEntity(httpEntity);
 		return executeRequest(new HashableHttpRequest(httpPut));
 	}
