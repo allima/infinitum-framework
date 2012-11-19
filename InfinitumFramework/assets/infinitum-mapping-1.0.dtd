@@ -47,7 +47,6 @@
 
 <!ELEMENT many-to-many (#PCDATA)>
 <!ATTLIST many-to-many name CDATA #REQUIRED>
-<!ATTLIST many-to-many field CDATA #REQUIRED>
 <!ATTLIST many-to-many class CDATA #REQUIRED>
 <!ATTLIST many-to-many foreign-field CDATA #REQUIRED>
 <!ATTLIST many-to-many key-field CDATA #REQUIRED>

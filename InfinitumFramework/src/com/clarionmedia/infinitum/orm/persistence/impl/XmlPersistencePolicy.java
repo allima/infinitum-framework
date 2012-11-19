@@ -19,23 +19,24 @@
 
 package com.clarionmedia.infinitum.orm.persistence.impl;
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
+import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.Root;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
+import android.content.Context;
 import android.content.res.Resources;
-import android.content.res.Resources.NotFoundException;
-
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
@@ -46,9 +47,9 @@ import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 import com.clarionmedia.infinitum.orm.relationship.ManyToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ManyToOneRelationship;
 import com.clarionmedia.infinitum.orm.relationship.ModelRelationship;
-import com.clarionmedia.infinitum.orm.relationship.ModelRelationship.RelationType;
 import com.clarionmedia.infinitum.orm.relationship.OneToManyRelationship;
 import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
+import com.clarionmedia.infinitum.reflection.ClassReflector;
 
 /**
  * <p>
@@ -64,386 +65,101 @@ import com.clarionmedia.infinitum.orm.relationship.OneToOneRelationship;
  * @see AnnotationsPersistencePolicy
  */
 public class XmlPersistencePolicy extends PersistencePolicy {
-	
-	// TODO This code is disgusting and I am ashamed of it
-	// This should be re-implemented sometime...
-	// Maybe use Simple Framework for XML deserialization?
 
 	@Autowired
 	private InfinitumContext mContext;
 
-	// This Map caches the resource ID for each persistent class's map file
-	private Map<Class<?>, Integer> mResourceCache;
-
-	// This Map caches the table name for each persistent class
-	private Map<Class<?>, String> mTableCache;
-
-	// This Map caches the cascade value for each persistent class
-	private Map<Class<?>, Cascade> mCascadeCache;
-
-	// This Map caches the autoincrement value for each persistent class's
-	// primary key
-	private Map<Field, Boolean> mAutoincrementCache;
-
-	// This Map caches whether a Field is a relationship
-	private Map<Field, Boolean> mRelationshipCheckCache;
-
-	/**
-	 * Constructs a new {@code XmlPersistencePolicy}.
-	 */
 	@Autowired
+	private ClassReflector mClassReflector;
+
+	private Map<Class<?>, EntityMapping> mMappingCache;
+
 	public XmlPersistencePolicy() {
-		mResourceCache = new HashMap<Class<?>, Integer>();
-		mTableCache = new HashMap<Class<?>, String>();
-		mCascadeCache = new HashMap<Class<?>, Cascade>();
-		mAutoincrementCache = new HashMap<Field, Boolean>();
-		mRelationshipCheckCache = new HashMap<Field, Boolean>();
+		mMappingCache = new HashMap<Class<?>, EntityMapping>();
 	}
 
 	@Override
 	public boolean isPersistent(Class<?> c) {
-		XmlPullParser parser = loadXmlMapFile(c);
-		return parser != null;
+		return loadEntityMapping(c) != null;
 	}
 
 	@Override
-	public String getModelTableName(Class<?> c) {
-		if (mTableCache.containsKey(c))
-			return mTableCache.get(c);
-		String table;
-		if (!isPersistent(c))
+	public String getModelTableName(Class<?> c) throws IllegalArgumentException, InvalidMapFileException {
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_CLASS"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					table = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_TABLE"));
-					if (table == null) {
-						if (name.contains("."))
-							table = name.substring(name.lastIndexOf(".") + 1).toLowerCase();
-						else
-							table = name.toLowerCase();
-					}
-					mTableCache.put(c, table);
-					return table;
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class.");
+		EntityMapping mapping = loadEntityMapping(c);
+		String table = mapping.getTable();
+		return table == null ? c.getSimpleName().toLowerCase(Locale.getDefault()) : table;
 	}
 
 	@Override
 	public List<Field> getPersistentFields(Class<?> c) {
-		if (mPersistenceCache.containsKey(c))
-			return mPersistenceCache.get(c);
-		if (!isPersistent(c))
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		List<Field> ret = new ArrayList<Field>();
-		List<Field> fields = mClassReflector.getAllFields(c);
-		for (Field f : fields) {
-			if (Modifier.isStatic(f.getModifiers()) || mTypePolicy.isDomainProxy(f.getDeclaringClass()))
-				continue;
-			if (isFieldPrimaryKey(f)) {
-				ret.add(f);
-				continue;
-			}
-			XmlPullParser parser = loadXmlMapFile(c);
-			try {
-				int code = parser.getEventType();
-				while (code != XmlPullParser.END_DOCUMENT) {
-					if (code == XmlPullParser.START_TAG
-							&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
-						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-						if (name == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify property name.");
-						if (name.equals(f.getName()))
-							ret.add(f);
-					} else if (code == XmlPullParser.START_TAG
-							&& (parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTM"))
-									|| parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTM"))
-									|| parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTO")) || parser
-									.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO")))) {
-						String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
-						if (field == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation field.");
-						if (field.equals(f.getName()))
-							ret.add(f);
-					}
-					code = parser.next();
-				}
-			} catch (XmlPullParserException e) {
-				mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-			} catch (IOException e) {
-				mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-			}
+		EntityMapping mapping = loadEntityMapping(c);
+		List<Property> properties = mapping.getProperties();
+		List<Field> fields = new ArrayList<Field>();
+		fields.add(getPrimaryKeyField(c));
+		for (Property property : properties) {
+			fields.add(mClassReflector.getField(c, property.mName));
 		}
-		mPersistenceCache.put(c, ret);
-		return ret;
+		return fields;
 	}
 
 	@Override
 	public Field getPrimaryKeyField(Class<?> c) throws ModelConfigurationException {
-		if (mPrimaryKeyCache.containsKey(c))
-			return mPrimaryKeyCache.get(c);
-		if (!isPersistent(c))
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PRIMARY_KEY"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify primary key name.");
-					Field f = mClassReflector.getField(c, name);
-					if (f == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file specifies a primary key which does not exist.");
-					f.setAccessible(true);
-					mPrimaryKeyCache.put(c, f);
-					return f;
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		if (c.getSuperclass() != null) {
-			Field f = getPrimaryKeyField(c.getSuperclass());
-			mPrimaryKeyCache.put(c, f);
-			return f;
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify primary key.");
+		EntityMapping mapping = loadEntityMapping(c);
+		PrimaryKey pk = mapping.getPrimaryKey();
+		return mClassReflector.getField(c, pk.mName);
 	}
 
 	@Override
 	public String getFieldColumnName(Field f) {
-		if (mColumnCache.containsKey(f))
-			return mColumnCache.get(f);
-		Class<?> c = f.getDeclaringClass();
-		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (isFieldPrimaryKey(f)) {
-					if (code == XmlPullParser.START_TAG
-							&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PRIMARY_KEY"))) {
-						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-						if (name == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify property name.");
-						if (f.getName().equals(name)) {
-							String column = parser.getAttributeValue(null,
-									mPropLoader.getPersistenceValue("ATTR_COLUMN"));
-							if (column == null)
-								column = StringUtil.formatFieldName(name);
-							mColumnCache.put(f, column);
-							return column;
-						}
-					}
-				}
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify property name.");
-					if (f.getName().equals(name)) {
-						String column = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_COLUMN"));
-						if (column == null)
-							column = StringUtil.formatFieldName(name);
-						mColumnCache.put(f, column);
-						return column;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property '" + f.getName()
-				+ "'.");
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		Property property = getProperty(mapping, f);
+		return property.mColumn == null ? StringUtil.formatFieldName(f.getName()) : property.mColumn;
 	}
 
 	@Override
 	public boolean isFieldPrimaryKey(Field f) {
-		Class<?> c = f.getDeclaringClass();
-		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
 		return f.equals(getPrimaryKeyField(f.getDeclaringClass()));
 	}
 
 	@Override
 	public boolean isPrimaryKeyAutoIncrement(Field f) throws InfinitumRuntimeException {
-		if (mAutoincrementCache.containsKey(f))
-			return mAutoincrementCache.get(f);
-		Class<?> c = f.getDeclaringClass();
-		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PRIMARY_KEY"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify primary key name.");
-					if (!name.equals(f.getName()))
-						continue;
-					String type = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_TYPE"));
-					if (type == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify primary key type.");
-					String autoincrement = parser.getAttributeValue(null,
-							mPropLoader.getPersistenceValue("ATTR_AUTOINCREMENT"));
-					if (type.equalsIgnoreCase("int") || type.equalsIgnoreCase("integer")
-							|| type.equalsIgnoreCase("long")) {
-						if (autoincrement == null) {
-							mAutoincrementCache.put(f, true);
-							return true;
-						} else {
-							boolean isAutoIncr = Boolean.parseBoolean(autoincrement);
-							mAutoincrementCache.put(f, isAutoIncr);
-							return isAutoIncr;
-						}
-					} else {
-						mAutoincrementCache.put(f, false);
-						return false;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify primary key.");
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		PrimaryKey pk = mapping.getPrimaryKey();
+		if (pk == null)
+			throw new ModelConfigurationException("Primary key missing in map file for class '" + f.getDeclaringClass().getName() + "'.");
+		boolean autoincrement = pk.mAutoincrement;
+		boolean isInteger = pk.mType.equalsIgnoreCase("int") || pk.mType.equalsIgnoreCase("integer") || pk.mType.equalsIgnoreCase("long");
+		if (autoincrement && !isInteger)
+			throw new InfinitumRuntimeException(String.format("Explicit primary key '%s' is not of type int or long in '%s'.", f.getName(),
+					f.getDeclaringClass().getName()));
+		return autoincrement;
 	}
 
 	@Override
 	public boolean isFieldNullable(Field f) {
-		if (mFieldNullableCache.containsKey(f))
-			return mFieldNullableCache.get(f);
-		if (isFieldPrimaryKey(f)) {
-			mFieldNullableCache.put(f, false);
-			return false;
-		}
-		Class<?> c = f.getDeclaringClass();
-		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify property name.");
-					if (name.equals(f.getName())) {
-						String notNull = parser.getAttributeValue(null,
-								mPropLoader.getPersistenceValue("ATTR_NOT_NULL"));
-						if (notNull == null) {
-							mFieldNullableCache.put(f, true);
-							return true;
-						} else {
-							boolean nullable = Boolean.parseBoolean(notNull);
-							mFieldNullableCache.put(f, nullable);
-							return nullable;
-						}
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify the property '"
-				+ f.getName() + "'.");
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		Property property = getProperty(mapping, f);
+		return !property.mNotNull;
 	}
 
 	@Override
 	public boolean isFieldUnique(Field f) {
-		if (mFieldUniqueCache.containsKey(f))
-			return mFieldUniqueCache.get(f);
-		if (isFieldPrimaryKey(f)) {
-			mFieldUniqueCache.put(f, true);
-			return true;
-		}
-		Class<?> c = f.getDeclaringClass();
-		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify property name.");
-					if (name.equals(f.getName())) {
-						String unique = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_UNIQUE"));
-						if (unique == null) {
-							mFieldUniqueCache.put(f, false);
-							return false;
-						} else {
-							boolean isUnique = Boolean.parseBoolean(unique);
-							mFieldUniqueCache.put(f, isUnique);
-							return isUnique;
-						}
-					}
-				} else if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO"))) {
-					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
-					String owner = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_OWNER"));
-					if (field.equals(f.getName()) && owner.equals(f.getDeclaringClass().getName())) {
-						mFieldUniqueCache.put(f, true);
-						return true;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify the property '"
-				+ f.getName() + "'.");
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		Property property = getProperty(mapping, f);
+		return property.mUnique;
 	}
 
 	@Override
 	public Set<ManyToManyRelationship> getManyToManyRelationships(Class<?> c) {
-		if (!isPersistent(c))
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
+		EntityMapping mapping = loadEntityMapping(c);
 		Set<ManyToManyRelationship> ret = new HashSet<ManyToManyRelationship>();
 		for (ManyToManyRelationship r : mManyToManyCache.values()) {
 			if (r.contains(c))
@@ -451,11 +167,9 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 		}
 		if (ret.size() > 0)
 			return ret;
-		List<Field> fields = getPersistentFields(c);
+		List<Field> fields = getManyToManyFields(c, mapping);
 		for (Field f : fields) {
-			ManyToManyRelationship rel = getManyToManyRelationship(f);
-			if (rel == null)
-				continue;
+			ManyToManyRelationship rel = new ManyToManyRelationship(f);
 			mManyToManyCache.put(f, rel);
 			ret.add(rel);
 		}
@@ -464,146 +178,96 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public Cascade getCascadeMode(Class<?> c) {
-		if (mCascadeCache.containsKey(c))
-			return mCascadeCache.get(c);
-		if (!isPersistent(c))
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_CLASS"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					String cascade = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CASCADE"));
-					if (cascade == null) {
-						mCascadeCache.put(c, Cascade.ALL);
-						return Cascade.ALL;
-					} else {
-						Cascade mode;
-						if (cascade.equalsIgnoreCase("none"))
-							mode = Cascade.NONE;
-						else if (cascade.equalsIgnoreCase("keys"))
-							mode = Cascade.KEYS;
-						else
-							mode = Cascade.ALL;
-						mCascadeCache.put(c, mode);
-						return mode;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
+		EntityMapping mapping = loadEntityMapping(c);
+		return mapping.getCascade();
 	}
 
 	@Override
 	public boolean isRelationship(Field f) {
-		if (mRelationshipCheckCache.containsKey(f))
-			return mRelationshipCheckCache.get(f);
-		Class<?> c = f.getDeclaringClass();
-		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& (parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTM"))
-								|| parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTM"))
-								|| parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTO")) || parser
-								.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO")))) {
-					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
-					if (field == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify field name.");
-					if (f.getName().equals(field)) {
-						mRelationshipCheckCache.put(f, true);
-						return true;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		mRelationshipCheckCache.put(f, false);
-		return false;
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		Set<Field> fields = new HashSet<Field>();
+		fields.addAll(getManyToManyFields(f.getDeclaringClass(), mapping));
+		fields.addAll(getManyToOneFields(f.getDeclaringClass(), mapping));
+		fields.addAll(getOneToManyFields(f.getDeclaringClass(), mapping));
+		fields.addAll(getOneToOneFields(f.getDeclaringClass(), mapping));
+		return fields.contains(f);
 	}
 
 	@Override
 	public boolean isManyToManyRelationship(Field f) {
-		if (mManyToManyCache.containsKey(f))
-			return true;
-		ModelRelationship rel = getRelationship(f);
-		if (rel == null)
-			return false;
-		return rel.getRelationType() == RelationType.ManyToMany;
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		return getManyToManyFields(f.getDeclaringClass(), mapping).contains(f);
 	}
-	
+
 	@Override
 	public boolean isOneToOneRelationship(Field f) {
-		if (mOneToOneCache.containsKey(f))
-			return true;
-		ModelRelationship rel = getRelationship(f);
-		if (rel == null)
-			return false;
-		return rel.getRelationType() == RelationType.OneToOne;
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		return getOneToOneFields(f.getDeclaringClass(), mapping).contains(f);
+	}
+
+	public boolean isManyToOneRelationship(Field f) {
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		return getManyToOneFields(f.getDeclaringClass(), mapping).contains(f);
+	}
+
+	public boolean isOneToManyRelationship(Field f) {
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		return getOneToManyFields(f.getDeclaringClass(), mapping).contains(f);
 	}
 
 	@Override
 	public boolean isToOneRelationship(Field f) {
-		if (mManyToOneCache.containsKey(f) || mOneToOneCache.containsKey(f))
-			return true;
-		ModelRelationship rel = getRelationship(f);
-		if (rel == null)
-			return false;
-		return rel.getRelationType() == RelationType.ManyToOne || rel.getRelationType() == RelationType.OneToOne;
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		Set<Field> fields = new HashSet<Field>();
+		fields.addAll(getManyToOneFields(f.getDeclaringClass(), mapping));
+		fields.addAll(getOneToOneFields(f.getDeclaringClass(), mapping));
+		return fields.contains(f);
 	}
 
 	@Override
 	public ModelRelationship getRelationship(Field f) {
-		ModelRelationship ret = getManyToManyRelationship(f);
-		if (ret != null)
-			return ret;
-		ret = getManyToOneRelationship(f);
-		if (ret != null)
-			return ret;
-		ret = getOneToManyRelationship(f);
-		if (ret != null)
-			return ret;
-		return getOneToOneRelationship(f);
+		if (isManyToManyRelationship(f))
+			return new ManyToManyRelationship(f);
+		if (isOneToOneRelationship(f))
+			return new OneToOneRelationship(f);
+		if (isManyToOneRelationship(f))
+			return new ManyToOneRelationship(f);
+		if (isOneToManyRelationship(f))
+			return new OneToManyRelationship(f);
+		return null;
+
 	}
 
 	@Override
 	public Field findRelationshipField(Class<?> c, ModelRelationship rel) {
-		for (Field f : getPersistentFields(c)) {
-			f.setAccessible(true);
-			if (!isRelationship(f))
-				continue;
-			switch (rel.getRelationType()) {
-			case ManyToMany:
-				if (rel.equals(mManyToManyCache.get(f)))
-					return f;
-				break;
-			case ManyToOne:
-				if (rel.equals(mManyToOneCache.get(f)))
-					return f;
-				break;
-			case OneToMany:
-				if (rel.equals(mOneToManyCache.get(f)))
-					return f;
-				break;
-			case OneToOne:
-				if (rel.equals(mOneToOneCache.get(f)))
-					return f;
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
+			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
+		EntityMapping mapping = loadEntityMapping(c);
+		switch (rel.getRelationType()) {
+		case ManyToMany:
+			for (ManyToMany mtm : mapping.getManyToMany()) {
+				if (rel.getName().equalsIgnoreCase(mtm.mName))
+					return mClassReflector.getField(c, mtm.mKeyField);
+			}
+			break;
+		case ManyToOne:
+			for (ManyToOne mto : mapping.getManyToOne()) {
+				if (rel.getName().equalsIgnoreCase(mto.mName))
+					return mClassReflector.getField(c, mto.mField);
+			}
+			break;
+		case OneToMany:
+			for (OneToMany otm : mapping.getOneToMany()) {
+				if (rel.getName().equalsIgnoreCase(otm.mName))
+					return mClassReflector.getField(c, otm.mField);
+			}
+			break;
+		case OneToOne:
+			for (OneToOne oto : mapping.getOneToOne()) {
+				if (rel.getName().equalsIgnoreCase(oto.mName))
+					return mClassReflector.getField(c, oto.mField);
 			}
 		}
 		return null;
@@ -611,354 +275,300 @@ public class XmlPersistencePolicy extends PersistencePolicy {
 
 	@Override
 	public boolean isLazy(Class<?> c) {
-		if (mLazyLoadingCache.containsKey(c))
-			return mLazyLoadingCache.get(c);
-		if (!isPersistent(c))
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_CLASS"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					String lazy = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_LAZY"));
-					if (lazy == null) {
-						mLazyLoadingCache.put(c, true);
-						return true;
-					} else {
-						boolean isLazy = Boolean.parseBoolean(lazy);
-						mLazyLoadingCache.put(c, isLazy);
-						return isLazy;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
+		EntityMapping mapping = loadEntityMapping(c);
+		return mapping.isLazy();
 	}
 
 	@Override
 	public String getRestEndpoint(Class<?> c) throws IllegalArgumentException {
-		if (mRestEndpointCache.containsKey(c))
-			return mRestEndpointCache.get(c);
-		if (!isPersistent(c))
+		if (!isPersistent(c) || !mTypePolicy.isDomainModel(c))
 			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_CLASS"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class name.");
-					String res = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_REST"));
-					if (res == null) {
-						if (name.contains("."))
-							res = name.substring(name.lastIndexOf(".") + 1).toLowerCase();
-						else
-							res = name.toLowerCase();
-					}
-					mRestEndpointCache.put(c, res);
-					return res;
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify class.");
+		EntityMapping mapping = loadEntityMapping(c);
+		return mapping.getRest();
 	}
 
 	@Override
 	public String getEndpointFieldName(Field f) throws IllegalArgumentException {
-		if (mRestFieldCache.containsKey(f))
-			return mRestFieldCache.get(f);
-		Class<?> c = f.getDeclaringClass();
-		if (!isPersistent(c))
-			throw new IllegalArgumentException("Class '" + c.getName() + "' is transient.");
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (isFieldPrimaryKey(f)) {
-					if (code == XmlPullParser.START_TAG
-							&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PRIMARY_KEY"))) {
-						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-						if (name == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify property name.");
-						if (f.getName().equals(name)) {
-							String rest = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_REST"));
-							if (rest == null)
-								rest = StringUtil.formatFieldName(name);
-							mRestFieldCache.put(f, rest);
-							return rest;
-						}
-					}
-				}
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_PROPERTY"))) {
-					String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify property name.");
-					if (f.getName().equals(name)) {
-						String rest = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_REST"));
-						if (rest == null)
-							rest = StringUtil.formatFieldName(name);
-						mRestFieldCache.put(f, rest);
-						return rest;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		}
-		throw new InvalidMapFileException("'" + c.getName() + "' map file does not specify property '" + f.getName()
-				+ "'.");
+		EntityMapping mapping = loadEntityMapping(f.getDeclaringClass());
+		Property property = getProperty(mapping, f);
+		return property.mRest;
 	}
 
-	private XmlPullParser loadXmlMapFile(Class<?> c) {
-		Resources res = mContext.getAndroidContext().getResources();
-		int id = 0;
-		if (!mResourceCache.containsKey(c)) {
-			String fileName = c.getSimpleName().toLowerCase();
-			id = res.getIdentifier(fileName, "raw", mContext.getAndroidContext().getPackageName());
-			mResourceCache.put(c, id);
-		}
-		try {
-			XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
-			parser.setInput(res.openRawResource(mResourceCache.get(c)), "UTF-8");
-			return parser;
-		} catch (NotFoundException e) {
+	private EntityMapping loadEntityMapping(Class<?> clazz) {
+		if (mMappingCache.containsKey(clazz))
+			return mMappingCache.get(clazz);
+		Context context = mContext.getAndroidContext();
+		Resources res = context.getResources();
+		int id = res.getIdentifier(clazz.getSimpleName().toLowerCase(Locale.getDefault()), "raw", context.getPackageName());
+		if (id == 0)
 			return null;
-		} catch (XmlPullParserException e) {
-			return null;
+		Resources resources = context.getResources();
+		Serializer serializer = new Persister();
+		try {
+			InputStream stream = resources.openRawResource(id);
+			String xml = new Scanner(stream).useDelimiter("\\A").next();
+			EntityMapping ret = serializer.read(EntityMapping.class, xml);
+			if (ret == null)
+				throw new InfinitumRuntimeException("Unable to read map file for class '" + clazz.getName() + "'.");
+			mMappingCache.put(clazz, ret);
+			return ret;
+		} catch (Exception e) {
+			throw new InfinitumRuntimeException("Unable to read map file for class '" + clazz.getName() + "'.", e);
 		}
 	}
 
-	private ManyToManyRelationship getManyToManyRelationship(Field f) {
-		if (mManyToManyCache.containsKey(f))
-			return mManyToManyCache.get(f);
-		Class<?> c = f.getDeclaringClass();
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTM"))) {
-					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
-					if (field == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify relation field.");
-					if (f.getName().equals(field)) {
-						ManyToManyRelationship ret = new ManyToManyRelationship();
-						ret.setFirstType(c);
-						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-						if (name == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation name.");
-						ret.setName(name);
-						String className = parser
-								.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CLASS"));
-						if (className == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation class.");
-						ret.setSecondType(Class.forName(className));
-						String foreignField = parser.getAttributeValue(null,
-								mPropLoader.getPersistenceValue("ATTR_FOREIGN_FIELD"));
-						if (foreignField == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation foreign field.");
-						ret.setSecondFieldName(foreignField);
-						String keyField = parser.getAttributeValue(null,
-								mPropLoader.getPersistenceValue("ATTR_KEY_FIELD"));
-						if (keyField == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation key field.");
-						ret.setFirstFieldName(keyField);
-						String table = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_TABLE"));
-						if (table == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation table.");
-						ret.setTableName(table);
-						mManyToManyCache.put(f, ret);
-						return ret;
-					}
-				}
-				code = parser.next();
+	private Property getProperty(EntityMapping mapping, Field field) {
+		if (isFieldPrimaryKey(field))
+			return mapping.getPrimaryKey();
+		List<Property> properties = mapping.getProperties();
+		for (Property property : properties) {
+			if (property.mName.equals(field.getName())) {
+				return property;
 			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (ClassNotFoundException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "' (could not resolve class)", e);
 		}
-		return null;
+		throw new ModelConfigurationException("Field '" + field.getName() + "' missing in map file for class '"
+				+ field.getDeclaringClass().getName() + "'.");
 	}
 
-	private ManyToOneRelationship getManyToOneRelationship(Field f) {
-		if (mManyToOneCache.containsKey(f))
-			return mManyToOneCache.get(f);
-		Class<?> c = f.getDeclaringClass();
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_MTO"))) {
-					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
-					if (field == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify relation field.");
-					if (f.getName().equals(field)) {
-						ManyToOneRelationship ret = new ManyToOneRelationship();
-						ret.setFirstType(c);
-						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-						if (name == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation name.");
-						ret.setName(name);
-						String className = parser
-								.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CLASS"));
-						if (className == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation class.");
-						ret.setSecondType(Class.forName(className));
-						String column = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_COLUMN"));
-						if (column == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation column.");
-						ret.setColumn(column);
-						mManyToOneCache.put(f, ret);
-						return ret;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (ClassNotFoundException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "' (could not resolve class)", e);
+	private List<Field> getManyToManyFields(Class<?> clazz, EntityMapping mapping) {
+		List<Field> fields = new ArrayList<Field>();
+		for (ManyToMany mtm : mapping.getManyToMany()) {
+			fields.add(mClassReflector.getField(clazz, mtm.mKeyField));
 		}
-		return null;
+		return fields;
 	}
 
-	private OneToManyRelationship getOneToManyRelationship(Field f) {
-		if (mOneToManyCache.containsKey(f))
-			return mOneToManyCache.get(f);
-		Class<?> c = f.getDeclaringClass();
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTM"))) {
-					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
-					if (field == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify relation field.");
-					if (f.getName().equals(field)) {
-						OneToManyRelationship ret = new OneToManyRelationship();
-						ret.setFirstType(c);
-						ret.setOneType(c);
-						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-						if (name == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation name.");
-						ret.setName(name);
-						String className = parser
-								.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CLASS"));
-						if (className == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation class.");
-						Class<?> t = Class.forName(className);
-						ret.setSecondType(t);
-						ret.setManyType(t);
-						String column = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_COLUMN"));
-						if (column == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation column.");
-						ret.setColumn(column);
-						mOneToManyCache.put(f, ret);
-						return ret;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (ClassNotFoundException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "' (could not resolve class)", e);
+	private List<Field> getManyToOneFields(Class<?> clazz, EntityMapping mapping) {
+		List<Field> fields = new ArrayList<Field>();
+		for (ManyToOne mto : mapping.getManyToOne()) {
+			fields.add(mClassReflector.getField(clazz, mto.mField));
 		}
-		return null;
+		return fields;
 	}
 
-	private OneToOneRelationship getOneToOneRelationship(Field f) {
-		if (mOneToOneCache.containsKey(f))
-			return mOneToOneCache.get(f);
-		Class<?> c = f.getDeclaringClass();
-		XmlPullParser parser = loadXmlMapFile(c);
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(mPropLoader.getPersistenceValue("ELEM_OTO"))) {
-					String field = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_FIELD"));
-					if (field == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify relation field.");
-					if (f.getName().equals(field)) {
-						OneToOneRelationship ret = new OneToOneRelationship();
-						ret.setFirstType(c);
-						String name = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_NAME"));
-						if (name == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation name.");
-						ret.setName(name);
-						String className = parser
-								.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_CLASS"));
-						if (className == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation class.");
-						ret.setSecondType(Class.forName(className));
-						String column = parser.getAttributeValue(null, mPropLoader.getPersistenceValue("ATTR_COLUMN"));
-						if (column == null)
-							throw new InvalidMapFileException("'" + c.getName()
-									+ "' map file does not specify relation column.");
-						ret.setColumn(column);
-						mOneToOneCache.put(f, ret);
-						return ret;
-					}
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (IOException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "'", e);
-		} catch (ClassNotFoundException e) {
-			mLogger.error("Unable to parse map file for '" + c.getName() + "' (could not resolve class)", e);
+	private List<Field> getOneToManyFields(Class<?> clazz, EntityMapping mapping) {
+		List<Field> fields = new ArrayList<Field>();
+		for (OneToMany otm : mapping.getOneToMany()) {
+			fields.add(mClassReflector.getField(clazz, otm.mField));
 		}
-		return null;
+		return fields;
+	}
+
+	private List<Field> getOneToOneFields(Class<?> clazz, EntityMapping mapping) {
+		List<Field> fields = new ArrayList<Field>();
+		for (OneToOne oto : mapping.getOneToOne()) {
+			fields.add(mClassReflector.getField(clazz, oto.mField));
+		}
+		return fields;
+	}
+
+	@Root(name = "infinitum-mapping")
+	private static class EntityMapping {
+
+		@Element(name = "class")
+		private ClassMapping mClassMapping;
+
+		public String getTable() {
+			return mClassMapping.mTable;
+		}
+
+		public boolean isLazy() {
+			return mClassMapping.mLazy;
+		}
+
+		public Cascade getCascade() {
+			String cascade = mClassMapping.mCascade;
+			if (cascade == null)
+				return Cascade.ALL;
+			if (cascade.equalsIgnoreCase("all"))
+				return Cascade.ALL;
+			if (cascade.equalsIgnoreCase("none"))
+				return Cascade.NONE;
+			if (cascade.equalsIgnoreCase("keys"))
+				return Cascade.KEYS;
+			return Cascade.ALL;
+		}
+
+		public String getRest() {
+			return mClassMapping.mRest;
+		}
+
+		public PrimaryKey getPrimaryKey() {
+			return mClassMapping.mPrimaryKey;
+		}
+
+		public List<Property> getProperties() {
+			if (mClassMapping.mProperties == null)
+				return new ArrayList<Property>();
+			return mClassMapping.mProperties;
+		}
+
+		public List<ManyToMany> getManyToMany() {
+			if (mClassMapping.mManyToMany == null)
+				return new ArrayList<ManyToMany>();
+			return mClassMapping.mManyToMany;
+		}
+
+		public List<ManyToOne> getManyToOne() {
+			if (mClassMapping.mManyToOne == null)
+				return new ArrayList<ManyToOne>();
+			return mClassMapping.mManyToOne;
+		}
+
+		public List<OneToMany> getOneToMany() {
+			if (mClassMapping.mOneToMany == null)
+				return new ArrayList<OneToMany>();
+			return mClassMapping.mOneToMany;
+		}
+
+		public List<OneToOne> getOneToOne() {
+			if (mClassMapping.mOneToOne == null)
+				return new ArrayList<OneToOne>();
+			return mClassMapping.mOneToOne;
+		}
+
+		@Root(name = "class")
+		private static class ClassMapping {
+
+			@Attribute(name = "name")
+			private String mName;
+
+			@Attribute(name = "table", required = false)
+			private String mTable;
+
+			@Attribute(name = "lazy", required = false)
+			private boolean mLazy;
+
+			@Attribute(name = "cascade", required = false)
+			private String mCascade;
+
+			@Attribute(name = "rest", required = false)
+			private String mRest;
+
+			@Element(name = "primary-key")
+			private PrimaryKey mPrimaryKey;
+
+			@ElementList(entry = "property", inline = true, required = false)
+			private List<Property> mProperties;
+
+			@ElementList(entry = "many-to-many", inline = true, required = false)
+			private List<ManyToMany> mManyToMany;
+
+			@ElementList(entry = "one-to-many", inline = true, required = false)
+			private List<OneToMany> mOneToMany;
+
+			@ElementList(entry = "many-to-one", inline = true, required = false)
+			private List<ManyToOne> mManyToOne;
+
+			@ElementList(entry = "one-to-one", inline = true, required = false)
+			private List<OneToOne> mOneToOne;
+
+		}
+
+	}
+
+	@Root(name = "property")
+	private static class Property {
+
+		@Attribute(name = "name")
+		protected String mName;
+
+		@Attribute(name = "column", required = false)
+		protected String mColumn;
+
+		@Attribute(name = "type")
+		protected String mType;
+
+		@Attribute(name = "not-null", required = false)
+		private boolean mNotNull;
+
+		@Attribute(name = "unique", required = false)
+		private boolean mUnique;
+
+		@Attribute(name = "rest", required = false)
+		private String mRest;
+
+	}
+
+	@Root(name = "primary-key")
+	private static class PrimaryKey extends Property {
+
+		@Attribute(name = "autoincrement", required = false)
+		private boolean mAutoincrement;
+
+	}
+
+	@Root(name = "many-to-many")
+	private static class ManyToMany {
+
+		@Attribute(name = "name")
+		private String mName;
+
+		@Attribute(name = "class")
+		private String mClass;
+
+		@Attribute(name = "foreign-field")
+		private String mForeignField;
+
+		@Attribute(name = "key-field")
+		private String mKeyField;
+
+		@Attribute(name = "table")
+		private String mTable;
+
+	}
+
+	@Root(name = "many-to-one")
+	private static class ManyToOne {
+
+		@Attribute(name = "name")
+		private String mName;
+
+		@Attribute(name = "field")
+		private String mField;
+
+		@Attribute(name = "class")
+		private String mClass;
+
+		@Attribute(name = "column")
+		private String mColumn;
+
+	}
+
+	@Root(name = "one-to-many")
+	private static class OneToMany {
+
+		@Attribute(name = "name")
+		private String mName;
+
+		@Attribute(name = "field")
+		private String mField;
+
+		@Attribute(name = "class")
+		private String mClass;
+
+		@Attribute(name = "column")
+		private String mColumn;
+
+	}
+
+	@Root(name = "one-to-one")
+	private static class OneToOne {
+
+		@Attribute(name = "name")
+		private String mName;
+
+		@Attribute(name = "field")
+		private String mField;
+
+		@Attribute(name = "class")
+		private String mClass;
+
+		@Attribute(name = "column")
+		private String mColumn;
+
 	}
 
 }

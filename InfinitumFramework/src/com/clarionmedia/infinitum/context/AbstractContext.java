@@ -445,11 +445,6 @@ public abstract class AbstractContext implements InfinitumContext {
 		        .build();
 		mBeanFactory.registerBean(beanDefinition);
 		beanDefinition = beanDefinitionBuilder
-				.setName("$AnnotationsPersistencePolicy")
-				.setType(AnnotationsPersistencePolicy.class)
-		        .build();
-		mBeanFactory.registerBean(beanDefinition);
-		beanDefinition = beanDefinitionBuilder
 				.setName("$RestfulJsonSession")
 				.setType(RestfulJsonSession.class)
 		        .build();
