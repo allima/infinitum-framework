@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -296,9 +295,6 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 			RestResponse restResponse = new RestResponse(response);
 			StatusLine statusLine = response.getStatusLine();
 			restResponse.setStatusCode(statusLine.getStatusCode());
-			for (Header header : response.getAllHeaders()) {
-				restResponse.addHeader(header.getName(), header.getValue());
-			}
 			HttpEntity entity = response.getEntity();
 			if (entity == null) {
 				restResponse.setResponseData(new byte[] {});

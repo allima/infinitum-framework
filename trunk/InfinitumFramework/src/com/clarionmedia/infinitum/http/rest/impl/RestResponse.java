@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 
 import com.clarionmedia.infinitum.http.HttpClientResponse;
@@ -51,7 +52,7 @@ public class RestResponse implements HttpClientResponse {
 		mCookies = new HashMap<String, String>();
 		mHeaders = new HashMap<String, String>();
 	}
-	
+
 	/**
 	 * Constructs a new {@code RestResponse}.
 	 * 
@@ -62,7 +63,7 @@ public class RestResponse implements HttpClientResponse {
 		this();
 		mHttpResponse = httpResponse;
 	}
-	
+
 	/**
 	 * Sets the HTTP status code.
 	 * 
@@ -82,7 +83,7 @@ public class RestResponse implements HttpClientResponse {
 	public void setResponseData(byte[] responseData) {
 		mResponseData = responseData;
 	}
-	
+
 	/**
 	 * Sets the response message data as a {@link String}.
 	 * 
@@ -105,7 +106,7 @@ public class RestResponse implements HttpClientResponse {
 	public int getStatusCode() {
 		return mStatusCode;
 	}
-	
+
 	@Override
 	public byte[] getResponseData() {
 		return mResponseData;
@@ -131,19 +132,12 @@ public class RestResponse implements HttpClientResponse {
 
 	@Override
 	public Map<String, String> getHeaders() {
-		return mHeaders;
-	}
-
-	@Override
-	public void setHeaders(Map<String, String> headers) {
-		mHeaders = headers;
-		// TODO set cookies
-	}
-
-	@Override
-	public void addHeader(String name, String value) {
-		mHeaders.put(name, value);
-		// TODO set cookies
+		if (mHttpResponse == null)
+			return mHeaders;
+		Map<String, String> headers = new HashMap<String, String>();
+		for (Header header : mHttpResponse.getAllHeaders())
+			headers.put(header.getName(), header.getValue());
+		return headers;
 	}
 
 	@Override
@@ -153,7 +147,21 @@ public class RestResponse implements HttpClientResponse {
 
 	@Override
 	public String getHeader(String header) {
-		return mHeaders.get(header);
+		if (mHttpResponse == null)
+			return mHeaders.get(header);
+		Header[] headers = mHttpResponse.getHeaders(header);
+		StringBuilder sb = new StringBuilder();
+		String prefix = "";
+		for (Header h : headers) {
+			sb.append(prefix);
+			sb.append(h.getValue());
+			prefix = ";";
+		}
+		return sb.toString();
+	}
+	
+	public void setHeaders(Map<String, String> headers) {
+		mHeaders = headers;
 	}
 
 }

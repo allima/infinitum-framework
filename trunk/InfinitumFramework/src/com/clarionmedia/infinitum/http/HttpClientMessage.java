@@ -56,23 +56,5 @@ public interface HttpClientMessage {
 	 * @return header value
 	 */
 	String getHeader(String header);
-	
-	/**
-	 * Sets the headers.
-	 * 
-	 * @param headers
-	 *            the {@link Map} containing the headers to set
-	 */
-	void setHeaders(Map<String, String> headers);
-
-	/**
-	 * Adds the given header.
-	 * 
-	 * @param name
-	 *            the header name
-	 * @param value
-	 *            the header value
-	 */
-	void addHeader(String name, String value);
 
 }
