@@ -40,7 +40,6 @@ import com.clarionmedia.infinitum.http.HttpClientRequest;
 public class HashableHttpRequest implements HttpClientRequest {
 
 	private HttpUriRequest mHttpRequest;
-	private Map<String, String> mHeaders;
 
 	/**
 	 * Creates a new {@code HashableHttpRequest} for the given
@@ -51,7 +50,6 @@ public class HashableHttpRequest implements HttpClientRequest {
 	 */
 	public HashableHttpRequest(HttpUriRequest request) {
 		mHttpRequest = request;
-		mHeaders = new HashMap<String, String>();
 	}
 	
 	@Override
@@ -61,22 +59,23 @@ public class HashableHttpRequest implements HttpClientRequest {
 
 	@Override
 	public Map<String, String> getHeaders() {
-		return mHeaders;
+		Map<String, String> headers = new HashMap<String, String>();
+		for (Header header : mHttpRequest.getAllHeaders())
+			headers.put(header.getName(), header.getValue());
+		return headers;
 	}
 
 	@Override
 	public String getHeader(String header) {
-		return mHeaders.get(header);
-	}
-
-	@Override
-	public void setHeaders(Map<String, String> headers) {
-		mHeaders = headers;
-	}
-
-	@Override
-	public void addHeader(String name, String value) {
-		mHeaders.put(name, value);
+		Header[] headers = mHttpRequest.getHeaders(header);
+		StringBuilder sb = new StringBuilder();
+		String prefix = "";
+		for (Header h : headers) {
+			sb.append(prefix);
+			sb.append(h.getValue());
+			prefix = ";";
+		}
+		return sb.toString();
 	}
 
 	@Override
