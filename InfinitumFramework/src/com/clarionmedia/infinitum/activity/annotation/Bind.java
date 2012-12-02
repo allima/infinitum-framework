@@ -69,6 +69,6 @@ public @interface Bind {
 	 * 
 	 * @return method name
 	 */
-	String callback();
+	String value();
 
 }

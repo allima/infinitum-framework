@@ -217,7 +217,7 @@ public class ContextBasedActivityInjector implements ActivityInjector {
 				continue;
 			Bind bind = field.getAnnotation(Bind.class);
 			Event event = bind.event();
-			String callback = bind.callback();
+			String callback = bind.value();
 			View view = (View) mClassReflector.getFieldValue(mContext, field);
 			registerCallback(view, callback, event);
 		}
