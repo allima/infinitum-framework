@@ -82,6 +82,7 @@ The Infinitum RESTful client provides an extensible API for communicating with a
 
   * [Component]: indicates that the annotated class is a framework component, meaning it is a candidate for auto-detection.
   * [Bean]: specialization of the `Component` annotation indicating that the annotated class is a dependency-injection bean.
+  * [Scope]: indicates the scope of a bean.
   * [Autowired]: indicates that the annotated constructor, setter, or field is to be injected by the framework.
   * PostConstruct: indicates that the annotated method is to be invoked after dependency injection.
 
