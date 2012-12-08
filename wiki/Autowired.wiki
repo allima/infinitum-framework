@@ -14,7 +14,7 @@ If a constructor is marked with this annotation, it will be used to initialize t
 
 = Autowired Example =
 
-The below example illustrates the usage of the `Autowired` annotation for a field, constructor, and setter (note that normally you don't inject all of these together unless it's an unusual case).
+The below example illustrates the usage of the `Autowired` annotation for a field, constructor, and setter (note that, normally, you don't inject all of these together unless it's an unusual case).
 
 {{{
 @Bean
