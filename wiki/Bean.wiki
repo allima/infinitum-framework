@@ -6,11 +6,11 @@
 
 = Introduction =
 
-The Bean annotation is used to indicate that a class is a dependency-injection bean, meaning it is a candidate for auto-detection by the framework if classpath scanning is enabled.
+The Bean annotation is used to indicate that a class is a dependency-injection bean, meaning it is a candidate for component scanning by the framework if classpath scanning is enabled.
 
 The annotation has a single, optional attribute which indicates the name of the bean. If it is not specified, the bean takes the class name in camelcase form.
 
-Beans that are picked up during auto-detection are registered with InfinitumContext and stored in its `BeanFactory`.
+Beans that are picked up during component scanning are registered with InfinitumContext and stored in its `BeanFactory`.
 
 The scope of a bean, e.g. prototype or singleton, can be specified using the [Scope] annotation. The bean will have a singleton scope by default if not specified.
 
