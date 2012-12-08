@@ -1,0 +1,13 @@
+#summary Describes the Bean annotation.
+#labels Explained
+
+*Contents*
+<wiki:toc max_depth="3" />
+
+= Introduction =
+
+The Bean annotation is used to indicate that a class is a dependency-injection bean, meaning it is a candidate for auto-detection by the framework if classpath scanning is enabled.
+
+The annotation has a single, optional attribute which indicates the name of the bean. If it is not specified, the bean takes the class name in camelcase form.
+
+Beans that are picked up during auto-detection are registered with InfinitumContext and stored in its BeanFactory.
