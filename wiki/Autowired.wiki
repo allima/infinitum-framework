@@ -20,7 +20,7 @@ The below example illustrates the usage of the `Autowired` annotation for a fiel
 @Bean
 public class MyBean {
 
-    @Autowired
+    @Autowired("myBean")
     private AnotherBean mAnotherBean;
     private SomeBean mSomeBean;
     private boolean mSomeBool;
