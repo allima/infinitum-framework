@@ -18,6 +18,8 @@
 
 *Cache Abstraction:* Transparent caching for methods through annotations.
 
+*Paged Lazy Loading:* Collections are currently lazily loaded by loading the entire collection on request, so it's planned to implement paged collections which load and unload collection entities lazily.
+
 = What's Missing? =
 
 Is there something you would like to see added? Email ttreat31@gmail.com with feedback and suggestions or get involved yourself!
