@@ -21,10 +21,11 @@ package com.clarionmedia.infinitum.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
+
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
 import com.clarionmedia.infinitum.di.ActivityInjector;
-import com.clarionmedia.infinitum.di.impl.ContextBasedActivityInjector;
+import com.clarionmedia.infinitum.di.impl.ObjectInjector;
 
 /**
  * <p>
@@ -37,6 +38,7 @@ import com.clarionmedia.infinitum.di.impl.ContextBasedActivityInjector;
  * @version 1.0 07/18/12
  * @since 1.0
  * @see InfinitumListActivity
+ * @see InfinitumFragmentActivity
  */
 public class InfinitumActivity extends Activity {
 
@@ -50,7 +52,7 @@ public class InfinitumActivity extends Activity {
 		mInfinitumContext = mInfinitumConfigId == 0 ?
 				mContextFactory.configure(this) :
 				mContextFactory.configure(this, mInfinitumConfigId);
-		final ActivityInjector injector = new ContextBasedActivityInjector(mInfinitumContext, this);
+		final ActivityInjector injector = new ObjectInjector(mInfinitumContext, this);
 		injector.inject();
 		super.onCreate(savedInstanceState);
 	}

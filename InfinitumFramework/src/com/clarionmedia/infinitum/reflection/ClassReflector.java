@@ -33,6 +33,7 @@ import java.util.List;
  * 
  * @author Tyler Treat
  * @version 1.0 05/17/12
+ * @since 1.0
  */
 public interface ClassReflector {
 

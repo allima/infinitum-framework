@@ -19,8 +19,8 @@
 
 package com.clarionmedia.infinitum.activity;
 
-import android.app.ListActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 
 import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.context.InfinitumContext;
@@ -29,18 +29,18 @@ import com.clarionmedia.infinitum.di.impl.ObjectInjector;
 
 /**
  * <p>
- * This {@link ListActivity} extension takes care of framework initialization,
+ * This {@link FragmentActivity} extension takes care of framework initialization,
  * provides support for resource injection and event binding, and exposes an
  * {@link InfinitumContext}.
  * </p>
  * 
  * @author Tyler Treat
- * @version 1.0 08/11/12
+ * @version 1.0 12/18/12
  * @since 1.0
  * @see InfinitumActivity
- * @see InfinitumFragmentActivity
+ * @see InfinitumListActivity
  */
-public class InfinitumListActivity extends ListActivity {
+public class InfinitumFragmentActivity extends FragmentActivity {
 
 	private InfinitumContext mInfinitumContext;
 	private int mInfinitumConfigId;
@@ -49,7 +49,9 @@ public class InfinitumListActivity extends ListActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		mContextFactory = ContextFactory.newInstance();
-		mInfinitumContext = mInfinitumConfigId == 0 ? mContextFactory.configure(this) : mContextFactory.configure(this, mInfinitumConfigId);
+		mInfinitumContext = mInfinitumConfigId == 0 ?
+				mContextFactory.configure(this) :
+				mContextFactory.configure(this, mInfinitumConfigId);
 		final ActivityInjector injector = new ObjectInjector(mInfinitumContext, this);
 		injector.inject();
 		super.onCreate(savedInstanceState);
