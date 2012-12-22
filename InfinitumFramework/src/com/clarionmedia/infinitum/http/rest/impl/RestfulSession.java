@@ -37,7 +37,6 @@ import com.clarionmedia.infinitum.context.RestfulContext.MessageType;
 import com.clarionmedia.infinitum.di.annotation.Autowired;
 import com.clarionmedia.infinitum.di.annotation.PostConstruct;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.http.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.http.rest.RestfulClient;
 import com.clarionmedia.infinitum.http.rest.RestfulMapper;
 import com.clarionmedia.infinitum.http.rest.RestfulModelMap;
@@ -70,17 +69,15 @@ public abstract class RestfulSession implements Session {
 
 	@Autowired
 	protected PersistencePolicy mPersistencePolicy;
-	
+
 	@Autowired
 	protected InfinitumContext mInfinitumContext;
-	
+
 	@Autowired
 	protected RestfulContext mRestContext;
-	
+
 	protected boolean mIsOpen;
 	protected String mHost;
-	protected boolean mIsAuthenticated;
-	protected AuthenticationStrategy mAuthStrategy;
 	protected Logger mLogger;
 	protected RestfulMapper mMapper;
 	protected RestfulClient mRestClient;
@@ -101,22 +98,20 @@ public abstract class RestfulSession implements Session {
 		mCacheSize = DEFAULT_CACHE_SIZE;
 		mSessionCache = new LruCache<Integer, Object>(mCacheSize);
 	}
-	
+
 	@PostConstruct
 	private void init() {
 		mLogger = Logger.getInstance(mInfinitumContext, getClass().getSimpleName());
 		switch (mRestContext.getMessageType()) {
-			case XML:
-				mMapper = mInfinitumContext.getBean("$RestfulXmlMapper", RestfulXmlMapper.class);
-				break;
-			case JSON:
-				mMapper = mInfinitumContext.getBean("$RestfulJsonMapper", RestfulJsonMapper.class);
-				break;
-			default:
-				mMapper = mInfinitumContext.getBean("$RestfulNameValueMapper", RestfulNameValueMapper.class);
+		case XML:
+			mMapper = mInfinitumContext.getBean("$RestfulXmlMapper", RestfulXmlMapper.class);
+			break;
+		case JSON:
+			mMapper = mInfinitumContext.getBean("$RestfulJsonMapper", RestfulJsonMapper.class);
+			break;
+		default:
+			mMapper = mInfinitumContext.getBean("$RestfulNameValueMapper", RestfulNameValueMapper.class);
 		}
-		mIsAuthenticated = mRestContext.isRestAuthenticated();
-		mAuthStrategy = mRestContext.getAuthStrategy();
 		mHost = mRestContext.getRestHost();
 		if (!mHost.endsWith("/"))
 			mHost += '/';
@@ -159,38 +154,32 @@ public abstract class RestfulSession implements Session {
 
 	@Override
 	public Session beginTransaction() {
-		throw new UnsupportedOperationException(
-				"RestfulSession does not support transactions!");
+		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
 	@Override
 	public Session commit() {
-		throw new UnsupportedOperationException(
-				"RestfulSession does not support transactions!");
+		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
 	@Override
 	public Session rollback() {
-		throw new UnsupportedOperationException(
-				"RestfulSession does not support transactions!");
+		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
 	@Override
 	public boolean isTransactionOpen() {
-		throw new UnsupportedOperationException(
-				"RestfulSession does not support transactions!");
+		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
 	@Override
 	public Session setAutocommit(boolean autocommit) {
-		throw new UnsupportedOperationException(
-				"RestfulSession does not support transactions!");
+		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
 	@Override
 	public boolean isAutocommit() {
-		throw new UnsupportedOperationException(
-				"RestfulSession does not support transactions!");
+		throw new UnsupportedOperationException("RestfulSession does not support transactions!");
 	}
 
 	@Override
@@ -230,8 +219,7 @@ public abstract class RestfulSession implements Session {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T load(Class<T> type, Serializable id)
-			throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T load(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		Preconditions.checkPersistenceForLoading(type, mPersistencePolicy);
 		// TODO Validate primary key
 		int objHash = mPersistencePolicy.computeModelHash(type, id);
@@ -244,21 +232,14 @@ public abstract class RestfulSession implements Session {
 	public long save(Object model) {
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending POST request to save entity");
-		String uri = mHost
-				+ mPersistencePolicy.getRestEndpoint(model.getClass());
-		if (mIsAuthenticated && !mAuthStrategy.isHeader())
-			uri += '?' + mAuthStrategy.getAuthenticationString();
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		Map<String, String> headers = new HashMap<String, String>();
-		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			headers.put(mAuthStrategy.getAuthenticationKey(),
-					mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
 		if (mRestContext.getMessageType() == MessageType.JSON)
 			headers.put("Content-Type", "application/json");
 		else if (mRestContext.getMessageType() == MessageType.XML)
 			headers.put("Content-Type", "application/xml");
-		RestResponse response = mRestClient.executePost(uri,
-				modelMap.toHttpEntity(), headers);
+		RestResponse response = mRestClient.executePost(uri, modelMap.toHttpEntity(), headers);
 		if (response == null)
 			return -1;
 		return response.getStatusCode() < 400 ? 0 : -1;
@@ -269,15 +250,8 @@ public abstract class RestfulSession implements Session {
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending DELETE request to delete entity");
 		Serializable pk = mPersistencePolicy.getPrimaryKey(model);
-		String uri = mHost
-				+ mPersistencePolicy.getRestEndpoint(model.getClass()) + "/"
-				+ pk.toString();
-		if (mIsAuthenticated && !mAuthStrategy.isHeader())
-			uri += '?' + mAuthStrategy.getAuthenticationString();
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass()) + "/" + pk.toString();
 		Map<String, String> headers = new HashMap<String, String>();
-		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			headers.put(mAuthStrategy.getAuthenticationKey(),
-					mAuthStrategy.getAuthenticationValue());
 		RestResponse response = mRestClient.executeDelete(uri, headers);
 		if (response == null)
 			return false;
@@ -295,21 +269,14 @@ public abstract class RestfulSession implements Session {
 	public boolean update(Object model) throws InfinitumRuntimeException {
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending PUT request to update entity");
-		String uri = mHost
-				+ mPersistencePolicy.getRestEndpoint(model.getClass());
-		if (mIsAuthenticated && !mAuthStrategy.isHeader())
-			uri += '?' + mAuthStrategy.getAuthenticationString();
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		Map<String, String> headers = new HashMap<String, String>();
-		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			headers.put(mAuthStrategy.getAuthenticationKey(),
-					mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
 		if (mRestContext.getMessageType() == MessageType.JSON)
 			headers.put("Content-Type", "application/json");
 		else if (mRestContext.getMessageType() == MessageType.XML)
 			headers.put("Content-Type", "application/xml");
-		RestResponse response = mRestClient.executePut(uri,
-				modelMap.toHttpEntity(), headers);
+		RestResponse response = mRestClient.executePut(uri, modelMap.toHttpEntity(), headers);
 		switch (response.getStatusCode()) {
 		case HttpStatus.SC_OK:
 		case HttpStatus.SC_NO_CONTENT:
@@ -332,21 +299,14 @@ public abstract class RestfulSession implements Session {
 	public long saveOrUpdate(Object model) {
 		Preconditions.checkPersistenceForModify(model, mPersistencePolicy);
 		mLogger.debug("Sending PUT request to save or update entity");
-		String uri = mHost
-				+ mPersistencePolicy.getRestEndpoint(model.getClass());
-		if (mIsAuthenticated && !mAuthStrategy.isHeader())
-			uri += '?' + mAuthStrategy.getAuthenticationString();
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(model.getClass());
 		Map<String, String> headers = new HashMap<String, String>();
-		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			headers.put(mAuthStrategy.getAuthenticationKey(),
-					mAuthStrategy.getAuthenticationValue());
 		RestfulModelMap modelMap = mMapper.mapModel(model);
 		if (mRestContext.getMessageType() == MessageType.JSON)
 			headers.put("Content-Type", "application/json");
 		else if (mRestContext.getMessageType() == MessageType.XML)
 			headers.put("Content-Type", "application/xml");
-		RestResponse response = mRestClient.executePut(uri,
-				modelMap.toHttpEntity(), headers);
+		RestResponse response = mRestClient.executePut(uri, modelMap.toHttpEntity(), headers);
 		switch (response.getStatusCode()) {
 		case HttpStatus.SC_CREATED:
 			return 1;
@@ -359,8 +319,7 @@ public abstract class RestfulSession implements Session {
 	}
 
 	@Override
-	public int saveOrUpdateAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int saveOrUpdateAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		int count = 0;
 		for (Object model : models) {
 			if (saveOrUpdate(model) >= 0)
@@ -370,8 +329,7 @@ public abstract class RestfulSession implements Session {
 	}
 
 	@Override
-	public int saveAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int saveAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		int count = 0;
 		for (Object model : models) {
 			if (save(model) == 0)
@@ -381,8 +339,7 @@ public abstract class RestfulSession implements Session {
 	}
 
 	@Override
-	public int deleteAll(Collection<? extends Object> models)
-			throws InfinitumRuntimeException {
+	public int deleteAll(Collection<? extends Object> models) throws InfinitumRuntimeException {
 		int count = 0;
 		for (Object model : models) {
 			if (delete(model))
@@ -393,14 +350,12 @@ public abstract class RestfulSession implements Session {
 
 	@Override
 	public Session execute(String sql) throws SQLGrammarException {
-		throw new UnsupportedOperationException(
-				"RestfulSession does not support SQL operations!");
+		throw new UnsupportedOperationException("RestfulSession does not support SQL operations!");
 	}
 
 	@Override
 	public <T> Criteria<T> createCriteria(Class<T> entityClass) {
-		throw new UnsupportedOperationException(
-				"RestfulSession does not support criteria operations!");
+		throw new UnsupportedOperationException("RestfulSession does not support criteria operations!");
 	}
 
 	@Override
@@ -422,10 +377,8 @@ public abstract class RestfulSession implements Session {
 	 */
 	protected HttpParams getHttpParams() {
 		HttpParams httpParams = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParams,
-				mRestContext.getConnectionTimeout());
-		HttpConnectionParams.setSoTimeout(httpParams,
-				mRestContext.getResponseTimeout());
+		HttpConnectionParams.setConnectionTimeout(httpParams, mRestContext.getConnectionTimeout());
+		HttpConnectionParams.setSoTimeout(httpParams, mRestContext.getResponseTimeout());
 		HttpConnectionParams.setTcpNoDelay(httpParams, true);
 		return httpParams;
 	}

@@ -24,11 +24,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -40,12 +42,16 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
 import com.clarionmedia.infinitum.context.InfinitumContext;
+import com.clarionmedia.infinitum.context.RestfulContext;
+import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
 import com.clarionmedia.infinitum.http.impl.HashableHttpRequest;
+import com.clarionmedia.infinitum.http.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.http.rest.RestfulClient;
 import com.clarionmedia.infinitum.internal.DateFormatter;
 import com.clarionmedia.infinitum.internal.caching.AbstractCache;
@@ -66,6 +72,8 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 	protected Logger mLogger;
 	protected HttpParams mHttpParams;
 	protected RestResponseCache mResponseCache;
+	protected boolean mIsAuthenticated;
+	protected AuthenticationStrategy mAuthStrategy;
 
 	/**
 	 * Creates a new {@code CachingEnabledRestfulClient}.
@@ -75,8 +83,13 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		mHttpParams = new BasicHttpParams();
 		mResponseCache = new RestResponseCache();
 		mResponseCache.enableDiskCache(context.getAndroidContext(), AbstractCache.DISK_CACHE_INTERNAL);
+		RestfulContext restContext = context.getRestfulConfiguration();
+		if (restContext != null) {
+			mIsAuthenticated = restContext.isRestAuthenticated();
+			mAuthStrategy = restContext.getAuthStrategy();
+		}
 	}
-	
+
 	/**
 	 * Clears the response cache.
 	 */
@@ -86,7 +99,12 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 
 	@Override
 	public RestResponse executeGet(String uri) {
-		return executeRequest(new HashableHttpRequest(new HttpGet(uri)));
+		try {
+			RequestWrapper request = new RequestWrapper(new HttpGet(uri));
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
@@ -95,28 +113,34 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpGet.addHeader(header.getKey(), header.getValue());
 		}
-		return executeRequest(new HashableHttpRequest(httpGet));
+		try {
+			RequestWrapper request = new RequestWrapper(httpGet);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePost(String uri, String messageBody,
-			String contentType) {
+	public RestResponse executePost(String uri, String messageBody, String contentType) {
 		HttpPost httpPost = new HttpPost(uri);
 		httpPost.addHeader("content-type", contentType);
 		try {
 			httpPost.setEntity(new StringEntity(messageBody, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			mLogger.error(
-					"Unable to send POST request (could not encode message body)",
-					e);
+			mLogger.error("Unable to send POST request (could not encode message body)", e);
 			return null;
 		}
-		return executeRequest(new HashableHttpRequest(httpPost));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPost);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePost(String uri, String messageBody,
-			String contentType, Map<String, String> headers) {
+	public RestResponse executePost(String uri, String messageBody, String contentType, Map<String, String> headers) {
 		HttpPost httpPost = new HttpPost(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPost.addHeader(header.getKey(), header.getValue());
@@ -125,46 +149,60 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		try {
 			httpPost.setEntity(new StringEntity(messageBody, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			mLogger.error(
-					"Unable to send POST request (could not encode message body)",
-					e);
+			mLogger.error("Unable to send POST request (could not encode message body)", e);
 			return null;
 		}
-		return executeRequest(new HashableHttpRequest(httpPost));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPost);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
 	public RestResponse executePost(String uri, HttpEntity httpEntity) {
 		HttpPost httpPost = new HttpPost(uri);
-		httpPost.addHeader("content-type", httpEntity.getContentType()
-				.getValue());
+		httpPost.addHeader("content-type", httpEntity.getContentType().getValue());
 		httpPost.setEntity(httpEntity);
-		return executeRequest(new HashableHttpRequest(httpPost));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPost);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePost(String uri, HttpEntity httpEntity,
-			Map<String, String> headers) {
+	public RestResponse executePost(String uri, HttpEntity httpEntity, Map<String, String> headers) {
 		HttpPost httpPost = new HttpPost(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPost.addHeader(header.getKey(), header.getValue());
 		}
 		httpPost.setEntity(httpEntity);
-		return executeRequest(new HashableHttpRequest(httpPost));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPost);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePost(String uri, InputStream messageBody,
-			int messageBodyLength, String contentType) {
+	public RestResponse executePost(String uri, InputStream messageBody, int messageBodyLength, String contentType) {
 		HttpPost httpPost = new HttpPost(uri);
 		httpPost.addHeader("content-type", contentType);
 		httpPost.setEntity(new InputStreamEntity(messageBody, messageBodyLength));
-		return executeRequest(new HashableHttpRequest(httpPost));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPost);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePost(String uri, InputStream messageBody,
-			int messageBodyLength, String contentType,
+	public RestResponse executePost(String uri, InputStream messageBody, int messageBodyLength, String contentType,
 			Map<String, String> headers) {
 		HttpPost httpPost = new HttpPost(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
@@ -172,12 +210,22 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		}
 		httpPost.addHeader("content-type", contentType);
 		httpPost.setEntity(new InputStreamEntity(messageBody, messageBodyLength));
-		return executeRequest(new HashableHttpRequest(httpPost));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPost);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
 	public RestResponse executeDelete(String uri) {
-		return executeRequest(new HashableHttpRequest(new HttpDelete(uri)));
+		try {
+			RequestWrapper request = new RequestWrapper(new HttpDelete(uri));
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
@@ -186,28 +234,34 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpDelete.addHeader(header.getKey(), header.getValue());
 		}
-		return executeRequest(new HashableHttpRequest(httpDelete));
+		try {
+			RequestWrapper request = new RequestWrapper(httpDelete);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePut(String uri, String messageBody,
-			String contentType) {
+	public RestResponse executePut(String uri, String messageBody, String contentType) {
 		HttpPut httpPut = new HttpPut(uri);
 		httpPut.addHeader("content-type", contentType);
 		try {
 			httpPut.setEntity(new StringEntity(messageBody, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			mLogger.error(
-					"Unable to send PUT request (could not encode message body)",
-					e);
+			mLogger.error("Unable to send PUT request (could not encode message body)", e);
 			return null;
 		}
-		return executeRequest(new HashableHttpRequest(httpPut));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPut);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePut(String uri, String messageBody,
-			String contentType, Map<String, String> headers) {
+	public RestResponse executePut(String uri, String messageBody, String contentType, Map<String, String> headers) {
 		HttpPut httpPut = new HttpPut(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPut.addHeader(header.getKey(), header.getValue());
@@ -216,46 +270,60 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		try {
 			httpPut.setEntity(new StringEntity(messageBody, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			mLogger.error(
-					"Unable to send PUT request (could not encode message body)",
-					e);
+			mLogger.error("Unable to send PUT request (could not encode message body)", e);
 			return null;
 		}
-		return executeRequest(new HashableHttpRequest(httpPut));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPut);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
 	public RestResponse executePut(String uri, HttpEntity httpEntity) {
 		HttpPut httpPut = new HttpPut(uri);
-		httpPut.addHeader("content-type", httpEntity.getContentType()
-				.getValue());
+		httpPut.addHeader("content-type", httpEntity.getContentType().getValue());
 		httpPut.setEntity(httpEntity);
-		return executeRequest(new HashableHttpRequest(httpPut));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPut);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePut(String uri, HttpEntity httpEntity,
-			Map<String, String> headers) {
+	public RestResponse executePut(String uri, HttpEntity httpEntity, Map<String, String> headers) {
 		HttpPut httpPut = new HttpPut(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
 			httpPut.addHeader(header.getKey(), header.getValue());
 		}
 		httpPut.setEntity(httpEntity);
-		return executeRequest(new HashableHttpRequest(httpPut));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPut);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePut(String uri, InputStream messageBody,
-			int messageBodyLength, String contentType) {
+	public RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType) {
 		HttpPut httpPut = new HttpPut(uri);
 		httpPut.addHeader("content-type", contentType);
 		httpPut.setEntity(new InputStreamEntity(messageBody, messageBodyLength));
-		return executeRequest(new HashableHttpRequest(httpPut));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPut);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
-	public RestResponse executePut(String uri, InputStream messageBody,
-			int messageBodyLength, String contentType,
+	public RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType,
 			Map<String, String> headers) {
 		HttpPut httpPut = new HttpPut(uri);
 		for (Entry<String, String> header : headers.entrySet()) {
@@ -263,7 +331,22 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		}
 		httpPut.addHeader("content-type", contentType);
 		httpPut.setEntity(new InputStreamEntity(messageBody, messageBodyLength));
-		return executeRequest(new HashableHttpRequest(httpPut));
+		try {
+			RequestWrapper request = new RequestWrapper(httpPut);
+			return executeRequest(new HashableHttpRequest(request));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
+	}
+
+	@Override
+	public RestResponse executeRequest(HttpUriRequest request) {
+		try {
+			RequestWrapper wrapped = new RequestWrapper(request);
+			return executeRequest(new HashableHttpRequest(wrapped));
+		} catch (ProtocolException e) {
+			throw new InfinitumRuntimeException("Unable to execute request", e);
+		}
 	}
 
 	@Override
@@ -280,15 +363,24 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 	public void setHttpParams(HttpParams httpParams) {
 		mHttpParams = httpParams;
 	}
+	
+	@Override
+	public void setAuthStrategy(AuthenticationStrategy authStrategy) {
+		mAuthStrategy = authStrategy;
+		mIsAuthenticated = authStrategy != null;
+	}
 
 	private RestResponse executeRequest(HashableHttpRequest hashableHttpRequest) {
+		if (mIsAuthenticated)
+			mAuthStrategy.authenticate(hashableHttpRequest);
 		if (mResponseCache.containsKey(hashableHttpRequest)) {
 			RestResponse cachedResponse = mResponseCache.get(hashableHttpRequest);
 			if (cachedResponse != null)
 				return cachedResponse;
 		}
 		HttpUriRequest httpRequest = hashableHttpRequest.unwrap();
-		mLogger.debug("Sending " + httpRequest.getMethod() + " request to " + httpRequest.getURI() + " with " + httpRequest.getAllHeaders().length + " headers");
+		mLogger.debug("Sending " + httpRequest.getMethod() + " request to " + httpRequest.getURI() + " with "
+				+ httpRequest.getAllHeaders().length + " headers");
 		HttpClient httpClient = new DefaultHttpClient(mHttpParams);
 		try {
 			HttpResponse response = httpClient.execute(httpRequest);
@@ -326,11 +418,10 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 					String[] values = header.getValue().split(",");
 					for (String cacheControl : values) {
 						cacheControl = cacheControl.trim();
-						if (cacheControl.equalsIgnoreCase("no-cache")
-								|| cacheControl.equalsIgnoreCase("no-store")
+						if (cacheControl.equalsIgnoreCase("no-cache") || cacheControl.equalsIgnoreCase("no-store")
 								|| cacheControl.equalsIgnoreCase("must-revalidate"))
 							return 0;
-						if (cacheControl.toLowerCase().startsWith("max-age")) {
+						if (cacheControl.toLowerCase(Locale.getDefault()).startsWith("max-age")) {
 							seconds = Long.parseLong(cacheControl.split("=")[1].trim());
 						}
 					}
@@ -349,5 +440,5 @@ public class CachingEnabledRestfulClient implements RestfulClient {
 		}
 		return seconds;
 	}
-	
+
 }

@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
+import com.clarionmedia.infinitum.http.HttpClientRequest;
 import com.clarionmedia.infinitum.http.rest.AuthenticationStrategy;
 import com.clarionmedia.infinitum.http.rest.TokenGenerator;
 
@@ -46,35 +47,43 @@ public class SharedSecretAuthentication implements AuthenticationStrategy {
 	private boolean mIsHeader;
 
 	@Override
-	public String getAuthenticationString() {
-		return mTokenName + "=" + getToken();
-	}
-	
-	@Override
-	public String getAuthenticationKey() {
-		return mTokenName;
-	}
-
-	@Override
-	public String getAuthenticationValue() {
-		return getToken();
+	public void authenticate(HttpClientRequest request) {
+		if (isHeader()) {
+			request.addHeader(getTokenName(), getToken());
+		} else {
+			String uri = request.getRequestUri();
+			if (uri.contains("?"))
+				uri += "&" + getTokenName() + "=" + getToken();
+			request.setRequestUri(uri);
+		}
 	}
 
-	@Override
+	/**
+	 * Indicates whether or not request authentication is included as a header.
+	 * If not a header, it is included as a query string parameter.
+	 * 
+	 * @return {@code true} if it's a header, {@code false} if not
+	 */
 	public boolean isHeader() {
 		return mIsHeader;
 	}
-	
-	@Override
+
+	/**
+	 * Sets the value indicating whether or not request authentication is
+	 * included as a header. If not a header, it is included as a query string
+	 * parameter.
+	 * 
+	 * @param isHeader
+	 *            value to set
+	 */
 	public void setHeader(boolean isHeader) {
 		mIsHeader = isHeader;
 	}
 
 	/**
-	 * Sets the token key name. The authentication {@code String}
-	 * {@code SharedSecretAuthentication} generates, appears as
-	 * {@code tokenName=token}, where {@code tokenName} is the token key name
-	 * provided to this method and {@code token} is the shared secret.
+	 * Sets the token name. This value represents either the header name or the
+	 * query string parameter name, depending on what form of authentication is
+	 * used.
 	 * 
 	 * @param tokenName
 	 *            the token name to use for authentication
@@ -88,19 +97,17 @@ public class SharedSecretAuthentication implements AuthenticationStrategy {
 	}
 
 	/**
-	 * Returns the token key name.
-	 * 
-	 * @return token name
+	 * Returns the token name. This value represents either the header name or
+	 * the query string parameter name, depending on what form of authentication
+	 * is used.
 	 */
 	public String getTokenName() {
 		return mTokenName;
 	}
 
 	/**
-	 * Sets the token value. The authentication {@code String}
-	 * {@code SharedSecretAuthentication} generates, appears as
-	 * {@code tokenName=token}, where {@code tokenName} is the token key name
-	 * and {@code token} is the shared secret provided to this method.
+	 * Sets the token value. This value represents the header value or the query
+	 * string parameter value, depending on what form of authentication is used.
 	 * 
 	 * @param token
 	 *            the shared secret to use for authentication
@@ -114,7 +121,9 @@ public class SharedSecretAuthentication implements AuthenticationStrategy {
 	}
 
 	/**
-	 * Returns the token value. This is either the value provided to
+	 * Returns the token value. This value represents the header value or the
+	 * query string parameter value, depending on what form of authentication is
+	 * used. This is either the value provided to
 	 * {@link SharedSecretAuthentication#setToken(String)} or the value
 	 * generated from the {@link TokenGenerator} if one has been provided.
 	 * 
