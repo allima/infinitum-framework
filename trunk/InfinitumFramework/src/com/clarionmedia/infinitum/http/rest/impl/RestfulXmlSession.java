@@ -59,11 +59,7 @@ public class RestfulXmlSession extends RestfulSession {
 		Preconditions.checkPersistenceForLoading(type, mPersistencePolicy);
 		mLogger.debug("Sending GET request to retrieve entity");
 		String uri = mHost + mPersistencePolicy.getRestEndpoint(type) + "/" + id;
-		if (mIsAuthenticated && !mAuthStrategy.isHeader())
-			uri += '?' + mAuthStrategy.getAuthenticationString();
 		Map<String, String> headers = new HashMap<String, String>();
-		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			headers.put(mAuthStrategy.getAuthenticationKey(), mAuthStrategy.getAuthenticationValue());
 		headers.put("Accept", "application/xml");
 		try {
 			RestResponse response = mRestClient.executeGet(uri, headers);

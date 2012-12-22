@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.params.HttpParams;
 
 import com.clarionmedia.infinitum.http.rest.impl.RestResponse;
@@ -87,8 +88,7 @@ public interface RestfulClient {
 	 * 
 	 * @return HTTP response
 	 */
-	RestResponse executePost(String uri, String messageBody,
-			String contentType, Map<String, String> headers);
+	RestResponse executePost(String uri, String messageBody, String contentType, Map<String, String> headers);
 
 	/**
 	 * Executes an HTTP POST request to the given URI using the given
@@ -115,8 +115,7 @@ public interface RestfulClient {
 	 * 
 	 * @return HTTP response
 	 */
-	RestResponse executePost(String uri, HttpEntity httpEntity,
-			Map<String, String> headers);
+	RestResponse executePost(String uri, HttpEntity httpEntity, Map<String, String> headers);
 
 	/**
 	 * Executes an HTTP POST request to the given URI using the given content
@@ -132,8 +131,7 @@ public interface RestfulClient {
 	 *            the content type of the message body
 	 * @return HTTP response
 	 */
-	RestResponse executePost(String uri, InputStream messageBody,
-			int messageBodyLength, String contentType);
+	RestResponse executePost(String uri, InputStream messageBody, int messageBodyLength, String contentType);
 
 	/**
 	 * Executes an HTTP POST request to the given URI using the given content
@@ -151,9 +149,7 @@ public interface RestfulClient {
 	 *            the headers to send with the request
 	 * @return HTTP response
 	 */
-	RestResponse executePost(String uri, InputStream messageBody,
-			int messageBodyLength, String contentType,
-			Map<String, String> headers);
+	RestResponse executePost(String uri, InputStream messageBody, int messageBodyLength, String contentType, Map<String, String> headers);
 
 	/**
 	 * Executes an HTTP DELETE request to the given URI.
@@ -204,8 +200,7 @@ public interface RestfulClient {
 	 * 
 	 * @return HTTP response
 	 */
-	RestResponse executePut(String uri, String messageBody, String contentType,
-			Map<String, String> headers);
+	RestResponse executePut(String uri, String messageBody, String contentType, Map<String, String> headers);
 
 	/**
 	 * Executes an HTTP PUT request to the given URI using the given
@@ -232,8 +227,7 @@ public interface RestfulClient {
 	 * 
 	 * @return HTTP response
 	 */
-	RestResponse executePut(String uri, HttpEntity httpEntity,
-			Map<String, String> headers);
+	RestResponse executePut(String uri, HttpEntity httpEntity, Map<String, String> headers);
 
 	/**
 	 * Executes an HTTP PUT request to the given URI using the given content
@@ -249,8 +243,7 @@ public interface RestfulClient {
 	 *            the content type of the message body
 	 * @return HTTP response
 	 */
-	RestResponse executePut(String uri, InputStream messageBody,
-			int messageBodyLength, String contentType);
+	RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType);
 
 	/**
 	 * Executes an HTTP PUT request to the given URI using the given content
@@ -268,9 +261,16 @@ public interface RestfulClient {
 	 *            the headers to send with the request
 	 * @return HTTP response
 	 */
-	RestResponse executePut(String uri, InputStream messageBody,
-			int messageBodyLength, String contentType,
-			Map<String, String> headers);
+	RestResponse executePut(String uri, InputStream messageBody, int messageBodyLength, String contentType, Map<String, String> headers);
+
+	/**
+	 * Executes the given {@link HttpUriRequest}.
+	 * 
+	 * @param request
+	 *            the request to execute
+	 * @return HTTP response
+	 */
+	RestResponse executeRequest(HttpUriRequest request);
 
 	/**
 	 * Sets the connection timeout in milliseconds. This is the timeout used
@@ -298,5 +298,14 @@ public interface RestfulClient {
 	 *            the {@code HttpParams} to set
 	 */
 	void setHttpParams(HttpParams httpParams);
+
+	/**
+	 * Sets the {@link AuthenticationStrategy} to use for requests.
+	 * 
+	 * @param authStrategy
+	 *            the {@code AuthenticationStrategy} to use or {@code null} if
+	 *            there should be none
+	 */
+	void setAuthStrategy(AuthenticationStrategy authStrategy);
 
 }

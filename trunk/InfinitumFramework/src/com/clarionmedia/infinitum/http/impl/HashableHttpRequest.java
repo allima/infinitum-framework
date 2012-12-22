@@ -19,11 +19,13 @@
 
 package com.clarionmedia.infinitum.http.impl;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.RequestWrapper;
 
 import com.clarionmedia.infinitum.http.HttpClientRequest;
 
@@ -39,16 +41,16 @@ import com.clarionmedia.infinitum.http.HttpClientRequest;
  */
 public class HashableHttpRequest implements HttpClientRequest {
 
-	private HttpUriRequest mHttpRequest;
+	private RequestWrapper mHttpRequest;
 
 	/**
 	 * Creates a new {@code HashableHttpRequest} for the given
-	 * {@link HttpUriRequest}.
+	 * {@link RequestWrapper}.
 	 * 
 	 * @param request
-	 *            the {@code HttpUriRequest} to wrap
+	 *            the {@code RequestWrapper} to wrap
 	 */
-	public HashableHttpRequest(HttpUriRequest request) {
+	public HashableHttpRequest(RequestWrapper request) {
 		mHttpRequest = request;
 	}
 	
@@ -77,10 +79,20 @@ public class HashableHttpRequest implements HttpClientRequest {
 		}
 		return sb.toString();
 	}
+	
+	@Override
+	public void addHeader(String header, String value) {
+		mHttpRequest.addHeader(header, value);
+	}
 
 	@Override
 	public String getRequestUri() {
 		return mHttpRequest.getURI().toString();
+	}
+	
+	@Override
+	public void setRequestUri(String uri) {
+		mHttpRequest.setURI(URI.create(uri));
 	}
 	
 	@Override

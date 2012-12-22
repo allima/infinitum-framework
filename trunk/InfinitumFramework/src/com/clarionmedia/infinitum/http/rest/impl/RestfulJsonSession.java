@@ -55,17 +55,10 @@ public class RestfulJsonSession extends RestfulSession {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T loadEntity(Class<T> type, Serializable id)
-			throws InfinitumRuntimeException, IllegalArgumentException {
+	public <T> T loadEntity(Class<T> type, Serializable id) throws InfinitumRuntimeException, IllegalArgumentException {
 		mLogger.debug("Sending GET request to retrieve entity");
-		String uri = mHost + mPersistencePolicy.getRestEndpoint(type) + "/"
-				+ id;
-		if (mIsAuthenticated && !mAuthStrategy.isHeader())
-			uri += '?' + mAuthStrategy.getAuthenticationString();
+		String uri = mHost + mPersistencePolicy.getRestEndpoint(type) + "/" + id;
 		Map<String, String> headers = new HashMap<String, String>();
-		if (mIsAuthenticated && mAuthStrategy.isHeader())
-			headers.put(mAuthStrategy.getAuthenticationKey(),
-					mAuthStrategy.getAuthenticationValue());
 		headers.put("Accept", "application/json");
 		try {
 			RestResponse response = mRestClient.executeGet(uri, headers);
@@ -74,8 +67,7 @@ public class RestfulJsonSession extends RestfulSession {
 				T ret;
 				// Attempt to use a registered deserializer
 				if (mJsonDeserializers.containsKey(type))
-					ret = (T) mJsonDeserializers.get(type).deserializeObject(
-							jsonResponse);
+					ret = (T) mJsonDeserializers.get(type).deserializeObject(jsonResponse);
 				// Otherwise fallback to Gson
 				else
 					ret = new Gson().fromJson(jsonResponse, type);
@@ -91,8 +83,7 @@ public class RestfulJsonSession extends RestfulSession {
 	}
 
 	@Override
-	public <T> Session registerDeserializer(Class<T> type,
-			Deserializer<T> deserializer) {
+	public <T> Session registerDeserializer(Class<T> type, Deserializer<T> deserializer) {
 		if (JsonDeserializer.class.isAssignableFrom(deserializer.getClass()))
 			mJsonDeserializers.put(type, (JsonDeserializer<T>) deserializer);
 		return this;
