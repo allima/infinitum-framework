@@ -8,7 +8,7 @@
 
 = Introduction =
 
-Infinitum is an extensible, robust framework enabling Android developers to quickly and efficiently create rich, domain-driven applications while facilitating the convention-over-configuration paradigm. Infinitum's core components include an ORM and a RESTful web service client.
+Infinitum is an extensible, robust framework enabling Android developers to quickly and efficiently create rich, domain-driven applications while facilitating the convention-over-configuration paradigm. Infinitum's core components include an ORM, DI, AOP and RESTful web service module.
 
 This user guide is designed to provide explanation for some of the various framework features and, perhaps more important, how to use them.
 
