@@ -19,16 +19,7 @@
 
 package com.clarionmedia.infinitum.internal;
 
-import java.io.IOException;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import android.content.res.XmlResourceParser;
-
-import com.clarionmedia.infinitum.context.ContextFactory;
 import com.clarionmedia.infinitum.exception.InfinitumRuntimeException;
-import com.clarionmedia.infinitum.orm.exception.InvalidMapFileException;
 import com.clarionmedia.infinitum.orm.persistence.PersistencePolicy;
 
 /**
@@ -89,46 +80,6 @@ public class Preconditions {
 	public static void checkPersistenceForLoading(Class<?> c, PersistencePolicy policy) {
 		if (!policy.isPersistent(c))
 			throw new InfinitumRuntimeException(String.format("Cannot load transient class '%s'.", c.getName()));
-	}
-
-	/**
-	 * Verifies that the map file referenced by the given
-	 * {@link XmlResourceParser} references the given {@link Class}.
-	 * 
-	 * @param c
-	 *            the {@code Class} to check for
-	 * @param parser
-	 *            the {@code XmlResourceParser} reading the XML file
-	 */
-	public static void checkMapFileClass(Class<?> c, XmlResourceParser parser) {
-		PropertyLoader propLoader = new PropertyLoader(ContextFactory
-				.newInstance().getAndroidContext());
-		try {
-			int code = parser.getEventType();
-			while (code != XmlPullParser.END_DOCUMENT) {
-				if (code == XmlPullParser.START_TAG
-						&& parser.getName().equalsIgnoreCase(
-								propLoader.getPersistenceValue("ELEM_CLASS"))) {
-					String name = parser.getAttributeValue(null,
-							propLoader.getPersistenceValue("ATTR_NAME"));
-					if (name == null)
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file does not specify class name.");
-					if (!name.equalsIgnoreCase(c.getName()))
-						throw new InvalidMapFileException("'" + c.getName()
-								+ "' map file references the wrong class.");
-					else
-						break;
-				}
-				code = parser.next();
-			}
-		} catch (XmlPullParserException e) {
-			throw new InvalidMapFileException(
-					"Unable to parse XML map file for '" + c.getName() + "'.");
-		} catch (IOException e) {
-			throw new InvalidMapFileException(
-					"Unable to parse XML map file for '" + c.getName() + "'.");
-		}
 	}
 
 }
