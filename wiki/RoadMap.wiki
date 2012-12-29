@@ -13,10 +13,9 @@
 
 *Modular Distribution:* Although we're doing our best to minimize the footprint of the overall framework, we're also working towards a modular distribution that will allow developers to pick and choose, à la carte, the framework modules they want to include in their applications, e.g. ORM, DI, AOP, and HTTP modules. If all you need is a REST client, why include all that other stuff?
 
+*Cache Abstraction:* Transparent caching for methods through annotations.
 
 = What's Planned =
-
-*Cache Abstraction:* Transparent caching for methods through annotations.
 
 *Paged Lazy Loading:* Collections are currently lazily loaded by loading the entire collection on request, so it's planned to implement paged collections which load and unload collection entities lazily.
 
